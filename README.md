@@ -43,13 +43,14 @@
 </tbody></table>
 
 
+### 技术框架介绍
+
+
 <br>
 
 :rocket: NIUSHOP V6 JAVA多商户应用基于niucloud-Admin-Java框架研发， **一切插件化** ！！！= niucloud-Admin-Java框架 + 应用1 + 应用2 + 应用N + 插件1 + 插件2 + 插件N + ... 
 
-
-
-### 框架介绍
+<br>
 niucloud-Admin-Java（niucloud框架）是一款快速开发SaaS通用管理系统后台框架，基于SpringBoot+MyBatisPlus+Sa-Token 技术架构精心设计，易读易懂，没有任何其它重度依赖，架构设计小巧灵活，没有采用过度设计模式。 前端采用最新的技术栈Vite+TypeScript+Vue3+ElementPlus最流行技术架构。是一款快速可以开发企业级应用的软件系统。【您不需要重复造轮子 – 框架内置已经实现基础组件功能，您只需要开发业务模块即可 】!
 
   
