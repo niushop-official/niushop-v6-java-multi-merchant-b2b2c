@@ -1,7 +1,9 @@
 # NIUSHOP V6 JAVA多商户B2B2C开源版
 
 ###  ![输入图片说明](https://media.niucloud.com/17640347203cb0271ff44c70f0f1bb11513fd16aa9_aliyun.jpg)   
+<br>
 
+:fa-quote-left:  如果对您有帮助，您可以点右上角 ⭐“Star” 收藏一下 ，获取第一时间更新，谢谢！ :fa-quote-right: 
 ### 技术架构
 
   **SpringBoot+MyBatisPlus+Sa-Token**   
@@ -18,11 +20,9 @@
 
 <br>
 
-:rocket: 使用niucloud-Admin-Java框架，我们开发一个软件系统， **一切插件化** ！！！= niucloud-Admin-Java框架 + 应用1 + 应用2 + 应用N + 插件1 + 插件2 + 插件N + ... 
+:rocket: NIUSHOP V6 JAVA多商户应用基于niucloud-Admin-Java框架研发， **一切插件化** ！！！= niucloud-Admin-Java框架 + 应用1 + 应用2 + 应用N + 插件1 + 插件2 + 插件N + ... 
 
-<br>
 
-:fa-quote-left:  如果对您有帮助，您可以点右上角 ⭐“Star” 收藏一下 ，获取第一时间更新，谢谢！ :fa-quote-right: 
 
 ### 框架介绍
 niucloud-Admin-Java（niucloud框架）是一款快速开发SaaS通用管理系统后台框架，基于SpringBoot+MyBatisPlus+Sa-Token 技术架构精心设计，易读易懂，没有任何其它重度依赖，架构设计小巧灵活，没有采用过度设计模式。 前端采用最新的技术栈Vite+TypeScript+Vue3+ElementPlus最流行技术架构。是一款快速可以开发企业级应用的软件系统。【您不需要重复造轮子 – 框架内置已经实现基础组件功能，您只需要开发业务模块即可 】!
