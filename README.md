@@ -18,6 +18,31 @@
  
 
 
+### NIUSHOP V6 JAVA多商户商城界面截图  :point_right:   SHOP
+
+ **平台管理端** 
+![](https://media.niucloud.com/1764036666ad60b177e99cf33336efc730e2d32772_aliyun.jpg)
+ **站点管理端** 
+![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_shop1.png)
+
+ **前端H5** 
+<table>
+    <tbody>
+    <tr>
+        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop3.jpg"></td>
+        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop7.jpg"></td>
+        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop9.jpg"></td>
+        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop11.jpg"></td>
+    </tr>
+    <tr>
+        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop6.jpg"></td>
+        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop10.jpg"></td>
+        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop12.jpg"></td>
+        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop13.jpg"></td>
+    </tr>	 
+</tbody></table>
+
+
 <br>
 
 :rocket: NIUSHOP V6 JAVA多商户应用基于niucloud-Admin-Java框架研发， **一切插件化** ！！！= niucloud-Admin-Java框架 + 应用1 + 应用2 + 应用N + 插件1 + 插件2 + 插件N + ... 
@@ -163,23 +188,6 @@ niucloud-admin-java
 | MySQL | 8.0 / 5.7 | 数据库    |
 
 
-### NIUSHOP V6 JAVA多商户商城插件  :point_right:   SHOP
-![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_shop1.png)
-<table>
-    <tbody>
-    <tr>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop3.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop7.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop9.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop11.jpg"></td>
-    </tr>
-    <tr>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop6.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop10.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop12.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop13.jpg"></td>
-    </tr>	 
-</tbody></table>
 
 ### NIUCLOUD JAVA SAAS多租户框架界面截图
 ![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj2.png)
