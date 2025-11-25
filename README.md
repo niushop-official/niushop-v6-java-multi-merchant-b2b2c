@@ -5,15 +5,13 @@
 ### 技术架构
  **SpringBoot+MyBatisPlus+Sa-Token**   
  **Vite+TypeScript+Vue3+ElementPlus** 
-插件化架构
-个性化DIY组件
-一键云安装
-一键云编译
-支持微信公众号/小程序/H5/PC/APP多端数据同步
-代码100%开源 二开方便 文档完善
+ **插件化架构设计+组件DIY自定义+页面个性化DIY** 
+ **一键云安装** 
+ **一键云编译** 
+ **支持微信公众号/小程序/H5/PC/APP多端数据同步** 
+ **代码100%开源 二开方便 文档完善** 
 
 <br>
-
 
 :rocket: 使用niucloud-Admin-Java框架，我们开发一个软件系统， **一切插件化** ！！！= niucloud-Admin-Java框架 + 应用1 + 应用2 + 应用N + 插件1 + 插件2 + 插件N + ... 
 
