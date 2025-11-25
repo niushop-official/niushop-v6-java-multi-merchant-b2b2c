@@ -3,18 +3,17 @@
 ###  ![输入图片说明](https://media.niucloud.com/17640347203cb0271ff44c70f0f1bb11513fd16aa9_aliyun.jpg)   
 
 ### 技术架构
- **SpringBoot+MyBatisPlus+Sa-Token**   
- **Vite+TypeScript+Vue3+ElementPlus** 
 
- **插件化架构设计+组件DIY自定义+页面个性化DIY** 
+  **SpringBoot+MyBatisPlus+Sa-Token**   
+  **Vite+TypeScript+Vue3+ElementPlus**<br>
 
- **一键云安装** 
 
- **一键云编译** 
+  **插件化架构设计+组件DIY自定义+页面个性化DIY** <br>
+  **一键云安装** <br>
+  **一键云编译** <br>
+  **支持微信公众号/小程序/H5/PC/APP多端数据同步** <br>
+  **代码100%开源 二开方便 文档完善** 
 
- **支持微信公众号/小程序/H5/PC/APP多端数据同步** 
-
- **代码100%开源 二开方便 文档完善** 
 
 
 <br>
