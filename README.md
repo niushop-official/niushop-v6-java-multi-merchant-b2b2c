@@ -163,13 +163,7 @@ niucloud-admin-java
 | MySQL | 8.0 / 5.7 | 数据库    |
 
 
-### 界面截图
-![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj2.png)
-![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj3.png)
-![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj4.png)
-
-
-### 商城插件  :point_right:   SHOP
+### NIUSHOP V6 JAVA多商户商城插件  :point_right:   SHOP
 ![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_shop1.png)
 <table>
     <tbody>
@@ -186,6 +180,12 @@ niucloud-admin-java
         <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop13.jpg"></td>
     </tr>	 
 </tbody></table>
+
+### NIUCLOUD JAVA SAAS多租户框架界面截图
+![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj2.png)
+![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj3.png)
+![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj4.png)
+
 
 niucloud-Admin-Java 程序员二开神器！
 
