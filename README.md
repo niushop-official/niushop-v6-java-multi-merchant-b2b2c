@@ -5,11 +5,17 @@
 ### 技术架构
  **SpringBoot+MyBatisPlus+Sa-Token**   
  **Vite+TypeScript+Vue3+ElementPlus** 
+
  **插件化架构设计+组件DIY自定义+页面个性化DIY** 
+
  **一键云安装** 
+
  **一键云编译** 
+
  **支持微信公众号/小程序/H5/PC/APP多端数据同步** 
+
  **代码100%开源 二开方便 文档完善** 
+
 
 <br>
 
