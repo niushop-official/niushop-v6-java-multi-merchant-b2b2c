@@ -57,14 +57,14 @@ niucloud-Admin-Java（niucloud框架）是一款快速开发SaaS通用管理系�
 ### 快速链接
 
 演示地址：
-平台端: https://b2b2c.beta.niucloud.com/admin/login      账号：admin   密码：123456
-店铺端: https://b2b2c.beta.niucloud.com/site/login      账号：admin   密码：123456
-pc端：https://b2b2c.beta.niucloud.com
-手机网页：https://b2b2c.beta.niucloud.com/wap/
+平台端: https://b2b2c.beta.niucloud.com/admin/login      账号：admin   密码：123456  <br>
+店铺端: https://b2b2c.beta.niucloud.com/site/login      账号：admin   密码：123456   <br>
+pc端：https://b2b2c.beta.niucloud.com  <br>
+手机网页：https://b2b2c.beta.niucloud.com/wap/  <br>
 
-文档地址：https://doc.niucloud.com/b2b2cJava
+文档地址：https://doc.niucloud.com/b2b2cJava  <br>
 
-云应用市场：https://www.niucloud.com/app
+云应用市场：https://www.niucloud.com/app   <br>
 
 
 ### NIUCLOUD 开发者生态圈，云应用市场
