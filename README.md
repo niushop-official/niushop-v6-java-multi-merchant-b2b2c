@@ -3,7 +3,8 @@
 ###  ![输入图片说明](https://media.niucloud.com/17640347203cb0271ff44c70f0f1bb11513fd16aa9_aliyun.jpg)   
 
 ### 技术架构
-SpringBoot+MyBatisPlus+Sa-Token  Vite+TypeScript+Vue3+ElementPlus
+ **SpringBoot+MyBatisPlus+Sa-Token**   
+ **Vite+TypeScript+Vue3+ElementPlus** 
 插件化架构
 个性化DIY组件
 一键云安装
