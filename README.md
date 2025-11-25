@@ -1,7 +1,15 @@
 # NIUSHOP V6 JAVA多商户B2B2C开源版
 
-###  ![输入图片说明](https://media.niucloud.com/17640347203cb0271ff44c70f0f1bb11513fd16aa9_aliyun.jpg)   一款支持插件化+云安装+云编译 快速开发SAAS多用户系统后台管理框架! 
+###  ![输入图片说明](https://media.niucloud.com/17640347203cb0271ff44c70f0f1bb11513fd16aa9_aliyun.jpg)   
 
+### 技术架构
+SpringBoot+MyBatisPlus+Sa-Token  Vite+TypeScript+Vue3+ElementPlus
+插件化架构
+个性化DIY组件
+一键云安装
+一键云编译
+支持微信公众号/小程序/H5/PC/APP多端数据同步
+代码100%开源 二开方便 文档完善
 
 <br>
 
