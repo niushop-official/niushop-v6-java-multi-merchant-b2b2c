@@ -1,0 +1,24 @@
+package com.niu.mall.service.api.marketing.param;
+
+import lombok.Data;
+
+import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
+
+/**
+ * 优惠券领用参数
+*/
+@Data
+public class MallCouponReceiveParam implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @NotNull(message = "couponId参数缺失")
+    private Integer couponId;
+
+    @NotNull(message = "number参数缺失")
+    private Integer number;
+
+    private String type = "receive";
+
+}

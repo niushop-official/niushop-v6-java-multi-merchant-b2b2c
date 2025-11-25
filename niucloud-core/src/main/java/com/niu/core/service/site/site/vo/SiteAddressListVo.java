@@ -1,0 +1,40 @@
+package com.niu.core.service.site.site.vo;
+
+import lombok.Data;
+
+import java.io.Serializable;
+
+/**
+ * ShopAddress列表视图
+ */
+@Data
+public class SiteAddressListVo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private Integer id;  //
+    private String shopName;  // 站点名称
+    private Integer siteId;  // 站点id
+    private String contactName;  // 联系人
+    private String mobile;  // 手机号
+    private Integer provinceId;  // 省
+    private Integer cityId;  // 市
+    private Integer districtId;  // 区
+    private String address;  // 详细地址
+    private String fullAddress;  // 地址
+    private String lat;  // 纬度
+    private String lng;  // 经度
+    private Integer isDeliveryAddress;  // 是否是发货地址
+    private Integer isRefundAddress;  // 是否是退货地址
+    private Integer isDefaultDelivery;  // 默认发货地址
+    private Integer isDefaultRefund;  // 默认收货地址
+    /** 门店编号 */
+    private String shopNo;
+
+    /** 支持的三方配送 */
+    private String supportDelivery;
+
+    /** 第三方配送扩展数据 */
+    private String extendData;
+
+}

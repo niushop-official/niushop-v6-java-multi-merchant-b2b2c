@@ -1,0 +1,12 @@
+{
+  "merchant": {
+    "name": "商家配送",
+    "key": "merchant",
+    "params": [],
+    "component": "",
+    "business_list": "",
+    "extend_data": [],
+    "is_merchant": 1,
+    "driver": "com.niu.core.service.core.local_delivery.driver.Merchant"
+  }
+}

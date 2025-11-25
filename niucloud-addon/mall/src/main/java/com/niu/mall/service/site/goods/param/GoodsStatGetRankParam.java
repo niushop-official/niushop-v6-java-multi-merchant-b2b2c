@@ -1,0 +1,14 @@
+package com.niu.mall.service.site.goods.param;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class GoodsStatGetRankParam {
+    private List<Integer> categoryIds;
+    private String type;
+    private String date;
+    private String goodsName;
+    private Integer pageNum;
+}

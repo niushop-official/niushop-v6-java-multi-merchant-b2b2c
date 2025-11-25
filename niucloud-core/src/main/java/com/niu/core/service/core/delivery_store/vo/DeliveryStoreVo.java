@@ -1,0 +1,28 @@
+package com.niu.core.service.core.delivery_store.vo;
+
+import lombok.Data;
+
+import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
+
+@Data
+public class DeliveryStoreVo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private Boolean success = false;
+
+    private String reason = "";
+
+    private List<Trace> list = new LinkedList<>();
+
+    private Integer status = 0;
+
+    @Data
+    public static class Trace {
+        private String datetime;
+
+        private String remark;
+    }
+}

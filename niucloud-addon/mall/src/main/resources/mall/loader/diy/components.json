@@ -1,0 +1,907 @@
+{
+  "MALL_COMPONENT": {
+    "title": "商城组件",
+    "list": {
+      "MallGoodsList": {
+        "title": "商品列表",
+        "icon": "iconfont iconshangpinliebiao",
+        "path": "edit-mall-goods-list",
+        "support_page": [],
+        "uses": 0,
+        "sort": 10011,
+        "value": {
+          "style": "style-1",
+          "source": "all",
+          "num": 10,
+          "goods_category": "",
+          "goods_category_name": "请选择",
+          "goods_ids": [],
+          "position": {
+            "control": false
+          },
+          "localDelivery": {
+            "control": false
+          },
+          "sortWay": "default",
+          "goodsNameStyle": {
+            "color": "#303133",
+            "control": true,
+            "fontWeight": "normal",
+            "isShow": true
+          },
+          "priceStyle": {
+            "color": "#FF4142",
+            "control": true,
+            "isShow": true
+          },
+          "saleStyle": {
+            "color": "#999999",
+            "control": true,
+            "isShow": true
+          },
+          "labelStyle": {
+            "control": true,
+            "isShow": true
+          },
+          "distanceStyle": {
+            "control": true,
+            "isShow": true
+          },
+          "btnStyle": {
+            "fontWeight": false,
+            "padding": 0,
+            "aroundRadius": 25,
+            "cartEvent": "detail",
+            "text": "购买",
+            "textColor": "#FFFFFF",
+            "startBgColor": "#FF4142",
+            "endBgColor": "#FF4142",
+            "style": "button",
+            "control": true
+          },
+          "imgElementRounded": 10
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 10,
+          "bottomElementRounded": 10,
+          "margin": {
+            "top": 0,
+            "bottom": 0,
+            "both": 10
+          }
+        }
+      },
+      "MallSearch": {
+        "title": "搜索",
+        "icon": "iconfont iconsousuo",
+        "path": "edit-mall-search",
+        "support_page": ["DIY_INDEX"],
+        "uses": 1,
+        "sort": 10012,
+        "value": {
+          "searchStyle": "style-1",
+          "searchLink": {
+            "name": ""
+          },
+          "text": "请输入搜索关键词",
+          "iconType": "img",
+          "icon": "",
+          "imageUrl": ""
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 10,
+            "bottom": 10,
+            "both": 10
+          }
+        }
+      },
+      "MallManyGoodsList": {
+        "title": "多商品组",
+        "icon": "iconfont iconduoshangpinzu",
+        "path": "edit-mall-many-goods-list",
+        "support_page": [],
+        "uses": 0,
+        "sort": 10013,
+        "value": {
+          "style": "style-2",
+          "num": 6,
+          "sortWay": "default",
+          "headStyle": "style-1",
+          "aroundRadius": 25,
+          "source": "custom",
+          "goods_category": "",
+          "goods_category_name": "请选择",
+          "goodsNameStyle": {
+            "color": "#303133",
+            "control": true,
+            "fontWeight": "normal",
+            "isShow": true
+          },
+          "priceStyle": {
+            "color": "#FF4142",
+            "control": true,
+            "isShow": true
+          },
+          "saleStyle": {
+            "color": "#999999",
+            "control": true,
+            "isShow": true
+          },
+          "labelStyle": {
+            "control": true,
+            "isShow": true
+          },
+          "btnStyle": {
+            "fontWeight": false,
+            "padding": 0,
+            "aroundRadius": 25,
+            "cartEvent": "detail",
+            "text": "购买",
+            "textColor": "#FFFFFF",
+            "startBgColor": "#FF4142",
+            "endBgColor": "#FF4142",
+            "style": "button",
+            "control": true
+          },
+          "list": [
+            {
+              "title": "推荐",
+              "desc": "猜你喜欢",
+              "source": "all",
+              "goods_category": "",
+              "goods_category_name": "请选择",
+              "goods_ids": [],
+              "imageUrl": ""
+            }
+          ],
+          "imgElementRounded": 0
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 0,
+            "bottom": 0,
+            "both": 10
+          }
+        }
+      },
+      "MallGoodsCoupon": {
+        "title": "优惠券",
+        "icon": "iconfont iconyouhuiquan1",
+        "path": "edit-mall-goods-coupon",
+        "support_page": [],
+        "uses": 0,
+        "sort": 10014,
+        "value": {
+          "style": "style-1",
+          "styleName": "风格一",
+          "source": "all",
+          "num": 6,
+          "couponIds": [],
+          "btnText": "立即领取",
+          "couponTitle": "先领券 再购物",
+          "couponSubTitle": "领券下单 享购物优惠",
+          "titleColor": "#ffffff",
+          "subTitleColor": "#ffffff",
+          "couponItem": {
+            "bgColor": "#ffffff",
+            "bgUrl": "/addon/mall/diy/goods_coupon/style5_bg.png",
+            "textColor": "#333333",
+            "subTextColor": "#666666",
+            "moneyColor": "#333333",
+            "btnColor": "#333333",
+            "aroundRadius": 12
+          }
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 10,
+            "bottom": 10,
+            "both": 10
+          }
+        }
+      },
+      "MallMemberInfo": {
+        "title": "会员信息",
+        "icon": "iconfont iconhuiyuanzhongxin",
+        "path": "edit-mall-member-info",
+        "support_page": ["DIY_MEMBER_INDEX"],
+        "uses": 1,
+        "sort": 10015,
+        "value": {
+          "style": "style-1",
+          "styleName": "风格1",
+          "bgUrl": "",
+          "isShowAccount": true,
+          "uidTextColor": "#666666",
+          "accountTextColor": "#666666"
+        }
+      },
+      "MallShopInfo": {
+        "title": "商家信息",
+        "icon": "iconfont iconmendian",
+        "path": "edit-mall-shop-info",
+        "support_page": ["DIY_SITE_INDEX"],
+        "uses": 1,
+        "sort": 10022,
+        "position": "top_fixed",
+        "value": {
+          "positionWay": "static",
+          "fixedBgColor": "",
+          "bgGradient": false,
+          "bgImg": "/addon/mall/diy/site_index/style2/header_bg.jpg",
+          "bgOpacity": 80,
+          "search": {
+            "text": "请输入搜索关键词",
+            "link": {
+              "name": ""
+            },
+            "hotWord": {
+              "interval": 3,
+              "list": []
+            },
+            "color": "#ffffff",
+            "btnColor": "#EF000C",
+            "bgColor": "rgba(255, 255, 255, 0.2)",
+            "btnBgColor": "#ffffff"
+          },
+          "tab": {
+            "control": true,
+            "noColor": "#ffffff",
+            "selectColor": "#EF000C ",
+            "noBgColor": "transparent",
+            "selectBgColor": "#ffffff",
+            "list": [
+              {
+                "text": "新品",
+                "source": "diy_page",
+                "diy_id": "",
+                "diy_title": ""
+              },
+              {
+                "text": "热卖",
+                "source": "diy_page",
+                "diy_id": "",
+                "diy_title": ""
+              },
+              {
+                "text": "领券",
+                "source": "diy_page",
+                "diy_id": "",
+                "diy_title": ""
+              }
+            ]
+          },
+          "shop": {
+            "textColor": "#ffffff"
+          }
+        }
+      },
+      "MallOrderInfo": {
+        "title": "订单中心",
+        "icon": "iconfont icondingdanzhongxinPC-1",
+        "path": "edit-mall-order-info",
+        "support_page": ["DIY_MEMBER_INDEX"],
+        "uses": 1,
+        "sort": 10016,
+        "value": {
+          "textColor": "#303133",
+          "fontSize": 16,
+          "fontWeight": "normal",
+          "text": "订单中心",
+          "more": {
+            "text": "全部订单",
+            "color": "#999999"
+          },
+          "item": {
+            "fontSize": 12,
+            "fontWeight": "normal",
+            "color": "#303133"
+          }
+        }
+      },
+      "SingleRecommend": {
+        "title": "精选推荐",
+        "icon": "iconfont icona-jingxuantuijianpc30-12",
+        "path": "edit-single-recommend",
+        "support_page": [],
+        "uses": 0,
+        "sort": 10019,
+        "value": {
+          "titleStyle": {
+            "title": "风格1",
+            "value": "style-1"
+          },
+          "textImg": "addon/mall/diy/index/style2/single_recommend_text1.png",
+          "textLink": {
+            "name": ""
+          },
+          "titleColor": "#999999",
+          "subTitle": {
+            "text": "更多",
+            "textColor": "#999999",
+            "link": {
+              "name": ""
+            }
+          },
+          "source": "all",
+          "goods_ids": [],
+          "imageHeight": 250,
+          "list": [
+            {
+              "link": {
+                "name": ""
+              },
+              "imageUrl": "addon/mall/diy/index/style2/single_recommend_banner1.jpg",
+              "imgWidth": 345,
+              "imgHeight": 495
+            },
+            {
+              "link": {
+                "name": ""
+              },
+              "imageUrl": "addon/mall/diy/index/style2/single_recommend_banner2.jpg",
+              "imgWidth": 345,
+              "imgHeight": 495
+            }
+          ],
+          "goodsNameStyle": {
+            "color": "#303133",
+            "control": true,
+            "fontWeight": "normal"
+          },
+          "priceStyle": {
+            "mainColor": "#FF4142",
+            "mainControl": true,
+            "lineColor": "#999CA7",
+            "lineControl": true
+          },
+          "saleStyle": {
+            "color": "#FF0000",
+            "control": true
+          },
+          "topCarouselRounded": 12,
+          "bottomCarouselRounded": 12,
+          "indicatorColor": "rgba(255, 255, 255, 0.6)",
+          "indicatorActiveColor": "#ffffff"
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 10,
+            "bottom": 10,
+            "both": 10
+          }
+        }
+      },
+      "MallGoodsRanking": {
+        "title": "排行榜",
+        "icon": "iconfont icona-paihangbangpc30",
+        "path": "edit-mall-goods-ranking",
+        "support_page": ["DIY_INDEX"],
+        "uses": 0,
+        "sort": 10021,
+        "value": {
+          "list": [
+            {
+              "bgUrl": "addon/mall/rank/rank_bg_01.jpg",
+              "text": "热销排行榜",
+              "textColor": "#FFFFFF",
+              "imgUrl": "addon/mall/rank/rank_trophy.png",
+              "subTitle": {
+                "text": "查看更多",
+                "textColor": "#FFFFFF",
+                "link": {
+                  "name": "MALL_GOODS_RANK",
+                  "parent": "MALL_LINK",
+                  "title": "商品排行榜",
+                  "url": "/addon/mall/pages/goods/rank",
+                  "action": ""
+                }
+              },
+              "listFrame": {
+                "startColor": "#FEA715",
+                "endColor": "#FE1E00"
+              },
+              "source": "default",
+              "rankIds": []
+            },
+            {
+              "bgUrl": "addon/mall/rank/rank_bg_02.jpg",
+              "text": "人气排行榜",
+              "textColor": "#FFFFFF",
+              "imgUrl": "addon/mall/rank/rank_top.png",
+              "subTitle": {
+                "text": "查看更多",
+                "textColor": "#FFFFFF",
+                "link": {
+                  "name": "MALL_GOODS_RANK",
+                  "parent": "MALL_LINK",
+                  "title": "商品排行榜",
+                  "url": "/addon/mall/pages/goods/rank",
+                  "action": ""
+                }
+              },
+              "listFrame": {
+                "startColor": "#FEA715",
+                "endColor": "#FE1E00"
+              },
+              "source": "default",
+              "rankIds": []
+            }
+          ]
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 10,
+          "bottomElementRounded": 10,
+          "margin": {
+            "top": 10,
+            "bottom": 10,
+            "both": 10
+          }
+        }
+      },
+      "MallShopList": {
+        "title": "甄选好店",
+        "icon": "nc-iconfont nc-icon-dianpuV6xx",
+        "path": "edit-mall-shop-list",
+        "support_page": ["DIY_INDEX"],
+        "uses": 0,
+        "sort": 10011,
+        "value": {
+          "titleStyle": {
+            "title": "风格1",
+            "value": "style-1"
+          },
+          "textImg": "addon/mall/diy/mall_shop_list/index/title.png",
+          "siteColor": "#333333",
+          "subTitle": {
+            "text": "更多",
+            "textColor": "#999999",
+            "link": {
+              "name": ""
+            }
+          },
+          "distance": {
+            "isShow": true,
+            "sort": "mall_sale_num"
+          },
+          "style": "style-1",
+          "source": "all",
+          "num": 10,
+          "site_ids": [],
+          "siteStyle": {
+            "startBgColor": "#FFC3C4",
+            "endBgColor": "#FFDABA",
+            "gradientAngle": "to bottom",
+            "bgUrl": "/addon/mall/diy/mall_shop_list/index/bgUrl.jpg"
+          },
+          "siteNameStyle": {
+            "color": "#303133",
+            "fontWeight": "normal",
+            "isShow": true
+          },
+          "imgElementRounded": 10
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 10,
+          "bottomElementRounded": 10,
+          "margin": {
+            "top": 10,
+            "bottom": 0,
+            "both": 10
+          }
+        }
+      }
+    }
+  },
+  "MALL_GOODS_DETAIL_COMPONENT": {
+    "title": "商品详情组件",
+    "list": {
+      "MallGoodsDetailBasicInfo": {
+        "title": "基础信息",
+        "icon": "iconfont iconjichuxinxi",
+        "path": "edit-mall-goods-detail-basic-info",
+        "support_page": ["DIY_MALL_GOODS_DETAIL"],
+        "uses": 1,
+        "sort": 10011,
+        "position": "top_fixed",
+        "value": {
+          "menuContent": "index,search,cart,member",
+          "medium": {
+            "type": "square_img",
+            "indicator": true
+          },
+          "priceRegion": {
+            "showWay": "normal",
+            "bgImg": "addon/mall/diy/goods_detail/style_01.jpg",
+            "marketingBgImg": "addon/mall/diy/goods_detail/marketing_style_01.jpg",
+            "goodsStyle": {
+              "title": "风格1",
+              "value": "style-1"
+            },
+            "marketingStyle": {
+              "title": "风格1",
+              "value": "style-1"
+            }
+          },
+          "goodsInfo": {
+            "titleColor": "#333333",
+            "subTitleColor": "#999999",
+            "saleInfoColor": "#999999",
+            "priceTopRounded": 20,
+            "priceBottomRounded": 0,
+            "topRounded": 20,
+            "bottomRounded": 0,
+            "priceBgColor": "",
+            "startBgColor": "#ffffff",
+            "endBgColor": "#f6f6f6",
+            "priceAboutMargin": 0,
+            "priceTopMargin": -22,
+            "topMargin": -17,
+            "aboutMargin": 0
+          },
+          "saleInfo": ["underlined_price","sales","stock"]
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 0,
+            "bottom": 0,
+            "both": 0
+          }
+        }
+      },
+      "MallGoodsDetailPurchaseService": {
+        "title": "商品服务",
+        "icon": "iconfont iconshangpinfuwu1",
+        "path": "edit-mall-goods-detail-purchase-service",
+        "support_page": ["DIY_MALL_GOODS_DETAIL"],
+        "uses": 1,
+        "sort": 10012,
+        "value": {
+          "serviceConfig": ["goods_service","spec_select","delivery_info","coupons","activity"]
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "#FFFFFF",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 12,
+          "bottomRounded": 12,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 12,
+            "bottom": 0,
+            "both": 10
+          }
+        }
+      },
+      "MallGoodsDetailEvaluate": {
+        "title": "商品评价",
+        "icon": "iconfont iconshangpinpingjia1",
+        "path": "edit-mall-goods-detail-evaluate",
+        "support_page": ["DIY_MALL_GOODS_DETAIL"],
+        "uses": 1,
+        "sort": 10014,
+        "value": {
+          "isShow": true
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "#FFFFFF",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 12,
+          "bottomRounded": 12,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 12,
+            "bottom": 0,
+            "both": 10
+          }
+        }
+      },
+      "MallGoodsDetailAttr": {
+        "title": "商品属性",
+        "icon": "iconfont iconshangpinshuxing",
+        "path": "edit-mall-goods-detail-attr",
+        "support_page": ["DIY_MALL_GOODS_DETAIL"],
+        "uses": 1,
+        "sort": 10015,
+        "value": {
+          "isShow": true
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "#FFFFFF",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 12,
+          "bottomRounded": 12,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 12,
+            "bottom": 0,
+            "both": 10
+          }
+        }
+      },
+      "MallGoodsDetailDesc": {
+        "title": "商品详情",
+        "icon": "iconfont iconshangpinxiangqing",
+        "path": "edit-mall-goods-detail-desc",
+        "support_page": ["DIY_MALL_GOODS_DETAIL"],
+        "uses": 1,
+        "sort": 10016,
+        "value": {
+          "isShow": true
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "#FFFFFF",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 12,
+          "bottomRounded": 12,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 12,
+            "bottom": 20,
+            "both": 10
+          }
+        }
+      },
+      "MallGoodsDetailBottom": {
+        "title": "底部菜单",
+        "icon": "iconfont icondibucaidan",
+        "path": "edit-mall-goods-detail-bottom",
+        "support_page": ["DIY_MALL_GOODS_DETAIL"],
+        "position": "bottom_fixed",
+        "uses": 1,
+        "sort": 10017,
+        "value": {
+          "menuContent": ["index","service","cart"],
+          "cartName": "加入购物车",
+          "buyName": "立即购买",
+          "cartIsShow": true,
+          "cartStyle": {
+            "textColor": "#FFFFFF",
+            "fontSize": 16,
+            "gradientAngle": "to right",
+            "startColor": "#FFB000",
+            "endColor": "#FFA029"
+          },
+          "buyStyle": {
+            "textColor": "#FFFFFF",
+            "fontSize": 16,
+            "gradientAngle": "to right",
+            "startColor": "#FB7939",
+            "endColor": "#FF4142"
+          }
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "#FFFFFF",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 0,
+            "bottom": 0,
+            "both": 0
+          }
+        }
+      },
+      "MallGoodsDetailSow": {
+        "title": "种草秀",
+        "icon": "iconfont iconzhongcaoxiu",
+        "path": "edit-mall-goods-detail-sow",
+        "support_page": ["DIY_MALL_GOODS_DETAIL"],
+        "uses": 0,
+        "sort": 10018,
+        "value": {
+          "isShow": true
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "#FFFFFF",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 12,
+          "bottomRounded": 12,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 12,
+            "bottom": 0,
+            "both": 10
+          }
+        }
+      },
+      "MallGoodsDetailShopInfo": {
+        "title": "店铺信息",
+        "icon": "iconfont iconzhongcaoxiu",
+        "path": "edit-mall-goods-detail-shop-info",
+        "support_page": ["DIY_MALL_GOODS_DETAIL"],
+        "uses": 0,
+        "sort": 10019,
+        "value": {
+          "isShow": true,
+          "recommend": {
+            "isShow": true,
+            "num": 3
+          }
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "#FFFFFF",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 12,
+          "bottomRounded": 12,
+          "elementBgColor": "",
+          "topElementRounded": 0,
+          "bottomElementRounded": 0,
+          "margin": {
+            "top": 12,
+            "bottom": 0,
+            "both": 10
+          }
+        }
+      }
+    }
+  }
+}

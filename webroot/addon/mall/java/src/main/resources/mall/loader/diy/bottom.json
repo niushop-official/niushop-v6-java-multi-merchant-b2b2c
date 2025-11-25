@@ -1,0 +1,66 @@
+{
+	"key": "mall",
+	"value": {
+		"backgroundColor": "#ffffff",
+		"textColor": "#333333",
+		"textHoverColor": "#F92510",
+		"type": "1",
+		"list": [
+			{
+				"text": "首页",
+				"link": {
+					"parent": "MALL_LINK",
+					"name": "MALL_INDEX",
+					"title": "get_lang ('dict_diy.mall_link_index')",
+					"url": "/app/pages/index/index"
+				},
+				"iconPath": "addon/mall/diy/tabbar/system-home.png",
+				"iconSelectPath": "addon/mall/diy/tabbar/system-home-selected.png"
+			},
+			{
+				"text": "商品分类",
+				"link": {
+					"parent": "MALL_LINK",
+					"name": "MALL_GOODS_CATEGORY",
+					"title": "商品分类",
+					"url": "/addon/mall/pages/goods/category"
+				},
+				"iconPath": "addon/mall/diy/tabbar/system-category.png",
+				"iconSelectPath": "addon/mall/diy/tabbar/system-category-selected.png"
+			},
+			{
+				"text": "店铺街",
+				"link": {
+					"parent": "MALL_LINK",
+					"name": "MALL_SHOP_STREET",
+					"title": "店铺街",
+					"url": "/addon/mall/pages/shop/list"
+				},
+				"iconPath": "addon/mall/diy/tabbar/system-shop.png",
+				"iconSelectPath": "addon/mall/diy/tabbar/system-shop-selected.png"
+			},
+			{
+				"text": "购物车",
+				"link": {
+					"parent": "MALL_LINK",
+					"name": "MALL_GOODS_CART",
+					"title": "购物车",
+					"url": "/addon/mall/pages/goods/cart"
+				},
+				"iconPath": "addon/mall/diy/tabbar/system-cart.png",
+				"iconSelectPath": "addon/mall/diy/tabbar/system-cart-selected.png"
+			},
+			{
+				"text": "我的",
+				"link": {
+					"parent": "MALL_LINK",
+					"name": "MALL_MEMBER_INDEX",
+					"title": "get_lang ('dict_diy.member_index')",
+					"url": "/app/pages/member/index"
+				},
+				"iconPath": "addon/mall/diy/tabbar/system-my.png",
+				"iconSelectPath": "addon/mall/diy/tabbar/system-my-selected.png"
+			}
+		]
+	}
+}

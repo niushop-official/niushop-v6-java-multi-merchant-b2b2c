@@ -1,0 +1,123 @@
+{
+  "SYSTEM_LINK": {
+    "title": "首页",
+    "addon_info": {
+      "title": "系统",
+      "key": "app"
+    },
+    "child_list": [
+      {
+        "name": "INDEX",
+        "title": "商城首页",
+        "url": "/",
+        "is_share": 1,
+        "action": ""
+      }
+    ]
+  },
+  "MEMBER_LINK": {
+    "title": "会员页面",
+    "addon_info": {
+      "title": "系统",
+      "key": "app"
+    },
+    "child_list": [
+      {
+        "name": "MEMBER_CENTER",
+        "title": "个人资料",
+        "url": "/member/center",
+        "is_share": 1,
+        "action": ""
+      },
+      {
+        "name": "MEMBER_BALANCE",
+        "title": "我的余额",
+        "url": "/member/balance",
+        "is_share": 1,
+        "action": ""
+      },
+      {
+        "name": "MEMBER_POINT",
+        "title": "我的积分",
+        "url": "/member/point",
+        "is_share": 1,
+        "action": ""
+      },
+      {
+        "name": "MEMBER_ADDRESS",
+        "title": "收货地址",
+        "url": "/member/address_list",
+        "is_share": 1,
+        "action": ""
+      },
+      {
+        "name": "MEMBER_COLLECT",
+        "title": "我的收藏",
+        "url": "/member/collect",
+        "is_share": 1,
+        "action": ""
+      },
+      {
+        "name": "MEMBER_MERCHANT_SETTLED",
+        "title": "申请入驻",
+        "url": "/member/merchant_settled",
+        "is_share": 1,
+        "action": ""
+      }
+    ]
+  },
+  "CMS_LINK": {
+    "title": "文章页面",
+    "addon_info": {
+      "title": "系统",
+      "key": "app"
+    },
+    "child_list": [
+      {
+        "name": "CMS_LIST",
+        "title": "文章资讯",
+        "url": "/article/list",
+        "is_share": 1,
+        "action": ""
+      }
+    ]
+  },
+  "AUTH_LINK": {
+    "title": "会员页面",
+    "addon_info": {
+      "title": "系统",
+      "key": "app"
+    },
+    "child_list": [
+      {
+        "name": "AUTH_LOGIN",
+        "title": "登录",
+        "url": "/auth/login",
+        "is_share": 1,
+        "action": ""
+      },
+      {
+        "name": "AUTH_REGISTER",
+        "title": "注册",
+        "url": "/auth/register",
+        "is_share": 1,
+        "action": ""
+      },
+      {
+        "name": "AUTH_BIND",
+        "title": "手机号绑定",
+        "url": "/auth/bind",
+        "is_share": 1,
+        "action": ""
+      }
+    ]
+  },
+  "DIY_LINK": {
+    "title": "自定义链接",
+    "addon_info": {
+      "title": "系统",
+      "key": "app"
+    },
+    "child_list": []
+  }
+}

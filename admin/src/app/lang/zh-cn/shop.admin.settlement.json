@@ -1,0 +1,19 @@
+{
+    "settleAccount": "店铺结算金额（元）",
+    "settleTips":"店铺结算金额是平台按周期结算店铺订单金额后，扣除手续费后的店铺收入部分",
+    "platformAllCommission":"平台总手续费（元）",
+    "siteAllCommission":"分站总手续费（元）",
+    "payment":"账期截止时间",
+    "startDate":"开始时间",
+    "endDate":"结束时间",
+    "checkNo":"账单编号",
+    "shopNum":"店铺数",
+    "orderMoney":"订单总额",
+    "storeSettleMoney":"店铺结算金额",
+    "platformCommission":"平台总手续费",
+    "siteCommission":"分站总手续费",
+    "accountStartTime":"账单开始时间",
+    "accountEndTime":"账单结束时间",
+    "settlementTime":"结算时间"
+
+}

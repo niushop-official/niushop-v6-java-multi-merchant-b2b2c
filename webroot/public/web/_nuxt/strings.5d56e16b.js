@@ -1,0 +1,1 @@
+import{bW as l,__tla as r}from"./entry.4f7cff81.js";let t,e,_=Promise.all([(()=>{try{return r}catch{}})()]).then(async()=>{e=(a="")=>a.replace(/[|\\{}()[\]^$+*?.]/g,"\\$&").replace(/-/g,"\\x2d"),t=a=>l(a)});export{_ as __tla,t as c,e};

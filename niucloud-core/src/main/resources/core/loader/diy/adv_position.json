@@ -1,0 +1,29 @@
+[
+  {
+    "keywords": "SYS_INDEX",
+    "ap_name": "首页",
+    "app_type": "admin",
+    "ap_desc": "首页广告位",
+    "default_content": {},
+    "ap_bg_color": "",
+    "show_type": "web"
+  },
+  {
+    "keywords": "ADV_COUPON_INDEX",
+    "ap_name": "优惠券广告位",
+    "app_type": "admin",
+    "ap_desc": "优惠券广告位",
+    "default_content": {},
+    "ap_bg_color": "",
+    "show_type": "web"
+  },
+  {
+    "keywords": "ADV_INDEX",
+    "ap_name": "首页广告位",
+    "app_type": "admin",
+    "ap_desc": "首页广告位",
+    "default_content": {},
+    "ap_bg_color": "",
+    "show_type": "web"
+  }
+]

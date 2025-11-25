@@ -1,0 +1,15 @@
+{
+    "statusName": "当前状态",
+    "cashOutNo": "提现单号",
+    "serviceMoney": "手续费",
+    "createTime": "申请时间",
+    "auditTime": "审核时间",
+    "transferAccount": "收款账号",
+    "transferTypeName": "转账方式",
+    "transferTime": "转账时间",
+    "proceedsInfo":"收款方信息",
+    "transferInfo":"转账信息",
+    "transferNickname":"收款方名称",
+    "transferNo":"转账单号",
+    "cashOutNow":"提现"
+}

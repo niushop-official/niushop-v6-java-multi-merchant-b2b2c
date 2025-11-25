@@ -1,0 +1,25 @@
+{
+  "shop_coupon": {
+    "key": "shop_coupon",
+    "name": "优惠券",
+    "desc": "发放优惠券",
+    "component": "/src/addon/mall/views/admin/member/components/gift-coupon.vue",
+    "grant": {
+      "driver": "com.niu.mall.service.core.member.driver.GiftCouponDriver"
+    },
+    "content": {
+      "admin": {
+        "driver": "com.niu.mall.service.core.member.driver.GiftCouponDriver"
+      },
+      "member_level": {
+        "driver": "com.niu.mall.service.core.member.driver.GiftCouponDriver"
+      },
+      "member_sign": {
+        "driver": "com.niu.mall.service.core.member.driver.GiftCouponDriver"
+      },
+      "member_sign_continue": {
+        "driver": "com.niu.mall.service.core.member.driver.GiftCouponDriver"
+      }
+    }
+  }
+}

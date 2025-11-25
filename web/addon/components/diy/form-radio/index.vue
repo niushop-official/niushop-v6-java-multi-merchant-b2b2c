@@ -1,0 +1,233 @@
+<template>
+    <div v-if="diyComponent.viewFormDetail" class="form-item-frame">
+        <div class="base-layout-two detail">
+            <div class="detail-two-content">
+                <span class="detail-two-content-label">{{ diyComponent.field.name }}</span>
+                <div class="flex items-center justify-end">
+                    <div class="detail-two-content-value" v-for="(item,index) in diyComponent.field.value" :key="index">{{ item.text }}</div>
+                    <span v-if="!diyComponent.field.value || !diyComponent.field.value.length">{{ t('notHave') }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-else :style="warpCss" class="form-item-frame">
+        <div class="base-layout-two">
+            <div class="layout-two-wrap" :class="{'!pb-[10px]': ((diyComponent.style == 'style-2' || diyComponent.style == 'style-3') && diyGlobal.borderControl),'no-border': !diyGlobal.borderControl}">
+                <div class="layout-two-label">
+                    <span class="required">{{ diyComponent.field.required ? '*' : '' }}</span>
+                    <span class="name">{{ diyComponent.field.name }}</span>
+                </div>
+                <div class="layout-two-content" v-if="diyComponent.style == 'style-1'">
+                    <div class="justify-end">
+                        <el-radio-group v-model="selectedRadioId" @change="groupChange">
+                            <div v-for="(item, index) in diyComponent.options" :key="index" :class="{'ml-[15px]': index}">
+                                <el-radio :label="item.id">{{ item.text }}</el-radio>
+                            </div>
+                        </el-radio-group>
+                    </div>
+                </div>
+
+                <div class="layout-two-content" v-if="diyComponent.style == 'style-2'">
+                    <div class="justify-end w-full">
+                        <el-radio-group v-model="selectedRadioId" @change="groupChange" class="flex-col">
+                            <div v-for="(item, index) in diyComponent.options" :key="index" @click="selectRadio(item)"
+                                  class="border-solid border-[1px] w-[200px] border-[#e6e6e6] rounded-[5px] flex items-center h-[40px] mb-[8px] px-[8px] box-border cursor-pointer"
+                                  :class="{'!mb-[0]': diyComponent.options.length == (index+1)}">
+                                <el-radio class="!m-[0]"  :label="item.id">{{ item.text }}</el-radio>
+                            </div>
+                        </el-radio-group>
+                    </div>
+                </div>
+
+                <div class="layout-two-content" v-if="diyComponent.style == 'style-3'">
+                    <el-select v-model="selectedRadioId" :placeholder="radioPlaceholder" class="w-[250px]"  :style="{'font-size': diyComponent.fontSize + 'px'}" @change="pullDownConfirmFn">
+                        <el-option v-for="item in diyComponent.options" :key="item.value" :style="{'font-size': diyComponent.fontSize + 'px'}" :label="item.text" :value="item.id" />
+                    </el-select>
+                </div>
+            </div>
+            <div class="layout-two-error-message" v-if="errorInfo && !errorInfo.code">{{ errorInfo.message }}</div>
+            <div v-if="diyComponent.field.remark.text" class="layout-two-remark" :style="{ color: diyComponent.field.remark.color, fontSize: diyComponent.field.remark.fontSize + 'px' }">{{ diyComponent.field.remark.text }}</div>
+            <div class="layout-two-attribute-wrap" v-if="inputAttribute().length">
+                <div v-for="(item,index) in inputAttribute()" :key="index" @click="eventFn(item.type)" class="layout-two-attribute-item">{{ item.title }}</div>
+            </div>
+        </div>
+        <!-- 隐私弹窗 -->
+        <form-privacy-pop ref="formPrivacyRef" :data="formPrivacyData" />
+    </div>
+</template>
+
+<script setup lang="ts">
+// 表单 单选项组件
+import { ref, computed, watch, onMounted } from 'vue';
+import { img } from '@/utils/common';
+
+import formPrivacyPop from './../form-privacy-pop/index.vue';
+
+const props = defineProps(['component', 'index', 'global']);
+const selectValue = ref([])
+const pullDownVal = ref([])
+const selectedRadioId = ref('');  // 存储选中的 id
+
+const errorInfo: any = ref(null);
+const formPrivacyRef: any = ref(null);
+
+const diyComponent = computed(() => {
+    return props.component;
+})
+
+const diyGlobal = computed(() => {
+    return props.global;
+})
+
+const formPrivacyData = computed(() => {
+    let str = `${ diyComponent.value.field.name }已开启隐私保护，提交后会部分打码，只有你自己和管理员才能查看完整信息`;
+    return str;
+})
+
+// input属性
+const inputAttribute = () => {
+    let arr = [];
+    if (diyComponent.value.autofill) {
+        let obj = {
+            title: '已自动填充'
+        };
+        arr.push(obj);
+    }
+    if (diyComponent.value.field.privacyProtection) {
+        let obj = {
+            title: '已开启隐私保护',
+            type: 'privacy'
+        };
+        arr.push(obj);
+    }
+
+    arr.forEach((item, index, arr) => {
+        if (index != (arr.length - 1)) {
+            let obj = {
+                title: '|'
+            };
+            arr.push(obj);
+        }
+    })
+    return arr;
+}
+
+const eventFn = (type: any) => {
+    if (type == 'privacy') {
+        // 查看隐私
+        formPrivacyRef.value.open();
+    }
+}
+
+const warpCss = computed(() => {
+    var style = '';
+    style += 'position:relative;';
+    if (diyComponent.value.componentStartBgColor && diyComponent.value.componentEndBgColor) style += `background:linear-gradient(${ diyComponent.value.componentGradientAngle },${ diyComponent.value.componentStartBgColor },${ diyComponent.value.componentEndBgColor });`;
+    else if (diyComponent.value.componentStartBgColor) style += 'background-color:' + diyComponent.value.componentStartBgColor + ';';
+    else if (diyComponent.value.componentEndBgColor) style += 'background-color:' + diyComponent.value.componentEndBgColor + ';';
+
+    if (diyComponent.value.componentBgUrl) {
+        style += `background-image:url('${ img(diyComponent.value.componentBgUrl) }');`;
+        style += 'background-size: cover;background-repeat: no-repeat;';
+    }
+
+    if (diyComponent.value.topRounded) style += 'border-top-left-radius:' + diyComponent.value.topRounded + 'px;';
+    if (diyComponent.value.topRounded) style += 'border-top-right-radius:' + diyComponent.value.topRounded + 'px;';
+    if (diyComponent.value.bottomRounded) style += 'border-bottom-left-radius:' + diyComponent.value.bottomRounded + 'px;';
+    if (diyComponent.value.bottomRounded) style += 'border-bottom-right-radius:' + diyComponent.value.bottomRounded + 'px;';
+    return style;
+})
+
+onMounted(() => {
+    refresh();
+    if (diyComponent.value.field.value.length > 0) {
+        selectedRadioId.value = diyComponent.value.field.value[0].id;
+    }
+
+});
+
+const refresh = () => {
+    // console.log('diyComponent.value.field.value',diyComponent.value.field.value)
+}
+
+const radioPlaceholder = computed(() => {
+    let str = '';
+    str += `请选择${ diyComponent.value.field.name }`
+    return str;
+})
+
+// 表单组件验证
+const verify = () => {
+    const res = { code: true, message: '' }
+    if (diyComponent.value.field.required && diyComponent.value.field.value.length == '') {
+        res.code = false
+        res.message = radioPlaceholder.value;
+    }
+    errorInfo.value = res;
+    return res;
+}
+
+// 重置表单组件数据
+const reset = () => {
+    selectedRadioId.value = '';
+    selectValue.value = [];
+    diyComponent.value.field.value = [];
+}
+
+const pullDownConfirmFn = () => {
+    const item = diyComponent.value.options.find(option => option.id === selectedRadioId.value);
+    diyComponent.value.field.value = [{ id: item.id, text: item.text }];
+}
+
+// 获取选中的单选项名称
+const getSelectRadioName = computed(() => {
+    let names = [];
+    diyComponent.value.field.value.forEach((selectedItem) => {
+        const item = diyComponent.value.options.find(option => option.id === selectedItem.id);
+        if (item) {
+            names.push(item.text);
+        }
+    });
+    return names.join(', ');
+});
+
+
+const groupChange = () => {
+    const selectedItem = diyComponent.value.options.find(item => item.id === selectedRadioId.value);
+    diyComponent.value.field.value = [{ id: selectedItem.id, text: selectedItem.text }];
+};
+const selectRadio = (item) => {
+    selectedRadioId.value = item.id;
+    diyComponent.value.field.value = [{ id: item.id, text: item.text }];
+};
+
+
+defineExpose({
+    verify,
+    reset
+})
+</script>
+
+<style lang="scss" scoped>
+@import '@/assets/styles/diy_form.scss';
+
+.pull-down-arrow {
+    transition: all .3s;
+    transform: rotate(0);
+
+    &.selected {
+        transform: rotate(180deg);
+    }
+}
+
+/* 覆盖 el-radio 样式 */
+// ::v-deep(.el-radio) {
+//     border-bottom: 1px solid #e6e6e6;
+// 	height: 45px;
+// }
+.form-item-frame :deep(.el-radio-group .el-radio__icon-wrap) {
+    width: 15px !important;
+    height: 15px !important;
+}
+</style>

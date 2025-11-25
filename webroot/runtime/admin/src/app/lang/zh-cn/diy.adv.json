@@ -1,0 +1,14 @@
+{
+    "addAdv":"添加广告",
+    "updateAdv":"编辑广告",
+    "advName":"广告名称",
+    "advNamePlaceholder":"请输入广告位名称",
+    "advPosition":"所属广告位",
+    "webLink":"PC端广告链接",
+    "advImg":"广告图片",
+    "advImagePlaceholder":"请上传广告图片",
+    "sortPlaceholder":"请输入排序号",
+    "background":"背景色",
+    "advUrl":"广告链接",
+    "advDeleteTips":"确定要删除该数据吗？"
+}

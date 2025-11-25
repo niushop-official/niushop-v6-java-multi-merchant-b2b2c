@@ -1,0 +1,110 @@
+{
+  "label_list": [
+    {
+      "label_name": "热卖",
+      "style_type": "diy",
+      "color_json": {
+        "text_color": "rgba(255, 255, 255, 1)",
+        "bg_color": "rgba(250, 35, 28, 1)",
+        "border_color": ""
+      },
+      "icon": "",
+      "status": 1,
+      "sort": 0
+    },
+    {
+      "label_name": "新品推荐",
+      "style_type": "diy",
+      "color_json": {
+        "text_color": "rgba(255, 255, 255, 1)",
+        "bg_color": "rgba(250, 35, 28, 1)",
+        "border_color": ""
+      },
+      "icon": "",
+      "status": 1,
+      "sort": 1,
+    },
+    {
+      "label_name": "甄选优品",
+      "style_type": "diy",
+      "color_json": {
+        "text_color": "rgba(255, 255, 255, 1)",
+        "bg_color": "rgba(250, 35, 28, 1)",
+        "border_color": ""
+      },
+      "icon": "",
+      "status": 1,
+      "sort": 2,
+    },
+    {
+      "label_name": "百亿补贴",
+      "style_type": "icon",
+      "color_json": {
+        "text_color": "rgba(255, 255, 255, 1)",
+        "bg_color": "rgba(250, 35, 28, 1)",
+        "border_color": ""
+      },
+      "icon": "addon/mall/goods/label/icon1.png",
+      "status": 1,
+      "sort": 3,
+    },
+    {
+      "label_name": "双11",
+      "style_type": "icon",
+      "color_json": {
+        "text_color": "rgba(255, 255, 255, 1)",
+        "bg_color": "rgba(250, 35, 28, 1)",
+        "border_color": ""
+      },
+      "icon": "addon/mall/goods/label/icon2.png",
+      "status": 1,
+      "sort": 4,
+    },
+    {
+      "label_name": "双12",
+      "style_type": "icon",
+      "color_json": {
+        "text_color": "rgba(255, 255, 255, 1)",
+        "bg_color": "rgba(250, 35, 28, 1)",
+        "border_color": ""
+      },
+      "icon": "addon/mall/goods/label/icon3.png",
+      "status": 1,
+      "sort": 5
+    }
+  ],
+  "floor_list": [
+    {
+      "floor_name": "美妆护肤",
+      "temp": "default",
+      "sort": 1,
+      "create_time": "$time$",
+      "config": {
+        "title": "美妆护肤",
+        "sub_title": "打造完美肌肤的秘密",
+        "goods_ids": [],
+        "adv_img1": "addon/mall/web/floor_01.png",
+        "adv_img2": "addon/mall/web/floor_02.png",
+        "url": {
+          "name": ""
+        }
+      }
+    },
+    {
+      "floor_name": "潮流穿搭",
+      "temp": "default",
+      "sort": 2,
+      "create_time": "$time$",
+      "config": {
+        "title": "潮流穿搭",
+        "sub_title": "时尚达人",
+        "goods_ids": [],
+        "adv_img1": "addon/mall/web/floor_01.png",
+        "adv_img2": "addon/mall/web/floor_02.png",
+        "url": {
+          "name": ""
+        }
+      }
+    }
+  ]
+}

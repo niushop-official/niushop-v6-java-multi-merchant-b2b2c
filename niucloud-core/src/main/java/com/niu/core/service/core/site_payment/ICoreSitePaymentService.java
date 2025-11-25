@@ -1,0 +1,48 @@
+package com.niu.core.service.core.site_payment;
+
+import cn.hutool.json.JSONArray;
+
+import java.util.Map;
+
+/**
+ * 分账账户服务层
+ */
+public interface ICoreSitePaymentService {
+
+    /**
+     * 获取平台分账账户列表
+     */
+    JSONArray getSpearPaymentType(Integer siteId);
+
+    /**
+     * 获取店铺分账账户列表
+     */
+    JSONArray getSiteSpearPaymentTypeListByType(Integer siteId);
+
+    /**
+     * 获取支付详情
+     * @param siteId 站点ID
+     * @param type 支付类型
+     * @return 支付详情信息
+     */
+    Map<String, Object> getInfo(Integer siteId, String type);
+
+    /**
+     * 添加支付记录
+     * @param data 数据
+     * @param siteId 站点ID
+     * @param type 支付类型
+     * @return 创建的记录ID
+     */
+    Long add(Map<String, Object> data, Integer siteId, String type);
+
+    /**
+     * 编辑支付记录
+     * @param id 主键ID
+     * @param siteId 站点ID
+     * @param data 更新数据
+     * @return 是否成功
+     */
+    Boolean edit(Long id, Integer siteId, Map<String, Object> data);
+
+}

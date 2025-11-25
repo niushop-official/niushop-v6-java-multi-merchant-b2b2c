@@ -1,0 +1,55 @@
+package com.niu.core.controller.siteapi.diy;
+
+import cn.dev33.satoken.annotation.SaCheckLogin;
+import com.niu.core.common.domain.Result;
+import com.niu.core.service.admin.diy.param.DiyConfigParam;
+import com.niu.core.service.site.diy.IDiyConfigService;
+import com.niu.core.service.admin.diy.param.SetBottomConfigParam;
+import com.niu.core.service.core.diy.vo.BottomConfigVo;
+import jakarta.annotation.Resource;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * 自定义页面配置
+ */
+@RestController
+@RequestMapping("/adminapi/diy/site")
+@SaCheckLogin
+public class ConfigController {
+
+    @Resource
+    IDiyConfigService diyConfigService;
+
+    /**
+     * 底部导航配置列表
+     *
+     * @return
+     */
+    @GetMapping("/bottom")
+    public Result<List<BottomConfigVo>> getBottomList() {
+        return Result.success(diyConfigService.getBottomList());
+    }
+
+    /**
+     * 底部导航配置
+     *
+     * @return
+     */
+    @GetMapping("/bottom/config")
+    public Result<BottomConfigVo> getBottomConfig(DiyConfigParam diyConfigParam) {
+        return Result.success(diyConfigService.getBottomConfig(diyConfigParam.getKey()));
+    }
+
+    /**
+     * 设置底部导航
+     *
+     * @return
+     */
+    @PostMapping("/bottom")
+    public Result setBottomConfig(@RequestBody SetBottomConfigParam param){
+        diyConfigService.setBottomConfig(param);
+        return Result.success();
+    }
+}

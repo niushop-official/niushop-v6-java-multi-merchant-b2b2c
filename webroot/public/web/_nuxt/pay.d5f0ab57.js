@@ -1,0 +1,1 @@
+import{aX as t,__tla as o}from"./entry.4f7cff81.js";let a,e,n=Promise.all([(()=>{try{return o}catch{}})()]).then(async()=>{e=function(r){return t.post("pay",r,{showErrorMessage:!0})},a=function(r,s){return t.get(`pay/info/${r}/${s}`,{},{showErrorMessage:!0})}});export{n as __tla,a as g,e as p};

@@ -1,0 +1,1 @@
+const e="申请时间：",s="店铺分类",a="商户信息：",o="店铺套餐：",n="营业执照：",p="拒绝原因：",r={applyTime:e,categoryName:s,shopInfo:a,groupName:o,businessLicense:n,refuseReason:p};export{e as applyTime,n as businessLicense,s as categoryName,r as default,o as groupName,p as refuseReason,a as shopInfo};

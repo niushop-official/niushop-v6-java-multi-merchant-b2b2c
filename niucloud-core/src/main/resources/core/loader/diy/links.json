@@ -1,0 +1,139 @@
+{
+    "SYSTEM_BASE_LINK": {
+      "title": "系统页面",
+      "addon_info": {
+        "title": "系统",
+        "key": "app"
+      },
+      "type": "folder",
+      "child_list": [
+          {
+            "title": "系统页面",
+            "name": "SYSTEM_LINK",
+            "child_list": [
+              {
+                "name": "INDEX",
+                "title": "平台首页",
+                "url": "/app/pages/index/index",
+                "is_share": 1,
+                "action": "decorate"
+              }
+            ]
+          },
+          {
+              "title": "会员页面",
+              "name": "MEMBER_LINK",
+              "child_list": [
+                {
+                  "name": "MEMBER_CENTER",
+                  "title": "个人中心",
+                  "url": "/app/pages/member/index",
+                  "is_share": 1,
+                  "action": "decorate"
+                },
+                {
+                  "name": "MEMBER_PERSONAL",
+                  "title": "个人资料",
+                  "url": "/app/pages/member/personal",
+                  "is_share": 1,
+                  "action": ""
+                },
+                {
+                  "name": "MEMBER_BALANCE",
+                  "title": "我的余额",
+                  "url": "/app/pages/member/balance",
+                  "is_share": 1,
+                  "action": ""
+                },
+                {
+                  "name": "MEMBER_POINT",
+                  "title": "我的积分",
+                  "url": "/app/pages/member/point",
+                  "is_share": 1,
+                  "action": ""
+                },
+                {
+                  "name": "MEMBER_COMMISSION",
+                  "title": "我的佣金",
+                  "url": "/app/pages/member/commission",
+                  "is_share": 1,
+                  "action": ""
+                },
+                {
+                  "name": "MEMBER_ADDRESS",
+                  "title": "收货地址",
+                  "url": "/app/pages/member/address",
+                  "is_share": 1,
+                  "action": ""
+                },
+                {
+                  "name": "MEMBER_MY_LEVEL",
+                  "title": "会员等级",
+                  "url": "/app/pages/member/level",
+                  "is_share": 1,
+                  "action": ""
+                },
+                {
+                  "name": "MEMBER_MY_SIGN_IN",
+                  "title": "我的签到",
+                  "url": "/app/pages/member/sign_in",
+                  "is_share": 1,
+                  "action": ""
+                },
+                {
+                  "name": "MEMBER_VERIFY_INDEX",
+                  "title": "核销台",
+                  "url": "/app/pages/verify/index",
+                  "is_share": 1,
+                  "action": ""
+                },
+                {
+                  "name": "MEMBER_CONTACT",
+                  "title": "客服",
+                  "url": "/app/pages/member/contact",
+                  "is_share": 0,
+                  "action": ""
+                }
+              ]
+
+         }
+
+      ]
+    },
+    "DIY_PAGE": {
+    "title": "自定义页面",
+    "addon_info": {
+      "title": "系统",
+      "key": "app"
+    },
+    "child_list": [],
+    "name": "DIY_PAGE"
+    },
+    "OTHER_LINK": {
+      "title": "其他页面",
+      "addon_info": {
+        "title": "系统",
+        "key": "app"
+      },
+      "child_list": [
+        {
+          "title": "自定义链接",
+          "name": "DIY_LINK",
+          "link_type": "all"
+        },
+        {
+            "title": "小程序跳转",
+            "name": "DIY_JUMP_OTHER_APPLET"
+
+        },
+        {
+            "title": "拨打电话",
+            "name": "DIY_MAKE_PHONE_CALL",
+            "link_type": "all"
+         }
+
+      ]
+    }
+
+
+}

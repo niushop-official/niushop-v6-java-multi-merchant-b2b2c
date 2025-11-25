@@ -1,0 +1,1 @@
+const o="关注",l="粉丝",n="请输入用户名称",s="取消关注",a="您还没有关注的用户",f="还没有关注您的用户",w="确定取消关注",e={follow:"关注",fans:"粉丝",searchTips:n,unFollow:s,noFollow:a,noFans:f,unfollowTips:w};export{e as default,l as fans,o as follow,f as noFans,a as noFollow,n as searchTips,s as unFollow,w as unfollowTips};

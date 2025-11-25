@@ -1,0 +1,28 @@
+{
+	"DIY_SITE_INDEX": {
+		"title": "商家首页",
+		"addon": "mall",
+		"page": "/addon/mall/pages/index",
+		"action": "decorate",
+		"type": "",
+		"app_type": ["site"]
+	},
+	"DIY_MALL_GOODS_DETAIL": {
+		"title": "商品详情",
+		"addon": "mall",
+		"page": "/addon/mall/pages/goods/detail",
+		"action": "decorate",
+		"type": "",
+		"app_type": ["admin"],
+		"ignoreComponents": ["CarouselSearch"],
+		"global": {
+			"topStatusBar": {
+				"control": false
+			},
+			"bottomTabBar": {
+				"control": false,
+				"show": false
+			}
+		}
+	}
+}

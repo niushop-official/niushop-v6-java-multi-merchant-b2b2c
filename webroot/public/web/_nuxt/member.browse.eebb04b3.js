@@ -1,0 +1,1 @@
+const a="\u6211\u7684\u8DB3\u8FF9",e="\u7CFB\u7EDF\u6700\u591A\u4E3A\u60A8\u4FDD\u7559100\u6761\u4FE1\u606F",t="\u6682\u65E0\u6570\u636E",s="\u5DF2\u4E0B\u67B6",l="\u9500\u91CF",i={title:a,remark:e,empty:t,delete:"\u5DF2\u5220\u9664",invalid:s,sale:l};export{i as default,t as empty,s as invalid,e as remark,l as sale,a as title};

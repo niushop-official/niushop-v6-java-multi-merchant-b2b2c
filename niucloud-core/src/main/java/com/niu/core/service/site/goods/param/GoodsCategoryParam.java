@@ -1,0 +1,30 @@
+package com.niu.core.service.site.goods.param;
+import lombok.Data;
+import java.io.Serializable;
+import jakarta.validation.constraints.*;
+
+/**
+ * 商品分类参数
+*/
+@Data
+public class GoodsCategoryParam implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @NotNull(message = "category_name参数缺失")
+    @NotEmpty(message = "分类名称不能为空")
+    private String categoryName;
+
+    @NotNull(message = "image参数缺失")
+    private String image = "";
+
+    @NotNull(message = "pid参数缺失")
+    private Integer pid = 0;
+
+    @NotNull(message = "isShow参数缺失")
+    private Integer isShow = 0;
+
+    @NotNull(message = "sort参数缺失")
+    private Integer sort = 0;
+
+}

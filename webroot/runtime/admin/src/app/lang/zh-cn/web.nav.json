@@ -1,0 +1,20 @@
+{
+      "navTitle":"导航名称",
+      "navTitlePlaceholder":"请输入导航名称",
+      "navUrl":"链接地址",
+      "navUrlPlaceholder":"请输入链接地址",
+      "sort":"排序号",
+      "sortPlaceholder":"请输入排序号",
+      "isBlank":"是否新打开",
+      "isBlankPlaceholder":"请输入是否新打开",
+      "createTime":"创建时间",
+      "navIcon":"导航图标",
+      "navIconPlaceholder":"请输入导航图标",
+      "isShow":"是否显示",
+      "isShowPlaceholder":"请输入是否显示",
+      "addNav":"添加导航管理",
+      "updateNav":"编辑导航管理",
+      "navDeleteTips":"确定要删除该数据吗？",
+      "startDate":"请选择开始时间",
+      "endDate":"请选择结束时间"
+}

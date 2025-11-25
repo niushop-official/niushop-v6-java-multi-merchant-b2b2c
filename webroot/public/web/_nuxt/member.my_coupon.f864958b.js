@@ -1,0 +1,1 @@
+const s="\u672A\u4F7F\u7528",e="\u5DF2\u4F7F\u7528",a="\u5DF2\u8FC7\u671F",d="\u6682\u65E0\u4F18\u60E0\u5238",p={unused:s,hasUsed:e,expired:a,emptyTips:d};export{p as default,d as emptyTips,a as expired,e as hasUsed,s as unused};

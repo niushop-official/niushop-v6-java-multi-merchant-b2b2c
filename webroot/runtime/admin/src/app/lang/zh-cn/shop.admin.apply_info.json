@@ -1,0 +1,16 @@
+{
+  "siteName":"商户名称",
+  "userName":"用户姓名",
+  "userNamePlaceholder":"请输入用户姓名",
+  "userMobile":"用户手机号",
+  "nickname":"会员昵称",
+  "categoryId":"店铺分类",
+  "groupId":"店铺套餐",
+  "createTime":"申请时间",
+  "updateTime":"更新时间",
+  "auditTime":"审核通过时间",
+  "status":"申请状态",
+  "openStatus":"开店状态",
+  "refuseReason":"拒绝原因",
+  "businessLicense":"营业执照"
+}

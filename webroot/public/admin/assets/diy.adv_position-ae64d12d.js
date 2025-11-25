@@ -1,0 +1,1 @@
+const o="广告位位置名",a="广告关键字",e="广告位类型",s="电脑端",n="手机端",t="操作",p="管理广告",c={apName:o,keywords:a,showType:e,web:s,wap:n,operation:t,manageAdv:p};export{o as apName,c as default,a as keywords,p as manageAdv,t as operation,e as showType,n as wap,s as web};

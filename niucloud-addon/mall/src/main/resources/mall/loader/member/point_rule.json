@@ -1,0 +1,21 @@
+{
+  "grant": {
+    "mall_buy_goods": {
+      "key": "mall_buy_goods",
+      "name": "购买商品",
+      "desc": "订单交易成功后按订单交易金额发放积分",
+      "component": "/src/addon/mall/views/admin/member/components/point-rule-buygoods.vue",
+      "calculate": {
+        "driver": "com.niu.mall.service.core.member.driver.PointRuleBuyGoodsDriver"
+      },
+      "content": {
+        "admin": {
+          "driver": "com.niu.mall.service.core.member.driver.PointRuleBuyGoodsDriver"
+        }
+      }
+    }
+  },
+  "consume": {
+
+  }
+}

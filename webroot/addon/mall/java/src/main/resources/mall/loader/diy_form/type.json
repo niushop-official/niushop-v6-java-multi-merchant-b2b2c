@@ -1,0 +1,16 @@
+{
+  "DIY_FORM_GOODS_DETAIL": {
+    "title": "商品表单",
+    "preview": "addon/mall/diy_form/goods_detail_preview.jpg",
+    "sort": 10005,
+    "addon": "mall",
+    "app_type": ["site"]
+  },
+  "DIY_FROM_ORDER_PAYMENT": {
+    "title": "订单付款",
+    "preview": "addon/mall/diy_form/order_payment_preview.jpg",
+    "sort": 10006,
+    "addon": "mall",
+    "app_type": ["site"]
+  }
+}

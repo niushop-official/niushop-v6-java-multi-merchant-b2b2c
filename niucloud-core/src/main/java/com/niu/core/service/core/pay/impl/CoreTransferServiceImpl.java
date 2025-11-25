@@ -1,0 +1,237 @@
+package com.niu.core.service.core.pay.impl;
+
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.lang.Snowflake;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.github.binarywang.wxpay.bean.transfer.TransferBillsResult;
+import com.niu.core.common.domain.PageParam;
+import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.exception.CommonException;
+import com.niu.core.common.loader.pay.param.TransferNotifyParam;
+import com.niu.core.common.loader.pay.param.TransferParam;
+import com.niu.core.entity.pay.PayTransfer;
+import com.niu.core.enums.member.MemberCashOutStatusEnum;
+import com.niu.core.enums.pay.TransferStatusEnum;
+import com.niu.core.enums.pay.TransferTypeEnum;
+import com.niu.core.event.pay.PayCloseEvent;
+import com.niu.core.event.pay.TransferSuccessEvent;
+import com.niu.core.mapper.pay.PayTransferMapper;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
+import com.niu.core.service.core.pay.ICorePayService;
+import com.niu.core.service.core.pay.ICoreTransferService;
+import com.niu.core.service.core.pay.param.PayTransferParam;
+import com.niu.core.service.core.pay.param.PayTransferSearchParam;
+import com.niu.core.service.core.pay.vo.PayTransferInfoVo;
+import com.niu.core.service.core.pay.vo.PayTransferListVo;
+import com.niu.core.service.core.pay.vo.TransferQueryVo;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import jakarta.annotation.Resource;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+
+/**
+ * 转账实现
+ */
+@Service
+public class CoreTransferServiceImpl implements ICoreTransferService {
+        
+    @Resource
+    PayTransferMapper payTransferMapper;
+
+    @Resource
+    ICorePayService corePayService;
+
+    /**
+     * 创建转账单据
+     * @param model
+     * @return
+     */
+    public String create(PayTransfer model) {
+        model.setTransferNo(createTransferNo());
+        model.setTransferStatus(TransferStatusEnum.WAIT.getStatus());
+        model.setCreateTime(System.currentTimeMillis() / 1000);
+        payTransferMapper.insert(model);
+        return model.getTransferNo();
+    }
+
+    /**
+     * 创建交易号
+     * @return
+     */
+    private String createTransferNo() {
+        Snowflake snowflake = IdUtil.getSnowflake(1, 1);
+        long id = snowflake.nextId();
+        return DateUtil.format(DateUtil.date(System.currentTimeMillis()), "yyyyMMdd") + id;
+    }
+
+    /**
+     * 通过转账单号查询转账
+     * @param transferNo
+     * @return
+     */
+    public PayTransfer findTransferByTransferNo(String transferNo) {
+        return payTransferMapper.selectOne(new QueryWrapper<PayTransfer>()
+                .eq("transfer_no", transferNo));
+    }
+
+    /**
+     *
+     * @param transferNo
+     * @param transferType
+     * @param data
+     */
+    @Transactional
+    public Object transfer(String transferNo, String transferType, Map<String, Object> data) {
+        PayTransfer transfer = findTransferByTransferNo(transferNo);
+        if (transfer == null) throw new CommonException("无效的转账单据");
+        if (!transfer.getTransferStatus().equals(TransferStatusEnum.WAIT.getStatus()) && !transfer.getTransferStatus().equals(TransferStatusEnum.FAIL.getStatus())) {
+            throw new CommonException("当前转账未处于待转账状态");
+        }
+
+        transfer.setTransferType(transferType);
+        transfer.setTransferRemark((String) data.getOrDefault("transfer_remark", ""));
+        transfer.setTransferVoucher((String) data.getOrDefault("transfer_voucher", ""));
+        transfer.setTransferRealname((String) data.getOrDefault("transfer_realname", ""));
+        transfer.setTransferBank((String) data.getOrDefault("transfer_bank", ""));
+        transfer.setTransferMobile((String) data.getOrDefault("transfer_mobile", ""));
+        transfer.setTransferAccount((String) data.getOrDefault("transfer_account", ""));
+        transfer.setOpenid((String) data.getOrDefault("openid", ""));
+        transfer.setTransferPayee((String) data.getOrDefault("transfer_payee", ""));
+        payTransferMapper.updateById(transfer);
+
+        Map transferTypeEnum = TransferTypeEnum.getMap().get(transferType);
+        if (transferTypeEnum == null) throw new CommonException("不支持的转账方式");
+
+        if ((Boolean) transferTypeEnum.get("is_online")) {
+            TransferParam param = new TransferParam();
+            param.setTransfer(transfer);
+            param.setNotifyUrl(corePayService.buildNotifyUrl("transfer", transferType, "transfer"));
+            return corePayService.driver("transfer", transferType).transfer(param);
+        }
+        this.success(transfer);
+        return null;
+    }
+
+    @Transactional
+    public void transferNotify(TransferNotifyParam param) {
+        PayTransfer transfer = findTransferByTransferNo(param.getTransferNo());
+        if (transfer == null) throw new CommonException("无效的转账单据");
+        if (!transfer.getTransferStatus().equals(TransferStatusEnum.WAIT.getStatus()) && !transfer.getTransferStatus().equals(TransferStatusEnum.FAIL.getStatus())) {
+            throw new CommonException("当前转账未处于待转账状态");
+        }
+
+        if (param.getTransferStatus().getStatus().equals(TransferStatusEnum.SUCCESS.getStatus())) {
+            this.success(transfer);
+        } else if (param.getTransferStatus().getStatus().equals(TransferStatusEnum.FAIL.getStatus())) {
+            transfer.setTransferFailReason(param.getFailReason());
+            this.fail(transfer);
+        } else {
+            transfer.setTransferStatus(param.getTransferStatus().getStatus());
+            this.dealing(transfer);
+        }
+    }
+
+    /**
+     * 撤销转账
+     * @param transferNo
+     */
+    @Override
+    public void cancel(String transferNo) {
+        PayTransfer transfer = findTransferByTransferNo(transferNo);
+        if (transfer == null) throw new CommonException("无效的转账单据");
+
+        String[] status = new String[]{
+            TransferStatusEnum.WAIT.getStatus(),
+            TransferStatusEnum.DEALING.getStatus(),
+            TransferStatusEnum.FAIL.getStatus(),
+            TransferStatusEnum.WAIT_USER.getStatus(),
+            TransferStatusEnum.WAIT_USER_ING.getStatus(),
+            TransferStatusEnum.FAIL_ING.getStatus()
+        };
+        if (!ObjectUtil.contains(status, transfer.getTransferStatus())) {
+            throw new CommonException("转账状态已发生变化");
+        }
+
+        corePayService.driver("transfer", transfer.getTransferType()).transferCancel(transferNo);
+    }
+
+    /**
+     *
+     * @param transferNo
+     */
+    @Override
+    public void check(String transferNo) {
+        PayTransfer transfer = findTransferByTransferNo(transferNo);
+        if (transfer == null) throw new CommonException("无效的转账单据");
+
+        String[] status = new String[]{
+            TransferStatusEnum.WAIT.getStatus(),
+            TransferStatusEnum.DEALING.getStatus(),
+            TransferStatusEnum.FAIL.getStatus(),
+            TransferStatusEnum.WAIT_USER.getStatus(),
+            TransferStatusEnum.WAIT_USER_ING.getStatus(),
+            TransferStatusEnum.FAIL_ING.getStatus()
+        };
+        if (!ObjectUtil.contains(status, transfer.getTransferStatus())) {
+            throw new CommonException("只有待转账和转账中的订单可以校验");
+        }
+
+        TransferQueryVo transferResult = corePayService.driver("transfer", transfer.getTransferType()).transferQuery(transferNo);
+        if (transferResult == null) throw new CommonException("查询不到转账信息");
+
+        TransferNotifyParam param = new TransferNotifyParam();
+        param.setTransferNo(transferNo);
+        param.setTransferStatus(transferResult.getTransferSatus());
+        param.setFailReason(ObjectUtil.defaultIfNull(transferResult.getFailReason(), ""));
+
+        transferNotify(param);
+    }
+
+    /**
+     * 转账成功
+     *
+     * @param transfer
+     */
+    private void success(PayTransfer transfer) {
+        transfer.setTransferStatus(TransferStatusEnum.SUCCESS.getStatus());
+        transfer.setTransferTime(System.currentTimeMillis() / 1000);
+        payTransferMapper.updateById(transfer);
+
+        TransferSuccessEvent event = new TransferSuccessEvent();
+        event.setTransfer(transfer);
+        event.setSiteId(transfer.getSiteId());
+        event.addAppSign("core");
+        event.setName("TransferSuccessEvent");
+        EventAndSubscribeOfPublisher.publishAll(event);
+    }
+
+    /**
+     * 转账失败
+     *
+     * @param transfer
+     */
+    private void fail(PayTransfer transfer) {
+        transfer.setTransferStatus(TransferStatusEnum.FAIL.getStatus());
+        transfer.setTransferTime(System.currentTimeMillis() / 1000);
+        payTransferMapper.updateById(transfer);
+    }
+
+    /**
+     * 转账处理中
+     *
+     * @param transfer
+     */
+    private void dealing(PayTransfer transfer) {
+        payTransferMapper.updateById(transfer);
+    }
+}

@@ -1,0 +1,585 @@
+[
+  {
+    "site_shop_cash_out": {
+      "name": "店铺提现列表",
+      "column": [
+        {
+          "cash_out_no": {
+            "name": "提现单号"
+          }
+        },
+        {
+          "site_name": {
+            "name": "店铺名称"
+          }
+        },
+        {
+          "phone": {
+            "name": "店铺联系电话"
+          }
+        },
+        {
+          "transfer_type_name": {
+            "name": "提现方式"
+          }
+        },
+        {
+          "apply_money": {
+            "name": "提现申请金额"
+          }
+        },
+        {
+          "rate": {
+            "name": "提现手续费比率"
+          }
+        },
+        {
+          "service_money": {
+            "name": "提现手续费"
+          }
+        },
+        {
+          "money": {
+            "name": "提现到账金额"
+          }
+        },
+        {
+          "status_name": {
+            "name": "提现状态"
+          }
+        },
+        {
+          "transfer_realname": {
+            "name": "提现人姓名"
+          }
+        },
+        {
+          "transfer_account": {
+            "name": "提现账户"
+          }
+        },
+        {
+          "transfer_bank": {
+            "name": "提现银行"
+          }
+        },
+        {
+          "create_time": {
+            "name": "申请时间"
+          }
+        },
+        {
+          "audit_time": {
+            "name": "审核时间"
+          }
+        },
+        {
+          "cancel_time": {
+            "name": "取消时间"
+          }
+        },
+        {
+          "refuse_reason": {
+            "name": "拒绝理由"
+          }
+        },
+        {
+          "transfer_time": {
+            "name": "转账时间"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "shop_account_log": {
+      "name": "账单记录列表",
+      "column": [
+        {
+          "from_type_name": {
+            "name": "账单类型"
+          }
+        },
+        {
+          "money": {
+            "name": "账单金额"
+          }
+        },
+        {
+          "create_time": {
+            "name": "账单日期"
+          }
+        },
+        {
+          "memo": {
+            "name": "说明"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "admin_shop_cash_out": {
+      "name": "店铺提现列表",
+      "column": [
+        {
+          "cash_out_no": {
+            "name": "提现单号"
+          }
+        },
+        {
+          "site_name": {
+            "name": "店铺名称"
+          }
+        },
+        {
+          "phone": {
+            "name": "店铺联系电话"
+          }
+        },
+        {
+          "transfer_type_name": {
+            "name": "提现方式"
+          }
+        },
+        {
+          "apply_money": {
+            "name": "提现申请金额"
+          }
+        },
+        {
+          "rate": {
+            "name": "提现手续费比率"
+          }
+        },
+        {
+          "service_money": {
+            "name": "提现手续费"
+          }
+        },
+        {
+          "money": {
+            "name": "提现到账金额"
+          }
+        },
+        {
+          "status_name": {
+            "name": "提现状态"
+          }
+        },
+        {
+          "transfer_realname": {
+            "name": "提现人姓名"
+          }
+        },
+        {
+          "transfer_account": {
+            "name": "提现账户"
+          }
+        },
+        {
+          "transfer_bank": {
+            "name": "提现银行"
+          }
+        },
+        {
+          "create_time": {
+            "name": "申请时间"
+          }
+        },
+        {
+          "audit_time": {
+            "name": "审核时间"
+          }
+        },
+        {
+          "cancel_time": {
+            "name": "取消时间"
+          }
+        },
+        {
+          "refuse_reason": {
+            "name": "拒绝理由"
+          }
+        },
+        {
+          "transfer_time": {
+            "name": "转账时间"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "site_finance_log": {
+      "name": "资金流水列表",
+      "column": [
+        {
+          "trade_no": {
+            "name": "业务单号"
+          }
+        },
+        {
+          "main_name": {
+            "name": "对方信息"
+          }
+        },
+        {
+          "trade_type_name": {
+            "name": "业务类型"
+          }
+        },
+        {
+          "type_name": {
+            "name": "类型"
+          }
+        },
+        {
+          "rae_type_name": {
+            "name": "收支类型"
+          }
+        },
+        {
+          "value": {
+            "name": "变动账单金额"
+          }
+        },
+        {
+          "create_time": {
+            "name": "交易时间"
+          }
+        },
+        {
+          "memo": {
+            "name": "备注"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "admin_shop_cash_out": {
+      "name": "店铺提现列表",
+      "column": [
+        {
+          "cash_out_no": {
+            "name": "提现单号"
+          }
+        },
+        {
+          "site_name": {
+            "name": "店铺名称"
+          }
+        },
+        {
+          "phone": {
+            "name": "店铺联系电话"
+          }
+        },
+        {
+          "transfer_type_name": {
+            "name": "提现方式"
+          }
+        },
+        {
+          "apply_money": {
+            "name": "提现申请金额"
+          }
+        },
+        {
+          "rate": {
+            "name": "提现手续费比率"
+          }
+        },
+        {
+          "service_money": {
+            "name": "提现手续费"
+          }
+        },
+        {
+          "money": {
+            "name": "提现到账金额"
+          }
+        },
+        {
+          "status_name": {
+            "name": "提现状态"
+          }
+        },
+        {
+          "transfer_realname": {
+            "name": "提现人姓名"
+          }
+        },
+        {
+          "transfer_account": {
+            "name": "提现账户"
+          }
+        },
+        {
+          "transfer_bank": {
+            "name": "提现银行"
+          }
+        },
+        {
+          "create_time": {
+            "name": "申请时间"
+          }
+        },
+        {
+          "audit_time": {
+            "name": "审核时间"
+          }
+        },
+        {
+          "cancel_time": {
+            "name": "取消时间"
+          }
+        },
+        {
+          "refuse_reason": {
+            "name": "拒绝理由"
+          }
+        },
+        {
+          "transfer_time": {
+            "name": "转账时间"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "pay": {
+      "name": "支付记录列表",
+      "column": [
+        {
+          "out_trade_no": {
+            "name": "支付流水号"
+          }
+        },
+        {
+          "trade_type": {
+            "name": "业务类型"
+          }
+        },
+        {
+          "real_name": {
+            "name": "会员昵称"
+          }
+        },
+        {
+          "mobile": {
+            "name": "会员手机号"
+          }
+        },
+        {
+          "body": {
+            "name": "支付主体"
+          }
+        },
+        {
+          "money": {
+            "name": "支付金额"
+          }
+        },
+        {
+          "status": {
+            "name": "支付状态"
+          }
+        },
+        {
+          "type": {
+            "name": "支付方式"
+          }
+        },
+        {
+          "channel": {
+            "name": "支付渠道"
+          }
+        },
+        {
+          "create_time": {
+            "name": "创建时间"
+          }
+        },
+        {
+          "pay_time": {
+            "name": "支付时间"
+          }
+        },
+        {
+          "cancel_time": {
+            "name": "关闭时间"
+          }
+        },
+        {
+          "fail_reason": {
+            "name": "失败原因"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "member": {
+      "name": "会员列表",
+      "column": [
+        {
+          "nickname": {
+            "name": "会员昵称"
+          }
+        },
+        {
+          "mobile": {
+            "name": "手机号"
+          }
+        },
+        {
+          "sex_name": {
+            "name": "性别"
+          }
+        },
+        {
+          "birthday": {
+            "name": "生日"
+          }
+        },
+        {
+          "point": {
+            "name": "积分"
+          }
+        },
+        {
+          "balance": {
+            "name": "余额"
+          }
+        },
+        {
+          "money": {
+            "name": "可提现余额"
+          }
+        },
+        {
+          "growth": {
+            "name": "成长值"
+          }
+        },
+        {
+          "commission": {
+            "name": "佣金"
+          }
+        },
+        {
+          "register_channel_name": {
+            "name": "注册来源"
+          }
+        },
+        {
+          "status_name": {
+            "name": "用户状态"
+          }
+        },
+        {
+          "create_time": {
+            "name": "注册时间"
+          }
+        },
+        {
+          "last_visit_time": {
+            "name": "最后访问时间"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "shop_member": {
+      "name": "会员列表",
+      "column": [
+        {
+          "nickname": {
+            "name": "会员昵称"
+          }
+        },
+        {
+          "mobile": {
+            "name": "手机号"
+          }
+        },
+        {
+          "comsum_num": {
+            "name": "消费次数"
+          }
+        },
+        {
+          "comsum_money": {
+            "name": "累计消费金额"
+          }
+        },
+        {
+          "register_channel_name": {
+            "name": "注册来源"
+          }
+        },
+        {
+          "first_consum_time": {
+            "name": "首次消费时间"
+          }
+        },
+        {
+          "last_consum_time": {
+            "name": "最近一次消费时间"
+          }
+        },
+        {
+          "is_follow_name": {
+            "name": "是否关注"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "site_diy_form_records": {
+      "name": "表单填写明细",
+      "column": [
+        {
+          "record_id": {
+            "name": "记录编号"
+          }
+        },
+        {
+          "create_time": {
+            "name": "填表时间"
+          }
+        },
+        {
+          "page_title": {
+            "name": "表单名称"
+          }
+        },
+        {
+          "type_name": {
+            "name": "表单类型"
+          }
+        },
+        {
+          "form_id": {
+            "name": "表单编号"
+          }
+        },
+        {
+          "nickname": {
+            "name": "填表人名称"
+          }
+        },
+        {
+          "mobile": {
+            "name": "填表人手机号"
+          }
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,12 @@
+{
+	"templateName": "Shipping Template Name",
+	"templateNamePlaceholder": "Please enter shipping template name",
+	"createTime": "Creation Time",
+	"addTemplate": "Add Shipping Template",
+	"updateTemplate": "Edit Shipping Template",
+	"templateDeleteTips": "Are you sure you want to delete this template?",
+	"feeTypeName": "Billing Type",
+	"freeShipping": "Free Shipping for Specified Areas",
+	"open": "Enable",
+	"close": "Disable"
+} 

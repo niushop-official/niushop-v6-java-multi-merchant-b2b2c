@@ -1,0 +1,35 @@
+{
+  "DIY_INDEX": {
+    "title": "首页",
+    "addon": "core",
+    "page": "/app/pages/index/index",
+    "action": "decorate",
+    "type": "index",
+    "app_type": ["admin"]
+  },
+  "DIY_MEMBER_INDEX": {
+    "title": "个人中心",
+    "addon": "core",
+    "page": "/app/pages/member/index",
+    "action": "decorate",
+    "type": "member_index",
+    "app_type": ["admin"]
+  },
+  "DIY_SITE_INDEX": {
+    "title": "商户",
+    "addon": "core",
+    "page": "/app/pages/site/index",
+    "action": "decorate",
+    "type": "site_index",
+    "app_type": ["admin"]
+  },
+  "DIY_PAGE": {
+    "title": "微页面",
+    "addon": "core",
+    "page": "/app/pages/index/diy",
+    "action": "",
+    "type": "",
+    "template": [],
+    "app_type": ["admin", "site"]
+  }
+}

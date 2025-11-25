@@ -1,0 +1,80 @@
+{
+	"MALL_LINK": {
+		"title": "商城",
+		"child_list": [
+			{
+				"name": "MALL_INDEX",
+				"title": "商城首页",
+				"url": "/",
+				"is_share": 1,
+				"action": "",
+				"parent": "MALL_LINK"
+			},
+			{
+				"name": "MALL_GOODS_LIST",
+				"title": "商品列表",
+				"url": "/goods/list",
+				"is_share": 1,
+				"action": "",
+				"parent": "MALL_LINK"
+			},
+			{
+				"name": "MALL_GOODS_CART",
+				"title": "购物车",
+				"url": "/goods/cart",
+				"is_share": 1,
+				"action": "",
+				"parent": "MALL_LINK"
+			},
+			{
+				"name": "MALL_COUPON_LIST",
+				"title": "优惠券列表",
+				"url": "/coupon/list",
+				"is_share": 1,
+				"action": "",
+				"parent": "MALL_LINK"
+			},
+			{
+				"name": "MALL_MY_COUPON_LIST",
+				"title": "我的优惠券",
+				"url": "/member/my_coupon",
+				"is_share": 1,
+				"action": "",
+				"parent": "MALL_LINK"
+			},
+			{
+				"name": "MALL_ORDER_LIST",
+				"title": "订单列表",
+				"url": "/order/list",
+				"is_share": 1,
+				"action": "",
+				"parent": "MALL_LINK"
+			},
+			{
+				"name": "MALL_REFUND_LIST",
+				"title": "退款列表",
+				"url": "/refund/list",
+				"is_share": 1,
+				"action": "",
+				"parent": "MALL_LINK"
+			},
+			{
+				"name": "MALL_SHOP_LIST",
+				"title": "店铺列表",
+				"url": "/shop/list",
+				"is_share": 1,
+				"action": "",
+				"parent": "MALL_LINK"
+			}
+		],
+		"addon_info": {
+			"title": "商城系统",
+			"icon": "addon/shop/icon.png",
+			"key": "shop",
+			"desc": "实物虚拟商品，订单，物流同城配送，门店自提",
+			"status": 1,
+			"cover": "addon/mall/cover.png"
+		},
+		"name": "MALL_LINK"
+	}
+}
