@@ -6,15 +6,16 @@
 :fa-quote-left:  如果对您有帮助，您可以点右上角 ⭐“Star” 收藏一下 ，获取第一时间更新，谢谢！ :fa-quote-right: 
 ### 技术架构
 
-  **SpringBoot+MyBatisPlus+Sa-Token**   
+  **SpringBoot3.0+MyBatisPlus+Sa-Token**   
   **Vite+TypeScript+Vue3+ElementPlus**<br>
 
 
-  **插件化架构设计+组件DIY自定义+页面个性化DIY** <br>
-  **一键云安装** <br>
-  **一键云编译** <br>
-  **支持微信公众号/小程序/H5/PC/APP多端数据同步** <br>
-  **代码100%开源 二开方便 文档完善** 
+  插件化架构设计+组件DIY自定义+页面个性化DIY <br>
+  插件一键云安装 <br>
+  前端一键云编译 <br>
+  内置在线更新引擎 <br>
+  支持微信公众号/小程序/H5/PC/APP多端数据同步 <br>
+  代码100%开源 二开方便 文档完善
  
 
 
