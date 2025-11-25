@@ -22,8 +22,8 @@
 
  **平台管理端** 
 ![](https://media.niucloud.com/1764036666ad60b177e99cf33336efc730e2d32772_aliyun.jpg)
- **站点管理端** 
-![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_shop1.png)
+ **店铺管理端** 
+![](https://media.niucloud.com/1764037136f71cd212717f2d856c40c106bc8a512a_aliyun.png)
 
  **前端H5** 
 <table>
