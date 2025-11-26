@@ -1,18 +1,3 @@
-/*
- Navicat Premium Data Transfer
-
- Source Server         : localhost
- Source Server Type    : MySQL
- Source Server Version : 80407 (8.4.7)
- Source Host           : 127.0.0.1:3306
- Source Schema         : b2b2c_beta_java
-
- Target Server Type    : MySQL
- Target Server Version : 80407 (8.4.7)
- File Encoding         : 65001
-
- Date: 25/11/2025 15:51:32
-*/
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
