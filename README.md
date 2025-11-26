@@ -202,7 +202,7 @@ niucloud-Admin-Java 程序员二开神器！
 https://www.niucloud.com
 
 ### 技术交流群(加客服拉您入群)
-![输入图片说明](qun1.jpg)
+![输入图片说明](https://media.niucloud.com/170312377249fc5bc70c5f914fda3d7c5cf3413ddc_aliyun.jpg)
 
 ### 开源使用须知
 
