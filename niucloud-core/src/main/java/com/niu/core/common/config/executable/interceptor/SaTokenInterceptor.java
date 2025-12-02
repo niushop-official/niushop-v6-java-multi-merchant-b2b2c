@@ -34,7 +34,7 @@ public class SaTokenInterceptor extends SaInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
         /** 获取当前请求的域名 */
-        String domain = ObjectUtil.isNotEmpty(request.getServerPort()) && (request.getServerPort() != 80  || request.getServerPort() != 443 ) ? request.getServerName()+ ":" + request.getServerPort() : request.getServerName();
+        String domain = ObjectUtil.isNotEmpty(request.getServerPort()) && (request.getServerPort() != 80  && request.getServerPort() != 443 ) ? request.getServerName()+ ":" + request.getServerPort() : request.getServerName();
         RequestUtils.setRequestDomain(domain);
 
         /** 获取当前请求的类型 */
