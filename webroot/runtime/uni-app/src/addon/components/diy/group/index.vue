@@ -172,7 +172,72 @@
                         <diy-form-privacy-pop ref="diyFormPrivacyPopRef" :component="component" :global="data.global"
                             :index="index" :overallData="data.value" />
                     </template>
-                    
+                                <template v-if="component.componentName == 'MallEmpty'">
+                <diy-mall-empty :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallEmpty" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsCoupon'">
+                <diy-mall-goods-coupon :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsCoupon" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsDetailAttr'">
+                <diy-mall-goods-detail-attr :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailAttr" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsDetailBasicInfo'">
+                <diy-mall-goods-detail-basic-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailBasicInfo" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsDetailBottom'">
+                <diy-mall-goods-detail-bottom :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailBottom" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsDetailDesc'">
+                <diy-mall-goods-detail-desc :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailDesc" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsDetailEvaluate'">
+                <diy-mall-goods-detail-evaluate :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailEvaluate" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsDetailPurchaseService'">
+                <diy-mall-goods-detail-purchase-service :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailPurchaseService" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsDetailShopInfo'">
+                <diy-mall-goods-detail-shop-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailShopInfo" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsDetailSow'">
+                <diy-mall-goods-detail-sow :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailSow" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsList'">
+                <diy-mall-goods-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsList" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsRanking'">
+                <diy-mall-goods-ranking :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsRanking" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallGoodsRecommend'">
+                <diy-mall-goods-recommend :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsRecommend" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallManyGoodsList'">
+                <diy-mall-many-goods-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallManyGoodsList" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallMemberInfo'">
+                <diy-mall-member-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallMemberInfo" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallOrderInfo'">
+                <diy-mall-order-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallOrderInfo" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallSearch'">
+                <diy-mall-search :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallSearch" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallShopCouponList'">
+                <diy-mall-shop-coupon-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallShopCouponList" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallShopInfo'">
+                <diy-mall-shop-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallShopInfo" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallShopList'">
+                <diy-mall-shop-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallShopList" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'SingleRecommend'">
+                <diy-single-recommend :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SingleRecommend" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
+            <template v-if="component.componentName == 'MallFenxiaoGoodsList'">
+                <diy-mall-fenxiao-goods-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallFenxiaoGoodsList" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
                 </view>
             </view>
         </template>
@@ -185,7 +250,28 @@
     </view>
 </template>
 <script lang="ts" setup>
-
+   import diyMallEmpty from '@/addon/mall/components/diy/mall-empty/index.vue';
+   import diyMallGoodsCoupon from '@/addon/mall/components/diy/mall-goods-coupon/index.vue';
+   import diyMallGoodsDetailAttr from '@/addon/mall/components/diy/mall-goods-detail-attr/index.vue';
+   import diyMallGoodsDetailBasicInfo from '@/addon/mall/components/diy/mall-goods-detail-basic-info/index.vue';
+   import diyMallGoodsDetailBottom from '@/addon/mall/components/diy/mall-goods-detail-bottom/index.vue';
+   import diyMallGoodsDetailDesc from '@/addon/mall/components/diy/mall-goods-detail-desc/index.vue';
+   import diyMallGoodsDetailEvaluate from '@/addon/mall/components/diy/mall-goods-detail-evaluate/index.vue';
+   import diyMallGoodsDetailPurchaseService from '@/addon/mall/components/diy/mall-goods-detail-purchase-service/index.vue';
+   import diyMallGoodsDetailShopInfo from '@/addon/mall/components/diy/mall-goods-detail-shop-info/index.vue';
+   import diyMallGoodsDetailSow from '@/addon/mall/components/diy/mall-goods-detail-sow/index.vue';
+   import diyMallGoodsList from '@/addon/mall/components/diy/mall-goods-list/index.vue';
+   import diyMallGoodsRanking from '@/addon/mall/components/diy/mall-goods-ranking/index.vue';
+   import diyMallGoodsRecommend from '@/addon/mall/components/diy/mall-goods-recommend/index.vue';
+   import diyMallManyGoodsList from '@/addon/mall/components/diy/mall-many-goods-list/index.vue';
+   import diyMallMemberInfo from '@/addon/mall/components/diy/mall-member-info/index.vue';
+   import diyMallOrderInfo from '@/addon/mall/components/diy/mall-order-info/index.vue';
+   import diyMallSearch from '@/addon/mall/components/diy/mall-search/index.vue';
+   import diyMallShopCouponList from '@/addon/mall/components/diy/mall-shop-coupon-list/index.vue';
+   import diyMallShopInfo from '@/addon/mall/components/diy/mall-shop-info/index.vue';
+   import diyMallShopList from '@/addon/mall/components/diy/mall-shop-list/index.vue';
+   import diySingleRecommend from '@/addon/mall/components/diy/single-recommend/index.vue';
+   import diyMallFenxiaoGoodsList from '@/addon/mall_fenxiao/components/diy/mall-fenxiao-goods-list/index.vue';
     import topTabbar from '@/components/top-tabbar/top-tabbar.vue'
     import popAds from '@/components/pop-ads/pop-ads.vue'
     import { useDiyGroup } from './useDiyGroup'

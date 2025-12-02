@@ -1,0 +1,1 @@
+import{aU as e}from"./index-f6cc14a9.js";function a(){return e.get("mall_fenxiao/admin/config/fenxiao")}function i(n){return e.put("mall_fenxiao/admin/config/fenxiao",n,{showErrorMessage:!0,showSuccessMessage:!0})}export{a as g,i as s};

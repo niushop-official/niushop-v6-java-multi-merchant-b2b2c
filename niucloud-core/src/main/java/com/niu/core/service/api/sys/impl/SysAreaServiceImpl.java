@@ -219,6 +219,7 @@ public class SysAreaServiceImpl implements ISysAreaService {
         queryWrapper.select("id");
         queryWrapper.eq("name", areaName);
         queryWrapper.eq("level", level);
+        queryWrapper.last("limit 1");
         SysArea sysArea = this.sysAreaMapper.selectOne(queryWrapper);
         if (sysArea != null) {
             return sysArea.getId();
