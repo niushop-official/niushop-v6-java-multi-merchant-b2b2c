@@ -1,6 +1,7 @@
 package com.niu.core.service.admin.niucloud.impl;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.ZipUtil;
@@ -27,17 +28,18 @@ import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.addon.vo.InstallAddonListVo;
 import com.niu.core.service.core.sys.ICoreConfigService;
 import com.niu.core.service.core.sys.vo.CoreSysConfigVo;
-import jakarta.annotation.Resource;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.*;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.Resource;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 获取官方框架服务层
@@ -122,6 +124,7 @@ public class CloudBuildServiceImpl implements ICloudBuildService {
         HttpResponse response = new NiucloudUtils.Cloud().useThirdBuild().build("cloud/build").query(query)
                 .func(i -> {
                     i.form("file", zipFile, "build.zip");
+                    i.timeout(300000);
                 })
                 .method(Method.POST).execute();
 
