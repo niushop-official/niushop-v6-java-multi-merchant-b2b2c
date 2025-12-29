@@ -1,5 +1,7 @@
 package com.niu.core.service.core.delivery_store.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.niu.core.common.domain.BeanJsonSerializer;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -51,6 +53,7 @@ public class DeliveryStoreListVo implements Serializable {
     /**
      * 业务类型列表
      */
+    @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
     private String businessList;
 
     /**

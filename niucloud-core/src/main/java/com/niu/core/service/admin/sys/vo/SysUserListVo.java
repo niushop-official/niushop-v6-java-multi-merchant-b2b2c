@@ -61,4 +61,6 @@ public class SysUserListVo implements Serializable {
 
     private Integer isAdmin;
 
+    private String mobile;
+
 }

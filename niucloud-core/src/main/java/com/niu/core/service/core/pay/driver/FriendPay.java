@@ -35,8 +35,8 @@ public class FriendPay extends BasePay {
     }
 
     @Override
-    public void close(Pay pay) {
-
+    public Boolean close(Pay pay) {
+        return true;
     }
 
     @Override
@@ -46,6 +46,11 @@ public class FriendPay extends BasePay {
 
     @Override
     public Object transfer(TransferParam param) {
+        return null;
+    }
+
+    @Override
+    public Object getOrder(String outTradeNo) {
         return null;
     }
 

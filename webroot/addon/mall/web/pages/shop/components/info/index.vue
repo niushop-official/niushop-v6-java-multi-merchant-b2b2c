@@ -27,7 +27,7 @@
                     <span class="text-[12px] text-[#999] mr-[15px]">{{ t('service') }}</span>
                     <span class="iconfont icon-kefu text-[var(--el-color-primary)]"></span>
                 </div>
-                <div class="text-[#7e7e7e] text-[12px] mb-[15px] flex items-center cursor-pointer" @click="handleWeappShow" v-if="configStore.weappOpen">
+                <div class="text-[#7e7e7e] text-[12px] mb-[15px] flex items-center cursor-pointer" @click="handleWeappShow" v-if="qrcodeImg">
                     <span class="text-[12px] text-[#999] mr-[15px]">店铺二维码</span>
                     <span class="iconfont icon-xiaochengxushezhi text-[var(--el-color-primary)]"></span>
                 </div>
@@ -57,9 +57,9 @@
 
 <script lang="ts" setup>
 import { ref,reactive,computed, watch } from 'vue'
-import { getShopInfo, editShopCollect, getShopQrcode} from '@/addon/mall/api/shop'
+import { getQrcode } from '@/app/api/index'
+import { getShopInfo, editShopCollect} from '@/addon/mall/api/shop'
 import useMemberStore from '@/stores/member'
-import useConfigStore from '@/stores/config'
 import { useRouter, useRoute } from 'vue-router'
 
 const memberStore = useMemberStore()
@@ -69,26 +69,24 @@ const router = useRouter()
 const route = useRoute()
 const detail = ref({})
 const loading = ref(true)
-const phoneShow = ref(false)
 
 
 const qrcodeImg = ref('')
-const loadWeapp = (id: any) => {
-	getShopQrcode(id).then((res:any) =>{
+const loadWeapp = () => {
+	getQrcode({
+        scene: 'shop_index',
+        type: 'image',
+        channel: 'weapp',
+        param: {
+            site_id: route.query.site_id
+        }
+    }).then((res:any) =>{
 		qrcodeImg.value = res.data
 	})
 }
 
-const configStore = useConfigStore()
+loadWeapp()
 
-watch(() => configStore.weappOpen, (nval, oval) => {
-    if(nval){
-        loadWeapp(route.query.site_id)
-    }
-})
-if(configStore.weappOpen){
-    loadWeapp(route.query.site_id)
-}
 
 const getShopDetailFn = (id: any) => {
     loading.value = true

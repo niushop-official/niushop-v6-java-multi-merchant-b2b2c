@@ -274,7 +274,7 @@ export function useDiyGoodsDetail(params: any = {}) {
             data.goods.goods_image[index] = img(item);
         })
         data.goods.delivery_type_list = data.goods.delivery_type_list ? Object.values(data.goods.delivery_type_list) : []
-
+        data.goods.delivery_type_name  = data.goods.delivery_type_list.length ? data.goods.delivery_type_list.map((item: any) => item.name).join('、') : ''
         if (getToken()) {
             // 我的足迹
             myBrowseFn(data);

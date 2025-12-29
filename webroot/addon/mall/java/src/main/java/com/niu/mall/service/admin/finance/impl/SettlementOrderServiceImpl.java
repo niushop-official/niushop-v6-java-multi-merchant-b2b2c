@@ -71,57 +71,57 @@ public class SettlementOrderServiceImpl implements SettlementOrderService {
         SettlementDataVo data = new SettlementDataVo();
 
         // 店铺待结总金额
-        MallOrder shopWaitSettlementMoneyObj = mallOrderMapper.selectOne(
+        Object shopWaitSettlementMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(shop_money) as shop_money")
+                        .select("SUM(shop_money)")
                         .notIn("status", OrderStatusEnum.WAIT_PAY.getStatus(), OrderStatusEnum.FINISH.getStatus(), OrderStatusEnum.CLOSE.getStatus())
-        );
-        BigDecimal shopWaitSettlementMoney = shopWaitSettlementMoneyObj != null ? shopWaitSettlementMoneyObj.getShopMoney() : BigDecimal.ZERO;
+        ).stream().findFirst().orElse(null);
+        BigDecimal shopWaitSettlementMoney = shopWaitSettlementMoneyObj != null ? (BigDecimal) shopWaitSettlementMoneyObj : BigDecimal.ZERO;
 
         // 平台待结算金额
-        MallOrder mallWaitSettlementMoneyObj = mallOrderMapper.selectOne(
+        Object mallWaitSettlementMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(mall_money) as mall_money")
+                        .select("SUM(mall_money)")
                         .notIn("status", OrderStatusEnum.WAIT_PAY.getStatus(), OrderStatusEnum.FINISH.getStatus(), OrderStatusEnum.CLOSE.getStatus())
-        );
-        BigDecimal mallWaitSettlementMoney = mallWaitSettlementMoneyObj != null ? mallWaitSettlementMoneyObj.getMallMoney() : BigDecimal.ZERO;
+        ).stream().findFirst().orElse(null);
+        BigDecimal mallWaitSettlementMoney = mallWaitSettlementMoneyObj != null ? (BigDecimal) mallWaitSettlementMoneyObj : BigDecimal.ZERO;
 
         // 已结算金额
-        MallOrder shopMoneyObj = mallOrderMapper.selectOne(
+        Object shopMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(shop_money) as shop_money")
+                        .select("SUM(shop_money)")
                         .eq("status", OrderStatusEnum.FINISH.getStatus())
-        );
-        BigDecimal shopMoney = shopMoneyObj != null ? shopMoneyObj.getShopMoney() : BigDecimal.ZERO;
+        ).stream().findFirst().orElse(null);
+        BigDecimal shopMoney = shopMoneyObj != null ? (BigDecimal) shopMoneyObj : BigDecimal.ZERO;
 
-        MallOrder shopRefundMoneyObj = mallOrderMapper.selectOne(
+        Object shopRefundMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(shop_refund_money) as shop_refund_money")
+                        .select("SUM(shop_refund_money)")
                         .eq("status", OrderStatusEnum.FINISH.getStatus())
-        );
-        BigDecimal shopRefundMoney = shopRefundMoneyObj != null ? shopRefundMoneyObj.getShopRefundMoney() : BigDecimal.ZERO;
+        ).stream().findFirst().orElse(null);
+        BigDecimal shopRefundMoney = shopRefundMoneyObj != null ? (BigDecimal) shopRefundMoneyObj : BigDecimal.ZERO;
 
-        MallOrder mallCouponMoneyObj = mallOrderMapper.selectOne(
+        Object mallCouponMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(mall_coupon_money) as mall_coupon_money")
+                        .select("SUM(mall_coupon_money)")
                         .eq("status", OrderStatusEnum.FINISH.getStatus())
-        );
-        BigDecimal mallCouponMoney = mallCouponMoneyObj != null ? mallCouponMoneyObj.getMallCouponMoney() : BigDecimal.ZERO;
+        ).stream().findFirst().orElse(null);
+        BigDecimal mallCouponMoney = mallCouponMoneyObj != null ? (BigDecimal) mallCouponMoneyObj : BigDecimal.ZERO;
 
-        MallOrder mallRefundCouponMoneyObj = mallOrderMapper.selectOne(
+        Object mallRefundCouponMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(mall_refund_coupon_money) as mall_refund_coupon_money")
+                        .select("SUM(mall_refund_coupon_money)")
                         .eq("status", OrderStatusEnum.FINISH.getStatus())
-        );
-        BigDecimal mallRefundCouponMoney = mallRefundCouponMoneyObj != null ? mallRefundCouponMoneyObj.getMallRefundCouponMoney() : BigDecimal.ZERO;
+        ).stream().findFirst().orElse(null);
+        BigDecimal mallRefundCouponMoney = mallRefundCouponMoneyObj != null ? (BigDecimal) mallRefundCouponMoneyObj : BigDecimal.ZERO;
 
         // 平台已结算总金额
-        MallOrder mallSettlementMoneyObj = mallOrderMapper.selectOne(
+        Object mallSettlementMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(mall_money) as mall_money")
+                        .select("SUM(mall_money)")
                         .eq("status", OrderStatusEnum.FINISH.getStatus())
-        );
-        BigDecimal mallSettlementMoney = mallSettlementMoneyObj != null ? mallSettlementMoneyObj.getMallMoney() : BigDecimal.ZERO;
+        ).stream().findFirst().orElse(null);
+        BigDecimal mallSettlementMoney = mallSettlementMoneyObj != null ? (BigDecimal) mallSettlementMoneyObj : BigDecimal.ZERO;
 
         // 设置数据
         data.setShopWaitSettlementMoney(shopWaitSettlementMoney);

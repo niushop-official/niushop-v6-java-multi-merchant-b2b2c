@@ -43,7 +43,7 @@ public class LocalDeliveryOrderCancelReasonEnum {
     }
 
     public static JSONObject getCancelByService(String service) {
-        JSONObject jsonObject = LocalDeliveryOrderPreStatusEnum.getStatus();
+        JSONObject jsonObject = LocalDeliveryOrderCancelReasonEnum.getType();
         if(ObjectUtil.isNotEmpty(jsonObject) && DeliveryStoreTypeEnum.DADA.getKey().equals(service)){
             return jsonObject;
         }else{

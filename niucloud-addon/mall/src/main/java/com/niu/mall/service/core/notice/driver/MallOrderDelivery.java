@@ -23,8 +23,8 @@ public class MallOrderDelivery extends BaseNotice {
         param.put("order_no", order.getOrderNo());
         param.put("order_money", order.getOrderMoney());
         param.put("delivery_time", DateUtil.date(order.getDeliveryTime() * 1000));
-        param.put("wechat_page", "/addon/shop/pages/order/detail?order_id=" + order.getOrderId());
-        param.put("weapp_page", "addon/shop/pages/order/detail?order_id=" + order.getOrderId());
+        param.put("wechat_page",  coreSysConfigService.getSceneDomain().getWapDomain() + "/addon/mall/pages/order/detail?order_id=" + order.getOrderId());
+        param.put("weapp_page", "addon/mall/pages/order/detail?order_id=" + order.getOrderId());
         param.put("url", coreSysConfigService.getSceneDomain().getWapUrl() + "/addon/mall/pages/order/detail?order_id=" + order.getOrderId());
 
         NoticeDataVo vo = new NoticeDataVo();

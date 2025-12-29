@@ -1,6 +1,6 @@
 [
   {
-    "key": "shopGoodsOrder",
+    "key": "mallGoodsOrder",
     "title": "商品订单",
     "sort": 10000,
     "trigger": {

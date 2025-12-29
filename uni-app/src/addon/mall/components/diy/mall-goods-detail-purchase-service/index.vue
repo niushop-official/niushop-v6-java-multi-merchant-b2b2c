@@ -14,7 +14,7 @@
             </view>
             <view class="card-template-item" @click="distributionDataOpen" v-if="diyComponent.goods.goods_type == 'real' && diyComponent.goods.delivery_type_list && diyComponent.goods.delivery_type_list.length && serviceConfig.includes('delivery_info')">
                 <text class="text-[#333] text-[26rpx] leading-[30rpx] font-400 flex-shrink-0">配送</text>
-                <view class="ml-auto flex items-center text-[#343434] text-[26rpx] leading-[30rpx] font-400">{{ diyComponent.goods.delivery_type_list[selectDeliveryType].name }}</view>
+                <view class="ml-auto flex items-center text-[#343434] text-[26rpx] leading-[30rpx] font-400">{{ diyComponent.goods.delivery_type_name }}</view>
                 <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light6)] ml-[8rpx]"></text>
             </view>
             <view @click="couponListShow = true" v-if="couponList.length && serviceConfig.includes('coupons')" class="card-template-item">
@@ -53,7 +53,7 @@
                     <view class="title">配送方式</view>
                     <scroll-view class="h-[520rpx]" scroll-y="true">
                         <view class="px-[var(--popup-sidebar-m)]">
-                            <view class="flex mb-[40rpx]" v-for="(item, index) in diyComponent.goods.delivery_type_list" @click="distributionListFn(item,index)">
+                            <view class="flex mb-[40rpx]" v-for="(item, index) in diyComponent.goods.delivery_type_list">
                                 <image class="mt-[4rpx] w-[32rpx] h-[32rpx] mr-[14rpx]" :src="img('addon/mall/icon_service.png')" mode="aspectFit" />
                                 <view class="flex-1">
                                     <view class="text-[30rpx] leading-[36rpx] text-[#333] mb-[8rpx]">{{ item.name }}</view>

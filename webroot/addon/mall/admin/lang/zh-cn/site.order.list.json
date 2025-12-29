@@ -139,6 +139,8 @@
 	"weightTips": "[商品重量(kg)]格式输入错误",
   	"weightNotZeroTips": "商品重量(kg)必须大于0",
 	"deliveryAddress": "发货地址",
+	"deliveryStore": "提货点",
+	"deliveryStorePlaceholder": "请选择提货点",
 	"deliveryPlatform": "配送平台",
 	"deliveryStatus": "配送状态",
 	"goActive":"去开通",

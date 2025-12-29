@@ -56,7 +56,7 @@ public class DiyConfigServiceImpl implements IDiyConfigService {
 
     @Override
     public void setBottomConfig(SetBottomConfigParam param) {
-        coreDiyConfigService.setBottomConfig(RequestUtils.siteId(), param.getValue());
+        coreDiyConfigService.setBottomConfig(RequestUtils.siteId(), param.getValue(),param.getKey());
     }
 
 }

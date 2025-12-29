@@ -131,7 +131,15 @@ public class MallOrderInfoVo implements Serializable {
     private OrderStatusData orderStatusData;
 
     private Boolean isInstallFenxiao; // 是否安装分销插件
+    private String verifyCode; // 是否安装分销插件
+    private VerifierMemberInfo verifierMember; // 是否安装分销插件
 
+    @Data
+    public static class VerifierMemberInfo{
+        private Integer memberId;
+        private String nickname;
+
+    }
     @Data
     public static class Supply{
         private Integer siteId;
@@ -239,7 +247,7 @@ public class MallOrderInfoVo implements Serializable {
         private Integer storeId; //
         private String storeName; // 门店名称
         private String storeLogo; // 门店logo
-        private String storeMobile; // 手机号
+        private String mobile; // 手机号
         private String fullAddress; // 完整地址
         private String longitude; // 经度
         private String latitude; // 纬度
@@ -258,6 +266,18 @@ public class MallOrderInfoVo implements Serializable {
         private String expressNumber; // 配送单号
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
         private Long createTime; // 创建时间
+
+        private String deliveryService;
+        private String deliveryServiceName;
+
+        private Integer localDeliverId;
+        private Integer localDeliveryOrderId;
+
+        private String localDeliveryStatus;
+        private String localDeliveryStatusName;
+
+        private String riderMobile;
+        private String riderName;
     }
 
     public String getOrderTypeName() {
@@ -276,7 +296,7 @@ public class MallOrderInfoVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getMapByStatus(Integer.valueOf(this.status));
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType);
     }
 
     public Boolean getFormRecordShow() {

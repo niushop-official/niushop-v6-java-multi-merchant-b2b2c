@@ -41,6 +41,22 @@ public final class BeanJsonSerializer {
     }
 
     /**
+     * 时间序列化：如果为0或null，返回0，否则返回格式化字符串
+     */
+    public static class LongDateToStringOrZeroSerializer extends JsonSerializer<Long> {
+
+        @Override
+        public void serialize(Long value, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            if (value == null || value == 0) {
+                jsonGenerator.writeNumber(0);
+            } else {
+                jsonGenerator.writeString(DateUtils.timestampToString(value));
+            }
+        }
+
+    }
+
+    /**
      * 配置:   @JsonSerialize(using = BeanJsonSerializer.DateToStringSerializer.class)
      */
     public static class DateToStringSerializer extends JsonSerializer<Date> {
@@ -86,17 +102,21 @@ public final class BeanJsonSerializer {
     }
 
     /**
-     * BigDecimal，显示为带2个小数
+     * BigDecimal，显示为带2个小数（字符串格式，如"10.00"）
      */
     public static class BigDecimalFormatSerializer extends JsonSerializer<BigDecimal> {
 
         @Override
         public void serialize(BigDecimal value, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             try {
-                DecimalFormat decimalFormat = new DecimalFormat("#0.00");
-                jsonGenerator.writeObject(decimalFormat.format(value));
+                if (value == null) {
+                    jsonGenerator.writeString("0.00");
+                } else {
+                    DecimalFormat decimalFormat = new DecimalFormat("#0.00");
+                    jsonGenerator.writeString(decimalFormat.format(value));
+                }
             } catch (Exception e) {
-                // ignore
+                jsonGenerator.writeString("0.00");
             }
         }
 

@@ -10,7 +10,9 @@ import com.niu.core.common.domain.Result;
 import com.niu.core.service.admin.addon.param.AddonSearchParam;
 import com.niu.core.service.admin.auth.IConfigService;
 import com.niu.core.service.admin.auth.ILoginService;
+import com.niu.core.service.admin.auth.param.SendMobileParam;
 import com.niu.core.service.admin.auth.param.UserLoginParam;
+import com.niu.core.service.admin.auth.param.UserMobileLoginParam;
 import com.niu.core.service.admin.auth.vo.LoginConfigVo;
 import com.niu.core.service.admin.auth.vo.LoginResultVo;
 import com.niu.core.service.admin.sys.ISysConfigService;
@@ -27,24 +29,30 @@ import java.util.Map;
 @RequestMapping("adminapi/login")
 public class LoginController {
 
-
     @Resource
     ILoginService loginService;
     @Resource
     IConfigService configService;
 
     @GetMapping("/{appType}")
-    public Result<LoginResultVo> login(@Validated UserLoginParam userLoginParam){
-        LoginResultVo loginResultVo=loginService.login(userLoginParam);
+    public Result<LoginResultVo> login(@Validated UserLoginParam userLoginParam) {
+        LoginResultVo loginResultVo = loginService.account(userLoginParam);
+        return Result.success(loginResultVo);
+    }
+
+    @PostMapping("/mobile/{appType}")
+    public Result<LoginResultVo> mobile(@Validated @RequestBody UserMobileLoginParam userLoginParam) {
+        LoginResultVo loginResultVo = loginService.mobile(userLoginParam);
         return Result.success(loginResultVo);
     }
 
     /**
      * 获取登录设置
+     *
      * @return
      */
     @GetMapping("config")
-    public Result<LoginConfigVo> getConfig(){
+    public Result<LoginConfigVo> getConfig() {
         return Result.success(configService.getLoginConfig());
     }
 
@@ -59,5 +67,4 @@ public class LoginController {
         StpUtil.logout();
         return SaResult.ok();
     }
-
 }

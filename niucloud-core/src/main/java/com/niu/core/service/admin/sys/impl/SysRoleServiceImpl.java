@@ -162,7 +162,7 @@ public class SysRoleServiceImpl implements ISysRoleService {
         Assert.notNull(model, "数据不存在!");
         Long userRoleCount=sysUserRoleMapper.selectCount(new QueryWrapper<SysUserRole>().like("role_ids", id));
         if(userRoleCount>0){
-            throw new AdminException("USER_ROLE_NOT_ALLOW_DELETE");
+            throw new AdminException("存在管理员使用当前角色,不允许删除");
         }
         sysRoleMapper.delete(new QueryWrapper<SysRole>().eq("role_id", id));
     }

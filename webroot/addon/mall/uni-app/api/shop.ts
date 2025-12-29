@@ -18,7 +18,7 @@ export function getShopList(params: Record<string, any>) {
  * 获取店铺列表(有商品)
  */
 export function getShopWebList(params: Record<string, any>) {
-    return request.get(`shop/web/shop_list`, params)
+    return request.post(`shop/web/shop_list`, params)
 }
 
 

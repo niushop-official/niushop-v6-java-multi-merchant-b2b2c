@@ -296,3 +296,30 @@ html.dark {
 .multiple-layout .el-form-item__content{
    align-items: flex-start !important;
 }
+
+.t-window {
+    line-height: normal!important;
+    padding-top: 10px!important;
+    --t-main-background-color: #1d1f3a;
+    --t-main-font-color: #ececee;
+
+    .t-cmd-key {
+        font-weight: normal;
+        color: var(--t-main-font-color);
+    }
+
+    .t-log-box {
+        margin-block-start: 3px;
+        margin-block-end: 3px;
+        &:first-child {
+            display: none;
+        }
+    }
+    .t-content-normal .error {
+        display: none;
+
+        & + span {
+            color: red;
+        }
+    }
+}

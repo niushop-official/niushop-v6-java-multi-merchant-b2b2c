@@ -15,6 +15,7 @@ import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.WechatUtils;
 import com.niu.core.entity.pay.Pay;
+import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.delivery.DeliveryTypeEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
 import com.niu.core.mapper.pay.PayMapper;
@@ -128,11 +129,7 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         //配送
         String deliveryType = orderDeliveryParam.getDeliveryType();
         if (ObjectUtil.isNotEmpty(orderDeliveryParam.getDeliveryIds())){
-            if(DeliveryTypeEnum.LOCAL_DELIVERY.getType().equals(deliveryType)) {
-                queryWrapper.in("og.delivery_status", OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus(), OrderDeliveryStatusEnum.DELIVERY_FINISH.getStatus(), OrderDeliveryStatusEnum.DELIVERY_FINISH.getStatus());
-            }else{
-                queryWrapper.eq("og.delivery_status", OrderDeliveryStatusEnum.DELIVERY_FINISH.getStatus());
-            }
+            queryWrapper.eq("og.delivery_status", OrderDeliveryStatusEnum.DELIVERY_FINISH.getStatus());
         }else{
             queryWrapper.eq("og.delivery_status", OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus());
         }
@@ -151,7 +148,9 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
 
         if (hasGoodsTypeArray.size() > 1) throw new CommonException("一次发货只能发送一种商品类型的订单项");
         String goodsType = hasGoodsTypeArray.get(0);
-
+        if(OrderDeliveryTypeEnum.NONE_EXPRESS.getType().equals(orderDeliveryParam.getDeliveryType())){
+            orderDeliveryParam.setDeliveryWay("");
+        }
         OrderDeliveryDataParam orderDeliveryDataParam = new OrderDeliveryDataParam();
         orderDeliveryDataParam.setOrderData(mallOrder);
         orderDeliveryDataParam.setOrderGoodsData(orderGoodsData);
@@ -174,6 +173,11 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
                 //同城配送
                 if (mallOrder.getDeliveryType().equals(OrderDeliveryTypeEnum.LOCAL_DELIVERY.getType())) {
                     this.localDelivery(orderDeliveryDataParam);
+                }
+
+                //门店自提
+                if (mallOrder.getDeliveryType().equals(OrderDeliveryTypeEnum.STORE.getType())) {
+                    this.store(orderDeliveryDataParam);
                 }
 
 
@@ -332,13 +336,16 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         mallOrderDelivery.setLocalDeliverId(orderDeliveryParam.getLocalDeliverId());
         mallOrderDelivery.setLocalDeliveryOrderId(localDeliveryNo);
         Integer deliveryId = this.packages(orderDeliveryParam.getDeliveryIds(), mallOrderDelivery);
-
+        List<LocalDeliveryOrderCreateParam.OrderGoodsInfo> orderGoodsList = new ArrayList<>();
         for (MallOrderGoodsDeliveryVo orderGoods : orderGoodsData) {
+            LocalDeliveryOrderCreateParam.OrderGoodsInfo goodsInfo = new LocalDeliveryOrderCreateParam.OrderGoodsInfo();
             MallOrderGoods orderGoodsUpdate = new MallOrderGoods();
             orderGoodsUpdate.setOrderGoodsId(orderGoods.getOrderGoodsId());
             orderGoodsUpdate.setDeliveryStatus(OrderDeliveryStatusEnum.DELIVERY_FINISH.getStatus());
             orderGoodsUpdate.setDeliveryId(deliveryId);
             mallOrderGoodsMapper.updateById(orderGoodsUpdate);
+            BeanUtils.copyProperties(orderGoods, goodsInfo);
+            orderGoodsList.add(goodsInfo);
         }
 
         //同城配送订单创建
@@ -352,11 +359,44 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         param.setRemark(orderDeliveryParam.getRemark());
         param.setDeliveryId(deliveryId);
         param.setBody(orderData.getBody());
+        param.setStoreId(orderDeliveryParam.getStoreId());
         param.setLocalDeliveryId(orderDeliveryParam.getLocalDeliverId());
         param.setLocalDeliveryNo(localDeliveryNo);
         param.setLocalDeliveryType(orderDeliveryParam.getLocalDeliveryType());
         param.setOrderData(orderInfo);
+        param.setGoodsWeight(orderDeliveryParam.getGoodsWeight());
+        param.setOrderGoodsData(orderGoodsList);
         coreLocalDeliveryOrderCreateService.create(param);
+    }
+
+    @Override
+    public void store(OrderDeliveryDataParam orderDeliveryDataParam) {
+        MallOrder orderData = orderDeliveryDataParam.getOrderData();
+        List<MallOrderGoodsDeliveryVo> orderGoodsData = orderDeliveryDataParam.getOrderGoodsData();
+        OrderDeliveryParam orderDeliveryParam = orderDeliveryDataParam.getParam();
+        String deliveryType = orderDeliveryParam.getDeliveryType();
+
+        //添加包裹
+        MallOrderDelivery mallOrderDelivery = new MallOrderDelivery();
+        mallOrderDelivery.setSiteId(orderData.getSiteId());
+        mallOrderDelivery.setOrderId(orderData.getOrderId());
+        mallOrderDelivery.setDeliveryType(orderData.getDeliveryType());
+        mallOrderDelivery.setSubDeliveryType(deliveryType);
+        mallOrderDelivery.setRemark(orderDeliveryParam.getRemark());
+        Integer deliveryId = this.packages(orderDeliveryParam.getDeliveryIds(), mallOrderDelivery);
+        if(ObjectUtil.isEmpty(orderDeliveryParam.getDeliveryIds())){
+            for (MallOrderGoodsDeliveryVo orderGoods : orderGoodsData){
+                Integer num = orderGoods.getNum()-orderGoods.getVerifyCount();
+                if(num>=orderGoods.getNum()){
+                    MallOrderGoods orderGoodsUpdate = new MallOrderGoods();
+                    orderGoodsUpdate.setOrderGoodsId(orderGoods.getOrderGoodsId());
+                    orderGoodsUpdate.setVerifyCount(orderGoods.getVerifyCount()+ orderGoods.getNum());
+                    orderGoodsUpdate.setDeliveryStatus(OrderDeliveryStatusEnum.DELIVERY_FINISH.getStatus());
+                    orderGoodsUpdate.setDeliveryId(deliveryId);
+                    mallOrderGoodsMapper.updateById(orderGoodsUpdate);
+                }
+            }
+        }
     }
 
     @Override
@@ -374,7 +414,20 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
                 .ne("status", OrderGoodsRefundEnum.REFUND_FINISH.getStatus())
         );
 
-        if (orderGoodsCount.intValue() == 0L && orderGoodsDeliveryCount.intValue() > 0) {
+        //查询订单
+        List<MallOrderGoods> ordersGoodsList = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>()
+                .eq("order_id", orderDeliveryParam.getOrderId())
+        );
+        Boolean checkFinish = true;
+        if (DeliveryTypeEnum.STORE.getType().equals(orderDeliveryParam.getDeliveryType())){
+            for (MallOrderGoods orderGoods : ordersGoodsList){
+                if(orderGoods.getNum()>orderGoods.getVerifyCount()){
+                    checkFinish = false;
+                }
+            }
+        }
+
+        if (orderGoodsCount.intValue() == 0L && orderGoodsDeliveryCount.intValue() > 0 && checkFinish) {
             this.finish(orderDeliveryParam);
         }
         return true;
@@ -408,17 +461,30 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         event.setOrder(order);
         EventAndSubscribeOfPublisher.publishAll(event);
 
+        Boolean canFinish = false;
         //如果有且只有一个虚拟商品并且已经收货，则订单完成
         List<MallOrderGoods> orderGoodsList = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().eq("order_id", orderDeliveryParam.getOrderId()));
-        if (orderGoodsList.size() == 1) {
+        if (orderGoodsList.size() == 1){
             MallOrderGoods orderGoods = orderGoodsList.get(0);
             if (orderGoods.getGoodsType().equals(GoodsTypeEnum.VIRTUAL.getType()) && orderGoods.getDeliveryStatus().equals(OrderDeliveryStatusEnum.TAKED.getStatus())) {
-                OrderFinishParam finishParam = new OrderFinishParam();
-                finishParam.setOrderId(orderDeliveryParam.getOrderId());
-                finishParam.setSiteId(orderDeliveryParam.getSiteId());
-                orderFinishService.finish(finishParam);
+                canFinish = true;
             }
         }
+        //自提订单发货完成后，订单直接完成
+        if (order.getDeliveryType().equals(DeliveryTypeEnum.STORE.getType())) {
+            canFinish = true;
+        }
+        //如果是小程序订单，不能直接完成
+        if (order.getOrderFrom().equals(ChannelEnum.WEAPP.getCode())) {
+            canFinish = false;
+        }
+        if(canFinish){
+            OrderFinishParam finishParam = new OrderFinishParam();
+            finishParam.setOrderId(orderDeliveryParam.getOrderId());
+            finishParam.setSiteId(orderDeliveryParam.getSiteId());
+            orderFinishService.finish(finishParam);
+        }
+
         return true;
 
     }

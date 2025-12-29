@@ -227,12 +227,13 @@ public class Wechatpay extends BasePay {
     /**
      * 关闭支付
      */
-    public void close(Pay pay) {
+    public Boolean close(Pay pay) {
         try {
             app().closeOrderV3(pay.getOutTradeNo());
         } catch (Exception e) {
             log.error("微信支付关闭结果异常,异常原因{}", e.getMessage());
         }
+        return true;
     }
 
     /**
@@ -433,6 +434,11 @@ public class Wechatpay extends BasePay {
         } catch (Exception e) {
             throw new CommonException(e.getMessage());
         }
+    }
+
+    @Override
+    public Object getOrder(String outTradeNo) {
+        return null;
     }
 
     /**

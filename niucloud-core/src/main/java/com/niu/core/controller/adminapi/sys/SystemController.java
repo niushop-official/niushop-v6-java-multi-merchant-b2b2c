@@ -6,6 +6,7 @@ import com.niu.core.service.admin.sys.ISystemService;
 import com.niu.core.service.admin.sys.param.SysQrcodeSearchParam;
 import com.niu.core.service.admin.sys.vo.SysQrcodeVo;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,9 +39,9 @@ public class SystemController {
      * 获取二维码
      * @return
      */
-    @PostMapping("/qrcode")
-    public Result<SysQrcodeVo> qrcode(@Validated @RequestBody SysQrcodeSearchParam params) {
-        return Result.success(systemService.getQrcode(params.getFolder(), params.getPage(),params.getParams()));
+    @GetMapping("/qrcode")
+    public Result<SysQrcodeVo> qrcode(@Validated SysQrcodeSearchParam params,@RequestParam Map<String, String> allParams) {
+        return Result.success(systemService.getQrcode(params.getFolder(), params.getPage(),allParams));
     }
 
 }

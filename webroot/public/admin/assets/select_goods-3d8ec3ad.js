@@ -1,1 +1,0 @@
-import{aU as s}from"./index-f6cc14a9.js";function p(t){return s.get("supply/site/select_goods/my_shop",{params:t})}function o(t){return s.get("supply/site/mall_goods_by_supply",{params:t})}export{p as a,o as g};

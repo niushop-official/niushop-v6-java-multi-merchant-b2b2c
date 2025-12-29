@@ -55,6 +55,11 @@ public class DeliveryPackageInfoVo implements Serializable {
     /**
      * 配送单号
      */
+    private String code;
+
+    /**
+     * 快递公司ID
+     */
     private Integer companyId;
 
     /**

@@ -4,6 +4,7 @@ import lombok.Data;
 
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -31,7 +32,11 @@ public class MallGoodsEvaluateParam implements Serializable {
         private Integer orderGoodsId;
 
         private Integer orderId;
+        private Integer siteId;
 
         private Integer scores;
+        private BigDecimal logisticsScore;
+        private BigDecimal qualityScore;
+        private BigDecimal serviceScore;
     }
 }

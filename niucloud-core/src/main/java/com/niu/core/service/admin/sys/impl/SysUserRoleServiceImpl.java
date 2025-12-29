@@ -107,7 +107,7 @@ public class SysUserRoleServiceImpl implements ISysUserRoleService {
                         .eq("site_id", addParam.getSiteId())
                 );
         if (userRoleCount>0){
-            throw new CommonException("SITE_USER_EXIST");
+            throw new CommonException("该用户已存在");
         }
 
         SysUserRole model = new SysUserRole();

@@ -9,6 +9,7 @@ import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.utils.CollectUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.enums.account.SeparValueSourceEnum;
@@ -79,15 +80,14 @@ public class MallOrderGoodsExportDataListener extends ExportDataEventDefiner {
                 queryWrapper.eq("t.order_from",order_from);
             }
 
-            if ((where.get("create_time") instanceof String[] createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "t.create_time", createTimes);
+            if ((where.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "t.create_time", StringUtils.jsonArrayToStringArray(createTimes));
             }
 
 
-            if ((where.get("pay_time") instanceof String[] pay_time) && ObjectUtil.isNotEmpty(pay_time)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "p.pay_time", pay_time);
+            if ((where.get("pay_time") instanceof JSONArray pay_time) && ObjectUtil.isNotEmpty(pay_time)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "p.pay_time", StringUtils.jsonArrayToStringArray(pay_time));
             }
-
             Object pay_type = where.get("pay_type");
             if(ObjectUtil.isNotEmpty(pay_type)){
                 queryWrapper.eq("p.type",pay_type);
@@ -121,9 +121,11 @@ public class MallOrderGoodsExportDataListener extends ExportDataEventDefiner {
                 MallOrderInfoVo.Pay pay = new MallOrderInfoVo.Pay();
                 if(mallOrderInfoVo != null) {
                     if (mallOrderInfoVo.getOrderDelivery() != null) {
-                        if(mallOrderInfoVo.getOrderDelivery().size() > 0){
-                            deliveryCompanyInfoVo = deliveryCompanyService.info(mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId());
-                            orderDelivery = mallOrderInfoVo.getOrderDelivery().get(0);
+                        if(!mallOrderInfoVo.getOrderDelivery().isEmpty()){
+                            if (mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId() != null && mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId() > 0) {
+                                deliveryCompanyInfoVo = deliveryCompanyService.info(mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId());
+                                orderDelivery = mallOrderInfoVo.getOrderDelivery().get(0);
+                            }
                         }
                     }
                     if(mallOrderInfoVo.getPay() != null){

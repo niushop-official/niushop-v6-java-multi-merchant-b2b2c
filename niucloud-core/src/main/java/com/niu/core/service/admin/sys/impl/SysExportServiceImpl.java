@@ -22,11 +22,13 @@ import com.niu.core.service.admin.sys.param.SysExportSearchParam;
 import com.niu.core.service.admin.sys.vo.SysExportListVo;
 import com.niu.core.service.core.sys.ICoreExportService;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.util.Iterator;
 import java.util.Map;
 
 
@@ -56,9 +58,10 @@ public class SysExportServiceImpl implements ISysExportService {
 
         QueryWrapper<SysExport> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc("id");
-        queryWrapper.like("export_key", searchParam.getExportKey());
-
         if (ObjectUtil.isNotEmpty(searchParam.getExportKey())) {
+            queryWrapper.eq("export_key", searchParam.getExportKey());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getExportStatus())) {
             queryWrapper.eq("export_status", searchParam.getExportStatus());
         }
 
@@ -119,7 +122,7 @@ public class SysExportServiceImpl implements ISysExportService {
     }
 
     @Override
-    public Boolean checkExportData(String type, Map<String, Object> whereMap) {
+    public Boolean checkExportData(String type, Map<String, Object> whereMap, HttpServletRequest request) {
 
         
         PageParam pageParam = new PageParam();
@@ -127,6 +130,17 @@ public class SysExportServiceImpl implements ISysExportService {
         pageParam.setLimit(Integer.parseInt(whereMap.getOrDefault("limit", 0).toString()));
 
         Map<String, Object> whereConditions = new java.util.HashMap<>(whereMap);
+
+        //判断是否有数组数据
+        Map requestParams = request.getParameterMap();
+        for (Iterator iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
+            String name = (String) iter.next();
+            if(name.contains("[") && name.contains("]")){
+                String[] values = (String[]) requestParams.get(name);
+                name = name.replaceAll("\\[", "").replaceAll("\\]", "");
+                whereConditions.put(name, values);
+            }
+        }
         whereConditions.remove("page");
         whereConditions.remove("limit");
 
@@ -139,13 +153,24 @@ public class SysExportServiceImpl implements ISysExportService {
     }
 
     @Override
-    public void exportData(String type, Map<String, Object> whereMap) {
+    public void exportData(String type, Map<String, Object> whereMap, HttpServletRequest request) {
         Integer siteId = RequestUtils.siteId();
 
         PageParam pageParam = new PageParam();
         pageParam.setPage(Integer.parseInt(whereMap.getOrDefault("page", 0).toString()));
         pageParam.setLimit(Integer.parseInt(whereMap.getOrDefault("limit", 0).toString()));
         Map<String, Object> whereConditions = new java.util.HashMap<>(whereMap);
+        //判断是否有数组数据
+        Map requestParams = request.getParameterMap();
+        for (Iterator iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
+            String name = (String) iter.next();
+            if(name.contains("[") && name.contains("]")){
+                String[] values = (String[]) requestParams.get(name);
+                name = name.replaceAll("\\[", "").replaceAll("\\]", "");
+                whereConditions.put(name, values);
+            }
+        }
+
         whereConditions.remove("page");
         whereConditions.remove("limit");
 

@@ -144,7 +144,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
 
         List<RefundDetailVo.RefundLog> refundLog = CollectUtils.convert(mallOrderRefundLogMapper.selectList(new QueryWrapper<MallOrderRefundLog>()
                 .eq("order_refund_no", vo.getOrderRefundNo())
-                .orderByDesc("create_time")
+                .orderByDesc("create_time").orderByDesc("status")
         ), RefundDetailVo.RefundLog.class);
         vo.setRefundLog(refundLog);
         RefundDetailVo.Site site = new RefundDetailVo.Site();

@@ -26,6 +26,8 @@ public class ArticleListVo implements Serializable {
     private Integer sort;// 排序
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long createTime;// 创建时间
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long updateTime;// 创建时间
     private String categoryName;// 栏目名称
     private String articleUrl; // 文章链接
     private String imageThumbSmall;// 缩略图小图

@@ -111,4 +111,10 @@ private static final long serialVersionUID = 1L;
 
     /** 供应商商品数量 */
     private Integer supplyGoodsNum;
+
+    private BigDecimal qualityScore; // 商品质量
+    private BigDecimal serviceScore; // 商家服务
+    private BigDecimal logisticsScore; // 发货物流
+
+    private Integer evaluateNum;
 }

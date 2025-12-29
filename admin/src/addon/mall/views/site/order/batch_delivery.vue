@@ -96,7 +96,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, onUnmounted } from 'vue'
+import { reactive, ref } from 'vue'
 import { t } from '@/lang'
 import { getOrderBatchDeliveryList, getOrderBatchDeliveryType, getOrderBatchDeliveryState } from '@/addon/mall/api/site/order'
 import { FormInstance } from 'element-plus'
@@ -108,9 +108,6 @@ import { img } from '@/utils/common'
 const route = useRoute()
 const router = useRouter()
 const pageName = route.meta.title
-
-// 自动刷新定时器
-let autoRefreshTimer: number | null = null
 
 const deliveryType = ref([])
 const deliveryState = ref([])
@@ -158,35 +155,11 @@ const loadInvoiceList = (page: number = 1) => {
         importFileTableData.loading = false
         importFileTableData.data = res.data.data
         importFileTableData.total = res.data.total
-        
-        // 检查是否有"处理中"状态的任务（status=1表示处理中）
-        const hasProcessing = res.data.data.some((item: any) => item.status === 1)
-        
-        // 清除旧的定时器
-        if (autoRefreshTimer) {
-            clearInterval(autoRefreshTimer)
-            autoRefreshTimer = null
-        }
-        
-        // 如果有处理中的任务，启动自动刷新
-        if (hasProcessing) {
-            autoRefreshTimer = window.setInterval(() => {
-                loadInvoiceList(importFileTableData.page)
-            }, 3000) // 每3秒刷新一次
-        }
     }).catch(() => {
         importFileTableData.loading = false
     })
 }
 loadInvoiceList()
-
-// 组件卸载时清除定时器
-onUnmounted(() => {
-    if (autoRefreshTimer) {
-        clearInterval(autoRefreshTimer)
-        autoRefreshTimer = null
-    }
-})
 
 // 下载
 const examineDownloadFn = (path:any)=>{

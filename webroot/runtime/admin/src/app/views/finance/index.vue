@@ -102,6 +102,15 @@
 						</div>
 					</div>
 				</el-col>
+				<el-col :span="6">
+					<div class="bg-[#F6F8FF] rounded-[8px] border-[#ECF1FD] border-solid border-[1px] p-[20px]">
+						<div class="text-[16px] text-[#000] font-500 pb-[8px] leading-[22px] border-b-[1px] border-solid border-[#ECF1FD] mb-[20px]">{{ t('运费') }}</div>
+						<div class="flex justify-between items-center">
+							<div class="text-[20px] font-bold text-[#111] mb-[11px] leading-[18px] text-left">{{ parseFloat(totalStat.shipping_fee).toFixed(2) }}</div>
+							<img class="w-[40px] h-[40px]" src="@/app/assets/images/finance/icon-10.png" />
+						</div>
+					</div>
+				</el-col>
 			</el-row>
 		</el-card>
 		<el-card class="box-card !border-none" shadow="never">
@@ -160,7 +169,8 @@ const totalStat = ref<any>({
     recharge_pay_money: 0,
     shop_separate_money: 0,
     mall_coupon_money: 0,
-    supply_goods_money: 0
+    supply_goods_money: 0,
+    shipping_fee: 0
 })
 
 // 收款统计

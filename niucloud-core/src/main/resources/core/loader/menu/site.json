@@ -664,6 +664,90 @@
 				"children": [
 					{"menu_name":"删除地址库","menu_key":"site_address_delete","menu_short_name":"删除地址库","menu_type":"2","icon":"","api_url":"basic/site/site_address/<id>","router_path":"","view_path":"","methods":"delete","sort":"12","status":"1","is_show":"1"}
 				]
+			},
+			{
+				"menu_name": "提货点",
+				"menu_key": "delivery_store",
+				"menu_short_name": "提货点",
+				"menu_type": "1",
+				"icon": "nc-iconfont nc-icon-dingweiV6xx-1",
+				"api_url": "",
+				"router_path": "delivery_store",
+				"view_path": "site/delivery_store/list",
+				"methods": "get",
+				"sort": "70",
+				"status": "1",
+				"is_show": "1",
+				"children": [{
+					"menu_name": "删除提货点",
+					"menu_key": "delivery_store_delete",
+					"menu_short_name": "删除提货点",
+					"menu_type": "2",
+					"icon": "",
+					"api_url": "basic/site/delivery_store/<id>",
+					"router_path": "",
+					"view_path": "",
+					"methods": "delete",
+					"sort": "12",
+					"status": "1",
+					"is_show": "1"
+				}]
+			}, {
+				"menu_name": "添加/编辑提货点",
+				"menu_key": "delivery_store_add_edit",
+				"menu_short_name": "添加/编辑提货点",
+				"menu_type": "1",
+				"icon": "",
+				"api_url": "",
+				"router_path": "delivery_store/edit",
+				"view_path": "site/delivery_store/edit",
+				"methods": "get",
+				"sort": "0",
+				"status": "1",
+				"is_show": "0",
+				"children": [{
+					"menu_name": "编辑提货点",
+					"menu_key": "delivery_store_edit",
+					"menu_short_name": "编辑提货点",
+					"menu_type": "2",
+					"icon": "",
+					"api_url": "basic/site/delivery_store/<id>",
+					"router_path": "",
+					"view_path": "",
+					"methods": "put",
+					"sort": "12",
+					"status": "1",
+					"is_show": "0"
+				},
+					{
+						"menu_name": "添加提货点",
+						"menu_key": "delivery_store_add",
+						"menu_short_name": "添加提货点",
+						"menu_type": "2",
+						"icon": "",
+						"api_url": "basic/site/delivery_store",
+						"router_path": "",
+						"view_path": "",
+						"methods": "post",
+						"sort": "12",
+						"status": "1",
+						"is_show": "0"
+					}
+				]
+			}, {
+				"menu_name": "服务商配送设置",
+				"menu_key": "delivery_store_delivery_set",
+				"menu_short_name": "服务商配送设置",
+				"menu_type": "1",
+				"icon": "nc-iconfont nc-icon-shangjiadizhiku",
+				"api_url": "",
+				"router_path": "delivery_store/delivery_set",
+				"view_path": "site/delivery_store/delivery_set",
+				"methods": "get",
+				"sort": "0",
+				"status": "1",
+				"is_show": "0",
+				"children": []
 			}
 		]
 	},

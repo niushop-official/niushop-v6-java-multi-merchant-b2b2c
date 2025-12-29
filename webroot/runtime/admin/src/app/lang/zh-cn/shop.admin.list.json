@@ -11,6 +11,7 @@
       "businessTypePlaceholder":"请选择业务类型",
       "logo":"店铺logo",
       "status":"状态",
+      "businessStatus":"营业状态",
       "businessHours":"营业时间",
       "createTime":"创建时间",
       "expireTime":"到期时间",

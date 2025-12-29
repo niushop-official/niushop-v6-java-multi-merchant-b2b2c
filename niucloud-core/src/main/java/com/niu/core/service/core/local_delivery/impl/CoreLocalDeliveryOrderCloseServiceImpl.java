@@ -7,10 +7,13 @@ import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.loader.local_delivery.BaseLocalDelivery;
 import com.niu.core.common.loader.local_delivery.LocalDeliveryLoader;
 import com.niu.core.common.loader.local_delivery.param.CloseShopDeliveryOrderParam;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrder;
 import com.niu.core.entity.delivery.DeliveryShopDeliveryOrder;
 import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
+import com.niu.core.enums.local_delivery.LocalDeliveryMainTypeEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryOrderCancelReasonEnum;
+import com.niu.core.enums.local_delivery.LocalDeliveryStoreStatusEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderMapper;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderCloseService;
@@ -47,7 +50,7 @@ public class CoreLocalDeliveryOrderCloseServiceImpl implements ICoreLocalDeliver
             queryWrapper.last("limit 1");
         }
         DeliveryLocalDeliveryOrder info = deliveryLocalDeliveryOrderMapper.selectOne(queryWrapper);
-        if (ObjectUtil.isEmpty( info)) throw new CommonException("DELIVERY_ORDER_NOT_EXIT");
+        if (ObjectUtil.isEmpty( info)) return;
         String deliveryService = info.getDeliveryService();
 
         DeliveryLocalDeliveryOrder updateData = new DeliveryLocalDeliveryOrder();
@@ -55,21 +58,39 @@ public class CoreLocalDeliveryOrderCloseServiceImpl implements ICoreLocalDeliver
 
         Map<String, Object> config = new HashMap<>();
         config.put("siteId", info.getSiteId());
-        //第三方配送下单 驱动
-        BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(deliveryService).init(JSONUtil.parseObj(config));
-
-        CloseShopDeliveryOrderParam addShopDeliveryOrderParam = new CloseShopDeliveryOrderParam();
-        addShopDeliveryOrderParam.setDeliveryNo(info.getDeliveryNo());
-        addShopDeliveryOrderParam.setCancelReason(param.getCancelReason());
-        addShopDeliveryOrderParam.setStatus(info.getStatus());
-        addShopDeliveryOrderParam.setMainId(param.getMainId());
-        addShopDeliveryOrderParam.setMainName(param.getMainName());
-        DeliveryShopDeliveryOrder responseData = driver.closeOrder(addShopDeliveryOrderParam);
-
-        if(ObjectUtil.isNotEmpty( responseData)){
-            BeanUtils.copyProperties(responseData, updateData);
-            updateData.setId(info.getId());
-            deliveryLocalDeliveryOrderMapper.updateById(updateData);
+        if(!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryService)){
+            Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryService,info.getSiteId());
+            if (localDeliveryConfig.isEmpty()) {
+                String typeName = LocalDeliveryTypeEnum.getName(deliveryService) != null ? LocalDeliveryTypeEnum.getName(deliveryService) : deliveryService;
+                throw new RuntimeException(typeName + "未配置");
+            }
+            config = JSONUtil.parseObj(localDeliveryConfig.get("config"));
         }
+
+
+        try {
+            //第三方配送下单 驱动
+            BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(deliveryService).init(JSONUtil.parseObj(config));
+
+            CloseShopDeliveryOrderParam addShopDeliveryOrderParam = new CloseShopDeliveryOrderParam();
+            addShopDeliveryOrderParam.setDeliveryNo(info.getDeliveryNo());
+            addShopDeliveryOrderParam.setCancelReason(param.getCancelReason());
+            addShopDeliveryOrderParam.setCancelReasonId(param.getCancelReasonId());
+            addShopDeliveryOrderParam.setStatus(info.getStatus());
+            addShopDeliveryOrderParam.setMainId(param.getMainId());
+            addShopDeliveryOrderParam.setMainName(param.getMainName());
+            addShopDeliveryOrderParam.setMainType(StringUtils.isNotEmpty(param.getMainType()) ? param.getMainType() : LocalDeliveryMainTypeEnum.STORE.getType());
+            addShopDeliveryOrderParam.setNotifyUrl(coreLocalDeliveryService.buildNotifyUrl(info.getSiteId().toString(), deliveryService, "", null));
+            DeliveryShopDeliveryOrder responseData = driver.closeOrder(addShopDeliveryOrderParam);
+
+            if(ObjectUtil.isNotEmpty( responseData)){
+                BeanUtils.copyProperties(responseData, updateData);
+                updateData.setId(info.getId());
+                deliveryLocalDeliveryOrderMapper.updateById(updateData);
+            }
+        }catch (Exception e){
+            throw new CommonException("同城配送订单关闭失败！");
+        }
+
     }
 }

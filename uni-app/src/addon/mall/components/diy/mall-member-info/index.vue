@@ -80,7 +80,7 @@ import { computed, ref } from 'vue'
 import useMemberStore from '@/stores/member'
 import { useLogin } from '@/hooks/useLogin'
 import { getMyCouponCount } from '@/addon/mall/api/coupon'
-import { img, isWeixinBrowser, redirect, urlDeconstruction, moneyFormat, getToken } from '@/utils/common'
+import { img, isWeixinBrowser, redirect, urlDeconstruction, moneyFormat } from '@/utils/common'
 import { t } from '@/locale'
 import { wechatSync } from '@/app/api/system'
 import useDiyStore from '@/app/stores/diy'
@@ -124,7 +124,7 @@ const memberStore = useMemberStore()
 
 // #ifdef H5
 const { query } = urlDeconstruction(location.href)
-if (query.code && isWeixinBrowser() && getToken()) {
+if (query.code && isWeixinBrowser()) {
     setTimeout(() => {
         wechatSync({ code: query.code }).then(res => {
             memberStore.getMemberInfo()

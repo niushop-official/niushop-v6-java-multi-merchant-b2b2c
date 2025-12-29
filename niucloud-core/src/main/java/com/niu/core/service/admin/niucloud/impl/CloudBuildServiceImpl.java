@@ -334,6 +334,12 @@ public class CloudBuildServiceImpl implements ICloudBuildService {
                 FileTools.createDirs(packageDir + "uni-app");
                 FileUtils.copyDirectory(uniApp, new File(packageDir + "uni-app/"), FileTools.createExclusionFilter(exclusionDir));
             }
+//            File siteApp = new File(rootDir + "site-uniapp/");
+//            if (siteApp.exists()) {
+//                String[] exclusionDir = {"node_modules", "unpackage", "dist"};
+//                FileTools.createDirs(packageDir + "site-uniapp");
+//                FileUtils.copyDirectory(siteApp, new File(packageDir + "site-uniapp/"), FileTools.createExclusionFilter(exclusionDir));
+//            }
             File admin = new File(rootDir + "admin/");
             if (admin.exists()) {
                 String[] exclusionDir = {"node_modules", ".vscode", "dist", ".idea"};

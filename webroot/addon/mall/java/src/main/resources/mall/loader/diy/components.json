@@ -354,6 +354,108 @@
           }
         }
       },
+      "MallGoodsRecommend": {
+        "title": "商品推荐",
+        "icon": "iconfont icona-shangpintuijianpc30",
+        "path": "edit-mall-goods-recommend",
+        "support_page": [],
+        "uses": 0,
+        "sort": 10019,
+        "value": {
+          "priceStyle": {
+            "mainColor": "#333333"
+          },
+          "source": "all",
+          "goods_ids": [],
+          "list": [
+            {
+              "title": {
+                "text": "今日推荐",
+                "textColor": "#303133"
+              },
+              "moreTitle": {
+                "text": "精选",
+                "textColor": "#FFFFFF",
+                "startColor": "#FF7234",
+                "endColor": "#FF213F"
+              },
+              "listFrame": {
+                "startColor": "#FFE5E5",
+                "endColor": "#FFF5F0"
+              },
+              "button": {
+                "text": "首单",
+                "textColor": "#FFFFFF",
+                "color": "#FF1128"
+              }
+            },
+            {
+              "title": {
+                "text": "品质好物",
+                "textColor": "#303133"
+              },
+              "moreTitle": {
+                "text": "精选",
+                "textColor": "#FFFFFF",
+                "startColor": "#F2C719",
+                "endColor": "#FBBA08"
+              },
+              "listFrame": {
+                "startColor": "#FFEFBA",
+                "endColor": "#FFF5D7"
+              },
+              "button": {
+                "text": "首单",
+                "textColor": "#FFFFFF",
+                "color": "#FF1128"
+              }
+            },
+            {
+              "title": {
+                "text": "热销爆款",
+                "textColor": "#303133"
+              },
+              "moreTitle": {
+                "text": "精选",
+                "textColor": "#FFFFFF",
+                "startColor": "#FFA629",
+                "endColor": "#FF8E1E"
+              },
+              "listFrame": {
+                "startColor": "#FFE4D9",
+                "endColor": "#FFFBF9"
+              },
+              "button": {
+                "text": "首单",
+                "textColor": "#FFFFFF",
+                "color": "#FF1128"
+              }
+            }
+          ],
+          "imgElementRounded": 10
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 10,
+          "bottomElementRounded": 10,
+          "margin": {
+            "top": 10,
+            "bottom": 10,
+            "both": 10
+          }
+        }
+      },
       "SingleRecommend": {
         "title": "精选推荐",
         "icon": "iconfont icona-jingxuantuijianpc30-12",

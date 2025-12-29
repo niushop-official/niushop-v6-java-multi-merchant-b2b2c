@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { getToken, setToken, removeToken, getAppType } from '@/utils/common'
-import { login, logout, getAdminAuthMenus, getSiteAuthMenus, getSiteInfo,getAddons } from '@/app/api/auth'
+import { login,mobileLogin, logout, getAdminAuthMenus, getSiteAuthMenus, getSiteInfo,getAddons } from '@/app/api/auth'
 import storage from '@/utils/storage'
 import router from '@/router'
 import { formatRouters, findFirstValidRoute } from '@/router/routers'
@@ -62,8 +62,24 @@ const userStore = defineStore('user', {
                     })
             })
         },
-        clearRouters() {
-            this.routers = []
+        mobileLoginFn(form: object) {
+            return new Promise((resolve, reject) => {
+                mobileLogin(form).then((res) => {
+                        this.token = res.data.token
+                        this.userInfo = res.data.userinfo
+                        this.siteInfo = res.data.site_info || {}
+                        setToken(res.data.token)
+                        storage.set({ key: 'userinfo', data: res.data.userinfo })
+                        storage.set({ key: 'siteId', data: res.data.site_id || 0 })
+                        storage.set({ key: 'siteInfo', data: res.data.site_info || {} })
+                        storage.set({ key: 'comparisonSiteIdStorage', data: res.data.site_id || 0 })
+                        storage.set({ key: 'comparisonTokenStorage', data: res.data.token })
+                        resolve(res)
+                    })
+                    .catch((error) => {
+                        reject(error)
+                    })
+            })
         },
         logout() {
             if (!this.token) return
@@ -132,6 +148,9 @@ const userStore = defineStore('user', {
 
             })
         },
+        clearRouters() {
+            this.routers = []
+        }
     }
 })
 

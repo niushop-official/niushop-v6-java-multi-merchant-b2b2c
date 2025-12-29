@@ -1,35 +1,71 @@
 package com.niu.core.service.site.delivery;
 
-import com.niu.core.service.core.delivery_store.param.DeliveryStoreShopEditParam;
-import com.niu.core.service.core.delivery_store.param.DeliveryShopOpenParam;
-import com.niu.core.service.core.delivery_store.vo.DeliveryStoreListVo;
+
+import com.niu.core.common.domain.PageParam;
+import com.niu.core.common.domain.PageResult;
+import com.niu.core.service.site.delivery.param.DeliveryStoreAddParam;
+import com.niu.core.service.site.delivery.param.DeliveryStoreListSearchParam;
+import com.niu.core.service.site.delivery.param.DeliveryStoreModifyParam;
+import com.niu.core.service.site.delivery.param.DeliveryStoreSearchParam;
+import com.niu.core.service.site.delivery.vo.DeliveryStoreInfoVo;
+import com.niu.core.service.site.delivery.vo.DeliveryStoreInitInfoVo;
+import com.niu.core.service.site.delivery.vo.DeliveryStorePageVo;
+import com.niu.core.service.site.delivery.vo.DeliveryStoreVo;
 
 import java.util.List;
 
 /**
- * 配送方式相关接口
+ * 配送门店服务层
  */
 public interface IDeliveryStoreService {
 
     /**
-     * 获取配送服务商列表
-     * @param id 地址ID
-     * @return 配送服务商列表
+     * 获取配送门店列表
+     * @param pageParam 分页参数
+     * @param searchParam 搜索参数
+     * @return PageResult<ShopDeliveryShippingTemplateListVo>
      */
-    List<DeliveryStoreListVo> deliveryServiceList(Integer id);
+    PageResult<DeliveryStorePageVo> page(PageParam pageParam, DeliveryStoreSearchParam searchParam);
 
     /**
-     * 服务商开通门店
-     * @param id 地址ID
-     * @param param 开通参数
+     * 获取配送门店信息
      */
-    void deliveryShopOpen(Integer id, DeliveryShopOpenParam param);
+    DeliveryStoreInfoVo info(Integer storeId);
+
+    DeliveryStoreInitInfoVo getInitInfo();
 
     /**
-     * 服务商门店品类修改
-     * @param id 地址ID
-     * @param param 修改参数
+     * 添加配送门店
+     * @param param $data
+     * @return mixed
      */
-    void deliveryShopEdit(Integer id, DeliveryStoreShopEditParam param);
+    Integer add(DeliveryStoreAddParam param);
+
+    /**
+     * 配送门店编辑
+     * @param param $data
+     * @return mixed
+     */
+    void edit(Integer storeId, DeliveryStoreAddParam param);
+
+    /**
+     * 删除配送门店
+     * @return mixed
+     */
+    void del(Integer storeId);
+
+    /**
+     * 添获取配送门店列表
+     * @param param $data
+     * @return mixed
+     */
+    List<DeliveryStoreVo> getList(DeliveryStoreListSearchParam param);
+
+    /**
+     * 修改配送门店状态
+     * @param param $data
+     * @return bool
+     */
+    void modifyStatus(DeliveryStoreModifyParam param);
 
 }

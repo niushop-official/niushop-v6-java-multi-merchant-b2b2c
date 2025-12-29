@@ -15,10 +15,13 @@ public class CloseShopDeliveryOrderParam implements Serializable {
 
     /** 操作人名称 */
     private String mainName;
+    private String mainType;
 
-
+    private Integer cancelReasonId;
     private String cancelReason;
 
     /** 状态 */
     private String status;
+
+    private String notifyUrl;
 }

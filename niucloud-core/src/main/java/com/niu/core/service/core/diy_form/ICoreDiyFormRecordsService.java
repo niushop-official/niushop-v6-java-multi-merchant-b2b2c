@@ -45,4 +45,10 @@ public interface ICoreDiyFormRecordsService {
      */
     List<String> check(DiyFormRecordsParam checkParam);
 
+    /**
+     * 万能表单填写记录编辑
+     * @param param
+     */
+    void edit(DiyFormRecordsParam param);
+
 }

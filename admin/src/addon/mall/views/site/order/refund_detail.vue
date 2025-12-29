@@ -308,10 +308,13 @@ const getRefundAddress = () => {
     getOrderRefundAddress().then((data) => {
         refundAddress.value = data.data
         data.data.forEach((item:any) => {
-            if (item.is_refund_address == 1) {
+            if (item.is_default_refund == 1 && item.is_refund_address == 1) {
                 refuseFormData.refund_address_id = item.id
             }
         })
+        if (!refuseFormData.refund_address_id) {
+            refuseFormData.refund_address_id = data.data[0].id
+        }
     })
 }
 

@@ -2,6 +2,7 @@ package com.niu.mall.service.core.order;
 
 import com.niu.mall.service.core.order.param.OrderCalculateParam;
 import com.niu.mall.service.core.order.param.OrderCreateParam;
+import com.niu.mall.service.core.order.vo.MallOrderCreateDataVo;
 import com.niu.mall.service.core.order.vo.OrderCouponListVo;
 import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
 import com.niu.mall.service.core.order.vo.OrderCreateResultVo;
@@ -15,7 +16,7 @@ public interface ICoreOrderCreateService {
      *
      * @param param
      */
-    OrderCreateDataVo calculate(OrderCalculateParam param);
+    OrderCreateDataVo calculate(OrderCalculateParam param, MallOrderCreateDataVo mallOrderCreateDataVo);
 
     /**
      * 创建

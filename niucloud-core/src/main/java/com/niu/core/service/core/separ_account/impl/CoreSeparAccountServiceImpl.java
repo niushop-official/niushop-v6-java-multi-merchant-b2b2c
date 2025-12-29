@@ -14,11 +14,13 @@ import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.separ_account.ICoreSeparAccountService;
 import com.niu.core.service.core.separ_account.param.SeparNotifyParam;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+@Slf4j
 @Service
 public class CoreSeparAccountServiceImpl implements ICoreSeparAccountService {
 
@@ -54,20 +56,22 @@ public class CoreSeparAccountServiceImpl implements ICoreSeparAccountService {
         SeparAccount account = separAccountMapper.selectById(param.getId());
         if (account != null) {
             account.setStatus(param.getStatus().getStatus());
+            account.setFailReason(param.getFailReason());
             if (param.getStatus().getStatus().equals(SeparStatusEnum.SUCCESS.getStatus())) {
                 account.setSeparTime(System.currentTimeMillis() / 1000);
             }
-            if (param.getStatus().getStatus().equals(SeparStatusEnum.FAIL.getStatus())) {
-                account.setFailReason(param.getFailReason());
+            if (StringUtils.isNotEmpty(param.getSeparOutTradeNo())) {
+                account.setOutTradeNo(param.getSeparOutTradeNo());
             }
             separAccountMapper.updateById(account);
 
-            AfterSeparEvent event = new AfterSeparEvent();
-            event.setSiteId(RequestUtils.defaultSiteId());
-            event.addAppSign("core");
-            event.setAccount(account);
-            event.setName("AfterSeparEvent");
-            EventAndSubscribeOfPublisher.publishAll(event);
+            if(param.getStatus().getStatus().equals(SeparStatusEnum.SUCCESS.getStatus())){
+                AfterSeparEvent event = new AfterSeparEvent();
+                event.setSiteId(RequestUtils.defaultSiteId());
+                event.addAppSign("mall");
+                event.setAccount(account);
+                EventAndSubscribeOfPublisher.publishAll(event);
+            }
         }
     }
 
@@ -78,13 +82,12 @@ public class CoreSeparAccountServiceImpl implements ICoreSeparAccountService {
      */
     @Override
     public void toSpear(SeparAccount account) {
-
+        log.info("进入分账");
         SeparAccountModel model = new SeparAccountModel();
         BeanUtils.copyProperties(account, model);
         model.setDetail(separAccountDetailMapper.selectList(new QueryWrapper<SeparAccountDetail>().eq("separ_id", account.getId())));
         ToSeparEvent event = new ToSeparEvent();
         event.setSiteId(RequestUtils.defaultSiteId());
-        event.addAppSign("core");
         event.setAccount(model);
         event.setName("ToSeparEvent");
         EventAndSubscribeOfPublisher.publishAll(event);

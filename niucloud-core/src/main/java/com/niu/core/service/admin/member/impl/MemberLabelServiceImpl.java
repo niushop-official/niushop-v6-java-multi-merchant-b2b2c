@@ -24,6 +24,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import jakarta.annotation.Resource;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -175,4 +177,18 @@ public class MemberLabelServiceImpl implements IMemberLabelService {
         }
         return list;
     }
+
+    public  List<MemberLabel> getList(MemberLabelSearchParam searchParam) {
+        Integer siteId = RequestUtils.siteId();
+        QueryWrapper<MemberLabel> queryWrapper = new QueryWrapper<MemberLabel>();
+        queryWrapper.select("label_id,site_id, label_name, memo, sort, create_time, update_time");
+        queryWrapper.eq("site_id", siteId );
+        queryWrapper.orderByDesc("sort");
+        queryWrapper.orderByDesc("create_time");
+        if (ObjectUtil.isNotEmpty(searchParam.getLabelName())){
+            queryWrapper.like("label_name", searchParam.getLabelName());
+        }
+        return memberLabelMapper.selectList(queryWrapper);
+    }
+
 }

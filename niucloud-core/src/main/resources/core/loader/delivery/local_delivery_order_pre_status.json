@@ -1,4 +1,6 @@
 {
-  "finish": [4],
-  "cancel": [4]
+  "merchant" : {
+    "finish": [4],
+    "cancel": [4]
+  }
 }

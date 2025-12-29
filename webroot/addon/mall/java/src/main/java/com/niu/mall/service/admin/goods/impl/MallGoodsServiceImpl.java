@@ -44,6 +44,7 @@ import com.niu.mall.enums.goods.GoodsStatusEnum;
 import com.niu.mall.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.label.LabelStatusEnum;
 import com.niu.mall.event.goods.AfterGoodsEditEvent;
+import com.niu.mall.event.goods.AfterMallGoodsStatusEditEvent;
 import com.niu.mall.event.goods.CheckGoodsSkuPriceEvent;
 import com.niu.mall.mapper.active.MallActiveGoodsMapper;
 import com.niu.mall.mapper.goods.MallGoodsLabelMapper;
@@ -1106,6 +1107,11 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         MallGoods model = new MallGoods();
         model.setStatus(param.getStatus());
         mallGoodsMapper.update(model, new QueryWrapper<MallGoods>().eq("site_id", RequestUtils.siteId()).in("goods_id", goodsIds));
+
+        AfterMallGoodsStatusEditEvent event = new AfterMallGoodsStatusEditEvent();
+        event.setSiteId(RequestUtils.siteId());
+        event.setGoodsIds(Arrays.asList(goodsIds));
+        EventAndSubscribeOfPublisher.publishAll(event);
     }
 
     /**
@@ -1234,7 +1240,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
     public Long getSupplyGoodsCount(Integer[] goodsIds) {
         return mallGoodsMapper.selectCount(new QueryWrapper<MallGoods>()
                 .eq("site_id", RequestUtils.siteId())
-                .in("goods_id", Arrays.asList(goodsIds))
+                .in("goods_id", Arrays.asList(goodsIds)).gt("supply_id", 0)
         );
     }
 
@@ -1768,7 +1774,13 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                 row = mallGoodsMapper.updateById(mallGoods);
 
             }
+
+            AfterMallGoodsStatusEditEvent event = new AfterMallGoodsStatusEditEvent();
+            event.setSiteId(RequestUtils.siteId());
+            event.setGoodsIds(Arrays.asList(mallGoods.getGoodsId()));
+            EventAndSubscribeOfPublisher.publishAll(event);
         }
+
         return row;
     }
 
@@ -1819,6 +1831,10 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                 mallGoods.setStatus(GoodsStatusEnum.AUDIT_REFUSE.getStatus());
                 mallGoods.setAuditReason(param.getAuditReason());
                 row = mallGoodsMapper.updateById(mallGoods);
+                AfterMallGoodsStatusEditEvent event = new AfterMallGoodsStatusEditEvent();
+                event.setSiteId(RequestUtils.siteId());
+                event.setGoodsIds(Arrays.asList(mallGoods.getGoodsId()));
+                EventAndSubscribeOfPublisher.publishAll(event);
             }
         }
         return row;
@@ -1839,6 +1855,10 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                 mallGoods.setStatus(GoodsStatusEnum.AUDI_TO_FINE.getStatus());
                 mallGoods.setAuditReason(param.getAuditReason());
                 row = mallGoodsMapper.updateById(mallGoods);
+                AfterMallGoodsStatusEditEvent event = new AfterMallGoodsStatusEditEvent();
+                event.setSiteId(RequestUtils.siteId());
+                event.setGoodsIds(Arrays.asList(mallGoods.getGoodsId()));
+                EventAndSubscribeOfPublisher.publishAll(event);
             }
         }
         return row;

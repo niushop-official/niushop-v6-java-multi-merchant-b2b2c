@@ -325,6 +325,20 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
     public void add(MallGoodsParam addParam) {
         Integer siteId = RequestUtils.siteId();
 
+        //判断限购数量
+        if(ObjectUtil.isNotEmpty(addParam.getIsLimit()) && addParam.getIsLimit() > 0){
+            if(ObjectUtil.isNotEmpty(addParam.getMaxBuy()) && addParam.getMaxBuy() > 0 && ObjectUtil.isNotEmpty(addParam.getMinBuy()) && addParam.getMinBuy() > 0){
+                if(addParam.getMinBuy() > addParam.getMaxBuy()){
+                    throw new CommonException("起购数量不能大于限购数量");
+                }
+            }
+            if(ObjectUtil.isNotEmpty(addParam.getMinBuy()) && addParam.getMinBuy() > 0){
+                if(addParam.getMinBuy()> addParam.getStock()){
+                    throw new CommonException("起购数量不能大于库存数量");
+                }
+            }
+        }
+
         // 添加goods表
         MallGoods model = new MallGoods();
         BeanUtils.copyProperties(addParam, model);
@@ -458,6 +472,19 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
     @Override
     @Transactional
     public void edit(Integer id, MallGoodsParam editParam) {
+        //判断限购数量
+        if(ObjectUtil.isNotEmpty(editParam.getIsLimit()) && editParam.getIsLimit() > 0){
+            if(ObjectUtil.isNotEmpty(editParam.getMaxBuy()) && editParam.getMaxBuy() > 0 && ObjectUtil.isNotEmpty(editParam.getMinBuy()) && editParam.getMinBuy() > 0){
+                if(editParam.getMinBuy() > editParam.getMaxBuy()){
+                    throw new CommonException("起购数量不能大于限购数量");
+                }
+            }
+            if(ObjectUtil.isNotEmpty(editParam.getMinBuy()) && editParam.getMinBuy() > 0){
+                if(editParam.getMinBuy()> editParam.getStock()){
+                    throw new CommonException("起购数量不能大于库存数量");
+                }
+            }
+        }
         // 校验供货商商品规格价格
         editCheckGoodsSkuPrice(id, editParam);
 
@@ -1006,6 +1033,12 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         model.setStatus(0);
         model.setDeleteTime(System.currentTimeMillis() / 1000);
         mallGoodsMapper.update(model, new QueryWrapper<MallGoods>().eq("site_id", RequestUtils.siteId()).in("goods_id", goodsIds));
+        if(goodsIds != null && goodsIds.length > 0){
+            AfterMallGoodsStatusEditEvent event = new AfterMallGoodsStatusEditEvent();
+            event.setSiteId(RequestUtils.siteId());
+            event.setGoodsIds(Arrays.asList(goodsIds));
+            EventAndSubscribeOfPublisher.publishAll(event);
+        }
     }
 
     /**
@@ -1016,7 +1049,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
     public Long getSupplyGoodsCount(Integer[] goodsIds) {
         return mallGoodsMapper.selectCount(new QueryWrapper<MallGoods>()
                 .eq("site_id", RequestUtils.siteId())
-                .in("goods_id", Arrays.asList(goodsIds))
+                .in("goods_id", Arrays.asList(goodsIds)).gt("supply_id", 0)
         );
     }
 
@@ -1284,7 +1317,6 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
             MallGoods model = mallGoodsMapper.selectOne(
                     new QueryWrapper<MallGoods>()
                             .eq("goods_id", goodsId)
-                            .eq("site_id", RequestUtils.siteId())
                             .eq("delete_time", 0));
             if (model == null) return null;
 
@@ -1616,7 +1648,16 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
      */
     @Override
     public List<MallGoodsSkuListVo> getSkuList(Integer goodsId) {
-        return CollectUtils.convert(mallGoodsSkuMapper.selectList(new QueryWrapper<MallGoodsSku>().eq("goods_id", goodsId).eq("site_id", RequestUtils.siteId())), MallGoodsSkuListVo.class);
+        MallGoods model = mallGoodsMapper.selectOne(new QueryWrapper<MallGoods>().eq("goods_id", goodsId).eq("site_id", RequestUtils.siteId()));
+        Assert.notNull(model, "商品不存在");
+        List<MallGoodsSkuListVo> list = CollectUtils.convert(mallGoodsSkuMapper.selectList(new QueryWrapper<MallGoodsSku>().eq("goods_id", goodsId).eq("site_id", RequestUtils.siteId())), MallGoodsSkuListVo.class);
+        list = list.stream().map(item -> {
+            MallGoodsSkuListVo.GoodsInfo goodsInfo = new MallGoodsSkuListVo.GoodsInfo();
+            BeanUtils.copyProperties(item, goodsInfo);
+            item.setGoods(goodsInfo);
+            return item;
+        }).collect(Collectors.toList());
+        return list;
     }
 
     /**

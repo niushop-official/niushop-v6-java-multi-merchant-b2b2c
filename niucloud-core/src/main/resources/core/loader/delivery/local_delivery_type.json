@@ -2,7 +2,7 @@
   "merchant": {
     "name": "商家配送",
     "key": "merchant",
-    "params": [],
+    "params": {},
     "component": "",
     "business_list": "",
     "extend_data": [],

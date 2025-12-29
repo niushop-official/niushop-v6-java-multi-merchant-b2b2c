@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.loader.local_delivery.param.AddShopDeliveryOrderParam;
 import com.niu.core.common.loader.local_delivery.param.NotifyShopDeliveryOrderParam;
+import com.niu.core.common.utils.DistanceCalculateUtils;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.delivery.DeliveryDeliver;
 import com.niu.core.entity.delivery.DeliveryShopDeliveryOrder;
@@ -61,7 +62,7 @@ public class CoreShopDeliveryOrderCreateServiceImpl implements ICoreShopDelivery
                 && StringUtils.isNotEmpty(deliveryAddress.getLat())
                 && StringUtils.isNotEmpty(deliveryAddress.getLng())){
 
-            distance = BigDecimal.valueOf(calculateDistance(
+            distance = BigDecimal.valueOf(DistanceCalculateUtils.calculateDistance(
                     Double.parseDouble(param.getOrderDate().getTakerLatitude()),
                     Double.parseDouble(param.getOrderDate().getTakerLongitude()),
                     Double.parseDouble(deliveryAddress.getLat()),
@@ -112,7 +113,7 @@ public class CoreShopDeliveryOrderCreateServiceImpl implements ICoreShopDelivery
             notifyParam.setMainId(deliveryOrder.getDeliverId());
             notifyParam.setMainName(deliveryOrder.getDeliverName());
             notifyParam.setStatus(LocalDeliveryStatusEnum.IN_DELIVERY.getStatus().toString());
-            coreLocalDeliveryOrderNotifyService.notify(siteId, DeliveryStoreTypeEnum.MERCHANT.getKey(), "order", notifyParam);
+            coreLocalDeliveryOrderNotifyService.notify(siteId, DeliveryStoreTypeEnum.MERCHANT.getKey(),deliveryOrder.getOutDeliveryNo(), "order", notifyParam);
             //添加配送订单日志
             LocalDeliveryOperateEnum.OperateResult operateResult = LocalDeliveryOperateEnum.getOperateByStatus(ShopDeliveryStatusEnum.convertStatus(ShopDeliveryStatusEnum.IN_DELIVERY.getStatus()));
             AddShopDeliveryOrderLogParam logParam = new AddShopDeliveryOrderLogParam();
@@ -133,28 +134,5 @@ public class CoreShopDeliveryOrderCreateServiceImpl implements ICoreShopDelivery
         vo.setRiderName(deliveryOrder.getDeliverName());
         vo.setRiderMobile(deliveryOrder.getDeliverMobile());
         return vo;
-    }
-
-    /**
-     * 计算两个经纬度间的距离
-     *
-     */
-    private static double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
-        double AVG_EARTH_RADIUS_KM = 6371.0;
-
-        // 将角度转换为弧度
-        lat1 = Math.toRadians(lat1);
-        lat2 = Math.toRadians(lat2);
-        double deltaLat = Math.toRadians(lat2 - lat1);
-        double deltaLng = Math.toRadians(lng2 - lng1);
-
-        // Haversine formula
-        double a = Math.pow(Math.sin(deltaLat / 2), 2)
-                + Math.cos(lat1) * Math.cos(lat2)
-                * Math.pow(Math.sin(deltaLng / 2), 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        // 返回距离，单位为米
-        return AVG_EARTH_RADIUS_KM * c * 1000;
     }
 }

@@ -33,7 +33,7 @@ public interface ICoreDiyConfigService {
      * @param siteId
      * @param bottomConfigValue
      */
-    void setBottomConfig(Integer siteId, BottomConfigValue bottomConfigValue);
+    void setBottomConfig(Integer siteId, BottomConfigValue bottomConfigValue,String key);
 
     /**
      * 设置启动页配置

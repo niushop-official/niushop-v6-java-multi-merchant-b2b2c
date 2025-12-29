@@ -6,8 +6,10 @@ import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
+import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.enums.account.SeparValueSourceEnum;
@@ -61,10 +63,15 @@ public class ShopOrderExportDataListener extends ExportDataEventDefiner {
         if(where != null){
             queryWrapper.setAlias("t");
             queryWrapper.select("t.*");
-            queryWrapper.leftJoin(" ns_pay AS p ON t.out_trade_no = p.out_trade_no ");
+            queryWrapper.leftJoin("?_pay AS p ON t.out_trade_no = p.out_trade_no ".replace("?_", GlobalConfig.tablePrefix));
+            queryWrapper.leftJoin("?_member m ON t.member_id = m.member_id".replace("?_", GlobalConfig.tablePrefix));
             queryWrapper.eq("t.site_id", RequestUtils.siteId());
+            Object search_type = where.get("search_type");
             Object search_name = where.get("search_name");
-            if (ObjectUtil.isNotEmpty(search_name)){
+            if (ObjectUtil.isNotEmpty(search_type) && ObjectUtil.isNotEmpty(search_name)){
+                search_type = search_type.toString().trim();
+                queryWrapper.like("t."+search_type, search_name);
+            }else if(ObjectUtil.isNotEmpty(search_name)){
                 queryWrapper.and(wrapper -> {
                     wrapper.like("t.order_no", search_name)
                             .or()
@@ -77,18 +84,34 @@ public class ShopOrderExportDataListener extends ExportDataEventDefiner {
                 queryWrapper.eq("t.order_from",order_from);
             }
 
-            if ((where.get("create_time") instanceof String[] createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "t.create_time", createTimes);
+            if ((where.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "t.create_time", StringUtils.jsonArrayToStringArray(createTimes));
+            }
+            Object keyword = where.get("keyword");
+            if (ObjectUtil.isNotEmpty(keyword)){
+                queryWrapper.and(i -> i.like("m.member_no", keyword).or()
+                        .like("m.nickname", keyword).or()
+                        .like("m.username", keyword).or()
+                        .like("m.mobile", keyword));
             }
 
-
-            if ((where.get("pay_time") instanceof String[] pay_time) && ObjectUtil.isNotEmpty(pay_time)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "p.pay_time", pay_time);
+            if ((where.get("pay_time") instanceof JSONArray pay_time) && ObjectUtil.isNotEmpty(pay_time)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "p.pay_time", StringUtils.jsonArrayToStringArray(pay_time));
             }
-
             Object pay_type = where.get("pay_type");
             if(ObjectUtil.isNotEmpty(pay_type)){
                 queryWrapper.eq("p.type",pay_type);
+            }
+
+            Object delivery_type = where.get("delivery_type");
+            if (ObjectUtil.isNotEmpty(delivery_type)) queryWrapper.eq("t.delivery_type", delivery_type.toString());
+            Object goods_source = where.get("goods_source");
+            if (ObjectUtil.isNotEmpty(goods_source)){
+                if(goods_source.toString().equals("self_goods") || goods_source.toString().equals("0")){
+                    queryWrapper.eq("t.supply_order_id", 0);
+                }else{
+                    queryWrapper.ne("t.supply_order_id", 0);
+                }
             }
         }
         PageParam pageParam = event.getPageParam();
@@ -124,9 +147,11 @@ public class ShopOrderExportDataListener extends ExportDataEventDefiner {
             MallOrderInfoVo.OrderGoods orderGoods = new MallOrderInfoVo.OrderGoods();
             if(mallOrderInfoVo != null){
                 if(mallOrderInfoVo.getOrderDelivery() != null){
-                    if(mallOrderInfoVo.getOrderDelivery().size() > 0){
-                        deliveryCompanyInfoVo = deliveryCompanyService.info(mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId());
-                        orderDelivery = mallOrderInfoVo.getOrderDelivery().get(0);
+                    if(!mallOrderInfoVo.getOrderDelivery().isEmpty()){
+                        if (mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId() != null && mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId() > 0) {
+                            deliveryCompanyInfoVo = deliveryCompanyService.info(mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId());
+                            orderDelivery = mallOrderInfoVo.getOrderDelivery().get(0);
+                        }
                     }
                 }
                 if(mallOrderInfoVo.getPay() != null){
@@ -141,7 +166,14 @@ public class ShopOrderExportDataListener extends ExportDataEventDefiner {
             InvoiceInfoVo mallInvoiceInfoVo = new InvoiceInfoVo();
             if(vo.getInvoiceId() != null){
                 if(vo.getInvoiceId() != 0){
-                    mallInvoiceInfoVo =  mallInvoiceService.getInfo(vo.getInvoiceId());
+                    try {
+                        mallInvoiceInfoVo =  mallInvoiceService.getInfo(vo.getInvoiceId());
+                    }catch (Exception e){
+
+                    }
+                    if(mallInvoiceInfoVo == null){
+                        mallInvoiceInfoVo = new InvoiceInfoVo();
+                    }
                 }
             }
 

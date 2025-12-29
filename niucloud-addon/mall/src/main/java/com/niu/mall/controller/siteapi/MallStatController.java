@@ -3,6 +3,7 @@ package com.niu.mall.controller.siteapi;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.niu.core.common.domain.Result;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.mall.service.api.order.IOrderService;
 import com.niu.mall.service.site.order.IMallOrderService;
 import com.niu.mall.service.site.stat.IMallStatService;
@@ -40,7 +41,10 @@ public class MallStatController {
      * @return
      */
     @GetMapping("/total")
-    public Result total(@RequestParam(value = "date")String date) {
+    public Result total(@RequestParam(value = "date",required = false) String date) {
+        if(StringUtils.isEmpty(date)){
+            date = "today";
+        }
         Long startTime = 0L;
         Long endTime = 0L;
         if(date.equals("today")){

@@ -125,13 +125,14 @@ public class Alipay extends BasePay {
     /**
      * 关闭支付
      */
-    public void close(Pay pay) {
+    public Boolean close(Pay pay) {
         try {
             Factory.Payment.Common().close(pay.getOutTradeNo());
         } catch (Exception e) {
             log.error("支付宝支付关闭异常:{}", e);
             throw new CommonException(e.getMessage());
         }
+        return true;
     }
 
     /**
@@ -247,6 +248,11 @@ public class Alipay extends BasePay {
         } catch (Exception e) {
             throw new CommonException(e.getMessage());
         }
+        return null;
+    }
+
+    @Override
+    public Object getOrder(String outTradeNo) {
         return null;
     }
 

@@ -14,7 +14,7 @@ public class DeliveryTradePackage implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value="store_id", type= IdType.AUTO)
+    @TableId(value="id", type= IdType.AUTO)
     private Integer id;
     /**
      * 站点ID

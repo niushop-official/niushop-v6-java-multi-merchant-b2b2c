@@ -1,5 +1,6 @@
 package com.niu.core.service.core.pay;
 
+import cn.hutool.json.JSONObject;
 import com.niu.core.common.loader.pay.BasePay;
 import com.niu.core.common.loader.pay.param.PayAsyncNotifyParam;
 import com.niu.core.common.loader.pay.param.PayNotifyParam;
@@ -11,6 +12,8 @@ import com.niu.core.service.core.pay.vo.PayTypeVo;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -39,4 +42,10 @@ public interface ICorePayService {
     void closeByTrade(String tradeType, Integer tradeId);
 
     List<PayTypeVo> getPayTypeByTrade(String tradeType, ChannelEnum channel);
+
+    void payEdit(String json,Integer id);
+
+    void payEditHuifu(BigDecimal feeAmt, BigDecimal confirmedAmt,BigDecimal unconfirmAmt, Integer id);
+
+    JSONObject getPayCashierUrl(String payType, String tradeType, Integer tradeId);
 }

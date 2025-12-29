@@ -20,7 +20,7 @@
                     <el-form-item :label="t('frontEndLogo')">
                         <div>
                             <upload-image v-model="formData.front_end_logo" />
-                            <p class="text-[12px] text-[#a9a9a9]">{{ t('frontEndLogoPlaceholder') }}</p>
+                            <p class="text-[12px] text-[#a9a9a9]">{{ t('iconPlaceholder') }}</p>
                         </div>
                     </el-form-item>
 

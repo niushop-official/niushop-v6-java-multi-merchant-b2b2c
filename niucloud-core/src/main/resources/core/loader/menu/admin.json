@@ -2774,20 +2774,6 @@
                 "is_show": "1"
               }
             ]
-          },
-          {
-            "menu_name": "操作日志",
-            "menu_key": "auth_log",
-            "menu_short_name": "操作日志",
-            "menu_type": "1",
-            "icon": "element Document",
-            "api_url": "sys/log",
-            "router_path": "setting/auth/log",
-            "view_path": "auth/log",
-            "methods": "get",
-            "sort": "60",
-            "status": "1",
-            "is_show": "1"
           }
         ]
       },
@@ -3212,7 +3198,7 @@
             "menu_key": "map_setting",
             "menu_short_name": "地图秘钥",
             "menu_type": "1",
-            "icon": "element Message",
+            "icon": "nc-iconfont nc-icon-ditumichi",
             "api_url": "sys/config/map",
             "router_path": "setting/map",
             "view_path": "setting/map",
@@ -3599,6 +3585,20 @@
         "view_path": "",
         "methods": "put",
         "sort": "50",
+        "status": "1",
+        "is_show": "1"
+      },
+      {
+        "menu_name": "更新缓存",
+        "menu_key": "update_cache",
+        "menu_short_name": "更新缓存",
+        "menu_type": "1",
+        "icon": "iconfont icongengxinhuancun2",
+        "api_url": "sys/cache/clear",
+        "router_path": "tools/update_cache",
+        "view_path": "tools/updatecache",
+        "methods": "post",
+        "sort": "49",
         "status": "1",
         "is_show": "1"
       },

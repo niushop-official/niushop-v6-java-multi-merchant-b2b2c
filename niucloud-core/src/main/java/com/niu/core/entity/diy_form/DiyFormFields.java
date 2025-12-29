@@ -1,6 +1,7 @@
 package com.niu.core.entity.diy_form;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
@@ -60,4 +61,6 @@ private static final long serialVersionUID = 1L;
     /** 更新时间 */
     private Long updateTime;
 
+    @TableField(exist = false)
+    private String type;
 }

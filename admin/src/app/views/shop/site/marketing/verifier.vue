@@ -17,9 +17,9 @@
                     <el-table-column :label="t('memberInfo')" min-width="120">
                         <template #default="{ row }">
                             <div class="flex items-center cursor-pointer " @click="toMember(row.member.member_id)" v-if="row.member">
-                                <img class="w-[50px] h-[50px] mr-[10px]" v-if="row.member.headimg" :src="img(row.member.headimg)" alt="">
-                                <img class="w-[50px] h-[50px] mr-[10px]" v-else src="@/app/assets/images/default_headimg.png" alt="">
-                                <div class="flex flex flex-col">
+                                <img class="w-[50px] h-[50px] mr-[10px]" v-if="row.member.headimg" :src="img(row.member.headimg)" />
+                                <img class="w-[50px] h-[50px] mr-[10px] rounded-full" v-else src="@/app/assets/images/default_headimg.png" />
+                                <div class="flex flex-col">
                                     <span>{{ row.member.nickname || '' }}</span>
                                     <span>{{ row.member.mobile || '' }}</span>
                                 </div>
@@ -30,17 +30,16 @@
                     <el-table-column :label="t('verifyType')" min-width="120">
                         <template #default="{ row }">
                             <div class="flex flex-col">
-                                <div v-for="(item, key) in row.verify_type_array" class="my-[3px]" :key="key">
-                                    {{ item.verify_type_name }}
-                                </div>
+                                <div v-for="(item, key) in row.verify_type_array" class="my-[3px]" :key="key">{{ item.verify_type_name }}</div>
                             </div>
                         </template>
                     </el-table-column>
 
                     <el-table-column :label="t('createTime')" prop="create_time" min-width="120" />
 
-                    <el-table-column :label="t('operation')" fixed="right" align="right" width="100">
+                    <el-table-column :label="t('operation')" fixed="right" align="right" width="120">
                         <template #default="{ row }">
+                            <el-button type="primary" link @click="editEvent(row)">{{ t('edit') }}</el-button>
                             <el-button type="primary" link @click="deleteEvent(row.id)">{{ t('delete') }}</el-button>
                         </template>
                     </el-table-column>
@@ -54,13 +53,11 @@
             </div>
         </el-card>
 
-        <el-dialog v-model="showDialog" :title="t('addVerifier')" width="500px" :destroy-on-close="true">
+        <el-dialog v-model="showDialog" :title="formData.id ? t('editVerifier') : t('addVerifier')" width="500px" :destroy-on-close="true">
             <el-form :model="formData" label-width="90px" ref="formRef" :rules="formRules" class="page-form" v-loading="addLoading">
                 <el-form-item :label="t('member')" prop="member_id">
-                    <el-select v-model="formData.member_id" filterable remote reserve-keyword clearable
-                        :placeholder="t('searchPlaceholder')" :remote-method="searchMember" :loading="searchLoading"
-                        class="input-width">
-                        <el-option v-for="item in memberList" :key="item.member_id" :label="item.nickname" :value="item.member_id">
+                    <el-select v-model="formData.member_id" filterable remote reserve-keyword clearable @focus="handleSelectFocus" :disabled="isEditMode" :placeholder="t('searchPlaceholder')" :remote-method="searchMember" :loading="searchLoading" class="input-width">
+                        <el-option v-for="item in memberList" :key="item.member_id" :label="`${item.nickname}(${t('memberNo') + item.member_no})`" :value="item.member_id">
                             <span>{{ item.nickname }}</span>
                             <span class="ml-[5px]">({{ t('memberNo') + item.member_no }})</span>
                         </el-option>
@@ -84,10 +81,10 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, nextTick } from 'vue'
 import { t } from '@/lang'
 import { useRouter, useRoute } from 'vue-router'
-import { getVerifierList, deleteVerifier, addVerifier, getVerifyTypeList } from '@/app/api/verify'
+import { getVerifierList, deleteVerifier, addVerifier, getVerifyTypeList, getVerifyInfo, editVerifier } from '@/app/api/verify'
 import { getPlatMemberSelectList } from '@/app/api/shop_site'
 import { ElMessageBox, FormInstance } from 'element-plus'
 import { img } from '@/utils/common'
@@ -100,12 +97,15 @@ const showDialog = ref(false)
 const addLoading = ref(false)
 const formData: Record<string, any> = reactive({
     member_id: '',
-    verify_type: '',
+    verify_type: ''
 })
 
 const formRules = reactive({
     member_id: [
         { required: true, message: t('memberIdPlaceholder'), trigger: 'blur' }
+    ],
+    verify_type: [
+        { required: true, message: t('verifyTypePlaceholder'), trigger: 'blur' }
     ]
 })
 const formRef = ref<FormInstance>()
@@ -142,8 +142,43 @@ loadVerifierList()
 /**
  * 添加核销员表
  */
+const isEditMode = ref(false);
 const addEvent = () => {
+    isEditMode.value = false
+    formData.member_id = ''
+    formData.id = ''
+    formData.verify_type = ''
     showDialog.value = true
+}
+
+const editEvent = async (row: any) => {
+    isEditMode.value = true
+    formData.member_id = ''
+    formData.verify_type = ''
+    memberList.value = []
+
+    try {
+        const res = await getVerifyInfo(row.id)
+        memberList.value = [{
+            member_id: res.data.member.member_id,
+            nickname: res.data.member.nickname,
+            member_no: res.data.member.member_no
+        }]
+
+        nextTick(() => {
+            formData.member_id = res.data.member.member_id
+            formData.verify_type = res.data.verify_type
+            formData.id = row.id
+            showDialog.value = true
+        })
+    } catch (error) {
+    }
+}
+
+const handleSelectFocus = () => {
+    if (isEditMode.value && formData.member_id && memberList.value.length === 0) {
+        searchMember('')
+    }
 }
 
 /**
@@ -174,8 +209,8 @@ const addVerifiers = async (formEl: FormInstance | undefined) => {
     await formEl.validate(async (valid) => {
         if (valid) {
             addLoading.value = true
-
-            addVerifier(formData).then(res => {
+            const api = formData.id ? editVerifier : addVerifier
+            api(formData).then(res => {
                 addLoading.value = false
                 showDialog.value = false
                 formData.member_id = ''
@@ -215,7 +250,7 @@ const setVerifyTypeList = () => {
         verifyTypeList.value = res.data
     }).catch()
 }
-setVerifyTypeList();
+setVerifyTypeList()
 
 /**
  * 会员详情

@@ -1,6 +1,7 @@
 package com.niu.core.service.site.shop_delivery.vo;
 
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.enums.delivery.OrderDeliveryTypeEnum;
@@ -78,15 +79,15 @@ public class ShopDeliveryOrderListVo {
     private String statusName;
 
     private String tradeTypeName;
-
-    private JSONObject preStatusName;
+    @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+    private String preStatusName;
 
     public String getStatusName() {
         return OrderDeliveryTypeEnum.getNameByType(this.status);
     }
 
-    public JSONObject getPreStatusName() {
-        return LocalDeliveryOrderPreStatusEnum.getStatusByService(this.deliveryService);
+    public String getPreStatusName() {
+        return JSONUtil.toJsonStr(LocalDeliveryOrderPreStatusEnum.getStatusByService(this.deliveryService));
     }
 
     public String getTradeTypeName() {

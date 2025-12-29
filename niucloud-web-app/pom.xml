@@ -34,7 +34,7 @@
             <artifactId>mall</artifactId>
             <version>1.0.0</version>
         </dependency>
-        <!-- 开发时热启动 -->
+         <!-- 开发时热启动 -->
 <!--        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>

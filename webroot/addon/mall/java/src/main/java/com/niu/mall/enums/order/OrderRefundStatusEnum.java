@@ -44,4 +44,14 @@ public enum OrderRefundStatusEnum {
         }
         return map;
     }
+
+    public static Map<Integer, Object> getRefundShowStatus(){
+        Map<Integer, Object> map = new HashMap<>();
+        map.put(OrderRefundStatusEnum.BUYER_APPLY_WAIT_STORE.getStatus(),OrderRefundStatusEnum.BUYER_APPLY_WAIT_STORE.getName());
+        map.put(OrderRefundStatusEnum.FINISH.getStatus(),OrderRefundStatusEnum.FINISH.getName());
+        map.put(OrderRefundStatusEnum.STORE_AGREE_REFUND_GOODS_APPLY_WAIT_BUYER.getStatus(),OrderRefundStatusEnum.STORE_AGREE_REFUND_GOODS_APPLY_WAIT_BUYER.getName());
+        map.put(OrderRefundStatusEnum.BUYER_REFUND_GOODS_WAIT_STORE.getStatus(),OrderRefundStatusEnum.BUYER_REFUND_GOODS_WAIT_STORE.getName());
+        map.put(OrderRefundStatusEnum.STORE_REFUSE_REFUND_GOODS_APPLY_WAIT_BUYER.getStatus(),OrderRefundStatusEnum.STORE_REFUSE_REFUND_GOODS_APPLY_WAIT_BUYER.getName());
+        return map;
+    }
 }

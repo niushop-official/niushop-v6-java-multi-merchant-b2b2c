@@ -100,3 +100,19 @@ export function addVerifier(params: Record<string, any>) {
 export function deleteVerifier(id: number) {
     return request.delete(`verify/verifier/${id}`, { showSuccessMessage: true })
 }
+
+/**
+ * 获取核销员信息
+ * @returns
+ */
+export function getVerifyInfo(id: number) {
+    return request.get(`verify/verifier/${ id }`)
+}
+
+/**
+ * 修改核销员信息
+ * @returns
+ */
+export function editVerifier(params: Record<string, any>) {
+    return request.post(`verify/verifier/${ params.id }`, params,{ showSuccessMessage: true })
+}

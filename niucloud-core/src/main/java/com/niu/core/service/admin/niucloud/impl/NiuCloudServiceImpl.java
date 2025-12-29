@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.NiucloudUtils;
@@ -25,6 +26,9 @@ public class NiuCloudServiceImpl implements INiucloudService {
 
     @Resource
     ICoreNiucloudConfigService coreNiucloudConfigService;
+
+    @Resource
+    Cached cached;
 
     /**
      * 获取框架最新版本
@@ -70,6 +74,9 @@ public class NiuCloudServiceImpl implements INiucloudService {
 
     @Override
     public AuthInfoVo getAuthinfo() {
+        Object cache = cached.get("auth_info");
+        if (cache != null) return (AuthInfoVo) cache;
+
         NiucloudUtils instance = NiucloudUtils.getInstance();
 
         Map<String, Object> query = new HashMap<>();
@@ -83,6 +90,8 @@ public class NiuCloudServiceImpl implements INiucloudService {
         AuthInfoVo vo = new AuthInfoVo();
         AuthInfoVo.AuthInfo data = JSONUtil.toBean(authInfo, AuthInfoVo.AuthInfo.class);
         vo.setData(data);
+
+        cached.put("auth_info", vo, 7200);
         return vo;
     }
 
@@ -99,6 +108,8 @@ public class NiuCloudServiceImpl implements INiucloudService {
 
         coreNiucloudConfigService.setNiucloudConfig(param);
         NiucloudUtils.Niucloud.clearAccessToken();
+
+        cached.remove("auth_info");
     }
 
     /**

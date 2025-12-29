@@ -161,7 +161,7 @@
 								</el-button>
 							</div>
 							<div class="ml-[10px] border-[1px] border-solid border-[var(--el-color-primary)] rounded-[4px]">
-								<el-popover placement="bottom" :width="configStore.weappOpen ? 326 : 170" trigger="hover">
+								<el-popover placement="bottom" :width="weappImage ? 326 : 170" trigger="hover">
 									<template #reference>
 										<div class="h-[46px] w-[46px] flex items-center justify-center cursor-pointer">
 											<span class="iconfont icon-fenxiang !text-[24px] !text-[var(--el-color-primary)] "></span>
@@ -171,7 +171,7 @@
 										<span class="mx-[10px]">{{ t('codesShare') }}</span>
 									</div>
 									<div class="flex items-center">
-										<div class="promote-img flex justify-center items-center bg-[#f8f8f8] w-[146px] h-[146px] mr-[10px]" v-if="configStore.weappOpen">
+										<div class="promote-img flex justify-center items-center bg-[#f8f8f8] w-[146px] h-[146px] mr-[10px]" v-if="weappImage">
 											<el-image :src="img(weappImage)" />
 										</div>
 										<div class="promote-img flex justify-center items-center bg-[#f8f8f8] w-[146px] h-[146px]">
@@ -365,6 +365,7 @@
 <script lang="ts" setup>
 import { ref, reactive, computed, watch,onMounted } from 'vue'
 import storage from '@/utils/storage'
+import { getQrcode } from '@/app/api/index'
 import { getGoodsDetail, getEvaluateList, collect, cancelCollect, getRecommendGoods, getGoodsQrcode } from '@/addon/mall/api/goods'
 import { addBrowse } from '@/addon/mall/api/member'
 import { getMallGoodsCoupon, getCoupon } from '@/addon/mall/api/coupon'
@@ -375,8 +376,7 @@ import useMemberStore from '@/stores/member'
 import useConfigStore from '@/stores/config'
 import { img ,getToken} from '@/utils/common'
 import QRCode from 'qrcode'
-import { ro } from 'element-plus/es/locale'
-import { set } from 'nuxt/dist/app/compat/capi'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -400,11 +400,7 @@ const switchMedia = ref<any>('img');
 const videoRef = ref<any>(null)
 
 const configStore = useConfigStore()
-watch(() => configStore.weappOpen, (nval, oval) => {
-    if(nval){
-        loadWeapp(route.query.id)
-    }
-})
+
 // 商品详情
 const getGoodsDetailFn = (data: any) => {
 	getGoodsDetail(data).then((res: any) => {
@@ -835,13 +831,19 @@ const loadQrcode = () => {
 }
 const weappImage = ref('')
 const loadWeapp = (id:any) => {
-	getGoodsQrcode({goods_id: id}).then((res:any) =>{
+	
+	getQrcode({
+        scene: 'goods_detail',
+        type: 'image',
+        channel: 'weapp',
+        param: {
+            goods_id: route.query.id
+        }
+    }).then((res:any) =>{
 		weappImage.value = res.data
 	})
 }
-if(configStore.weappOpen){
-	loadWeapp(route.query.id)
-}
+loadWeapp(route.query.id)
 
 const  hangeChange = (data:any)=>{
 	detailActiveName.value = data

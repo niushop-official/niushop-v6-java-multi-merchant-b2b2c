@@ -203,7 +203,7 @@
               "bottomRounded": 0,
               "list": [
                 {
-                  "imageUrl": "addon/mall/diy\/index\/style2\/banner6.jpg",
+                  "imageUrl": "addon/mall/diy\/index\/style2\/banner7.jpg",
                   "imgWidth": 750,
                   "imgHeight": 580,
                   "link": {
@@ -214,13 +214,24 @@
                   "height": 274.53
                 },
                 {
-                  "imageUrl": "addon/mall/diy\/index\/style2\/banner5.jpg",
+                  "imageUrl": "addon/mall/diy\/index\/style2\/banner8.jpg",
                   "imgWidth": 750,
                   "imgHeight": 580,
                   "link": {
                     "name": ""
                   },
                   "id": "6mrj3vwiamw0",
+                  "width": 355,
+                  "height": 274.53
+                },
+                {
+                  "imageUrl": "addon/mall/diy\/index\/style2\/banner9.jpg",
+                  "imgWidth": 750,
+                  "imgHeight": 580,
+                  "link": {
+                    "name": ""
+                  },
+                  "id": "6mrj3vwiamw0_1",
                   "width": 355,
                   "height": 274.53
                 }
@@ -388,16 +399,16 @@
                 "imgHeight": 180
               },
               {
-                "id": "7jggy5euv3w0",
-                "title": "限时折扣",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_discount.png",
-                "imgWidth": 180,
-                "imgHeight": 180,
+                "id": "7bqpc6bjha80",
+                "title": "积分商城",
+                "imageUrl": "addon/mall/diy\/index\/style2\/nav_point_index.png",
+                "imgWidth": 135,
+                "imgHeight": 135,
                 "link": {
-                  "name": "MALL_DISCOUNT_LIST",
-                  "parent": "MALL_LINK",
-                  "title": "限时折扣列表",
-                  "url": "\/addon\/mall\/pages\/discount\/list",
+                  "name": "POINTS_MALL_INDEX",
+                  "parent": "POINTS_MALL_LINK",
+                  "title": "积分商城",
+                  "url": "\/addon\/points_mall\/pages\/index",
                   "action": ""
                 },
                 "label": {

@@ -5,6 +5,8 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.google.gson.JsonObject;
 import com.niu.core.common.component.base.ThreadLocalHolder;
+import com.niu.core.common.component.context.SpringContext;
+import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.service.core.member.ICoreMemberService;
 import com.niu.core.service.core.member.dto.MemberInfoDto;
@@ -96,12 +98,7 @@ public class RequestUtils {
     public static Integer adminSiteId(){
         HttpServletRequest request = RequestUtils.handler();
         if (request != null) {
-            if(StringUtils.isNotEmpty(request.getHeader("site-id"))){
-                return Integer.parseInt(request.getHeader("site-id"));
-            }else{
-                return defaultSiteId();
-            }
-
+            return Integer.parseInt(ObjectUtil.defaultIfNull(request.getHeader("site-id"), "0"));
         }
         return 0;
     }
@@ -199,11 +196,12 @@ public class RequestUtils {
      * @return
      */
     public static String jsonFileContent(String pathTag) {
-        String jsonFileContent = ThreadLocalHolder.getString("jsonFile_" + pathTag);
-        if (jsonFileContent == null) {
+        Cached cached = SpringContext.bean(Cached.class);
+        Object jsonFileContent = cached.tag("json_file").get(pathTag);
+        if (ObjectUtil.isEmpty(jsonFileContent)) {
             return "";
         }else{
-            return jsonFileContent;
+            return jsonFileContent.toString();
         }
     }
 
@@ -213,7 +211,8 @@ public class RequestUtils {
      * @param content
      */
     public static void setJsonFileContent(String pathTag, String content) {
-        ThreadLocalHolder.putString("jsonFile_" + pathTag, content);
+        Cached cached = SpringContext.bean(Cached.class);
+        cached.tag("json_file").put(pathTag, content);
     }
     /**
      * 获取本地线程uid

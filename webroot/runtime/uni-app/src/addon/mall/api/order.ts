@@ -31,8 +31,8 @@ export function getShopOrderNum() {
 /**
  * 获取订单详情
  */
-export function getMallOrderDetail(order_id :number) {
-    return request.get(`mall/order/${order_id}`)
+export function getMallOrderDetail(params: Record<string, any>) {
+    return request.get(`mall/order/${params.order_id}`,params)
 }
 
 /**
@@ -65,7 +65,7 @@ export function orderFinish(order_id: number) {
  * 订单创建计算
  */
 export function orderCreateCalculate(params: Record<string, any>) {
-    return request.post('mall/order_create/calculate', params, { showSuccessMessage: false })
+    return request.post('mall/order_create/calculate', params)
 }
 
 /**
@@ -87,12 +87,7 @@ export function orderCoupon(params: Record<string, any>) {
 export function orderPlatformCoupon(params: Record<string, any>) {
     return request.post('mall/order_create/platform_coupon', params)
 }
-/**
- * 查询自提点
- */
-export function getStoreList(params: Record<string, any>) {
-    return request.get('mall/order_create/store', params)
-}
+
 /**
  * 查询物流信息
  */

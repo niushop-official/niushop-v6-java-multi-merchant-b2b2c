@@ -47,7 +47,20 @@ public class CoreWeappDeliveryServiceImpl implements ICoreWeappDeliveryService {
             WxMaService miniapp = WechatUtils.miniapp(siteId);
             String appid = miniapp.getWxMaConfig().getAppid();
             WxMaOrderShippingIsTradeManagedResponse res = miniapp.getWxMaOrderShippingService().isTradeManaged(appid);
-            vo.setIsTradeManaged(res.getTradeManaged());
+            if (res.getErrCode() == 0 && res.getTradeManaged()){
+                vo.setIsTradeManaged(true);
+                // 获取微信支付配置
+                PayChannel payChannel = payChannelMapper.selectOne(new LambdaQueryWrapper<PayChannel>()
+                        .eq(PayChannel::getSiteId, siteId)
+                        .eq(PayChannel::getType, CertEnum.WECHATPAY.getCode())
+                        .eq(PayChannel::getChannel, CertEnum.WEAPP.getCode()));
+
+                if (payChannel != null && !ObjectUtils.isEmpty(payChannel.getConfig())) {
+                    String config = payChannel.getConfig();
+                    JSONObject jsonObject = JSONUtil.parseObj(config);
+                    vo.setMchId(jsonObject.getInt("mch_id"));
+                }
+            }
         } catch (Exception e) {
         }
         return vo;

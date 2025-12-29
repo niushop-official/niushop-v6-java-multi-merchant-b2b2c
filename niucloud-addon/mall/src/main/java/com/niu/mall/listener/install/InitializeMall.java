@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.initialize.InitializeProvider;
 import com.niu.core.common.component.initialize.annotation.Initializer;
+import com.niu.core.common.config.dataization.AddonModuleContext;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.entity.member.Member;
 import com.niu.core.service.core.addon.ICoreAddonService;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 
 import java.util.List;
+import java.util.Set;
 
 @Initializer("mall")
 @Slf4j
@@ -27,7 +29,10 @@ public class InitializeMall implements InitializeProvider {
         IInstallMallService installMallService = SpringContext.bean(IInstallMallService.class);
 
         if (coreSiteService.siteAddonIsInit(0, "mall")) return;
-
+        Set<String> addonModules = AddonModuleContext.getAddonModules();
+        if(!addonModules.contains("mall")){
+            return;
+        }
         //初始化 插件数据
         installMallService.install();
 

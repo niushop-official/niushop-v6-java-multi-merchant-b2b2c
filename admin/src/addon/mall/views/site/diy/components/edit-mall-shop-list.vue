@@ -155,34 +155,6 @@ import shopSelectPopup from '@/app/views/web/components/shop-select-popup.vue'
 const diyStore:any = useDiyStore()
 diyStore.editComponent.ignore = ['componentBgUrl'] // 忽略公共属性
 
-// 组件默认值，防止未初始化导致渲染期空引用
-const defaultValue = {
-    titleStyle: { title: '风格1', value: 'style-1' },
-    textImg: 'addon/mall/diy/mall_shop_list/index/title.png',
-    siteColor: '#333333',
-    subTitle: { text: '更多', textColor: '#999999', link: { name: '' } },
-    distance: { isShow: true, sort: 'mall_sale_num' },
-    style: 'style-1',
-    source: 'all',
-    num: 10,
-    site_ids: [],
-    position: { control: false },
-    localDelivery: { control: false },
-    siteStyle: { startBgColor: '#FFC3C4', endBgColor: '#FFDABA', gradientAngle: 'to bottom', bgUrl: '/addon/mall/diy/mall_shop_list/index/bgUrl.jpg' },
-    siteNameStyle: { color: '#303133', fontWeight: 'normal', isShow: true },
-    imgElementRounded: 10,
-    topElementRounded: 0,
-    bottomElementRounded: 0
-}
-Object.keys(defaultValue).forEach((k: string) => {
-    // 仅在未定义时注入，避免覆盖用户已有配置
-    // @ts-ignore
-    if (typeof diyStore.editComponent[k] === 'undefined' || diyStore.editComponent[k] === null) {
-        // @ts-ignore
-        diyStore.editComponent[k] = defaultValue[k]
-    }
-})
-
 // 标题风格样式
 const selectTitleStyle = reactive({
     title: diyStore.editComponent.titleStyle.title,

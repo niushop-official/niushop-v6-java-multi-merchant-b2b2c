@@ -73,8 +73,8 @@ public class Balancepay extends BasePay {
     /**
      * 关闭支付
      */
-    public void close(Pay pay) {
-
+    public Boolean close(Pay pay) {
+        return true;
     }
 
     /**
@@ -90,6 +90,11 @@ public class Balancepay extends BasePay {
      * 转账
      */
     public Object transfer(TransferParam param) {
+        return null;
+    }
+
+    @Override
+    public Object getOrder(String outTradeNo) {
         return null;
     }
 

@@ -1,9 +1,13 @@
 package com.niu.core.common.component.initialize.impl;
 
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.niu.core.common.component.context.SpringContext;
+import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.component.initialize.InitializeProvider;
 import com.niu.core.common.component.initialize.annotation.Initializer;
 import com.niu.core.service.core.poster.ICorePosterService;
+import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +20,9 @@ public class InitializeProviderImpl implements InitializeProvider {
     @Override
     public void init(ApplicationContext applicationContext) throws Exception {
         log.warn("这里是core的实现，目的是为了测试功能的可用性.");
+        //把读取文件的数据 重新清空
+        Cached cached = SpringContext.bean(Cached.class);
+        cached.tag("json_file").clear();
     }
 
 }

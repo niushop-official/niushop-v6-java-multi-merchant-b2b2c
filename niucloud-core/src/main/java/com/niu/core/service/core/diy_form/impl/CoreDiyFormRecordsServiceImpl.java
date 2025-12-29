@@ -1,10 +1,14 @@
 package com.niu.core.service.core.diy_form.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,6 +18,7 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.diy_form.*;
 import com.niu.core.entity.member.Member;
@@ -37,10 +42,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -291,6 +294,151 @@ public class CoreDiyFormRecordsServiceImpl implements ICoreDiyFormRecordsService
         }
 
         return error;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void edit(DiyFormRecordsParam param) {
+        // 验证表单状态
+        DiyForm formInfo = diyFormMapper.selectOne(new LambdaQueryWrapper<DiyForm>()
+                .select(DiyForm::getFormId, DiyForm::getStatus)
+                .eq(DiyForm::getFormId, param.getFormId())
+                .last("LIMIT 1"));
+
+        if (formInfo == null) {
+            return;
+        }
+        if (formInfo.getStatus() == 0) {
+            return;
+        }
+
+        // 更新主记录
+        diyFormRecordsMapper.update(null, new LambdaUpdateWrapper<DiyFormRecords>()
+                .eq(DiyFormRecords::getRecordId, param.getRecordId())
+                .set(DiyFormRecords::getValue, JSONUtil.toJsonStr(param.getValue())));
+
+        // 获取字段配置
+        Map<String, DiyFormFields> formFieldMap = diyFormFieldsMapper.selectList(
+                        new LambdaQueryWrapper<DiyFormFields>()
+                                .select(DiyFormFields::getFieldKey,
+                                        DiyFormFields::getFieldRequired,
+                                        DiyFormFields::getFieldUnique)
+                                .eq(DiyFormFields::getFormId, param.getFormId()))
+                .stream()
+                .collect(Collectors.toMap(DiyFormFields::getFieldKey, Function.identity()));
+
+        // 处理字段数据
+        List<DiyFormRecordsFields> recordsFields = new ArrayList<>();
+        if (CollUtil.isNotEmpty(param.getValue())) {
+            for (Object comp : param.getValue()) {
+                if (!(comp instanceof JSONObject)) continue;
+                JSONObject component = (JSONObject) comp;
+
+                // 过滤无效组件
+                String componentType = component.getStr("componentType");
+                String componentName = component.getStr("componentName");
+                Boolean isHidden = component.getBool("isHidden", false);
+
+                if (!"diy_form".equals(componentType) ||
+                        "FormSubmit".equals(componentName) ||
+                        Boolean.TRUE.equals(isHidden)) {
+                    continue;
+                }
+
+                // 获取字段值
+                JSONObject field = component.getJSONObject("field");
+                Object fieldValue = field != null ? field.get("value") : null;
+                String fieldKey = component.getStr("id");
+
+                // 字段验证
+                DiyFormFields fieldConfig = formFieldMap.get(fieldKey);
+                if (fieldConfig != null) {
+                    validateField(fieldConfig, fieldValue, component, param);
+                } else if (fieldValue == null ||
+                        (fieldValue instanceof String && StrUtil.isBlank((String) fieldValue))) {
+                    continue;
+                }
+
+                // 构建字段记录
+                recordsFields.add(buildRecordField(param, component, fieldValue));
+            }
+        }
+
+        // 更新字段记录
+        updateRecordFields(param, recordsFields);
+    }
+
+    private void validateField(DiyFormFields fieldConfig, Object fieldValue,
+                               JSONObject component, DiyFormRecordsParam param) {
+        String fieldName = Optional.ofNullable(component.getJSONObject("field"))
+                .map(f -> f.getStr("name"))
+                .orElse(component.getStr("componentTitle"));
+
+        // 必填验证
+        if (fieldConfig.getFieldRequired() == 1 && isValueEmpty(fieldValue)) {
+            throw new CommonException(fieldName + "不能为空");
+        }
+
+        // 唯一性验证
+        if (fieldConfig.getFieldUnique() == 1) {
+            String fieldValueStr = convertToString(fieldValue);
+            int count = diyFormRecordsFieldsMapper.selectCount(new LambdaQueryWrapper<DiyFormRecordsFields>()
+                    .eq(DiyFormRecordsFields::getFormId, param.getFormId())
+                    .eq(DiyFormRecordsFields::getFieldKey, fieldConfig.getFieldKey())
+                    .eq(DiyFormRecordsFields::getFieldValue, fieldValueStr)
+                    .ne(DiyFormRecordsFields::getRecordId, param.getRecordId())).intValue();
+
+            if (count > 0) {
+                throw new CommonException(fieldName + "不能重复");
+            }
+        }
+    }
+
+    private DiyFormRecordsFields buildRecordField(DiyFormRecordsParam param,
+                                                  JSONObject component, Object fieldValue) {
+        JSONObject field = component.getJSONObject("field");
+        String fieldKey = component.getStr("id");
+        String fieldValueStr = convertToString(fieldValue);
+        Boolean isHidden = component.getBool("isHidden", false);
+
+        return new DiyFormRecordsFields().builder()
+                .siteId(param.getSiteId())
+                .formId(param.getFormId())
+                .recordId(param.getRecordId())
+                .memberId(param.getMemberId())
+                .fieldKey(fieldKey)
+                .fieldType(component.getStr("componentName"))
+                .fieldName(field != null ? field.getStr("name") : "")
+                .fieldValue(fieldValueStr)
+                .fieldRequired(field != null ? field.getInt("required", 0) : 0)
+                .fieldHidden(isHidden ? 1 : 0)
+                .fieldUnique(field != null ? field.getInt("unique", 0) : 0)
+                .privacyProtection(field != null ? field.getInt("privacyProtection", 0) : 0)
+                .createTime(DateUtils.currTime())
+                .updateTime(DateUtils.currTime()).build();
+    }
+
+    private void updateRecordFields(DiyFormRecordsParam param, List<DiyFormRecordsFields> newRecords) {
+        if (CollUtil.isEmpty(newRecords)) {
+            return;
+        }
+
+        // 获取旧记录
+        List<DiyFormRecordsFields> oldRecords = diyFormRecordsFieldsMapper.selectList(
+                new LambdaQueryWrapper<DiyFormRecordsFields>()
+                        .eq(DiyFormRecordsFields::getFormId, param.getFormId())
+                        .eq(DiyFormRecordsFields::getRecordId, param.getRecordId()));
+
+        // 批量更新字段统计
+        updateFieldStats(param, oldRecords, newRecords);
+
+        // 删除旧记录
+        diyFormRecordsFieldsMapper.delete(new LambdaQueryWrapper<DiyFormRecordsFields>()
+                .eq(DiyFormRecordsFields::getFormId, param.getFormId())
+                .eq(DiyFormRecordsFields::getRecordId, param.getRecordId()));
+
+        // 批量插入新记录
+        diyFormRecordsFieldsMapper.insert(newRecords);
     }
 
     private String checkMemberCanJoinOrNot(Integer memberId, DiyFormWriteConfig writeConfig) {
@@ -595,7 +743,32 @@ public class CoreDiyFormRecordsServiceImpl implements ICoreDiyFormRecordsService
             return new ArrayList();
         }
     }
-    
+
+    private void updateFieldStats(DiyFormRecordsParam param,
+                                  List<DiyFormRecordsFields> oldRecords,
+                                  List<DiyFormRecordsFields> newRecords) {
+        // 收集需要更新的字段
+        Map<String, Integer> fieldUpdates = new HashMap<>();
+
+        // 旧记录减少计数
+        oldRecords.forEach(f ->
+                fieldUpdates.merge(f.getFieldKey(), -1, Integer::sum));
+
+        // 新记录增加计数
+        newRecords.forEach(f ->
+                fieldUpdates.merge(f.getFieldKey(), 1, Integer::sum));
+
+        // 批量更新
+        fieldUpdates.forEach((fieldKey, delta) ->
+                diyFormFieldsMapper.update(null,
+                        new LambdaUpdateWrapper<DiyFormFields>()
+                                .eq(DiyFormFields::getFormId, param.getFormId())
+                                .eq(DiyFormFields::getFieldKey, fieldKey)
+                                .setSql(delta > 0 ?
+                                        "write_num = write_num + " + delta :
+                                        "write_num = write_num - " + (-delta))));
+    }
+
     private Map<String, Object> parseWriteRule(String writeRuleStr) {
         try {
             if (ObjectUtil.isEmpty(writeRuleStr)) {
@@ -613,6 +786,20 @@ public class CoreDiyFormRecordsServiceImpl implements ICoreDiyFormRecordsService
         } catch (Exception e) {
             return new HashMap<>();
         }
+    }
+
+    private boolean isValueEmpty(Object value) {
+        if (value == null) return true;
+        if (value instanceof CharSequence) return StrUtil.isBlank((CharSequence) value);
+        if (value instanceof Collection) return ((Collection<?>) value).isEmpty();
+        if (value instanceof Map) return ((Map<?, ?>) value).isEmpty();
+        return false;
+    }
+
+    private String convertToString(Object value) {
+        if (value == null) return "";
+        if (value instanceof String) return (String) value;
+        return JSONUtil.toJsonStr(value);
     }
 
 }

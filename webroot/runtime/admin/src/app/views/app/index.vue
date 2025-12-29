@@ -68,7 +68,11 @@ getAppList()
 
 const toLink = (item: any) => {
     if (item.url) {
-        router.push(item.url)
+        if (item.key == 'adminapp') {
+            window.open(location.origin + item.url)
+        } else {
+            router.push(item.url)
+        }
     } else {
         addonIndexRoute[item.key] && router.push({ name: addonIndexRoute[item.key] })
     }

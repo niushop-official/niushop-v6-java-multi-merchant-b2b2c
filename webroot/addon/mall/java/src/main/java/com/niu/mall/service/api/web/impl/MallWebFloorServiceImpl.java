@@ -62,7 +62,7 @@ public class MallWebFloorServiceImpl implements IMallWebFloorService {
                     goodsIds[i] = Integer.parseInt(config.getJSONArray("goods_ids").get(i).toString());
                 }
                 param.setGoodsIds(goodsIds);
-                vo.setGoodsList(goodsService.getGoodsComponents(param));
+                vo.setGoodsList(goodsService.getGoodsComponents(param,null));
             }
             listVo.add(vo);
         }

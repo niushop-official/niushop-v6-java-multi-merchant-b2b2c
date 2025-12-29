@@ -122,6 +122,12 @@ public class SiteShopInfoVo implements Serializable {
     /** 网站图标 */
     private String icon;
 
+    private BigDecimal qualityScore;
+
+    private BigDecimal serviceScore;
+
+    private BigDecimal logisticsScore;
+
     /** 状态名称 */
     private String statusName;
 

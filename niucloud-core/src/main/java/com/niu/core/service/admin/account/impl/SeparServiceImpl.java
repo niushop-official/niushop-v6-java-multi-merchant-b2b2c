@@ -69,6 +69,9 @@ public class SeparServiceImpl implements ISeparService {
         if (ObjectUtil.isNotEmpty(searchParam.getTradeType())) {
             queryWrapper.eq("trade_type", searchParam.getTradeType());
         }
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+            queryWrapper.eq("status", searchParam.getStatus());
+        }
         queryWrapper.orderByDesc("id");
 
         IPage<SeparAccount> iPage = separAccountMapper.selectPage(new Page<>(page, limit), queryWrapper);

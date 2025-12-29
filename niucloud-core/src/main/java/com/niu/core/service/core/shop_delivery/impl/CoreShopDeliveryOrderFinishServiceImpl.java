@@ -59,7 +59,7 @@ public class CoreShopDeliveryOrderFinishServiceImpl implements ICoreShopDelivery
             notifyParam.setMainId(deliveryShopDeliveryOrder.getDeliverId());
             notifyParam.setMainName(deliveryShopDeliveryOrder.getDeliverName());
             notifyParam.setStatus(LocalDeliveryStatusEnum.COMPLETED.getStatus().toString());
-            coreLocalDeliveryOrderNotifyService.notify(deliveryShopDeliveryOrder.getSiteId(), DeliveryStoreTypeEnum.MERCHANT.getKey(), "order", notifyParam);
+            coreLocalDeliveryOrderNotifyService.notify(deliveryShopDeliveryOrder.getSiteId(), DeliveryStoreTypeEnum.MERCHANT.getKey(),deliveryShopDeliveryOrder.getOutDeliveryNo(), "order", notifyParam);
             //添加配送订单日志
             LocalDeliveryOperateEnum.OperateResult operateResult = LocalDeliveryOperateEnum.getOperateByStatus(ShopDeliveryStatusEnum.convertStatus(ShopDeliveryStatusEnum.COMPLETED.getStatus()));
             AddShopDeliveryOrderLogParam logParam = new AddShopDeliveryOrderLogParam();

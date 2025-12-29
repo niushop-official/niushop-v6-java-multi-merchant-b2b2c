@@ -87,6 +87,13 @@ public interface ISysUserService {
     SysUserInfoVo getUserInfoByUserName(String userName);
 
     /**
+     * 通手机获取账号信息
+     * @param mobile
+     * @return
+     */
+    Boolean getUserInfoByMobile(String mobile);
+
+    /**
      * 修改用户登录信息
      * @param uid
      */
@@ -106,7 +113,11 @@ public interface ISysUserService {
      */
     boolean checkUserName(String userName);
 
-
+    /**
+     * 检测用户手机号是否唯一
+     * @return
+     */
+    boolean checkUserMobile(String mobile, Integer uid);
     /**
      * 获取用户站点创建限制
      *

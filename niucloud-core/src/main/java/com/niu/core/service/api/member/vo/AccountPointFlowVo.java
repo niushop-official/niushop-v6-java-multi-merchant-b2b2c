@@ -1,5 +1,6 @@
 package com.niu.core.service.api.member.vo;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
@@ -64,7 +65,10 @@ public class AccountPointFlowVo {
 
         public String getFromTypeName() {
             JSONObject changeType = MemberAccountChangeTypeEnum.getType(this.accountType);
-            return changeType.getByPath(this.fromType + ".name", String.class);
+            if (changeType == null) {
+                return "";
+            }
+            return ObjectUtil.defaultIfNull(changeType.getByPath(this.fromType + ".name", String.class), "");
         }
     }
 }

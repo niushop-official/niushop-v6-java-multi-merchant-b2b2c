@@ -7,6 +7,7 @@ import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.shop.SiteShopMember;
@@ -61,8 +62,8 @@ public class ShopMemberExportDataListener extends ExportDataEventDefiner {
             if(ObjectUtil.isNotEmpty(registerChannel)){
                 queryWrapper.eq("m.register_channel",registerChannel);
             }
-            if ((where.get("create_time") instanceof String[] createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "ssm.create_time", createTimes);
+            if ((where.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "ssm.create_time", StringUtils.jsonArrayToStringArray(createTimes));
             }
         }
         PageParam pageParam = event.getPageParam();

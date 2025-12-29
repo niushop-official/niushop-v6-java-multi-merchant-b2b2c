@@ -280,6 +280,9 @@ const isSell = ref(true)
 const detectionGoodsIsDisable = (data: any, currSkuName: any)=>{
     const skuNameArr = []
     data.skuList.forEach((item, index) => {
+        if(item.sku_name.indexOf('/') != 1){
+            item.sku_name = item.sku_name.replace(/\//g, ' ')
+        }
         skuNameArr.push(item.sku_name)
     })
     isSell.value = true

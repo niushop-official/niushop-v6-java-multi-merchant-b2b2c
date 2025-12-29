@@ -11,5 +11,5 @@ public interface ICoreLocalDeliveryOrderNotifyService {
     /**
      * 添加配送订单日志
      */
-    void notify(Integer siteId,String type,String action, NotifyShopDeliveryOrderParam param);
+    void notify(Integer siteId,String type,String orderNo,String action, NotifyShopDeliveryOrderParam param);
 }

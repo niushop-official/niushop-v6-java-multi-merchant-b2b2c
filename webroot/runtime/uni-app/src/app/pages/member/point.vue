@@ -41,7 +41,7 @@
             </view>
             <view class="mt-[var(--top-m)] sidebar-margin card-template">
                 <view class="title">热门活动</view>
-                <view class="mt-[60rpx] flex">
+                <view class="mt-[60rpx] flex justify-between">
                     <view class="w-[200rpx] h-[253rpx] box-border pt-[69rpx] relative text-center mr-[16rpx]"
                     :style="{backgroundImage: 'url(' + img('static/resource/images/member/point/activity_1.png') + ') ', backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat'}">
                         <image class="h-[78rpx] w-[78rpx] absolute left-[65rpx] top-[-21rpx]" :src="img('static/resource/images/member/point/activity_icon_1.png')" mode="heightFix" />
@@ -49,6 +49,17 @@
                         <view class="mt-[10rpx] text-[24rpx] leading-[34rpx] text-[var(--text-color-light6)]">每日签到</view>
                         <view class="w-full flex justify-center mt-[20rpx]">
                             <button class="h-[54rpx] !m-0 rounded-[100rpx] text-[24rpx] flex-center !text-[#fff]" shape="circle" :style="{background: 'linear-gradient( 94deg, #FB7939 0%, #FE120E 99%), #EF000C'}" @click="toLink('/app/pages/member/sign_in')">去签到</button>
+                        </view>
+                    </view>
+                     <view class="w-[200rpx] h-[253rpx] box-border pt-[69rpx] relative text-center"
+                          :style="{backgroundImage: 'url(' + img('static/resource/images/member/point/activity_2.png') + ') ', backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat'}">
+                        <image class="h-[78rpx] w-[78rpx] absolute left-[65rpx] top-[-21rpx]" :src="img('static/resource/images/member/point/activity_icon_2.png')" mode="heightFix" />
+                        <view class="text-[28rpx] leading-[39rpx] text-[#333]">积分当钱花</view>
+                        <view class="mt-[10rpx] text-[24rpx] leading-[34rpx] text-[var(--text-color-light6)]">抵扣部分费用</view>
+                        <view class="w-full flex justify-center mt-[20rpx]">
+                            <button class="h-[54rpx] !m-0 rounded-[100rpx] text-[24rpx] flex-center !text-[#fff]" shape="circle"
+                                    :style="{background: 'linear-gradient( 94deg, #FB7939 0%, #FE120E 99%), #EF000C'}"
+                                    @click="toLink('/addon/points_mall/pages/index')">去兑换</button>
                         </view>
                     </view>
                     <view class="w-[200rpx] h-[253rpx] box-border pt-[69rpx] relative text-center" :style="{backgroundImage: 'url(' + img('static/resource/images/member/point/activity_3.png') + ') ',backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat'}">

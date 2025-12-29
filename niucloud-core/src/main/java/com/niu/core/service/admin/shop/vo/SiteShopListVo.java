@@ -5,6 +5,7 @@ import com.niu.core.common.domain.BeanJsonSerializer;
 import java.io.Serializable;
 
 import com.niu.core.entity.shop.SiteShop;
+import com.niu.core.enums.shop.ShopStatusEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.service.admin.site.vo.SiteAdminVo;
 import lombok.Data;
@@ -129,6 +130,12 @@ private static final long serialVersionUID = 1L;
         private String phone;
         /** 营业时间 */
         private String businessHours;
+
+        /** 营业状态 */
+        private Integer businessStatus;
+
+        /** 营业状态 */
+        private String businessStatusName;
         /** 创建时间 */
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
         private Long createTime;
@@ -170,6 +177,8 @@ private static final long serialVersionUID = 1L;
         public String getStatusName() {
                 return SiteStatusEnum.getNameByCode(this.status);
         }
-
+        public String getBusinessStatusName() {
+                return ShopStatusEnum.getNameByKey(this.status);
+        }
 
 }

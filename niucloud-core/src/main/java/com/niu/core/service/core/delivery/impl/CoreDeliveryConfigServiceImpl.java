@@ -1,14 +1,19 @@
 package com.niu.core.service.core.delivery.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDelivery;
+import com.niu.core.entity.delivery.DeliveryStore;
 import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteAddress;
+import com.niu.core.enums.local_delivery.LocalDeliveryStoreTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryMapper;
+import com.niu.core.mapper.delivery.DeliveryStoreMapper;
 import com.niu.core.mapper.site.SiteAddressMapper;
 import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.core.delivery.ICoreDeliveryConfigService;
@@ -17,12 +22,11 @@ import com.niu.core.service.core.delivery.vo.DeliverySearchConfigVo;
 import com.niu.core.service.core.delivery.vo.DeliveryConfigVo;
 import com.niu.core.service.core.sys.ICoreConfigService;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 商品分类实现
@@ -40,6 +44,9 @@ public class CoreDeliveryConfigServiceImpl implements ICoreDeliveryConfigService
     DeliveryLocalDeliveryMapper deliveryLocalDeliveryMapper;
     @Resource
     SiteAddressMapper siteAddressMapper;
+    @Autowired
+    private DeliveryStoreMapper deliveryStoreMapper;
+
     /**
      * 获取物流查询接口配置
      *
@@ -65,6 +72,7 @@ public class CoreDeliveryConfigServiceImpl implements ICoreDeliveryConfigService
         JSONObject config = coreConfigService.getConfigValue(RequestUtils.defaultSiteId(), "DELIVERY_CONFIG");
         if (config.isEmpty()) return new AdminDeliveryConfigVo();
 
+
         return JSONUtil.toBean(config, AdminDeliveryConfigVo.class);
     }
 
@@ -84,59 +92,87 @@ public class CoreDeliveryConfigServiceImpl implements ICoreDeliveryConfigService
                 .select("is_express", "is_local_delivery", "is_store", "delivery_config");
         Site site = siteMapper.selectOne(siteQueryWrapper);
 
+        List<DeliveryConfigVo> defaultList = new ArrayList<>();
         List<DeliveryConfigVo> data = new ArrayList<>();
-
         if (site == null) {
             return data;
         }
 
-        String deliveryConfigStr = site.getDeliveryConfig();
-        if (deliveryConfigStr == null || deliveryConfigStr.trim().isEmpty()) {
-            // 如果delivery_config为空，使用默认配置
-            DeliveryConfigVo express = new DeliveryConfigVo();
-            express.setName("物流配送");
-            express.setStatus(site.getIsExpress());
-            express.setKey("express");
-            data.add(express);
+        // 如果delivery_config为空，使用默认配置
+        DeliveryConfigVo express = new DeliveryConfigVo();
+        express.setName("物流配送");
+        express.setStatus(site.getIsExpress());
+        express.setKey("express");
+        defaultList.add(express);
 
-            DeliveryConfigVo localDelivery = new DeliveryConfigVo();
-            localDelivery.setName("同城配送");
-            localDelivery.setStatus(site.getIsLocalDelivery());
-            localDelivery.setKey("local_delivery");
-            data.add(localDelivery);
-        } else {
-            // 如果delivery_config不为空，解析配置
-            JSONObject deliveryConfig = JSONUtil.parseObj(deliveryConfigStr);
-            for (String key : deliveryConfig.keySet()) {
-                JSONObject configItem = deliveryConfig.getJSONObject(key);
-                DeliveryConfigVo vo = new DeliveryConfigVo();
-                vo.setName(configItem.getStr("name"));
-                vo.setKey(configItem.getStr("key"));
-                String statusField = "is_" + key;
-                Integer status = null;
-                if ("express".equals(key)) {
-                    status = site.getIsExpress();
-                } else if ("local_delivery".equals(key)) {
-                    status = site.getIsLocalDelivery();
-                } else if ("store".equals(key)) {
-                    status = site.getIsStore();
+        DeliveryConfigVo localDelivery = new DeliveryConfigVo();
+        localDelivery.setName("同城配送");
+        localDelivery.setStatus(site.getIsLocalDelivery());
+        localDelivery.setKey("local_delivery");
+        defaultList.add(localDelivery);
+
+        DeliveryConfigVo storeDelivery = new DeliveryConfigVo();
+        storeDelivery.setName("门店自提");
+        storeDelivery.setStatus(site.getIsStore());
+        storeDelivery.setKey("store");
+        defaultList.add(storeDelivery);
+
+        Map<String, DeliveryConfigVo> list = new HashMap<>();
+
+        if (StringUtils.isNotEmpty(site.getDeliveryConfig())) {
+            // 获取默认列表和配置列表的key集合
+            Set<String> defaultListKeys = defaultList.stream().map(DeliveryConfigVo::getKey).collect(Collectors.toSet());
+            JSONObject deliveryConfig = JSONUtil.parseObj(site.getDeliveryConfig());
+            Set<String> deliveryConfigKeys = deliveryConfig.keySet();
+
+            // 计算差异的key（在默认列表中但不在配置列表中）
+            Set<String> diffKeys = new HashSet<>(defaultListKeys);
+            diffKeys.removeAll(deliveryConfigKeys);
+
+            // 处理配置列表中的有效项
+            for (String value : deliveryConfig.keySet()) {
+                if (StringUtils.isNotEmpty(value) && defaultListKeys.contains(value)) {
+                    // 从data中获取对应的状态值
+                    DeliveryConfigVo vo = new DeliveryConfigVo();
+                    vo.setName(deliveryConfig.getJSONObject(value).getStr("name"));
+                    Integer status = 0;
+                    if ("express".equals(value)) {
+                        status = site.getIsExpress();
+                    } else if ("local_delivery".equals(value)) {
+                        status = site.getIsLocalDelivery();
+                    } else if ("store".equals(value)) {
+                        status = site.getIsStore();
+                    }
+                    vo.setStatus(status);
+                    vo.setKey(value);
+                    list.put(value, vo);
                 }
-                vo.setStatus(status);
-                data.add(vo);
+            }
+
+            // 处理差异项，使用默认配置
+            for (String key : diffKeys) {
+                List<DeliveryConfigVo> valueThis = defaultList.stream().filter(vo -> vo.getKey().equals(key)).toList();
+                if(!valueThis.isEmpty()){
+                    list.put(key, valueThis.get(0));
+                }
+            }
+        } else {
+            for (DeliveryConfigVo value : defaultList) {
+                list.put(value.getKey(), value);
             }
         }
 
-            // 根据平台配置更新状态
-            for (DeliveryConfigVo item : data) {
-                String key = item.getKey();
-                if (adminDeliveryList.containsKey(key)) {
-                    Map<String, Object> adminItem = (Map<String, Object>) adminDeliveryList.get(key);
-                    Integer adminStatus = (Integer) adminItem.get("status");
-                    if (adminStatus != null && adminStatus == 0) {
-                        item.setStatus(0);
-                    }}
+        // 根据平台配置更新状态
+        for (String key : list.keySet()) {
+            if (adminDeliveryList.containsKey(key)) {
+                JSONObject adminItem = JSONUtil.parseObj(adminDeliveryList.get(key));
+                Integer status = adminItem.getInt("status") == 0 ? 2 : list.get(key).getStatus();
+                list.get(key).setStatus(status);
             }
-
+        }
+        for (String key : list.keySet()) {
+            data.add(list.get(key));
+        }
         return data;
     }
 
@@ -145,11 +181,7 @@ public class CoreDeliveryConfigServiceImpl implements ICoreDeliveryConfigService
         Map<String, Object> adminDeliveryList = deliverycoreConfig.getDeliveryList();
         QueryWrapper<DeliveryLocalDelivery> localQueryWrapper = new QueryWrapper<>();
         localQueryWrapper.eq("site_id", siteId);
-            DeliveryLocalDelivery local = deliveryLocalDeliveryMapper.selectOne(localQueryWrapper);
-
-        QueryWrapper<SiteAddress> siteAddressQueryWrapper = new QueryWrapper<>();
-        siteAddressQueryWrapper.eq("is_default_delivery", 1).eq("site_id", siteId);
-        SiteAddress siteAddress = siteAddressMapper.selectOne(siteAddressQueryWrapper);
+        DeliveryLocalDelivery local = deliveryLocalDeliveryMapper.selectOne(localQueryWrapper);
 
         Map<String, Object> saveData = new HashMap<>();
 
@@ -158,41 +190,37 @@ public class CoreDeliveryConfigServiceImpl implements ICoreDeliveryConfigService
             JSONObject dataCopy = new JSONObject(data);
 
             for (String key : dataCopy.keySet()) {
-                Object value = dataCopy.get(key);
-                if (value instanceof Map) {
-                    Map<String, Object> v = (Map<String, Object>) value;
-
-                    String itemKey = (String) v.get("key");
-                    Integer status = (Integer) v.get("status");
-                    if (itemKey != null && status != null) {
-                        saveData.put("is_" + itemKey, status);
-                    }
-
-                    if (status != null && status == 1) {
-                        if ("local_delivery".equals(itemKey)) {
-                            if (local == null) {
-                                throw new RuntimeException("同城配送未配置，请先完成配置");
-                            }
-                            if (siteAddress == null) {
-                                throw new RuntimeException("未配置默认发货地址");
-                            }
+                JSONObject value = JSONUtil.parseObj(dataCopy.get(key));
+                saveData.put("is_" + key, value.getStr("status"));
+                if (1 == value.getInt("status")) {
+                    if (LocalDeliveryStoreTypeEnum.LOCAL_DELIVERY.getType().equals(key)) {
+                        if (ObjectUtil.isEmpty(local)) {
+                            throw new RuntimeException("同城配送未配置，请先完成配置");
                         }
-
-                        // 平台状态验证
-                        if (adminDeliveryList.containsKey(itemKey)) {
-                            Map<String, Object> adminItem = (Map<String, Object>) adminDeliveryList.get(itemKey);
-                            Integer adminStatus = (Integer) adminItem.get("status");
-                            if (adminStatus != null && adminStatus == 0) {
-                                String adminName = (String) adminItem.get("name");
-                                throw new RuntimeException("平台未启用" + adminName);
-                            }
+                        DeliveryStore store = deliveryStoreMapper.selectOne(new QueryWrapper<DeliveryStore>().eq("site_id", siteId).eq("status", 1)
+                                .eq("support_local_delivery", 1).last("limit 1"));
+                        if (ObjectUtil.isEmpty(store)) {
+                            throw new RuntimeException("未配置同城配送门店");
                         }
                     }
-
-                    v.remove("status");
+                    if (LocalDeliveryStoreTypeEnum.STORE.getType().equals(key)) {
+                        DeliveryStore store = deliveryStoreMapper.selectOne(new QueryWrapper<DeliveryStore>().eq("site_id", siteId).eq("status", 1)
+                                .eq("support_store", 1).last("limit 1"));
+                        if (ObjectUtil.isEmpty(store)) {
+                            throw new RuntimeException("未配置自提门店");
+                        }
+                    }
+                    // 平台状态验证
+                    if (adminDeliveryList.containsKey(key)) {
+                        JSONObject adminItem = JSONUtil.parseObj(adminDeliveryList.get(key));
+                        Integer adminStatus = adminItem.getInt("status");
+                        if (adminStatus == 0) {
+                            throw new RuntimeException("平台未启用" + adminItem.getStr("name"));
+                        }
+                    }
                 }
+                dataCopy.remove("status");
             }
-
             saveData.put("delivery_config", JSONUtil.toJsonStr(dataCopy));
         }
 

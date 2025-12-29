@@ -1,7 +1,7 @@
 <template>
     <view :style="warpCss" class="overflow-hidden" v-if="diyComponent && diyComponent.shop_info && Object.keys(diyComponent.shop_info).length">
         <view class="card-template" v-if="systemStore.auditFlag">
-            <view class="flex justify-between items-center">
+            <view class="flex justify-between items-center mb-[20rpx]">
                 <view class="flex flex-1">
                     <up-image class="overflow-hidden" width="86rpx" height="86rpx" radius="6rpx" :src="diyShop.siteLogo(diyComponent.shop_info)" model="aspectFill">
                         <template #error>
@@ -18,24 +18,62 @@
                 </view>
                 <view class="w-[114rpx] h-[50rpx] leading-[50rpx] bg-[var(--primary-color)] text-[#fff] text-center rounded-[25rpx] text-[28rpx]" @click="toShopDetail(diyComponent.shop_info.site_id)">进店</view>
             </view>
+            <view class="flex items-center justify-between">
+                <view class="flex items-center">
+                    <text class="text-[24rpx] text-[var(--text-color-light9)] mr-[6rpx]">商品质量</text>
+                    <text class="text-[26rpx] text-[#FD3B1F]">{{ diyComponent.shop_info.quality_score }}</text>
+                </view>
+                <view class="flex items-center">
+                    <text class="text-[24rpx] text-[var(--text-color-light9)] mr-[6rpx]">商家服务</text>
+                    <text class="text-[26rpx] text-[#FD3B1F]">{{ diyComponent.shop_info.service_score }}</text>
+                </view>
+                <view class="flex items-center">
+                    <text class="text-[24rpx] text-[var(--text-color-light9)] mr-[6rpx]">发货物流</text>
+                    <text class="text-[26rpx] text-[#FD3B1F]">{{ diyComponent.shop_info.logistics_score }}</text>
+                </view>
+            </view>
+            <view class="mt-[30rpx]" v-if="diyComponent.recommend.isShow && recommendGoods.length">
+                <view class="text-[30rpx] font-500 mb-[20rpx]">店铺推荐</view>
+                <view class="grid grid-cols-3 gap-x-[22rpx] gap-y-[30rpx]">
+                    <view v-for="(item,index) in recommendGoods" :key="index" @click="redirect({ url: '/addon/mall/pages/goods/detail', param: { goods_id: item.goods_id }})">
+                        <up-image width="206rpx" height="206rpx" radius="16rpx" :src="img(item.goods_cover_thumb_small || '')" model="aspectFill">
+                            <template #error>
+                                <image class="w-[206rpx] h-[206rpx] rounded-[16rpx]"  :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill" />
+                            </template>
+                        </up-image>
+                        <view class="pt-[16rpx]">
+                            <view class="text-[28rpx] text-[#333] truncate mb-[6rpx]">{{ item.goods_name }}</view>
+                            <view class="text-[var(--price-text-color)] price-font leading-[1]">
+                                <text class="text-[20rpx] font-400">￥</text>
+                                <text class="text-[34rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(item)).toFixed(2).split('.')[0] }}</text>
+                                <text class="text-[20rpx] font-500">.{{ parseFloat(diyGoods.goodsPrice(item)).toFixed(2).split('.')[1] }}</text>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+            </view>
         </view>
     </view>
 </template>
 
 <script setup lang="ts">
-import { computed, watch, onMounted, nextTick } from 'vue';
+import { ref,computed, watch, onMounted, nextTick } from 'vue';
 import { img, redirect } from '@/utils/common';
 import useDiyStore from '@/app/stores/diy';
 import useSystemStore from '@/stores/system'
 import { useShop } from '@/addon/mall/hooks/useShop'
 import useGoodsDetailStore from '@/addon/mall/stores/goodsDetail'
+import { useGoods } from '@/addon/mall/hooks/useGoods'
+import { getShopRecommendComponents } from '@/addon/mall/api/goods'
 
 const props = defineProps(['component', 'index', 'value']);
 const diyStore = useDiyStore();
 const emits = defineEmits(['update:componentIsShow']); //商品数据加载完成之后触发
 const diyShop = useShop();
+const diyGoods = useGoods();
 
 const  systemStore = useSystemStore() // 审核
+const recommendGoods = ref([])
 
 const diyComponent = computed(() => {
     if (diyStore.mode == 'decorate') {
@@ -44,7 +82,10 @@ const diyComponent = computed(() => {
                 front_end_logo: '',
                 site_name: '店铺名称',
                 is_self: 0,
-                follow_number: 10
+                follow_number: 10,
+                quality_score: 5.0,
+                service_score: 5.0,
+                logistics_score: 5.0
             }
         }
         systemStore.auditFlag = true;
@@ -79,6 +120,7 @@ onMounted(() => {
             () => diyComponent.value,
             (newValue, oldValue) => {
                 if (newValue && newValue.componentName == 'MallGoodsDetailShopInfo') {
+                    refresh();
                     nextTick(() => {})
                 }
             }
@@ -92,6 +134,7 @@ onMounted(() => {
                         emits('update:componentIsShow', false)   
                     }else{
                         emits('update:componentIsShow', true)
+                        refresh();
                     }
                 }
             },
@@ -99,7 +142,28 @@ onMounted(() => {
         )
     }
 });
+const refresh = () => {
+    // 装修模式下设置默认图
+    if (diyStore.mode == 'decorate') {
+    	let obj = {
+            goods_cover_thumb_small: "",
+            goods_name: "商品名称",
+            goodsSku: { show_price: 100 },
+        };
+        recommendGoods.value = [obj, obj, obj];
+    } else {
+        recommendGoodsFn();
+    }
+}
 
+const recommendGoodsFn = () => {
+    getShopRecommendComponents({ 
+        site_id: diyComponent.value?.shop_info?.site_id,
+        num: diyComponent.value.recommend.num,
+    }).then((res: any) => {
+    	recommendGoods.value = res.data;
+    })
+}
 //进入店铺
 const toShopDetail = (site_id:any) => {
 	redirect({ url: '/addon/mall/pages/index', param: { site_id } })

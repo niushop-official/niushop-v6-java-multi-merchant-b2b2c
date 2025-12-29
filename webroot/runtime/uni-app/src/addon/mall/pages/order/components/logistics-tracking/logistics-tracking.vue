@@ -4,7 +4,7 @@
 			<view class="h-[70vh] px-[24rpx] bg-page  pb-[20rpx]" @touchmove.prevent.stop v-if="Object.keys(showList).length">
 				<view class="font-500 text-center text-[32rpx] leading-[104rpx] box-border h-[104rpx]">{{t('detailedInformation')}}</view>
 				<scroll-view :scroll-x="true" scroll-with-animation :scroll-into-view="'id' + (subActive > 3 ? subActive - 2 : 0)" >
-					<view class="flex py-[22rpx] whitespace-nowrap" >
+					<view class="flex py-[22rpx] whitespace-nowrap" v-if="packageList.length > 1">
 						<view :id="'id' + index" class="text-[26rpx] leading-[36rpx] mr-[30rpx] text-[#626779]" :class="{'!text-primary class-select': item.id ==  current}" v-for="(item,index) in packageList" :key="index" @click="handleClick(item,index)">{{ item.name }}</view>
 					</view>
 				</scroll-view>

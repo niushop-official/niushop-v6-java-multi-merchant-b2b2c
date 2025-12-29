@@ -113,6 +113,12 @@
                             </el-tag>
                         </template>
                     </el-table-column>
+                    <el-table-column :label="t('businessStatus')" min-width="100" align="center">
+                        <template #default="{ row }">
+                            <el-tag class="ml-2" type="success" v-if="row.business_status == 1">{{ row.business_status_name }}</el-tag>
+                            <el-tag class="ml-2" type="error" v-else>{{ row.business_status_name }}</el-tag>
+                        </template>
+                    </el-table-column>
                     <el-table-column prop="create_time" :label="t('createTime')" min-width="180" :show-overflow-tooltip="true" />
 
                     <el-table-column :label="t('operation')" min-width="200" align="right" fixed="right">

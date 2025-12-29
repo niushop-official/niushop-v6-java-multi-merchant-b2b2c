@@ -18,6 +18,7 @@ import com.niu.core.mapper.pay.PayMapper;
 import com.niu.core.service.core.pay.ICorePayChannelService;
 import com.niu.core.service.core.pay.vo.PayTypeVo;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,7 @@ public class GetPosterDataListener extends GetPosterDataEventDefiner {
     private PayMapper payMapper;
     private MemberMapper memberMapper;
     private ICoreSysConfigService coreSysConfigService;
+    @Resource
     private ICorePayChannelService corePayChannelService;
 
     public GetPosterDataEventDefiner.GetPosterDataResult handleCallback(GetPosterDataEventDefiner.GetPosterDataEvent event) {

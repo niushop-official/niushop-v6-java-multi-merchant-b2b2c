@@ -53,7 +53,7 @@ watch(route, (nval, oval) => {
 watch(() => systemStore.site, () => {
     useHead({
         titleTemplate: (title) => {
-            const siteTitle = systemStore.site.front_end_name || systemStore.site.site_name
+            const siteTitle = systemStore.site.site_name
             return title ? `${title} - ${siteTitle}` : siteTitle
         }
     })

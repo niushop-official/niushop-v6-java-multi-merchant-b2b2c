@@ -11,6 +11,7 @@ import com.niu.core.common.loader.local_delivery.param.CloseShopDeliveryOrderPar
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrder;
 import com.niu.core.entity.delivery.DeliveryShopDeliveryOrder;
+import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryOrderCancelReasonEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderMapper;
@@ -44,24 +45,30 @@ public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrde
         if (ObjectUtil.isEmpty( info)){
             throw new CommonException("DELIVERY_ORDER_NOT_EXIT");
         }
+        Map<String, Object> localDeliveryConfig = new HashMap<>();
+        if(!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(info.getDeliveryService())){
+            localDeliveryConfig = coreLocalDeliveryService.getConfig(info.getDeliveryService(),info.getSiteId());
+            String deliveryServiceName = LocalDeliveryTypeEnum.getName(info.getDeliveryService());
+            if (localDeliveryConfig.isEmpty() || !localDeliveryConfig.containsKey("config"))   throw new RuntimeException(deliveryServiceName + "未配置");
+            localDeliveryConfig = JSONUtil.parseObj(localDeliveryConfig.get("config"));
+        }
 
-        Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(info.getDeliveryService());
-        String deliveryServiceName = LocalDeliveryTypeEnum.getName(info.getDeliveryService());
-        if (localDeliveryConfig.isEmpty() || !localDeliveryConfig.containsKey("config"))   throw new RuntimeException(deliveryServiceName + "未配置");
-
-        Map<String, Object> config = new HashMap<>();
-        config.put("siteId", info.getSiteId());
-        //第三方配送下单 驱动
-        BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(info.getDeliveryService()).init(JSONUtil.parseObj(config));
-        Map<String, Object> requestData = new HashMap<>();
-        requestData.put("delivery_no", info.getDeliveryNo());
-        Map<String, Object> saveData = driver.queryOrderInfo(requestData);
-        if (ObjectUtil.isNotEmpty( saveData)){
-            return 0;
-        }else {
-            DeliveryLocalDeliveryOrder updateData = BeanUtil.mapToBean(saveData, DeliveryLocalDeliveryOrder.class,true);
-            updateData.setId(info.getId());
-            return deliveryLocalDeliveryOrderMapper.updateById(updateData);
+        localDeliveryConfig.put("siteId", info.getSiteId());
+        try {
+            //第三方配送下单 驱动
+            BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(info.getDeliveryService()).init(JSONUtil.parseObj(localDeliveryConfig));
+            Map<String, Object> requestData = new HashMap<>();
+            requestData.put("delivery_no", info.getDeliveryNo());
+            Map<String, Object> saveData = driver.queryOrderInfo(requestData);
+            if (ObjectUtil.isEmpty( saveData)){
+                return 0;
+            }else {
+                DeliveryLocalDeliveryOrder updateData = BeanUtil.mapToBean(saveData, DeliveryLocalDeliveryOrder.class,true,null);
+                updateData.setId(info.getId());
+                return deliveryLocalDeliveryOrderMapper.updateById(updateData);
+            }
+        }catch (Exception e){
+            throw new CommonException(e.getMessage());
         }
     }
 }

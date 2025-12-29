@@ -15,4 +15,7 @@ public class SeparNotifyParam implements Serializable {
     private SeparStatusEnum status;
 
     private String failReason;
+
+    private String separOutTradeNo;
+
 }

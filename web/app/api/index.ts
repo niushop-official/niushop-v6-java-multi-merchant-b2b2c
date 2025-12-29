@@ -55,6 +55,6 @@ export function checkShopStatus() {
 /**
  * 查看申请权限
  */
-export function getQrcode() {
-    return request.get(`qrcode/index`)
+export function getQrcode(params: Record<string, any>) {
+    return request.get(`qrcode/index`, params)
 }

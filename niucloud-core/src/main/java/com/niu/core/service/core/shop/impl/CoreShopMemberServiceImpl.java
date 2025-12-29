@@ -33,7 +33,7 @@ public class CoreShopMemberServiceImpl implements ICoreShopMemberService {
         Long nowTime = System.currentTimeMillis()/1000;
 
         shopMember.setLastConsumTime(nowTime);
-        if (ObjectUtil.isNotEmpty(shopMember.getFirstConsumTime())){
+        if (ObjectUtil.isEmpty(shopMember.getFirstConsumTime())){
             shopMember.setFirstConsumTime(nowTime);
         }
         int oldComsumNum = ObjectUtil.isNotEmpty(shopMember.getComsumNum()) ? shopMember.getComsumNum() : 0;

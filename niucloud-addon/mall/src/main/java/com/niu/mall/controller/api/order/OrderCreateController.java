@@ -33,7 +33,7 @@ public class OrderCreateController {
      * @return
      */
     @PostMapping("/order_create/calculate")
-    public Result<MallOrderCreateDataVo> calculate(@Validated @RequestBody MallOrderCalculateParam param) {
+    public Result<MallOrderCreateDataVo>  calculate(@Validated @RequestBody MallOrderCalculateParam param) {
         return Result.success(orderCreateService.calculate(param));
     }
 
@@ -77,5 +77,17 @@ public class OrderCreateController {
             orderKeys.add(orderKey);
         }
         return Result.success(orderCreateService.getPlatformCoupon(orderKeys));
+    }
+
+    /**
+     * 查询店铺优惠券
+     * @param map
+     * @return
+     */
+    @PostMapping("/order_create/store")
+    public Result getStore(@Validated @RequestBody Map<String,Map<Integer,Map<String,Object>>> map) {
+
+        Map<Integer,Map<String,Object>> body = map.get("body");
+        return Result.success(orderCreateService.getCoupon(body));
     }
 }

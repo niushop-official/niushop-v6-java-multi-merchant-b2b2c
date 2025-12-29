@@ -7,21 +7,17 @@
                     <div class="products">
                         <template v-for="(item,index) in shopTableData.data" :key="index">
                             <div class="w-[228px] flex flex-col items-center box-border border-[1px] border-solid border-[#eee] pb-[20px] bg-[#fff] rounded-[var(--rounded-big)] cursor-pointer" @click="toShopDetail(item.site.site_id)">
-                                <el-image v-if="item.site && item.site.logo" class="w-[228px] h-[228px] rounded-t-[var(--rounded-big)]" :src="img(item.site.logo)" fit="cover">
+                                <el-image class="w-[228px] h-[228px] rounded-t-[var(--rounded-big)]" :src="img(item.site.logo ? item.site.logo : '')" fit="cover">
                                     <template #error>
-                                        <img src="@/assets/images/shop_default.png" class="w-[228px] h-[228px] rounded-t-[var(--rounded-big)]">
+                                        <img src="" class="w-[228px] h-[228px] rounded-t-[var(--rounded-big)]">
                                     </template>
                                 </el-image>
-                                <div v-else class="w-[228px] h-[228px] rounded-t-[var(--rounded-big)] flex-center">
-                                    <img src="@/assets/images/shop_default.png" class="w-[228px] h-[228px] rounded-t-[var(--rounded-big)]">
-                                </div>
                                 <div class="w-[80px] h-[80px] mt-[-36px] mb-[18px] box-border border-[1px] border-solid border-[#eee] rounded-full">
-                                    <el-image v-if="item.site && item.site.front_end_logo" class="w-[80px] h-[80px] rounded-full" :src="img(item.site.front_end_logo)" fit="cover">
+                                    <el-image class="w-[80px] h-[80px] rounded-full" :src="img(item.site.front_end_logo ? item.site.front_end_logo : '')" fit="cover">
                                         <template #error>
                                             <img src="@/assets/images/shop_default.png" class="w-[80px] h-[80px] rounded-full">
                                         </template>
                                     </el-image>
-                                    <img v-else src="@/assets/images/shop_default.png" class="w-[80px] h-[80px] rounded-full">
                                 </div>
                                 <div class="text-[#333] text-[16px] truncate flex-center w-[212px] mb-[14px]">{{item.site.site_name}}</div>
                                 <div class="flex justify-center">

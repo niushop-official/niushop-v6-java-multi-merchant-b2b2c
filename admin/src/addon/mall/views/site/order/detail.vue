@@ -34,7 +34,7 @@
 					<el-form-item :label="t('deliveryType')">
 						<div class="input-width">{{ formData.delivery_type_name }}</div>
 					</el-form-item>
-					<el-form-item :label="t('预约配送时间')" v-if="formData.buyer_ask_delivery_time">
+					<el-form-item :label="formData.delivery_type == 'local_delivery' ? t('预约配送时间') : t('提货时间')" v-if="formData.buyer_ask_delivery_time">
 						<div class="input-width">{{ formData.buyer_ask_delivery_time }}</div>
 					</el-form-item>
 					<template v-if="formData.order_delivery && formData.order_delivery.length && formData.delivery_type == 'local_delivery'">
@@ -68,7 +68,7 @@
 							<div class="input-width">{{ formData.store.full_address }}</div>
 						</el-form-item>
 						<el-form-item :label="t('storeMobile')">
-							<div class="input-width">{{ formData.store.store_mobile }}</div>
+							<div class="input-width">{{ formData.store.mobile }}</div>
 						</el-form-item>
 						<el-form-item :label="t('tradeTime')">
 							<div class="input-width">{{ formData.store.trade_time }}</div>
@@ -83,12 +83,12 @@
 					</p>
 					<div class="flex mt-[10px]" v-if="!formData.supply_id">
 						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#ff7f5b] bg-[#fff0e5] cursor-pointer" @click="setNotes">{{ t('notes') }}</span>
-						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="delivery" v-if="formData.status == 2">{{ t('delivery') }}</span>
+						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="delivery" v-if="formData.status == 2 && formData.delivery_type!='store'">{{ t('delivery') }}</span>
 						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="close" v-if="formData.status == 1">{{ t('close') }}</span>
-						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="orderAdjustMoney" v-if="formData.status == 1">{{ t('editPrice') }}</span>
+						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="orderAdjustMoney" v-if="formData.status == 1 && formData.mall_discount_money == 0">{{ t('editPrice') }}</span>
 						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="finish" v-if="formData.status == 3">{{ t('finish') }}</span>
 						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="printTicketEvent" v-if="formData.delivery_type == 'virtual' && (formData.status == 2 || formData.status == 3 || formData.status == 5)">{{ t('printTicket') }}</span>
-						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="orderEditAddressFn" v-if="(formData.status == 1 || formData.status == 2) && formData.delivery_type != 'virtual'">{{ t('editAddress') }}</span>
+						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="orderEditAddressFn" v-if="(formData.status == 1 || formData.status == 2) && formData.delivery_type != 'virtual' && formData.delivery_type!='store'">{{ t('editAddress') }}</span>
 						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="refundEvent" v-if="formData.is_refund_show && formData.status != 1 && formData.status != -1">{{ t('voluntaryRefund') }}</span>
 						<div class="flex" v-if="formData.order_delivery">
 							<template v-for="(item, index) in formData.order_delivery" :key="index">

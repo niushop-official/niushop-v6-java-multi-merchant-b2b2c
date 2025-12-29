@@ -30,7 +30,7 @@ public class LocalDeliveryEventListener extends AbstractListener {
         if (event.getTradeType().equals("mall")) {
 
             switch (event.getEvent()){
-                case "cancel": break;
+                case "cancel":
                 case "createOrderFailed":
                     OrderGoodsDeliveryParam orderGoodsDeliveryParam = new OrderGoodsDeliveryParam();
                     orderGoodsDeliveryParam.setOrderNo(event.getTradeNo());

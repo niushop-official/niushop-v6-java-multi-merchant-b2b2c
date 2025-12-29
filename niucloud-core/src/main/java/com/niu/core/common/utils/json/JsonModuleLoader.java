@@ -260,6 +260,7 @@ public class JsonModuleLoader {
         log.info("JSON addonModules -> " + addonModules);
         for (String addonModule : addonModules) {
             String jsonString = AddonModuleContext.readResourceAsStreamToText(addonModule, "loader/" + jsonFile);
+            log.info("JSON => " + addonModule + " loader/" + jsonFile + " , result => " + (StrUtil.isEmpty(jsonString) ? "EMPTY" : jsonString.substring(0, Math.min(100, jsonString.length()))));
             if (StrUtil.isNotEmpty(jsonString)) {
                 jsonString = jsonString.trim();
                 try {

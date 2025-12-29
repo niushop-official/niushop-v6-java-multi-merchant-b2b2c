@@ -2,7 +2,7 @@
     <u-popup :show="show" mode="bottom" :round="10" closeable @close="show = false">
         <view class="box h-[728rpx]">
             <view class="title-time px-[30rpx] box-border text-center text-[28rpx] font-bold h-[90rpx] leading-[90rpx] border-0 border-solid border-[#f7f4f4] border-b-[2rpx]">
-                <text>请选择配送时间</text>
+                <text>{{ rules.type=='subscribe' ? '请选择配送时间'  : '请选择自提时间'}}</text>
             </view>
             <view class="body flex h-[calc(100%-90rpx)] box-border" v-if="dateArr.length">
                 <!-- 左侧日期选择 -->
@@ -33,7 +33,7 @@
                 </scroll-view>
             </view>
             <view class="h-[80%] flex items-center flex-col justify-center" v-else>
-                <u-empty text="没有可选择的配送时间" width="214" :icon="img('static/resource/images/empty.png')" />
+                <u-empty :text="rules.type=='subscribe' ? '没有可选择的配送时间'  : '没有可选择的自提时间'" width="214" :icon="img('static/resource/images/empty.png')" />
             </view>
         </view>
     </u-popup>
@@ -115,7 +115,6 @@ export default {
 			} else {
 				dateObj = initData(); // 最近 7 天
 			}
-
 
             this.timeArr = initTime(
                 this.rules.trade_time_json,

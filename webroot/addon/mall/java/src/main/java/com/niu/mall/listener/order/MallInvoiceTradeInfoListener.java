@@ -63,7 +63,7 @@ public class MallInvoiceTradeInfoListener extends OrderInvoiceEventDefiner {
             queryWrapper.eq("o.order_id", event.getTradeId());
             List<InvoiceListVo.OrderInfo> list = mallOrderMapper.selectJoinList(InvoiceListVo.OrderInfo.class, queryWrapper);
             for (InvoiceListVo.OrderInfo item : list) {
-                item.setStatusName(OrderStatusEnum.getMapByStatus(Integer.valueOf(item.getStatus())));
+                item.setStatusName(OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(item.getStatus()),item.getDeliveryType()));
                 InvoiceListVo.OrderInfo.Pay pay = new InvoiceListVo.OrderInfo.Pay();
                 BeanUtils.copyProperties(item, pay);
                 item.setPay(pay);

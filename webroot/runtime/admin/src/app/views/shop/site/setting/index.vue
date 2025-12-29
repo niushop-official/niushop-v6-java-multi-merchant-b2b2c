@@ -61,7 +61,7 @@
                         <el-form-item prop="address">
                             <div>
                                 <el-input v-model="formData.address" :placeholder="t('siteAddressPlaceholder')" class="input-width" clearable  @input="areaChange()"  />
-                                <div class="text-[12px] text-[#999] mt-[6px]">修改店铺地址后可能需要同步修改店铺收发货地址,直接去<span class="text-primary cursor-pointer" @click="newWindow()">地址库</span>修改</div>
+                                <div class="text-[12px] text-[#999] mt-[6px]">修改店铺地址后将同步修改系统默认自提点地址</div>
                             </div>
                         </el-form-item>
 
@@ -458,17 +458,17 @@ const save = async (formEl: FormInstance | undefined) => {
                 // console.log(data)
                 appType.value == 'admin' ? useSystemStore().getWebsiteInfo() : useUserStore().getSiteInfo()
                 if (activeName.value == 'basic' && shopBaseInfo.value.province_id && shopBaseInfo.value.city_id && shopBaseInfo.value.district_id && (data.province_id != shopBaseInfo.value.province_id || data.city_id != shopBaseInfo.value.city_id || data.district_id != shopBaseInfo.value.district_id || data.address != shopBaseInfo.value.address)) {
-                    ElMessageBox.confirm(t('检测到您修改了店铺地址,是否要将地址库中的收发货地址也同步修改'), t('warning'),
-                        {
-                            confirmButtonText: t('去修改'),
-                            cancelButtonText: t('cancel'),
-                            type: 'warning'
-                        }
-                    ).then(() => {
-                        newWindow()
-                    }).catch(() => {
+                    // ElMessageBox.confirm(t('检测到您修改了店铺地址,是否要将地址库中的收发货地址也同步修改'), t('warning'),
+                    //     {
+                    //         confirmButtonText: t('去修改'),
+                    //         cancelButtonText: t('cancel'),
+                    //         type: 'warning'
+                    //     }
+                    // ).then(() => {
+                    //     newWindow()
+                    // }).catch(() => {
                         setFormData()
-                    })
+                    // })
                 }
             }).catch(() => {
                 loading.value = false

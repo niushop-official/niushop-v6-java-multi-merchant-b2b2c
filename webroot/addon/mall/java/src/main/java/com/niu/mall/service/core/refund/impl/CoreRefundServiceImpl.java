@@ -18,6 +18,8 @@ import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.finance.ICoreFinanceService;
 import com.niu.core.service.core.pay.param.PayRefundCreateParam;
 import com.niu.core.service.core.pay.param.PayRefundTransferParam;
+import com.niu.core.service.core.sys.ICoreSysStatService;
+import com.niu.core.service.core.sys.param.SysDataAddParam;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderRefund;
@@ -98,6 +100,9 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
     private ICoreShopSettlementService coreShopSettlementService;
     @Resource
     private ICoreFinanceService coreFinanceService;
+    @Resource
+    private ICoreSysStatService coreSysStatService;
+
     /**
      * 添加维权日志
      *
@@ -224,6 +229,7 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
             OrderDeliveryParam deliveryParam = new OrderDeliveryParam();
             deliveryParam.setOrderId(order.getOrderId());
             deliveryParam.setSiteId(order.getSiteId());
+            deliveryParam.setDeliveryType(order.getDeliveryType());
             coreOrderDeliveryService.checkFinish(deliveryParam);
         }
         // 校验订单项是否全部退款
@@ -242,9 +248,11 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
         this.addLog(logParam);
 
         // 商城统计
-        AddStatParam statParam = new AddStatParam();
-        statParam.setRefundMoney(refund.getMoney());
-        coreStatService.addStat(order.getSiteId(), statParam);
+        log.info("商城统计:退款金额"+refund.getMoney());
+        SysDataAddParam sysDataAddParam = new SysDataAddParam();
+        sysDataAddParam.setRefundMoney(refund.getMoney());
+        sysDataAddParam.setSiteId(order.getSiteId());
+        coreSysStatService.addStat(sysDataAddParam);
 
         //商品退款数量 金额统计数据
         coreGoodsStatService.saveGoodsRefundNumAndMoneyByOrderId(refund);

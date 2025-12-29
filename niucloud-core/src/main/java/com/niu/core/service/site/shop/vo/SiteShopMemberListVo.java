@@ -19,6 +19,7 @@ public class SiteShopMemberListVo implements Serializable {
 private static final long serialVersionUID = 1L;
 
         /** 累计消费金额 */
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal comsumMoney;
 
         /** 消费次数 */

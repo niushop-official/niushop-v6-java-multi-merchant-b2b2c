@@ -1,8 +1,10 @@
 package com.niu.core.service.api.sys.tools;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.digest.MD5;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -99,6 +101,7 @@ public class TencentGeocoder {
                 JSONObject resultObject = jsonObject.getJSONObject("result");
                 String fullAddress = resultObject.getStr("address");
                 JSONObject formattedAddresses = resultObject.getJSONObject("formatted_addresses");
+                JSONObject addressReference = ObjectUtil.isNotEmpty(resultObject.getJSONObject("address_reference")) ? resultObject.getJSONObject("address_reference") : new JSONObject();
                 JSONObject addressComponent = resultObject.getJSONObject("address_component");
                 String province = addressComponent.getStr("province");
                 String city = addressComponent.getStr("city");
@@ -108,6 +111,20 @@ public class TencentGeocoder {
                 jsonObjectResult.putOpt("district", district);
                 jsonObjectResult.putOpt("full_address", fullAddress);
                 jsonObjectResult.putOpt("formatted_addresses", formattedAddresses);
+                String community = "";
+                if(!addressReference.isEmpty()){
+                    JSONObject town = ObjectUtil.isNotEmpty(addressReference.getJSONObject("town")) ? addressReference.getJSONObject("town") : new JSONObject();
+                    JSONObject landmarkL1 = ObjectUtil.isNotEmpty(addressReference.getJSONObject("landmark_l1")) ? addressReference.getJSONObject("landmark_l1") : new JSONObject();
+                    JSONObject landmarkL2 = ObjectUtil.isNotEmpty(addressReference.getJSONObject("landmark_l2")) ? addressReference.getJSONObject("landmark_l2") : new JSONObject();
+                    if(StringUtils.isNotEmpty(landmarkL2.getStr("title"))){
+                        community = landmarkL2.getStr("title");
+                    }else if(StringUtils.isNotEmpty(landmarkL1.getStr("title"))){
+                        community = landmarkL1.getStr("title");
+                    }else if(StringUtils.isNotEmpty(town.getStr("title"))){
+                        community = town.getStr("title");
+                    }
+                }
+                jsonObjectResult.putOpt("community", community);
                 return jsonObjectResult;
             } catch (Exception e) {
                 e.printStackTrace();

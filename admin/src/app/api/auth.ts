@@ -10,6 +10,13 @@ export function login(params: Record<string, any>, app_type: string) {
 }
 
 /**
+ * 手机验证码登录
+ */
+export function mobileLogin(params: Record<string, any>) {
+    return request.post('login/mobile/site', params, { showErrorMessage: true })
+}
+
+/**
  * 退出登录
  */
 export function logout() {

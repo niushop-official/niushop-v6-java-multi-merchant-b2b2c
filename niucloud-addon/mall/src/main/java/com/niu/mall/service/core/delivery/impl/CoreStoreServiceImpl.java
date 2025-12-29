@@ -5,7 +5,9 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.utils.CollectUtils;
+import com.niu.core.common.utils.DistanceCalculateUtils;
 import com.niu.core.entity.delivery.DeliveryStore;
+import com.niu.mall.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.OrderDeliveryTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryStoreMapper;
 import com.niu.mall.service.core.delivery.ICoreStoreService;
@@ -33,11 +35,11 @@ public class CoreStoreServiceImpl implements ICoreStoreService {
 
         for (OrderCreateDataVo.Sku item : vo.getGoodsData().values()) {
             OrderCreateDataVo.Goods goods = item.getGoods();
-            if (goods.getGoodsType().equals("real")) {
+            if (goods.getGoodsType().equals(GoodsTypeEnum.REAL.getType())) {
                 JSONArray deliveryType = JSONUtil.parseArray(goods.getDeliveryType());
-                if (!deliveryType.contains(OrderDeliveryTypeEnum.EXPRESS.getType())) {
+                if (!deliveryType.contains(OrderDeliveryTypeEnum.STORE.getType())) {
                     item.setNotSupportDelivery(1);
-                    vo.getError().add("不支持选择的配送方式");
+                    vo.getError().add("该商品不支持门店自提");
                 }
             }
         }
@@ -56,7 +58,7 @@ public class CoreStoreServiceImpl implements ICoreStoreService {
                 .eq("site_id", siteId)), StoreListVo.class);
         if (ObjectUtil.isNotEmpty(latlng.getLat()) && latlng.getLat().compareTo(BigDecimal.ZERO) == 1 && ObjectUtil.isNotEmpty(latlng.getLng()) && latlng.getLng().compareTo(BigDecimal.ZERO) == 1) {
             for (StoreListVo item : storeList) {
-                item.setDistance(calculateDistance(
+                item.setDistance(DistanceCalculateUtils.calculateDistance(
                         latlng.getLat().doubleValue(),
                         latlng.getLng().doubleValue(),
                         Double.valueOf(item.getLatitude()),
@@ -67,33 +69,4 @@ public class CoreStoreServiceImpl implements ICoreStoreService {
         }
         return storeList;
     }
-
-    /**
-     * 计算两个经纬度间的距离
-     *
-     * @param lat1
-     * @param lng1
-     * @param lat2
-     * @param lng2
-     * @return
-     */
-    private static double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
-        double AVG_EARTH_RADIUS_KM = 6371.0;
-
-        // 将角度转换为弧度
-        lat1 = Math.toRadians(lat1);
-        lat2 = Math.toRadians(lat2);
-        double deltaLat = Math.toRadians(lat2 - lat1);
-        double deltaLng = Math.toRadians(lng2 - lng1);
-
-        // Haversine formula
-        double a = Math.pow(Math.sin(deltaLat / 2), 2)
-                + Math.cos(lat1) * Math.cos(lat2)
-                * Math.pow(Math.sin(deltaLng / 2), 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        // 返回距离，单位为米
-        return AVG_EARTH_RADIUS_KM * c * 1000;
-    }
-
 }

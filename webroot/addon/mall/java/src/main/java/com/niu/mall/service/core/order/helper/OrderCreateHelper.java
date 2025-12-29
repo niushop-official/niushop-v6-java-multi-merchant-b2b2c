@@ -11,8 +11,15 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.cache.CacheFactory;
 import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.exception.CommonException;
+import com.niu.core.common.utils.CollectUtils;
+import com.niu.core.common.utils.DistanceCalculateUtils;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.entity.delivery.DeliveryLocalDelivery;
+import com.niu.core.entity.delivery.DeliveryStore;
 import com.niu.core.entity.member.MemberAddress;
+import com.niu.core.enums.delivery.DeliveryTypeEnum;
+import com.niu.core.enums.local_delivery.LocalDeliveryStoreTypeEnum;
+import com.niu.core.mapper.delivery.DeliveryLocalDeliveryMapper;
 import com.niu.core.mapper.member.MemberAddressMapper;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.diy_form.ICoreDiyFormRecordsService;
@@ -42,20 +49,17 @@ import com.niu.core.service.core.delivery.vo.DeliveryConfigVo;
 import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
 import com.niu.mall.service.core.order.*;
 import com.niu.mall.service.core.order.param.OrderCalculateParam;
+import com.niu.mall.service.core.order.param.OrderHelperParam;
 import com.niu.mall.service.core.order.param.OrderPayParam;
-import com.niu.mall.service.core.order.vo.InvoiceInfoVo;
-import com.niu.mall.service.core.order.vo.OrderConfigVo;
-import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
-import com.niu.mall.service.core.order.vo.OrderCreateResultVo;
+import com.niu.mall.service.core.order.vo.*;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.math.RoundingMode;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -70,6 +74,8 @@ public abstract class OrderCreateHelper {
 
     @Resource
     ICoreLocalDeliveryService coreLocalDeliveryService;
+    @Resource
+    ICoreStoreService coreStoreService;
 
     @Resource
     MemberAddressMapper memberAddressMapper;
@@ -109,6 +115,10 @@ public abstract class OrderCreateHelper {
     ICoreOrderPayService coreOrderPayService;
     @Resource
     ICoreInvoiceService  coreInvoiceService;
+    @Resource
+    DeliveryStoreMapper  deliveryStoreMapper;
+    @Resource
+    DeliveryLocalDeliveryMapper deliveryLocalDeliveryMapper;
     /**
      * @param orderKey
      * @return
@@ -187,6 +197,10 @@ public abstract class OrderCreateHelper {
                 }
             }
             vo.getDelivery().setDeliveryTypeList(map);
+            if(map.containsKey(DeliveryTypeEnum.LOCAL_DELIVERY.getType())){
+                DeliveryLocalDelivery deliveryLocalDelivery =  deliveryLocalDeliveryMapper.selectOne(new QueryWrapper<DeliveryLocalDelivery>().eq("site_id", param.getSiteId()).last("limit 1"));
+                vo.getDelivery().setLocalDeliveryConfig(deliveryLocalDelivery);
+            }
         }else{
             vo.getDelivery().setDeliveryTypeList(null);
         }
@@ -198,10 +212,10 @@ public abstract class OrderCreateHelper {
      * @param vo
      * @param param
      */
-    protected void calculateDelivery(OrderCreateDataVo vo, OrderCalculateParam param) {
+    protected void calculateDelivery(OrderCreateDataVo vo, OrderCalculateParam param, MallOrderCreateDataVo mallOrderCreateDataVo) {
         OrderCreateDataVo.Basic basic = vo.getBasic();
-        String deliveryType = param.getDelivery().getDeliveryType();
-        if(vo.getOrderFrom().equals("pc")) deliveryType = OrderDeliveryTypeEnum.EXPRESS.getType();
+        String deliveryType = ObjectUtil.isNotEmpty(param.getDelivery()) ? param.getDelivery().getDeliveryType() : "";
+        if(param.getOrderFrom().equals("pc")) deliveryType = OrderDeliveryTypeEnum.EXPRESS.getType();
         basic.setDeliveryMoney(new BigDecimal(0));
         if (basic.getHasGoodsTypes().contains(GoodsTypeEnum.REAL.getType())) {
             if(ObjectUtil.isEmpty(vo.getDelivery().getDeliveryTypeList()))
@@ -217,13 +231,15 @@ public abstract class OrderCreateHelper {
                     if(!vo.getDelivery().getDeliveryTypeList().containsKey(deliveryType)) throw new CommonException("请选择正确的配送方式");
                 }
             }else{
-                if (vo.getDelivery().getDeliveryTypeList().size() > 0) {
+                if (!vo.getDelivery().getDeliveryTypeList().isEmpty()) {
                     deliveryType = vo.getDelivery().getDeliveryTypeList().entrySet().iterator().next().getKey();
                 }
             }
 
         } else {
-            deliveryType = OrderDeliveryTypeEnum.VIRTUAL.getType();
+            if(basic.getHasGoodsTypes().contains(GoodsTypeEnum.VIRTUAL.getType())){
+                deliveryType = OrderDeliveryTypeEnum.VIRTUAL.getType();
+            }
         }
 
 
@@ -231,14 +247,18 @@ public abstract class OrderCreateHelper {
             vo.getError().add("请选择正确的配送方式");
         } else {
             vo.getDelivery().setDeliveryType(deliveryType);
-
-            selectTakeAddress(vo, param);
-
+            //选中收货地址
+            selectTakeAddress(vo, mallOrderCreateDataVo);
+            //选择配送/自提门店
+            selectTakeStore(deliveryType,vo, param);
             if (deliveryType.equals(OrderDeliveryTypeEnum.EXPRESS.getType())) {
                 coreExpressService.calculate(vo);
             }
             if (deliveryType.equals(OrderDeliveryTypeEnum.LOCAL_DELIVERY.getType())) {
                 coreLocalDeliveryService.calculate(vo);
+            }
+            if (deliveryType.equals(OrderDeliveryTypeEnum.STORE.getType())) {
+                coreStoreService.calculate(vo);
             }
         }
     }
@@ -253,8 +273,20 @@ public abstract class OrderCreateHelper {
         //查询购物配置
         OrderCreateDataVo.ConfigInfo config = vo.getConfig();
         Integer siteId = ObjectUtil.isNotEmpty(siteIdParam) ? siteIdParam : param.getSiteId();
-        if(ObjectUtil.isEmpty( config)){
-            config = new OrderCreateDataVo.ConfigInfo();
+        Object obj = null;
+        if(ObjectUtil.isNotEmpty(vo.getConfig())){
+            if(key.equals("order")){
+                obj = vo.getConfig().getCloseOrderInfo();
+            }else if(key.equals("delivery_type")){
+                obj = vo.getConfig().getDeliveryType();
+            }else if(key.equals("invoice")){
+                obj = vo.getConfig().getInvoice();
+            }
+        }
+        if(ObjectUtil.isEmpty(obj)){
+            if(ObjectUtil.isEmpty(vo.getConfig())){
+                config = new OrderCreateDataVo.ConfigInfo();
+            }
             switch ( key){
                 case "order":
                     OrderConfigVo orderConfig = coreOrderConfigService.getConfig();
@@ -288,39 +320,86 @@ public abstract class OrderCreateHelper {
      * 选中收货地址
      *
      * @param vo
-     * @param param
+     * @param mallOrderCreateDataVo
      */
-    protected void selectTakeAddress(OrderCreateDataVo vo, OrderCalculateParam param) {
-
-        OrderCreateDataVo.Delivery delivery = vo.getDelivery();
-        String deliveryType = delivery.getDeliveryType();
-        MemberAddress address = null;
-        if (param.getDelivery().getTakeAddressId() > 0) {
-            address = memberAddressMapper.selectOne(new QueryWrapper<MemberAddress>().eq("id", param.getDelivery().getTakeAddressId()).eq("member_id", param.getMemberId()));
-        } else {
-            address = memberAddressMapper.selectOne(new QueryWrapper<MemberAddress>().eq("is_default", 1).eq("member_id", param.getMemberId()).last("LIMIT 1"));
-
-            //如果没有默认地址，将第一个地址设置作为订单地址
-            if(ObjectUtil.isEmpty(address))
-            {
-                address = memberAddressMapper.selectOne(new QueryWrapper<MemberAddress>().eq("member_id", param.getMemberId()).orderByDesc("id").last("LIMIT 1"));
+    protected void selectTakeAddress(OrderCreateDataVo vo, MallOrderCreateDataVo mallOrderCreateDataVo) {
+        if (vo.getBasic().getHasGoodsTypes().contains(GoodsTypeEnum.REAL.getType())){
+            vo.getDelivery().setTakeAddress(mallOrderCreateDataVo.getDelivery().getTakeAddress());
+            if(vo.getDelivery().getDeliveryType().equals(OrderDeliveryTypeEnum.LOCAL_DELIVERY.getType()) &&
+                ObjectUtil.isNotEmpty(vo.getDelivery().getTakeAddress())){
+                JSONObject takeAddress = JSONUtil.parseObj(vo.getDelivery().getTakeAddress());
+                if( ObjectUtil.isEmpty(takeAddress.get("lng"))){
+                    vo.getError().add("所选的地址没有设置地图定位");
+                }
             }
+        }else{
+            vo.getDelivery().setTakeAddress(null);
         }
+    }
 
-        if (deliveryType.equals(OrderDeliveryTypeEnum.LOCAL_DELIVERY.getType()) && ObjectUtil.isNotEmpty(address) && address.getLat().isEmpty()) {
-            vo.getError().add("所选的地址没有设置地图定位");
-        }
+    /**
+     * 选中配送/自提门店
+     *
+     * @param deliveryType
+     */
+    protected void selectTakeStore(String deliveryType,OrderCreateDataVo vo, OrderCalculateParam param) {
 
-        if (address == null) {
-            delivery.setTakeAddress(List.of());
-        } else {
-            delivery.setTakeAddress(address);
-        }
-
-        if (address == null) {
-            delivery.setTakeAddress(new String[]{});
-        } else {
-            delivery.setTakeAddress(address);
+        OrderHelperParam.Delivery delivery = param.getDelivery();
+        OrderHelperParam.Position position = param.getPosition();
+        vo.getDelivery().setTakeStore("[]");
+        if(LocalDeliveryStoreTypeEnum.getMap().containsKey(deliveryType)){
+            List<OrderCreateDataVo.TakeStore> list = CollectUtils.convert(deliveryStoreMapper.selectList(new QueryWrapper<DeliveryStore>().eq("site_id", vo.getSiteId()).eq("status", 1)
+                    .eq("support_store", 1)), OrderCreateDataVo.TakeStore.class);
+            if(list.isEmpty()){
+                if(LocalDeliveryStoreTypeEnum.LOCAL_DELIVERY.getType().equals(deliveryType)){
+                    vo.getError().add(vo.getSiteInfo().getSiteName() + "商家未设置配送门店");
+                    vo.getDelivery().setError(vo.getSiteInfo().getSiteName() + "商家未设置配送门店");
+                }else{
+                    vo.getError().add(vo.getSiteInfo().getSiteName() + "商家未设置提货点");
+                    vo.getDelivery().setError(vo.getSiteInfo().getSiteName() + "商家未设置提货点");
+                }
+            }
+            if(!list.isEmpty() && ObjectUtil.isNotEmpty( position) && ObjectUtil.isNotEmpty( position.getLatitude()) && ObjectUtil.isNotEmpty( position.getLongitude())){
+                for (OrderCreateDataVo.TakeStore item : list){
+                    Double distance = DistanceCalculateUtils.calculateDistance(
+                            Double.parseDouble(position.getLatitude()),
+                            Double.parseDouble(position.getLongitude()),
+                            Double.parseDouble(item.getLatitude()),
+                            Double.parseDouble(item.getLongitude())
+                    );
+                    item.setDistance( new BigDecimal( distance).setScale(3, RoundingMode.HALF_UP));
+                }
+                list = list.stream().sorted(Comparator.comparing(OrderCreateDataVo.TakeStore::getDistance)).toList();
+            }
+            vo.getDelivery().setTakeStoreList(list);
+            if(ObjectUtil.isEmpty(delivery.getTakeStoreId()) || (ObjectUtil.isNotEmpty(delivery.getTakeStoreId()) && delivery.getTakeStoreId() == 0)){
+                if(!list.isEmpty()){
+                    vo.getDelivery().setTakeStore(list.get(0));
+                }
+            }else{
+                DeliveryStore deliveryStore = deliveryStoreMapper.selectById(delivery.getTakeStoreId());
+                if(ObjectUtil.isEmpty(deliveryStore)){
+                    vo.getError().add("提货点不存在");
+                }else{
+                    switch (deliveryType) {
+                        case "local_delivery":
+                            if(!(ObjectUtil.isNotEmpty(deliveryStore.getSupportLocalDelivery()) && deliveryStore.getSupportLocalDelivery() == 1)){
+                                vo.getError().add("该门店不支持同城配送");
+                            }
+                            break;
+                        case "store":
+                            if(!(ObjectUtil.isNotEmpty(deliveryStore.getSupportStore()) && deliveryStore.getSupportStore() == 1)){
+                                vo.getError().add("该门店不支持门店自提");
+                            }
+                            break;
+                    }
+                }
+                OrderCreateDataVo.TakeStore deliveryStoreVo = new OrderCreateDataVo.TakeStore();
+                if(ObjectUtil.isNotEmpty(deliveryStore)){
+                    BeanUtils.copyProperties(deliveryStore, deliveryStoreVo);
+                }
+                vo.getDelivery().setTakeStore(deliveryStoreVo);
+            }
         }
     }
 
@@ -361,23 +440,26 @@ public abstract class OrderCreateHelper {
 
             List<OrderCreateDataVo.Sku> matchGoods = new LinkedList<>();
             BigDecimal matchGoodsMoney = new BigDecimal(0);
+            BigDecimal matchOrderGoodsMoney = new BigDecimal(0);
             // 通用券
             if (memberCoupon.getType().equals(CouponTypeEnum.ALL.getType().toString())) {
                 matchGoods = vo.getGoodsData().values().stream().collect(Collectors.toList());
                 matchGoodsMoney = vo.getBasic().getGoodsMoney();
+                matchOrderGoodsMoney = vo.getBasic().getGoodsMoney().subtract(vo.getBasic().getDiscountMoney());
             }
             // 品类券
             if (memberCoupon.getType().equals(CouponTypeEnum.CATEGORY.getType().toString())) {
                 List<Integer> categoryIds = mallCouponGoodsMapper.selectList(new QueryWrapper<MallCouponGoods>()
                         .eq("coupon_id", memberCoupon.getCouponId())
                         .select("category_id")).stream().map(i -> i.getCategoryId()).collect(Collectors.toList());
-
+                matchGoodsMoney = BigDecimal.ZERO;
                 for (OrderCreateDataVo.Sku sku : vo.getGoodsData().values()) {
                     List<Integer> goodsCategory = JSONUtil.parseArray(sku.getGoods().getGoodsCategory()).toList(Integer.class);
                     boolean hasIntersection = goodsCategory.stream().anyMatch(categoryIds::contains);
                     if (hasIntersection) {
                         matchGoods.add(sku);
                         matchGoodsMoney = matchGoodsMoney.add(sku.getGoodsMoney().subtract(sku.getDiscountMoney()));
+                        matchOrderGoodsMoney = matchOrderGoodsMoney.add(calculateOrderGoodsMoney(sku));
                     }
                 }
             }
@@ -386,49 +468,56 @@ public abstract class OrderCreateHelper {
                 List<Integer> goodsIds = mallCouponGoodsMapper.selectList(new QueryWrapper<MallCouponGoods>()
                         .eq("coupon_id", memberCoupon.getCouponId())
                         .select("goods_id")).stream().map(i -> i.getGoodsId()).collect(Collectors.toList());
-
+                matchGoodsMoney = BigDecimal.ZERO;
                 for (OrderCreateDataVo.Sku sku : vo.getGoodsData().values()) {
                     if (goodsIds.contains(sku.getGoodsId())) {
                         matchGoods.add(sku);
                         matchGoodsMoney = matchGoodsMoney.add(sku.getGoodsMoney().subtract(sku.getDiscountMoney()));
+                        matchOrderGoodsMoney = matchOrderGoodsMoney.add(calculateOrderGoodsMoney(sku));
                     }
                 }
             }
 
-            if (matchGoods.size() == 0) {
+            if (matchGoods.isEmpty()) {
                 vo.getError().add("当前优惠券在本单不可用");
-            } else if (matchGoodsMoney.compareTo(new BigDecimal(0)) == 0 || matchGoodsMoney.compareTo(memberCoupon.getMinConditionMoney()) == -1) {
-                vo.getError().add("未达到当前优惠券的最低使用条件");
             } else {
-                BigDecimal couponMoney = matchGoodsMoney.compareTo(memberCoupon.getPrice()) == -1 ? matchGoodsMoney : memberCoupon.getPrice();
-                BigDecimal discountMoney = couponMoney;
-
-                for (int i = 0; i < matchGoods.size(); i++) {
-                    OrderCreateDataVo.Sku sku = matchGoods.get(i);
-                    OrderCreateDataVo.Sku skuVo = vo.getGoodsData().get(sku.getSkuId());
-
-                    if (i < matchGoods.size() - 1) {
-                        BigDecimal tempCouponMoney = sku.getGoodsMoney().subtract(sku.getDiscountMoney()).divide(matchGoodsMoney, 2, BigDecimal.ROUND_HALF_UP).multiply(couponMoney);
-                        skuVo.setDiscountMoney(sku.getDiscountMoney().add(tempCouponMoney));
-                        couponMoney = couponMoney.subtract(tempCouponMoney);
-                    } else {
-                        skuVo.setDiscountMoney(sku.getDiscountMoney().add(couponMoney));
+                if (matchGoodsMoney.compareTo(new BigDecimal(0)) == 0 || matchGoodsMoney.compareTo(memberCoupon.getMinConditionMoney()) == -1) {
+                    vo.getError().add("未达到当前优惠券的最低使用条件");
+                } else {
+                    BigDecimal couponMoney = memberCoupon.getPrice().compareTo(matchOrderGoodsMoney) > 0 ? matchOrderGoodsMoney : memberCoupon.getPrice();
+                    BigDecimal surplusMoney = couponMoney;
+                    List<OrderCreateDataVo.Sku> matchGoodsList = matchGoods.stream().filter(sku -> {
+                        Boolean er = (sku.getGoodsMoney().subtract(sku.getDiscountMoney())).compareTo(BigDecimal.ZERO) != 0;
+                        return er;
+                    }).toList();
+                    for (int i = 0; i < matchGoodsList.size(); i++) {
+                        OrderCreateDataVo.Sku sku = matchGoodsList.get(i);
+                        BigDecimal itemOrderGoodsMoney = calculateOrderGoodsMoney(sku);
+                        Integer itemSkuId = sku.getSkuId();
+                        BigDecimal itemCouponMoney;
+                        if(i == matchGoodsList.size() - 1){
+                            itemCouponMoney = surplusMoney;
+                        }else{
+                            itemCouponMoney = itemOrderGoodsMoney.divide(matchOrderGoodsMoney, 2, RoundingMode.HALF_UP);
+                            itemCouponMoney = (itemCouponMoney.multiply(couponMoney)).setScale(2, RoundingMode.HALF_UP);
+                        }
+                        vo.getGoodsData().get(itemSkuId).setDiscountMoney(vo.getGoodsData().get(itemSkuId).getDeliveryMoney().add(itemCouponMoney));
+                        surplusMoney = surplusMoney.subtract(itemCouponMoney);
                     }
+                    //优惠累增
+                    vo.getBasic().setDiscountMoney(vo.getBasic().getDiscountMoney().add(couponMoney));
+
+                    OrderCreateDataVo.Discount discount = new OrderCreateDataVo.Discount();
+                    discount.setMatchGoodsIds(matchGoodsList.stream().map(OrderCreateDataVo.Sku::getSkuId).toArray(Integer[]::new));
+                    discount.setNum(1);
+                    discount.setType("discount");
+                    discount.setMoney(couponMoney);
+                    discount.setDiscountType("coupon");
+                    discount.setDiscountTypeId(memberCoupon.getId());
+                    discount.setTitle(memberCoupon.getTitle());
+                    discount.setContent("");
+                    vo.getDiscount().put("coupon", discount);
                 }
-
-                vo.getBasic().setDiscountMoney(vo.getBasic().getDiscountMoney().add(discountMoney));
-                vo.getBasic().setCouponMoney(vo.getBasic().getCouponMoney().add(discountMoney));
-
-                OrderCreateDataVo.Discount discount = new OrderCreateDataVo.Discount();
-                discount.setMatchGoodsIds(matchGoods.stream().map(i -> i.getSkuId()).toArray(Integer[]::new));
-                discount.setNum(1);
-                discount.setType("discount");
-                discount.setMoney(discountMoney);
-                discount.setDiscountType("coupon");
-                discount.setDiscountTypeId(memberCoupon.getId());
-                discount.setTitle(memberCoupon.getTitle());
-                discount.setContent("");
-                vo.getDiscount().put("coupon", discount);
             }
         } else {
             if (vo.getDiscount().get("coupon") != null) {
@@ -436,6 +525,35 @@ public abstract class OrderCreateHelper {
                 vo.getBasic().setCouponMoney(BigDecimal.ZERO);
             }
         }
+    }
+
+    /**
+     * 计算订单项金额
+     * @param goods 商品信息Map
+     * @return 订单商品金额
+     */
+    public static BigDecimal calculateOrderGoodsMoney(OrderCreateDataVo.Sku goods) {
+        // 获取商品金额
+        BigDecimal goodsMoney = goods.getGoodsMoney();
+
+        // 获取折扣金额（如果不存在则为0）
+        BigDecimal discountMoney = ObjectUtil.isNotEmpty(goods.getDiscountMoney()) ? goods.getDiscountMoney() : BigDecimal.ZERO;
+
+        // 获取商城折扣金额（如果不存在则为0）
+        BigDecimal mallDiscountMoney = ObjectUtil.isNotEmpty(goods.getMallDiscountMoney()) ? goods.getMallDiscountMoney() : BigDecimal.ZERO;
+
+        // 减去折扣金额
+        BigDecimal orderGoodsMoney = goodsMoney.subtract(discountMoney);
+
+        // 减去商城折扣金额
+        orderGoodsMoney = orderGoodsMoney.subtract(mallDiscountMoney);
+
+        // 确保金额不小于0
+        if (orderGoodsMoney.compareTo(BigDecimal.ZERO) < 0) {
+            orderGoodsMoney = BigDecimal.ZERO;
+        }
+
+        return orderGoodsMoney.setScale(2, RoundingMode.HALF_UP);
     }
 
     protected void addFormData(OrderCreateDataVo vo, JSONObject orderFormData, JSONObject goodsFormData)
@@ -592,6 +710,12 @@ public abstract class OrderCreateHelper {
         // 添加订单项表
         for (MallOrderGoods item : orderGoods) {
             item.setOrderId(order.getOrderId());
+            //计算订单商品金额
+            OrderCreateDataVo.Sku sku = new OrderCreateDataVo.Sku();
+            sku.setGoodsMoney(item.getGoodsMoney());
+            sku.setDiscountMoney(item.getDiscountMoney());
+            sku.setMallDiscountMoney(item.getMallDiscountMoney());
+            item.setOrderGoodsMoney(calculateOrderGoodsMoney(sku));
             item.setStatus(1);
             mallOrderGoodsMapper.insert(item);
         }

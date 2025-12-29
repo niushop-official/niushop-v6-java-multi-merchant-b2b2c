@@ -3,6 +3,7 @@ package com.niu.core.service.api.sys.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.niu.core.common.utils.QrcodeUtils;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.admin.sys.vo.SysCopyRightVo;
@@ -17,9 +18,12 @@ import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import com.niu.core.service.core.sys.vo.CoreSysConfigVo;
 import com.niu.core.service.core.sys.vo.SceneDomainVo;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -72,6 +76,21 @@ public class SysConfigServiceImpl implements ISysConfigService {
         }
 
         return info;
+    }
+
+    @Override
+    public String getIndexQrcode() {
+        Map<String, Object> urlData = Map.of("key", "", "value", "");
+        // 生成二维码
+        String url = QrcodeUtils.qrcodeToFile(
+                RequestUtils.defaultSiteId(),
+                "weapp",
+                coreSysConfigService.getSceneDomain().getWapUrl(),
+                "app/pages/index/index",
+                urlData,
+                "upload/qrcode/index"
+        );
+        return url;
     }
 
     @Override

@@ -179,8 +179,8 @@
                                                 <el-button type="primary" link @click="close(item)" >{{ t('orderClose') }}</el-button>
                                                 <el-button v-if="item.mall_discount_money == 0" type="primary" link @click="orderAdjustMoney(item)">{{ t('editPrice') }}</el-button>
                                             </template>
-                                            <el-button type="primary" v-if="(item.status == 1 || item.status == 2) && item.delivery_type != 'virtual' && !item.supply_id" link @click="orderEditAddressFn(item)">{{ t('editAddress') }}</el-button>
-                                            <el-button type="primary" link @click="delivery(item,'add')" v-if="item.status == 2 && !item.supply_id">{{ t('sendOutGoods') }}</el-button>
+                                            <el-button type="primary" v-if="(item.status == 1 || item.status == 2) && item.delivery_type != 'virtual' && !item.supply_id && item.delivery_type!='store'" link @click="orderEditAddressFn(item)">{{ t('editAddress') }}</el-button>
+                                            <el-button type="primary" link @click="delivery(item,'add')" v-if="item.status == 2 && !item.supply_id && item.delivery_type!='store'">{{ t('sendOutGoods') }}</el-button>
                                             <!-- 物流配送 -->
                                             <el-button type="primary" link @click="delivery(item,'edit')" v-if="item.status == 3 && !item.supply_id && item.delivery_type != 'virtual'&& item.delivery_type == 'express'">{{ t('modifyOutGoods') }}</el-button>
                                             <!-- 同城配送 -->

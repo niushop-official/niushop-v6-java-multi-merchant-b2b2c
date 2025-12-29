@@ -11,6 +11,7 @@ public class OrderCalculateParam implements Serializable {
 
     private String orderKey = "";
     private OrderHelperParam.Delivery delivery = new OrderHelperParam.Delivery();
+    private OrderHelperParam.Position position = new OrderHelperParam.Position();
     private List<OrderHelperParam.SkuItem> skuData;
     private List<Integer> cartIds;
     private OrderHelperParam.Discount discount;
@@ -18,5 +19,6 @@ public class OrderCalculateParam implements Serializable {
     private Integer siteId;
     private Integer memberId;
     private String orderFrom;
-
+    private String orderType;
+    private String memberRemark;
 }

@@ -11,6 +11,7 @@ import com.niu.core.service.api.goods.param.MallGoodsSearchParam;
 import com.niu.core.service.api.shop.ISiteShopApplyService;
 import com.niu.core.service.api.shop.ISiteShopService;
 import com.niu.core.service.api.shop.param.ShopSearchParam;
+import com.niu.core.service.api.shop.param.ShopSearchPostParam;
 import com.niu.core.service.api.shop.param.SiteShopApplyParam;
 import com.niu.core.service.api.shop.vo.*;
 import com.niu.core.service.site.shop.ISiteShopMemberService;
@@ -54,7 +55,7 @@ public class ShopController {
      * @return
      */
     @PostMapping("/web/shop_list")
-    public Result<PageResult<SiteShopListVo>> shopList(@Validated @RequestBody ShopSearchParam searchParam) {
+    public Result<PageResult<SiteShopListVo>> shopList(@Validated @RequestBody ShopSearchPostParam searchParam) {
         PageResult<SiteShopListVo> list = goodsService.shopList(searchParam);
         return Result.success(list);
     }
@@ -66,8 +67,8 @@ public class ShopController {
      * @return 获取商品列表
      */
     @GetMapping("/web/shop/component")
-    public Result<List<SiteShopListVo>> component(@Validated ShopSearchParam shopSearchParam) {
-        List<SiteShopListVo> list = goodsService.component(shopSearchParam);
+    public Result<List<SiteShopListVo>> component(@Validated ShopSearchParam shopSearchParam, @RequestParam Map<String, String> allParams) {
+        List<SiteShopListVo> list = goodsService.component(shopSearchParam,allParams);
         return Result.success(list);
     }
 

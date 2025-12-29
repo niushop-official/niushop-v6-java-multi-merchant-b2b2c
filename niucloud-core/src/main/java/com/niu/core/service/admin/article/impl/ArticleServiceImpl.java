@@ -157,6 +157,7 @@ public class ArticleServiceImpl implements IArticleService {
         article.setIsShow(addParam.getIsShow());
         article.setSort(addParam.getSort());
         article.setCreateTime(System.currentTimeMillis() / 1000);
+        article.setUpdateTime(System.currentTimeMillis() / 1000);
         articleMapper.insert(article);
     }
 

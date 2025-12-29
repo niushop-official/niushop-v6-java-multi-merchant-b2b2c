@@ -23,40 +23,20 @@ public enum DeliveryStoreTypeEnum {
         return name;
     }
 
-    // 根据key获取枚举值
-    public static DeliveryStoreTypeEnum fromKey(String key) {
-        for (DeliveryStoreTypeEnum type : DeliveryStoreTypeEnum.values()) {
-            if (type.key.equals(key)) {
-                return type;
+    public static Map<String, String> getMap() {
+        Map<String, String> map = new HashMap<>();
+        for (DeliveryStoreTypeEnum item : DeliveryStoreTypeEnum.values()) {
+            map.put(item.getKey(), item.getName());
+        }
+        return map;
+    }
+
+    public static String getNameByKey(String key) {
+        for (DeliveryStoreTypeEnum item : DeliveryStoreTypeEnum.values()) {
+            if (item.getKey().equals(key)) {
+                return item.getName();
             }
         }
-        return null;
-    }
-
-    // 获取配送类型详情
-    public Map<String, Object> getDetails() {
-        Map<String, Object> details = new HashMap<>();
-        details.put("name", this.name);
-        details.put("key", this.key);
-        details.put("params", new ArrayList<>());
-        details.put("component", "");
-        details.put("business_list", "");
-        details.put("extend_data", new HashMap<>());
-        details.put("is_merchant", 1);
-        return details;
-    }
-
-    // 获取所有配送类型列表
-    public static Map<String, Map<String, Object>> getAllTypes() {
-        Map<String, Map<String, Object>> list = new HashMap<>();
-        for (DeliveryStoreTypeEnum type : DeliveryStoreTypeEnum.values()) {
-            list.put(type.key, type.getDetails());
-        }
-
-        // 合并扩展配送类型（模拟event('LocalDeliveryType')）
-        // Map<String, Map<String, Object>> extend = eventLocalDeliveryType();
-        // return mergeMaps(list, extend);
-
-        return list;
+        return "";
     }
 }

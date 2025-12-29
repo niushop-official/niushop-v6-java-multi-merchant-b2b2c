@@ -107,6 +107,10 @@ public class MallOrderInfoVo implements Serializable {
 
     private Site site;
     private BigDecimal mallDiscountMoney = BigDecimal.ZERO;//平台优惠金额
+
+    private Integer mchId;  // 关联id
+    private Boolean isTradeManaged;  // 积分兑换
+
     @Data
     public static class Site{
         private Integer siteID;
@@ -183,6 +187,8 @@ public class MallOrderInfoVo implements Serializable {
         private String longitude; // 经度
         private String latitude; // 纬度
         private String tradeTime; // 营业时间
+        private Double distance;
+
     }
 
     @Data
@@ -356,6 +362,6 @@ public class MallOrderInfoVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getMapByStatus(Integer.valueOf(this.status));
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType);
     }
 }

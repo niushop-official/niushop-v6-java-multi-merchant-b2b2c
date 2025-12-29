@@ -217,7 +217,7 @@ PlatformCouponServiceImpl implements IPlatformCouponService {
 
         QueryWrapper<MallCoupon> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("site_id", RequestUtils.defaultSiteId());
-        if (!couponIds.equals("")) queryWrapper.in("id", couponIds);
+        if (!couponIds.equals("")) queryWrapper.in("id", couponIds.split(","));
 
         queryWrapper.orderByDesc("id");
         List<MallCoupon> list = mallCouponMapper.selectList(queryWrapper);

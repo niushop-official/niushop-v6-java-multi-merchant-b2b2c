@@ -1,6 +1,7 @@
 package com.niu.core.service.site.local_delivery.vo;
 
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -79,15 +80,15 @@ public class LocalDeliveryOrderListVo {
     private String statusName;
 
     private String tradeTypeName;
-
-    private JSONObject preStatusName;
+    @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+    private String preStatusName;
 
     public String getStatusName() {
         return LocalDeliveryStatusEnum.getNameByStatus(Integer.parseInt(this.status));
     }
 
-    public JSONObject getPreStatusName() {
-        return LocalDeliveryOrderPreStatusEnum.getStatusByService(this.deliveryService);
+    public String getPreStatusName() {
+        return JSONUtil.toJsonStr(LocalDeliveryOrderPreStatusEnum.getStatusByService(this.deliveryService)) ;
     }
 
     public String getTradeTypeName() {

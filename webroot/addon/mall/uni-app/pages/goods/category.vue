@@ -37,6 +37,7 @@ const getGoodsCategoryConfigFn = () => {
         uni.setNavigationBarTitle({
             title: config.value.page_title
         });
+		topTabbarData = topTabarObj.setTopTabbarParam({ title: config.value.page_title, topStatusBar: { textColor: '#333' }})
 	})
 }
 

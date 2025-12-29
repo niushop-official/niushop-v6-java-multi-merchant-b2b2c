@@ -70,6 +70,15 @@
                             <el-rate v-model="row.scores" disabled />
                         </template>
                     </el-table-column>
+                    <el-table-column :label="t('店铺评价')" min-width="120" >
+                        <template #default="{ row }">
+                            <div>
+                                <div>商品质量：{{ row.quality_score }}</div>
+                                <div>商家服务: {{ row.service_score }}</div>
+                                <div>发货物流: {{ row.logistics_score }}</div>
+                            </div>
+                        </template>
+                    </el-table-column>
                     <el-table-column prop="audit_name" :label="t('auditName')" min-width="80" />
                     <el-table-column prop="create_time" :label="t('createTime')" min-width="120" />
                     <el-table-column :label="t('operation')" fixed="right" min-width="100" align="right">

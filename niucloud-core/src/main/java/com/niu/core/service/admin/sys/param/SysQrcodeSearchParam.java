@@ -1,5 +1,6 @@
 package com.niu.core.service.admin.sys.param;
 
+import cn.hutool.json.JSONArray;
 import lombok.Data;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -16,6 +17,4 @@ public class SysQrcodeSearchParam {
     private String folder;
 
     private String page;
-
-    private List<Map<String,Object>> params;
 }

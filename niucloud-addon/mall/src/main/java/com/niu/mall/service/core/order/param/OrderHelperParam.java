@@ -38,6 +38,8 @@ public class OrderHelperParam implements Serializable {
         private String localDeliveryType = "";
 
         private String takerMobile = "";
+
+        private String takerName = "";
     }
 
     @Data
@@ -63,5 +65,11 @@ public class OrderHelperParam implements Serializable {
         private String address; // 注册地址
         private String bankName; // 开户银行
         private String bankCardNumber; // 银行账号
+    }
+
+    @Data
+    public static class Position {
+        protected String latitude;
+        protected String longitude;
     }
 }

@@ -86,7 +86,7 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
         queryWrapper.eq("nssco.site_id", RequestUtils.siteId());
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) {
             queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", searchParam.getKeyword()))
-                    .or(j -> j.like("ns.transfer_mobile", searchParam.getKeyword()))
+                    .or(j -> j.like("nssco.transfer_mobile", searchParam.getKeyword()))
             );
         }
 
@@ -361,7 +361,7 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
     public SiteShopCashOutCodeVo transfer(Integer id) {
         SiteShopCashOut siteShopCashOut = siteShopCashOutMapper.selectById(id);
         if(ObjectUtil.isEmpty(siteShopCashOut)){
-            throw new CommonException("CASHOUT_LOG_NOT_EXIST");
+            throw new CommonException("提现记录不存在");
         }
         List<Integer> status = Arrays.asList(ShopCashOutEnum.WAIT_TRANSFER.getState(), ShopCashOutEnum.TRANSFER_ING.getState());
         if(!status.contains(siteShopCashOut.getStatus())){

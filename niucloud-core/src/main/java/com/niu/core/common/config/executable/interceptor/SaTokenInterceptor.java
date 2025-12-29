@@ -4,7 +4,6 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONUtil;
 import com.niu.core.common.exception.AuthException;
 import com.niu.core.common.utils.RequestUtils;
 import org.springframework.beans.factory.annotation.Value;

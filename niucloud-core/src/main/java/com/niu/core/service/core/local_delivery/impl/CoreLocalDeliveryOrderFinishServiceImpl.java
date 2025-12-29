@@ -8,9 +8,11 @@ import com.niu.core.common.loader.local_delivery.BaseLocalDelivery;
 import com.niu.core.common.loader.local_delivery.LocalDeliveryLoader;
 import com.niu.core.common.loader.local_delivery.param.CloseShopDeliveryOrderParam;
 import com.niu.core.common.loader.local_delivery.param.FinishShopDeliveryOrderParam;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrder;
 import com.niu.core.entity.delivery.DeliveryShopDeliveryOrder;
 import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
+import com.niu.core.enums.delivery.DeliveryTypeEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryOrderCancelReasonEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderMapper;
@@ -57,6 +59,14 @@ public class CoreLocalDeliveryOrderFinishServiceImpl implements ICoreLocalDelive
         updateData.setFinishTime(System.currentTimeMillis() / 1000);
 
         Map<String, Object> config = new HashMap<>();
+        if(!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryService)){
+            Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryService,info.getSiteId());
+            if (localDeliveryConfig.isEmpty()) {
+                String typeName = LocalDeliveryTypeEnum.getName(deliveryService) != null ? LocalDeliveryTypeEnum.getName(deliveryService) : deliveryService;
+                throw new RuntimeException(typeName + "未配置");
+            }
+            config = JSONUtil.parseObj(localDeliveryConfig.get("config"));
+        }
         config.put("siteId",info.getSiteId());
         //第三方配送下单 驱动
         BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(deliveryService).init(JSONUtil.parseObj(config));
@@ -67,6 +77,7 @@ public class CoreLocalDeliveryOrderFinishServiceImpl implements ICoreLocalDelive
         addShopDeliveryOrderParam.setStatus(info.getStatus());
         addShopDeliveryOrderParam.setMainId(param.getMainId());
         addShopDeliveryOrderParam.setMainName(param.getMainName());
+        addShopDeliveryOrderParam.setNotifyUrl(coreLocalDeliveryService.buildNotifyUrl(info.getSiteId().toString(), deliveryService, "", null));
         DeliveryShopDeliveryOrder responseData = driver.finishOrder(addShopDeliveryOrderParam);
 
         if(ObjectUtil.isNotEmpty( responseData)){

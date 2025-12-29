@@ -49,7 +49,7 @@ public class GlobalConfig {
     /**
      * 版本
      */
-    public static String version = "0.0.1";
+    public static String version = "0.0.2";
 
     /**
      * 应用key

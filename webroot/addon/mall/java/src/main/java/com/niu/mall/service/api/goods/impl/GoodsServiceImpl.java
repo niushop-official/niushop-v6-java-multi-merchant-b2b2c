@@ -2,6 +2,7 @@ package com.niu.mall.service.api.goods.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -15,12 +16,14 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.utils.CollectUtils;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.image.ImageUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.goods.GoodsBrand;
 import com.niu.core.entity.goods.GoodsService;
 import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.entity.site.Site;
+import com.niu.core.enums.shop.ShopStatusEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.event.shop.MallShopGoodsListEventDefiner;
 import com.niu.core.mapper.goods.GoodsBrandMapper;
@@ -32,6 +35,9 @@ import com.niu.core.service.api.diy.IDiyService;
 import com.niu.core.service.api.diy.param.DiyInfoParam;
 import com.niu.core.service.api.member.IMemberLevelService;
 import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
+import com.niu.core.service.core.delivery.ICoreConfigService;
+import com.niu.core.service.core.delivery.ICoreDeliveryConfigService;
+import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
 import com.niu.core.service.core.goods.ICoreGoodsCategoryService;
 import com.niu.mall.entity.coupon.MallCoupon;
 import com.niu.mall.entity.coupon.MallCouponGoods;
@@ -39,6 +45,7 @@ import com.niu.mall.entity.goods.*;
 import com.niu.mall.entity.order.config.MallOrderEvaluate;
 import com.niu.mall.enums.active.ActiveTypeEnum;
 import com.niu.mall.enums.coupon.CouponIsAllSiteEnum;
+import com.niu.mall.enums.goods.GoodsStatusEnum;
 import com.niu.mall.mapper.coupon.MallCouponGoodsMapper;
 import com.niu.mall.mapper.coupon.MallCouponMapper;
 import com.niu.mall.mapper.goods.*;
@@ -47,6 +54,7 @@ import com.niu.mall.service.api.goods.IGoodsService;
 import com.niu.mall.service.api.goods.param.MallGoodsComponentsSearchParam;
 import com.niu.mall.service.api.goods.param.MallGoodsDetailParam;
 import com.niu.mall.service.api.goods.param.MallGoodsSearchParam;
+import com.niu.mall.service.api.goods.param.ShopComponentsSearchParam;
 import com.niu.mall.service.api.goods.vo.GoodsLabelListVo;
 import com.niu.mall.service.api.goods.vo.MallGoodsDetailVo;
 import com.niu.mall.service.api.goods.vo.MallGoodsListVo;
@@ -63,6 +71,7 @@ import com.niu.mall.service.core.goods.vo.ShowPriceVo;
 import com.niu.mall.service.core.order.ICoreOrderConfigService;
 import com.niu.mall.service.site.marketing.ICouponService;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +81,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -150,6 +160,12 @@ public class GoodsServiceImpl implements IGoodsService {
     @Resource
     ICoreGoodsLimitBuyService coreGoodsLimitBuyService;
 
+    @Resource
+    ICoreDeliveryConfigService coreDeliveryConfigService;
+
+    @Resource
+    ICoreLocalDeliveryService coreLocalDeliveryService;
+
     /**
      * 查询商品列表
      *
@@ -158,7 +174,7 @@ public class GoodsServiceImpl implements IGoodsService {
      * @return
      */
     @Override
-    public PageResult<MallGoodsListVo> page(PageParam pageParam, MallGoodsSearchParam searchParam) {
+    public PageResult<MallGoodsListVo> page(PageParam pageParam, MallGoodsSearchParam searchParam,Map<String, String>  allParams) {
         Integer page = pageParam.getPage();
         Integer limit = pageParam.getLimit();
 
@@ -172,6 +188,23 @@ public class GoodsServiceImpl implements IGoodsService {
         queryWrapper.select("g.goods_id,g.site_id,goods_name,goods_type,goods_cover,g.stock,g.sale_num + g.virtual_sale_num as sale_num," +
                 "g.status,g.sort,g.create_time,member_discount,virtual_verify_type,unit," +
                 "is_discount,label_ids,g.brand_id,sgb.brand_name,sgb.logo, ns.site_name,nss.is_self,g.max_buy,g.min_buy,g.is_limit,g.limit_type");
+        AdminDeliveryConfigVo deliveryConfig = coreDeliveryConfigService.getAdminDeliveryConfig();
+        if (ObjectUtil.isNotEmpty(allParams)){
+            String latitude = StringUtils.isNotEmpty(allParams.get("position[latitude]")) ? allParams.get("position[latitude]") : "";
+            String longitude = StringUtils.isNotEmpty(allParams.get("position[longitude]")) ? allParams.get("position[longitude]") : "";
+            if(StringUtils.isNotEmpty(latitude) && StringUtils.isNotEmpty(longitude) && deliveryConfig.getIsShow() == 1){
+                String siteField = "ns.latitude,ns.longitude";
+                siteField += ", ROUND(6371 * acos( "+
+                "cos(radians("+latitude+")) "+
+                "        * cos(radians(ns.latitude)) "+
+                "        * cos(radians(ns.longitude) - radians("+longitude+")) "+
+                "        + sin(radians("+latitude+")) "+
+                "        * sin(radians(ns.latitude)) "+
+                "  ), 2) AS distance";
+                queryWrapper.select(siteField);
+            }
+        }
+
         queryWrapper.eq("g.status", 1);
         queryWrapper.eq("g.delete_time", 0);
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) queryWrapper.like("goods_name", searchParam.getKeyword());
@@ -765,24 +798,81 @@ public class GoodsServiceImpl implements IGoodsService {
      * @param param
      */
     @Override
-    public List<MallGoodsListVo> getGoodsComponents(MallGoodsComponentsSearchParam param) {
+    public List<MallGoodsListVo> getGoodsComponents(MallGoodsComponentsSearchParam param,  Map<String, String> allParams) {
         MPJQueryWrapper<MallGoods> queryWrapper = new MPJQueryWrapper<>();
-        
         queryWrapper.setAlias("goods")
                 .leftJoin("?_mall_goods_sku goodsSku ON goods.goods_id = goodsSku.goods_id and goodsSku.is_default = 1".replace("?_", GlobalConfig.tablePrefix))
+                .leftJoin("?_site ns ON goods.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_shop shop ON goods.site_id = shop.site_id".replace("?_", GlobalConfig.tablePrefix));
         
         queryWrapper.select("goods.goods_id, goods.site_id, goods.goods_name, goods.sub_title, goods.goods_mall_category, goods.goods_category, goods.goods_type, goods.goods_cover, goods.unit, goods.status, goods.sale_num + goods.virtual_sale_num as sale_num, goods.is_discount, goods.member_discount, goods.label_ids, goods.brand_id, shop.is_self, goodsSku.price,goods.max_buy,goods.min_buy,goods.is_limit,goods.limit_type");
-        
+
+        if (ObjectUtil.isNotEmpty(allParams) && allParams.containsKey("position[latitude]") && allParams.containsKey("position[longitude]")){
+            AdminDeliveryConfigVo deliveryConfig = coreDeliveryConfigService.getAdminDeliveryConfig();
+            if(deliveryConfig.getIsShow() == 1){
+                String latitude = allParams.get("position[latitude]");
+                String longitude = allParams.get("position[longitude]");
+                String siteField = "ns.latitude,ns.longitude";
+                siteField += ", ROUND(6371 * acos( "+
+                        "cos(radians("+latitude+")) "+
+                        "        * cos(radians(ns.latitude)) "+
+                        "        * cos(radians(ns.longitude) - radians("+longitude+")) "+
+                        "        + sin(radians("+latitude+")) "+
+                        "        * sin(radians(ns.latitude)) "+
+                        "  ), 2) AS distance";
+                queryWrapper.select(siteField);
+            }
+        }
+
         queryWrapper.eq("goodsSku.is_default", 1);
-        queryWrapper.eq("goods.status", 1);
-        queryWrapper.eq("shop.business_status", 1);
-        
+        queryWrapper.eq("goods.status", GoodsStatusEnum.ONLINE.getStatus());
+        queryWrapper.eq("shop.business_status", ShopStatusEnum.ON.getCode());
+
+        if(ObjectUtil.isNotEmpty(param.getSiteId()) && param.getSiteId() > 0){
+            queryWrapper.eq("goods.site_id", param.getSiteId());
+        }else{
+            List<Integer> siteIds = new ArrayList<>();
+            MPJQueryWrapper<Site> siteQuery = new MPJQueryWrapper<>();
+            siteQuery.setAlias("ns")
+                    .leftJoin("?_site_shop shop ON ns.site_id = shop.site_id".replace("?_", GlobalConfig.tablePrefix));
+            siteQuery.select("ns.site_id");
+            //是否支持定位
+            if(ObjectUtil.isNotEmpty(param.getIsLocation()) && param.getIsLocation() > 0 && allParams.containsKey("position[province_id]") &&
+                    allParams.containsKey("position[city_id]") && allParams.containsKey("position[district_id]")){
+                String provinceId = allParams.get("position[province_id]");
+                String cityId = allParams.get("position[city_id]");
+                String districtId = allParams.get("position[district_id]");
+                siteQuery.eq("ns.province_id", provinceId);
+                siteQuery.eq("ns.city_id", cityId);
+                siteQuery.eq("ns.district_id", districtId);
+                siteQuery.ne("ns.app_type", "admin");
+                siteQuery.eq("ns.status", ShopStatusEnum.ON.getCode());
+                siteQuery.eq("shop.business_status", ShopStatusEnum.ON.getCode());
+            }
+
+            //是否支持配送
+            if (ObjectUtil.isEmpty(param.getIsLocalDelivery()) || (ObjectUtil.isNotEmpty(param.getIsLocalDelivery()) && param.getIsLocalDelivery() == 0) ){
+                List<Site> siteList = siteMapper.selectJoinList(Site.class, siteQuery);
+                siteIds = siteList.stream().map(Site::getSiteId).toList();
+            }else{
+                siteQuery.eq("ns.is_local_delivery", 1);
+                List<Site> siteList = siteMapper.selectJoinList(Site.class, siteQuery);
+                if(allParams.containsKey("position[latitude]") && allParams.containsKey("position[longitude]")){
+                    String latitude = allParams.get("position[latitude]");
+                    String longitude = allParams.get("position[longitude]");
+                    siteIds = coreLocalDeliveryService.checkLocationInArea(siteList, latitude, longitude);
+                }
+            }
+            if(!siteIds.isEmpty()){
+                queryWrapper.in("goods.site_id", siteIds);
+            }
+
+        }
+
         if (ObjectUtil.isNotEmpty(param.getGoodsIds()))
             queryWrapper.in("goods.goods_id", param.getGoodsIds());
-        
-        if (ObjectUtil.isNotEmpty(param.getSiteId()) && param.getSiteId() > 0)
-            queryWrapper.eq("goods.site_id", param.getSiteId());
+
+
         
         if (ObjectUtil.isNotEmpty(param.getGoodsCategory()) && param.getGoodsCategory() > 0)
             queryWrapper.like("goods.goods_category", "\"" + param.getGoodsCategory() + "\"");
@@ -891,6 +981,9 @@ public class GoodsServiceImpl implements IGoodsService {
         if (goods == null) return null;
         MallGoodsDetailVo.Goods goodsVo = new MallGoodsDetailVo.Goods();
         BeanUtils.copyProperties(goods, goodsVo);
+        if (ObjectUtil.isEmpty(goodsVo.getUnit())){
+            goodsVo.setUnit("件");
+        }
         goodsVo.setSaleNum(goods.getSaleNum() + goods.getVirtualSaleNum());
 
         vo.setType(param.getType());
@@ -916,6 +1009,12 @@ public class GoodsServiceImpl implements IGoodsService {
         }
 
         vo.setGoods(goodsVo);
+        if(ObjectUtil.isNotEmpty(goodsVo)){
+            vo.setIsLimit(goodsVo.getIsLimit());
+            vo.setLimitType(goodsVo.getLimitType());
+            vo.setMaxBuy(goodsVo.getMaxBuy());
+            vo.setMinBuy(goodsVo.getMinBuy());
+        }
         vo.setShopInfo(new MallGoodsDetailVo.ShopInfo());
         //店铺信息以及店铺会员信息
         Site site = siteMapper.selectOne(new QueryWrapper<Site>().eq("site_id", goods.getSiteId()));
@@ -925,6 +1024,9 @@ public class GoodsServiceImpl implements IGoodsService {
         BeanUtils.copyProperties(siteShop, vo.getShopInfo().getShop());
         vo.getShopInfo().setFollowNumber(vo.getShopInfo().getShop().getFollowNumber());
         vo.getShopInfo().setBusinessStatus(vo.getShopInfo().getShop().getBusinessStatus());
+        vo.getShopInfo().setLogisticsScore(siteShop.getLogisticsScore());
+        vo.getShopInfo().setServiceScore(siteShop.getServiceScore());
+        vo.getShopInfo().setQualityScore(siteShop.getQualityScore());
         // 查询会员的会员等级
         MemberLevelInfoVo memberLevel = null;
         if (ObjectUtil.isNotEmpty(RequestUtils.memberId()))
@@ -1199,6 +1301,72 @@ public class GoodsServiceImpl implements IGoodsService {
         result.setGoods(goods);
         result.setGoodsList(goods);
         return goods;
+    }
+
+    @Override
+    public List<MallGoodsListVo> shopRecommendComponents(ShopComponentsSearchParam param) {
+        MPJQueryWrapper<MallGoods> queryWrapper = new MPJQueryWrapper<>();
+        queryWrapper.setAlias("g")
+                .innerJoin("?_mall_goods_sku gs ON g.goods_id = gs.goods_id AND gs.is_default = 1".replace("?_", GlobalConfig.tablePrefix))
+                .leftJoin("?_site_shop nss ON g.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix));
+
+        queryWrapper.select("g.goods_id,g.site_id,goods_name,sub_title,goods_category,goods_type,goods_cover,g.sale_num,g.sale_num + g.virtual_sale_num as sale_num,status,member_discount,is_discount,virtual_receive_type");
+
+        queryWrapper.eq("g.status", 1);
+        queryWrapper.eq("g.delete_time", 0);
+        queryWrapper.eq("nss.business_status", ShopStatusEnum.ON.getCode());
+
+        queryWrapper.orderByDesc("g.sale_num");
+        queryWrapper.last("limit " + param.getNum());
+        List<MallGoodsListVo> list = mallGoodsMapper.selectJoinList(MallGoodsListVo.class, queryWrapper);
+        MemberLevelInfoVo memberLevel = null;
+        if (ObjectUtil.isNotEmpty(RequestUtils.memberId()))
+            memberLevel = memberLevelService.findMemberLevel(RequestUtils.memberId());
+
+
+        List<MallGoodsSku> goodsSkuList = mallGoodsSkuMapper.selectList(new QueryWrapper<MallGoodsSku>()
+                .in("goods_id", list.stream().map(MallGoodsListVo::getGoodsId).toList()).eq("is_default", 1));
+        for (int i = 0; i < list.size(); i++) {
+            MallGoodsListVo vo = list.get(i);
+            List<MallGoodsSku> goodsSkuThis = goodsSkuList.stream().filter(item -> item.getGoodsId().equals(vo.getGoodsId())).toList();
+            if(goodsSkuThis.isEmpty()){
+                continue;
+            }
+            MallGoodsSku goodsSku = goodsSkuThis.get(0);
+
+            MallGoodsListVo.GoodsSku goodsSkuVo = new MallGoodsListVo.GoodsSku();
+            BeanUtils.copyProperties(goodsSku, goodsSkuVo);
+            if (memberLevel != null) {
+                JSONObject memberPriceConfig = ObjectUtil.isNotEmpty(goodsSku.getMemberPrice()) ? JSONUtil.parseObj(goodsSku.getMemberPrice()) : null;
+                goodsSkuVo.setMemberPrice(calculateMemberPrice(memberLevel, vo.getMemberDiscount(), memberPriceConfig, goodsSku.getPrice()));
+            } else {
+                goodsSkuVo.setMemberPrice(goodsSku.getPrice());
+            }
+            //设置展示价格
+            ShowPriceVo skuShowPrice = coreGoodsActivePriceService.getShowPrice(GetShowPriceParam.builder()
+                    .goodsId(goodsSkuVo.getGoodsId())
+                    .salePrice(goodsSkuVo.getSalePrice())
+                    .skuId(goodsSkuVo.getSkuId())
+                    .price(goodsSkuVo.getPrice())
+                    .memberDiscount(vo.getMemberDiscount())
+                    .memberPrice(ObjectUtil.isNotEmpty(goodsSku.getMemberPrice()) ? goodsSku.getMemberPrice().toString() : null)
+                    .memberId(RequestUtils.memberId())
+                    .build());
+            goodsSkuVo.setShowPrice(skuShowPrice.getShowPrice());
+            goodsSkuVo.setShowType(skuShowPrice.getShowType());
+            vo.setGoodsSku(goodsSkuVo);
+            vo.setGoodsLabelName(getGoodsLabelName(vo.getLabelIds()));
+            if (vo.getBrandId() != null && vo.getBrandId() > 0) {
+                MallGoodsListVo.Brand brand = new MallGoodsListVo.Brand();
+                BeanUtils.copyProperties(vo, brand);
+                vo.setGoodsBrand(brand);
+            }
+            MallGoodsListVo.ShopInfo shopInfo = new MallGoodsListVo.ShopInfo();
+            shopInfo.setSiteId(vo.getSiteId());
+            shopInfo.setIsSelf(vo.getIsSelf());
+            vo.setShop(shopInfo);
+        }
+        return list;
     }
 
 }

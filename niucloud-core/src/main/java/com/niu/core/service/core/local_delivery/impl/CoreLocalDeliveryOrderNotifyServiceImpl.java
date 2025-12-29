@@ -30,12 +30,19 @@ public class CoreLocalDeliveryOrderNotifyServiceImpl implements ICoreLocalDelive
 
     @Resource
     private ICoreLocalDeliveryService coreLocalDeliveryService;
-
     @Override
-    public void notify(Integer siteId, String type, String action, NotifyShopDeliveryOrderParam param) {
+    public void notify(Integer siteId, String type,String orderNo, String action, NotifyShopDeliveryOrderParam param) {
         log.info("同城配送订单状态回调参数：{}" , JSONUtil.parseObj(param));
         try {
-            Map<String, Object> config = coreLocalDeliveryService.getConfig(type);
+            Map<String, Object> config = new HashMap<>();
+            if(!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(type)){
+                Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(type,siteId);
+                if (localDeliveryConfig.isEmpty()) {
+                    String typeName = LocalDeliveryTypeEnum.getName(type) != null ? LocalDeliveryTypeEnum.getName(type) : type;
+                    throw new RuntimeException(typeName + "未配置");
+                }
+                config = JSONUtil.parseObj(localDeliveryConfig.get("config"));
+            }
             config.put("siteId", siteId);
             //第三方配送下单 驱动
             BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(type).init(JSONUtil.parseObj(config));

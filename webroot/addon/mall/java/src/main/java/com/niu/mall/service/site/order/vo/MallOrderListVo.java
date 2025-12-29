@@ -245,6 +245,6 @@ public class MallOrderListVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getMapByStatus(Integer.valueOf(this.status));
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType);
     }
 }

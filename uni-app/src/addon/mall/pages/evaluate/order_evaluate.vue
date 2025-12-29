@@ -1,6 +1,6 @@
 <template>
     <view class="bg-[var(--page-bg-color)] min-h-screen" :style="themeColor()">
-        <view class="px-[var(--sidebar-m)] py-[var(--top-m)]">
+        <view class="px-[var(--sidebar-m)] pt-[var(--top-m)]">
             <template v-for="(item, index)  in info" :key="index">
                 <view class="card-template mb-[var(--top-m)]">
                     <view class="bg-[var(--temp-bg)] p-[20rpx] rounded-[var(--rounded-mid)] flex">
@@ -34,6 +34,21 @@
                 </view>
             </template>
         </view>
+        <view class="card-template sidebar-margin">
+            <view class="title">服务评分</view>
+            <view class="card-template-item justify-between">
+                <view class="text-[28rpx]">商品质量</view>
+                <u-rate :count="5" v-model="serverForm.quality_score" active-color="var(--primary-color)" :size="'36rpx'" gutter="1"></u-rate>
+            </view>
+            <view class="card-template-item justify-between">
+                <view class="text-[28rpx]">商家服务</view>
+                <u-rate :count="5" v-model="serverForm.service_score" active-color="var(--primary-color)" :size="'36rpx'" gutter="1"></u-rate>
+            </view>
+            <view class="card-template-item justify-between">
+                <view class="text-[28rpx]">发货物流</view>
+                <u-rate :count="5" v-model="serverForm.logistics_score" active-color="var(--primary-color)" :size="'36rpx'" gutter="1"></u-rate>
+            </view>
+        </view>
         <u-tabbar :fixed="true" :placeholder="true" :safeAreaInsetBottom="true" zIndex="9999">
             <view class="flex items-center pl-[30rpx] pr-[20rpx] box-border  justify-between w-[100%]">
                 <view class="flex items-center" @click="selectCheck">
@@ -63,6 +78,11 @@ const form = ref<Array<any>>([])
 const is_anonymous = ref('2')
 const loading = ref(false)
 const order_id = ref('')
+const serverForm = ref({
+    quality_score: 5,
+    service_score: 5,
+    logistics_score: 5
+})
 
 const wxPrivacyPopupRef: any = ref(null)
 
@@ -89,7 +109,7 @@ onLoad((option: any) => {
 })
 const getMallOrderDetailFn = (id: any) => {
     loading.value = true
-    getMallOrderDetail(id).then((res: any) => {
+    getMallOrderDetail({order_id: id}).then((res: any) => {
         if (res.data.is_evaluate) {
             toLink(order_id.value)
             return false
@@ -127,7 +147,12 @@ const submit = () => {
             item.content = item.content.substr(0, 200);
         }
     }
-    form.value.forEach(v => v.is_anonymous = is_anonymous.value)
+    form.value.forEach(v => {
+        v.is_anonymous = is_anonymous.value
+        v.quality_score = serverForm.value.quality_score
+        v.service_score = serverForm.value.service_score
+        v.logistics_score = serverForm.value.logistics_score
+    })
     loading.value = true
     setOrderEvaluate({ site_id : info.value.site_id,evaluate_array: form.value }).then(res => {
         loading.value = false

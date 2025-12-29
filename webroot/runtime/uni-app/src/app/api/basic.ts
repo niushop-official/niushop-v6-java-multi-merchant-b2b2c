@@ -55,3 +55,10 @@ export function getDeliveryConfig() {
 export function getDeliveryPackage(params: Record<string, any>) {
     return request.get(`delivery/delivery_package/${params.trade_type}`, params)
 }
+
+/**
+ * 查询自提点
+ */
+export function getDeliveryStoreList(params: Record<string, any>) {
+    return request.get('delivery/delivery_store/list', params)
+}

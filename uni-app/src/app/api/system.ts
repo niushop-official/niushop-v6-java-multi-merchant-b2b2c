@@ -87,8 +87,8 @@ export function getSiteInfo() {
 /**
  * 获取微信小程序订阅消息模板id
  */
-export function getWeappTemplateId(keys: string) {
-    return request.get('weapp/subscribemsg', { keys })
+export function getWeappTemplateId(data: AnyObject) {
+    return request.get('weapp/subscribemsg', data)
 }
 
 /**

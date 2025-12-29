@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.shop.SiteShopAccountLog;
@@ -44,8 +45,8 @@ public class ShopAccountExportDataListener extends ExportDataEventDefiner {
             if (ObjectUtil.isNotEmpty(fromType)) {
                 queryWrapper.eq("from_type", fromType);
             }
-            if ((where.get("create_time") instanceof String[] createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "create_time", createTimes);
+            if ((where.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "create_time", StringUtils.jsonArrayToStringArray(createTimes));
             }
         }
         PageParam pageParam = event.getPageParam();

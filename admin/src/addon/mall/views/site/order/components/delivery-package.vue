@@ -11,11 +11,9 @@
 		        <div v-if="packageData.company">
 			        <span>{{ t('companyName') }}：</span><span>{{ packageData.company.company_name }}</span>
 		        </div>
-		        <div>
-              <div v-if="packageData.express_number">
-			          <span class="ml-[60px]">{{ t('logisticNo') }}：</span><span>{{ packageData.express_number }}</span>
-              </div>
-            </div>
+		        <div v-if="packageData.express_number">
+			        <span class="ml-[60px]">{{ t('logisticNo') }}：</span><span>{{ packageData.express_number }}</span>
+		        </div>
 	        </div>
 			<h3 class="panel-title">{{ t('goodsInfo') }}</h3>
 			<div class="mb-[20px]">

@@ -31,10 +31,8 @@ public class MemberAccountController {
      * @return
      */
     @GetMapping("/account/point")
-    public Result<?> point(@Validated PageParam pageParam, @Validated AccountPointFlowParam param, @RequestParam(name = "create_time[0]", defaultValue = "") String startTime, @RequestParam(name = "create_time[1]", defaultValue = "") String endTime) {
-        if (!startTime.isEmpty() && !endTime.isEmpty()) {
-            param.setCreateTime(new String[]{ startTime, endTime });
-        }
+    public Result<?> point(@Validated PageParam pageParam, @Validated AccountPointFlowParam param) {
+        // 参考mall模块写法：直接使用Param对象接收参数，Spring Boot会自动将create_time[0]和create_time[1]绑定到createTime数组
         return Result.success(memberAccountService.pointFlow(pageParam, param));
     }
 

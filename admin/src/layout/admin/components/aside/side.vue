@@ -1,15 +1,15 @@
 <template>
-    <el-container class="h-full bg-[var(--el-bg-color-overlay)]" v-if="twoMenuData.length">
-        <el-main class="p-0 flex">
-            <el-scrollbar class="two-menu w-[200px]">
-                <div class="w-[180px] h-[76px] mx-[10px] flex items-center justify-center text-[26px] border-0 border-b-[1px] border-solid border-[#EBEEF5]">{{ route.matched[1].meta.short_title }}</div>
-               <el-menu :default-active="route.name" :router="true" class="aside-menu" :collapse="systemStore.menuIsCollapse">
-                    <menu-item v-for="(route, index) in twoMenuData" :routes="route" :key="index" />
-                </el-menu>
-                <div class="h-[48px]"></div>
-            </el-scrollbar>
-        </el-main>
-    </el-container>
+  <el-container class="h-full bg-[var(--el-bg-color-overlay)]" v-if="twoMenuData.length">
+    <el-main class="p-0 flex">
+      <el-scrollbar class="two-menu w-[200px]">
+        <div class="w-[180px] h-[76px] mx-[10px] flex items-center justify-center text-[26px] border-0 border-b-[1px] border-solid border-[#EBEEF5]">{{ route.matched[1].meta.short_title }}</div>
+        <el-menu :default-active="route.name" :router="true" class="aside-menu" :collapse="systemStore.menuIsCollapse">
+          <menu-item v-for="(route, index) in twoMenuData" :routes="route" :key="index" />
+        </el-menu>
+        <div class="h-[48px]"></div>
+      </el-scrollbar>
+    </el-main>
+  </el-container>
 </template>
 
 <script lang="ts" setup>

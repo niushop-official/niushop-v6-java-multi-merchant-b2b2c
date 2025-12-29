@@ -30,6 +30,7 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="username" :label="t('accountNumber')" min-width="120" show-overflow-tooltip />
+                    <el-table-column prop="mobile" :label="t('mobile')" min-width="120" show-overflow-tooltip />
                     <el-table-column prop="real_name" :label="t('userRealName')" min-width="120" show-overflow-tooltip />
                     <el-table-column :label="t('userRoleName')" min-width="120" show-overflow-tooltip>
                         <template #default="{ row }">

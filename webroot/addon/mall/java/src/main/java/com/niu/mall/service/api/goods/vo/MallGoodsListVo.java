@@ -56,6 +56,7 @@ public class MallGoodsListVo implements Serializable {
     private ShopInfo shop;
     private SiteInfo site;
     Integer hasBuy = 0;
+    private Double distance;
 
     private List<MallGoodsSkuListVo> goodsSkuListVos;
 

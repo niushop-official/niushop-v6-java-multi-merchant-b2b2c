@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
+import com.mchange.lang.IntegerUtils;
 import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
@@ -19,6 +20,7 @@ import com.niu.core.entity.shop.SiteShopAccountLog;
 import com.niu.core.entity.shop.SiteShopApply;
 import com.niu.core.entity.shop.SiteShopCashOut;
 import com.niu.core.enums.member.MemberCashOutStatusEnum;
+import com.niu.core.enums.pay.TransferTypeEnum;
 import com.niu.core.enums.shop.ShopCashOutEnum;
 import com.niu.core.enums.shop.ShopTransferEnum;
 import com.niu.core.mapper.shop.SiteShopAccountLogMapper;
@@ -90,7 +92,7 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
 
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) {
             queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", searchParam.getKeyword()))
-                    .or(j -> j.like("ns.transfer_mobile", searchParam.getKeyword()))
+                    .or(j -> j.like("nssco.transfer_mobile", searchParam.getKeyword()))
             );
         }
 
@@ -114,7 +116,10 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
         }
 
         if (ObjectUtil.isNotEmpty(searchParam.getTransferType())) {
-            queryWrapper.eq("nssco.transfer_type", searchParam.getTransferType());
+            Integer transferType = ShopTransferEnum.getTagByKey(searchParam.getTransferType());
+            if(ObjectUtil.isNotEmpty(transferType)){
+                queryWrapper.eq("nssco.transfer_type", transferType);
+            }
         }
 
         queryWrapper.orderByDesc("nssco.create_time");
@@ -248,24 +253,21 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
         @Override
         @Transactional
         public void transfer (Integer id, SiteShopCashOutTransferParam transferParam){
-            if(StringUtils.isEmpty(transferParam.getTransferType())){
-                throw new CommonException("转账提现类型平台不支持");
-            }
-
             // 1. 查询提现记录
             QueryWrapper<SiteShopCashOut> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("id", id);
             SiteShopCashOut info = siteShopCashOutMapper.selectOne(queryWrapper);
-            if (info == null) {
-                return;
+            if (ObjectUtil.isEmpty(info)) {
+               return;
             }
+
             // 2. 查询店铺信息
             QueryWrapper<SiteShop> shopQueryWrapper = new QueryWrapper<>();
             shopQueryWrapper.eq("site_id", info.getSiteId());
             SiteShop shopInfo = siteShopMapper.selectOne(shopQueryWrapper);
             //3. 查询提现状态
             if (!List.of(MemberCashOutStatusEnum.WAIT_TRANSFER.getStatus(), MemberCashOutStatusEnum.TRANSFER_ING.getStatus()).contains(info.getStatus())) {
-                throw new CommonException("提现申请未通过或已转账");
+                throw new CommonException("审核未通过或已转账");
             }
             SiteShopCashOut updateData = new SiteShopCashOut();
             updateData.setId(id);

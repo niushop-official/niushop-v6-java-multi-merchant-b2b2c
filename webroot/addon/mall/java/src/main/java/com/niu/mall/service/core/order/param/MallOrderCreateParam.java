@@ -26,6 +26,7 @@ public class MallOrderCreateParam implements Serializable {
     @Data
     public static class Body {
         private String orderKey;
+        private String memberRemark;
         private List<Integer> cartIds;
         private List<OrderHelperParam.SkuItem> skuData;
         private OrderHelperParam.Discount discount;

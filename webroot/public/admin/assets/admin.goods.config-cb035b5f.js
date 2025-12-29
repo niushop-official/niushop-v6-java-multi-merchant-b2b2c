@@ -1,1 +1,0 @@
-const o="商品审核",s="开启",e="关闭",i="商品审核关闭后店铺端添加编辑商品将不经过平台端审核",n={shopVerify:o,isVerifyOpen:s,isVerifyClose:e,isVerifyOpenInfoBottom:i};export{n as default,e as isVerifyClose,s as isVerifyOpen,i as isVerifyOpenInfoBottom,o as shopVerify};

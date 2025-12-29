@@ -188,7 +188,13 @@ watch(() => cartList.value, () => {
             console.log(subItem)
             if (subItem.checked && subItem.goodsSku){
                 let price: any = 0;
-                price = subItem.goodsSku.show_price
+                if (subItem.goods.is_discount && subItem.goodsSku.sale_price != subItem.goodsSku.price) {
+                    price = subItem.goodsSku.sale_price // 折扣价
+                } else if (subItem.goods.member_discount && getToken() && subItem.goodsSku.member_price != subItem.goodsSku.price) {
+                    price = subItem.goodsSku.member_price // 会员价
+                } else {
+                    price = subItem.goodsSku.price
+                }
                 value += parseFloat(price) * subItem.num
             }
         })

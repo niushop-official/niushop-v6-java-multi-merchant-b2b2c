@@ -33,6 +33,7 @@ private static final long serialVersionUID = 1L;
 
 
     /** 首次消费时间 */
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long firstConsumTime;
 
 

@@ -70,6 +70,8 @@ public class MallOrderCreateDataVo implements Serializable {
         protected Set<String> hasSelectDeliveryTypes = new HashSet<>();
 
         protected Integer virtualVerifyMobile;
+        protected Integer isNeedTakeAddress;
+
     }
 
     @Data

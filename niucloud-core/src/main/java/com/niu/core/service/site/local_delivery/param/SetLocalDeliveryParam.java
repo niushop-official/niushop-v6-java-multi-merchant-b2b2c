@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 public class SetLocalDeliveryParam implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private JSONObject center; // 发货地址中心点
+
     private String feeType; // 费用类型
     private BigDecimal baseDist = BigDecimal.ZERO; // 多少km内
     private BigDecimal basePrice = BigDecimal.ZERO; // 配送费用
@@ -27,7 +27,7 @@ public class SetLocalDeliveryParam implements Serializable {
     private BigDecimal weightStart = BigDecimal.ZERO; // 重量多少内不额外收费
     private BigDecimal weightUnit = BigDecimal.ZERO; // 每超出多少kg
     private BigDecimal weightPrice = BigDecimal.ZERO; // 价格
-    private JSONArray area; // 配送区域
+
     /** 配送时间设置 0 关闭 1 开启 */
     private Integer timeIsOpen = 0;
 
@@ -35,12 +35,15 @@ public class SetLocalDeliveryParam implements Serializable {
     private Integer timeType = 0;
 
     /** 营业时间  周一 周二....... */
-    private String timeWeek = "";
+    private JSONArray timeWeek;
 
     /** 时段设置单位分钟 */
     private Integer timeInterval = 30;
 
-    /** 当日的起始时间 */
+    /** 时段设置单位分钟 */
+    private Integer advanceDay = 0;
+    private Integer mostDay = 7;
+    /** 当日的起始时间*/
     private Long startTime = 0L;
 
     /** 当日的营业结束时间 */
@@ -48,4 +51,6 @@ public class SetLocalDeliveryParam implements Serializable {
 
     /** 配送时间段 */
     private JSONArray deliveryTime;
+
+    private JSONArray areaData;
 }

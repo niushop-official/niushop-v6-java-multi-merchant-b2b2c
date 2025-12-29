@@ -34,6 +34,11 @@ public interface IAuthService {
     void checkRole(HttpServletRequest request);
 
     /**
+     * 校验授权
+     */
+    void checkAuthInfo(HttpServletRequest request);
+
+    /**
      * 检测是否是演示环境
      */
     void checkIsDemo(HttpServletRequest request);

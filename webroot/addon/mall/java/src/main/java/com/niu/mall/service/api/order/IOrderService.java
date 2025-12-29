@@ -9,6 +9,8 @@ import com.niu.mall.service.api.order.vo.MallOrderInfoVo;
 import com.niu.mall.service.api.order.vo.MallOrderListVo;
 import com.niu.mall.service.api.order.vo.OrderNumVo;
 
+import java.util.Map;
+
 /**
  * 订单服务接口
  */
@@ -28,7 +30,7 @@ public interface IOrderService {
      * @param orderId 主键ID
      * @return ShopOrderInfoVo
      */
-    MallOrderInfoVo detail(Integer orderId);
+    MallOrderInfoVo detail(Integer orderId, Map<String, String> allParams);
 
     /**
      * 获取订单数量

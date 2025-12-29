@@ -1,5 +1,6 @@
 package com.niu.core.service.admin.sys;
 
+import cn.hutool.json.JSONArray;
 import com.niu.core.service.admin.stat.vo.StatSystemVo;
 import com.niu.core.service.admin.sys.vo.SysQrcodeVo;
 
@@ -15,5 +16,5 @@ public interface ISystemService {
 
     void clearCache();
 
-    SysQrcodeVo getQrcode(String folder, String page, List<Map<String,Object>> params);
+    SysQrcodeVo getQrcode(String folder, String page, Map<String, String> allParams);
 }

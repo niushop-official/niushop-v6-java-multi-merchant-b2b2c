@@ -12,7 +12,7 @@
                         </view>
                         <view class="truncate text-[26rpx] leading-[1.5] mt-[12rpx]">{{ item.full_address }}</view>
                     </view>
-                    <text class="nc-iconfont nc-icon-xiugaiV6xx text-[32rpx] ml-auto" @click="editAddress(item)"></text>
+                    <text class="nc-iconfont nc-icon-xiugaiV6xx text-[32rpx] ml-auto" @click.stop="editAddressFn(item)"></text>
                 </view>
                 <view v-if="!addressList || addressList && !addressList.length" class="text-[var(--text-color-light6)] text-[28rpx] text-center">{{ t('emptyAddress') }}</view>
             </scroll-view>
@@ -56,7 +56,10 @@ const selectAddress = (index: number = 0) => {
     if (propData.value.delivery == 'local_delivery' && !data.lat && !data.lng) {
         // 待支付订单-同城配送，选择的地址没有经纬度的情况，会直接跳转到地图界面进行选择
         // 参数二，表示是否直接跳转到地图界面, 1跳转到地图界面，2表示不跳
-        editAddress(data, 1);
+        uni.showToast({
+            title: '缺少经纬度，请在地图上重新选点',
+            icon: 'none'
+        });
     } else {
         if (data) {
             let obj: any = {}
@@ -66,6 +69,16 @@ const selectAddress = (index: number = 0) => {
         }
     }
     show.value = false;
+}
+
+const editAddressFn = (data: any) => {
+    if (propData.value.delivery == 'local_delivery' && !data.lat && !data.lng) {
+        // 待支付订单-同城配送，选择的地址没有经纬度的情况，会直接跳转到地图界面进行选择
+        // 参数二，表示是否直接跳转到地图界面, 1跳转到地图界面，2表示不跳
+        editAddress(data, 1);
+    } else{
+        editAddress(data, 2);
+    }
 }
 
 const editAddress = (data: any, isSelectMap: number = 2) => {

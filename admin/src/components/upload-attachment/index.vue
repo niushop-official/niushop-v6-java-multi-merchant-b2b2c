@@ -2,7 +2,7 @@
     <span @click="openDialog" class="cursor-pointer">
         <slot></slot>
     </span>
-    <el-dialog v-model="showDialog" :title="t('upload.select' + type)" width="60%" class="attachment-dialog" :destroy-on-close="true">
+    <el-dialog v-model="showDialog" :title="t('upload.select' + type)" width="920px" class="attachment-dialog" :destroy-on-close="true">
 
         <attachment :limit="limit" :type="type" ref="attachmentRef" />
 
@@ -52,9 +52,9 @@ const confirm = () => {
     let filesIndexObj = attachmentRef?.value.selectedFileIndex || {};
     // 整理图片顺序
     let arr = [];
-    Object.values(filesIndexObj).forEach((item,index)=>{
-        for(let key in filesObj){
-            if(item == key){
+    Object.values(filesIndexObj).forEach((item, index) => {
+        for (let key in filesObj) {
+            if (item == key) {
                 arr.push(deepClone(filesObj[key]))
             }
         }

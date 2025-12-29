@@ -41,6 +41,7 @@ public class WebSiteResourceFilter implements Filter {
         // =======================================================================================//
         String contextPath = request.getContextPath();
         String requestUri = request.getRequestURI();
+
         requestUri = requestUri.replace(contextPath, "");
         if ("".equals(requestUri) || "/".equals(requestUri)) {
             response.sendRedirect(GlobalConfig.defaultAccessPath());
@@ -56,6 +57,11 @@ public class WebSiteResourceFilter implements Filter {
             request.getRequestDispatcher(requestUri).forward(request, response);
             return;
         }
+        log.info("url： " + requestUri);
+        if (requestUri.startsWith("/adminapp")) {
+            request.getRequestDispatcher("/adminapp/index.html").forward(request, response);
+            return;
+        }
 
         if (requestUri.startsWith("/admin") && !requestUri.startsWith("/adminapi")) {
             request.getRequestDispatcher("/admin/index.html").forward(request, response);
@@ -69,6 +75,7 @@ public class WebSiteResourceFilter implements Filter {
             request.getRequestDispatcher("/wap/index.html").forward(request, response);
             return;
         }
+
         if (requestUri.startsWith("/web")) {
             request.getRequestDispatcher("/web/index.html").forward(request, response);
             return;

@@ -14,7 +14,8 @@ import java.util.Map;
 public enum DeliveryTypeEnum {
     
     EXPRESS("express", "物流配送"),
-    LOCAL_DELIVERY("local_delivery", "同城配送");
+    LOCAL_DELIVERY("local_delivery", "同城配送"),
+    STORE("store", "门店自提");
 
     private final String type;
     private final String name;

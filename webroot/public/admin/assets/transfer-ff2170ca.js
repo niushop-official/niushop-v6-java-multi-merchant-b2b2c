@@ -1,1 +1,0 @@
-import{_ as o}from"./transfer.vue_vue_type_style_index_0_lang-168adc1e.js";import"./index-f6cc14a9.js";/* empty css                   *//* empty css                  *//* empty css                   *//* empty css                  *//* empty css                */import"./el-form-item-4ed993c7.js";/* empty css                 */import"./shop_site-51432371.js";export{o as default};

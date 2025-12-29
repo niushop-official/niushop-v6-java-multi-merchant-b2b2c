@@ -31,7 +31,7 @@ public class DiyFormController {
 
     @SaCheckLogin
     @GetMapping("/record")
-    public Result<?> getRecord(@RequestParam(name="record_id", required = true) Integer recordId) {
+    public Result<?> getRecord(@RequestParam(name="record_id", required = false) Integer recordId) {
         return Result.success(diyFormService.getFormRecordInfo(recordId));
     }
 
@@ -46,4 +46,20 @@ public class DiyFormController {
         return Result.success(HttpEnum.SUCCESS.getCode(), HttpEnum.SUCCESS.getMsg(), diyFormService.addRecord(param));
     }
 
+    @SaCheckLogin
+    @PutMapping("/record")
+    public Result<?> editRecord(@RequestBody DiyFormRecordsParam param) {
+        diyFormService.editRecord(param);
+        return Result.success();
+    }
+
+    /**
+     * 获取个人资料表单填写记录
+     * @return
+     */
+    @SaCheckLogin
+    @GetMapping("/member_record")
+    public Result<?> getMemberInfoRecord() {
+        return Result.success(diyFormService.getMemberInfoFormRecordInfo());
+    }
 }

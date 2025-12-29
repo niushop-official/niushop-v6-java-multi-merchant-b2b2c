@@ -1,6 +1,9 @@
 package com.niu.core.service.api.shop.vo;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.niu.core.common.utils.CommonUtils;
+import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.api.goods.vo.MallGoodsSkuListVo;
 import lombok.Data;
 
@@ -182,5 +185,21 @@ private static final long serialVersionUID = 1L;
         @JsonProperty("goodsSku")
         private MallGoodsSkuListVo goodsSku;
 
+        private String goodsCoverThumbMid;
 
+        public String getGoodsCoverThumbSmall() {
+                String imagStr = CommonUtils.thumbImageSmall(this.siteId, this.getGoodsCover());
+                if(ObjectUtil.isEmpty(imagStr)){
+                        return this.getGoodsCover();
+                }
+                return imagStr;
+        }
+
+        public String getGoodsCoverThumbMid() {
+                String imagStr = CommonUtils.thumbImageMiddle(this.siteId, this.getGoodsCover());
+                if(ObjectUtil.isEmpty(imagStr)){
+                        return this.getGoodsCover();
+                }
+                return imagStr;
+        }
 }

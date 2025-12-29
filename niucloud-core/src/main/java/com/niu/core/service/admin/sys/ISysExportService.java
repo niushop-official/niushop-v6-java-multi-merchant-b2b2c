@@ -4,6 +4,7 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.service.admin.sys.param.SysExportSearchParam;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.service.admin.sys.vo.SysExportListVo;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Map;
 
@@ -40,7 +41,7 @@ public interface ISysExportService {
      * @param whereMap
      * @return
      */
-    Boolean checkExportData(String type, Map<String, Object> whereMap);
+    Boolean checkExportData(String type, Map<String, Object> whereMap, HttpServletRequest request);
 
     /**
      * 导出数据
@@ -48,6 +49,6 @@ public interface ISysExportService {
      * @param type
      * @param whereMap
      */
-    void exportData(String type, Map<String, Object> whereMap);
+    void exportData(String type, Map<String, Object> whereMap, HttpServletRequest request);
 
 }

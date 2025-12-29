@@ -22,4 +22,5 @@ public class FinishShopDeliveryOrderParam implements Serializable {
 
     /** 状态 */
     private String status;
+    private String notifyUrl;
 }

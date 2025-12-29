@@ -377,3 +377,25 @@ export function distance(distance: string | number): string {
     if (isNaN(dist)) return distance.toString();
     return dist < 1 ? (dist * 1000).toFixed(2) + 'm' : dist.toFixed(2) + 'km'
 }
+
+/**
+ * 复制
+ * @param {Object} message
+ * @param {Object} callback
+ */
+export function copy(value: any, callback: any = null) {
+    var oInput = document.createElement('input'); //创建一个隐藏input（重要！）
+    oInput.value = value; //赋值
+    oInput.setAttribute("readonly", "readonly");
+    document.body.appendChild(oInput);
+    oInput.select(); // 选择对象
+    document.execCommand("Copy"); // 执行浏览器复制命令
+    oInput.className = 'oInput';
+    oInput.style.display = 'none';
+    document.body.removeChild(oInput); // 删除创建的对象
+    ElMessage({
+        message: '复制成功',
+        type: 'success',
+    })
+    typeof callback == 'function' && callback();
+}

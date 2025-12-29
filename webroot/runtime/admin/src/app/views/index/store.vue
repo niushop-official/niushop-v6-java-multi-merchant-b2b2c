@@ -336,7 +336,7 @@
                             <template #content>
                                 <div class="w-[400px]">
                                     {{t("installTips")}}
-                                </div>    
+                                </div>
                             </template>
                             <el-button :disabled="!installCheckResult.is_pass || cloudInstalling" :loading="localInstalling" @click="handleInstall">{{ t("localInstall") }}</el-button>
                         </el-tooltip>
@@ -344,7 +344,7 @@
                             <template #content>
                                 <div class="w-[400px]">
                                     {{t("cloudInstallTips")}}
-                                </div>    
+                                </div>
                             </template>
                             <el-button type="primary" :disabled="!installCheckResult.is_pass || localInstalling" :loading="cloudInstalling" @click="handleCloudInstall">{{ t("cloudInstall") }}</el-button>
                         </el-tooltip>
@@ -370,7 +370,7 @@
                         </template>
                     </el-result>
                 </div>
-                <div class="h-[50vh] mt-[20px] flex flex-col" v-show="errorDialog">
+                <div class="h-[50vh] mt-[20px] flex flex-col" v-show="installStep == 3 && errorDialog">
                     <el-result icon="error" :title="t('安装失败')">
                         <template #icon>
                             <img src="@/app/assets/images/error_icon.png" alt="">
@@ -751,7 +751,7 @@ const installAddonFn = (key: string) => {
  */
 const upgradeStartTime = ref<number | null>(null)
 const upgradeDuration = ref(0) // 单位：秒
-let upgradeTimer: ReturnType<typeof setInterval> | null = null 
+let upgradeTimer: ReturnType<typeof setInterval> | null = null
 let notificationEl = null
 let restarting = false
 const getInstallTask = (first: boolean = true) => {
@@ -797,7 +797,8 @@ const getInstallTask = (first: boolean = true) => {
                         restarting = false
                         break;
                     case "fail":
-                        terminalRef.value.pushMessage({ content: res.data.failReason, class: 'error' })
+                        installStep.value = 3
+                        terminalRef.value?.pushMessage({ content: res.data.failReason, class: 'error' })
                         errorMsg.value = res.data.failReason
                         errorDialog.value = true
                         if (upgradeTimer) {
@@ -1272,7 +1273,7 @@ html.dark .table-head-bg {
     height: 100px;
 }
 :deep(.el-table__body tr:hover td:first-child) {
-    // border-bottom: 1px solid var(--el-table-border-color); 
+    // border-bottom: 1px solid var(--el-table-border-color);
 }
 :deep(.el-table__body tr) {
   position: relative;

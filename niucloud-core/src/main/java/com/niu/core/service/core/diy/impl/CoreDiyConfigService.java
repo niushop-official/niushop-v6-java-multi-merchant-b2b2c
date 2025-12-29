@@ -40,7 +40,7 @@ public class CoreDiyConfigService implements ICoreDiyConfigService {
     private static JSONArray bottomSiteJson;
 
     private static JSONArray getBottomJson() {
-        if(bottomSiteJson == null || bottomSiteJson.isEmpty()){
+        if(bottomJson == null || bottomJson.isEmpty()){
             JsonModuleLoader jsonModuleLoader = new JsonModuleLoader();
             bottomJson = jsonModuleLoader.mergeContentToArray("diy/bottom.json");
         }
@@ -125,9 +125,8 @@ public class CoreDiyConfigService implements ICoreDiyConfigService {
 
 
         BottomConfigVo config = list.stream().filter(vo -> vo.getKey().equals(key)).findFirst().orElse(null);
-        JSONObject jsonObject = coreConfigService.getConfigValue(siteId, "diy_bottom");
-        if(ObjectUtil.isNotEmpty(jsonObject))
-        {
+        JSONObject jsonObject = coreConfigService.getConfigValue(siteId, "diy_bottom_"+key);
+        if(ObjectUtil.isNotEmpty(jsonObject)) {
             BottomConfigValue bottomConfigValue = JSONUtil.toBean(jsonObject, BottomConfigValue.class);
             config.setValue(bottomConfigValue);
 
@@ -143,8 +142,8 @@ public class CoreDiyConfigService implements ICoreDiyConfigService {
      * @param bottomConfigValue
      */
     @Override
-    public void setBottomConfig(Integer siteId, BottomConfigValue bottomConfigValue) {
-        coreConfigService.setConfig(siteId, "diy_bottom", JSONUtil.parseObj(bottomConfigValue));
+    public void setBottomConfig(Integer siteId, BottomConfigValue bottomConfigValue,String key) {
+        coreConfigService.setConfig(siteId, "diy_bottom_"+key, JSONUtil.parseObj(bottomConfigValue));
     }
 
     /**

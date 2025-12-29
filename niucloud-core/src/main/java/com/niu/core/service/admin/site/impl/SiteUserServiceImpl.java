@@ -3,21 +3,26 @@ package com.niu.core.service.admin.site.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
+import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.AdminException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.config.GlobalConfig;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.sys.SysRole;
 import com.niu.core.entity.sys.SysUser;
 import com.niu.core.entity.sys.SysUserRole;
 import com.niu.core.enums.member.StatusEnum;
+import com.niu.core.enums.sys.AppTypeEnum;
 import com.niu.core.mapper.sys.SysRoleMapper;
 import com.niu.core.mapper.sys.SysUserMapper;
 import com.niu.core.mapper.sys.SysUserRoleMapper;
+import com.niu.core.service.admin.auth.ILoginService;
 import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.site.ISiteUserService;
 import com.niu.core.service.admin.site.param.SiteUserParam;
@@ -49,6 +54,10 @@ public class SiteUserServiceImpl implements ISiteUserService {
     SysUserMapper sysUserMapper;
     @Resource
     ISiteService siteService;
+    @Resource
+    ILoginService loginService;
+    @Resource
+    private Cached cached;
     /**
      * 用户管理员列表
      *
@@ -155,6 +164,13 @@ public class SiteUserServiceImpl implements ISiteUserService {
     @Override
     public void edit(Integer uid, SiteUserParam siteUserParam) {
         try{
+            QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("uid", uid).select("uid");
+            SysUser sysUser = sysUserMapper.selectOne(queryWrapper);
+            if (ObjectUtil.isNull(sysUser)) {
+                throw new AdminException("用户信息不存在");
+            }
+
             SysUserParam sysUserParam=new SysUserParam();
             sysUserParam.setHeadImg(siteUserParam.getHeadImg());
             if(ObjectUtil.isNotEmpty(siteUserParam.getPassword())){
@@ -185,10 +201,14 @@ public class SiteUserServiceImpl implements ISiteUserService {
      */
     @Override
     public void lock(Integer uid) {
-        SysUser sysUser=sysUserMapper.selectById(uid);
-        sysUser.setStatus(StatusEnum.OFF.getStatus());
-        sysUserMapper.updateById(sysUser);
-
+        //修改用户权限
+        UpdateWrapper<SysUserRole> queryWrapper = new UpdateWrapper<SysUserRole>();
+        queryWrapper.eq("uid", uid).eq("site_id", RequestUtils.siteId())
+                .set("status", StatusEnum.OFF.getStatus());
+        sysUserRoleMapper.update(queryWrapper);
+        loginService.clearToken(uid, AppTypeEnum.SITE.getName(), null);
+        cached.remove("user_role_list_" + uid);
+        cached.remove("user_role_" + uid+"_"+RequestUtils.siteId());
     }
 
     /**
@@ -198,8 +218,13 @@ public class SiteUserServiceImpl implements ISiteUserService {
      */
     @Override
     public void unlock(Integer uid) {
-        SysUser sysUser=sysUserMapper.selectById(uid);
-        sysUser.setStatus(StatusEnum.ON.getStatus());
-        sysUserMapper.updateById(sysUser);
+        //修改用户权限
+        UpdateWrapper<SysUserRole> queryWrapper = new UpdateWrapper<SysUserRole>();
+        queryWrapper.eq("uid", uid).eq("site_id", RequestUtils.siteId())
+                .set("status", StatusEnum.ON.getStatus());
+        sysUserRoleMapper.selectList(queryWrapper);
+        loginService.clearToken(uid, AppTypeEnum.SITE.getName(), null);
+        cached.remove("user_role_list_" + uid);
+        cached.remove("user_role_" + uid+"_"+RequestUtils.siteId());
     }
 }

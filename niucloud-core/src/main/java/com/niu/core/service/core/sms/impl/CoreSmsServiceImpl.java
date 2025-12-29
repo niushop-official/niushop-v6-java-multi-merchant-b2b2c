@@ -8,6 +8,7 @@ import com.niu.core.common.loader.notice.NoticeDataVo;
 import com.niu.core.common.loader.sms.BaseSms;
 import com.niu.core.common.loader.sms.SendResultVo;
 import com.niu.core.common.loader.sms.SmsLoader;
+import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.sys.SysNoticeSmsLog;
 import com.niu.core.enums.sys.SmsStatusEnum;
 import com.niu.core.mapper.sys.SysNoticeSmsLogMapper;
@@ -34,7 +35,7 @@ public class CoreSmsServiceImpl implements ICoreSmsService {
      * @param noticeData
      */
     public void send(Integer siteId, NoticeInfoVo notice, NoticeDataVo noticeData) {
-        JSONObject config = this.getDefaultSmsConfig(siteId);
+        JSONObject config = this.getDefaultSmsConfig(RequestUtils.defaultSiteId());
 
         SysNoticeSmsLog model = new SysNoticeSmsLog();
         model.setSiteId(siteId);

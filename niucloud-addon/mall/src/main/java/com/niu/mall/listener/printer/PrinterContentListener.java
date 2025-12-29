@@ -2,6 +2,7 @@ package com.niu.mall.listener.printer;
 
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
@@ -29,6 +30,7 @@ import com.niu.mall.service.admin.order.IMallOrderService;
 import com.niu.mall.service.admin.order.vo.MallOrderInfoVo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,7 +39,7 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Component
 @EventCallback("mall")
 public class PrinterContentListener extends AbstractPrinterContentCallbackListener {
@@ -68,9 +70,9 @@ public class PrinterContentListener extends AbstractPrinterContentCallbackListen
         printerLambdaQueryWrapper.eq(SysPrinter::getSiteId, event.getParam().getSiteId())
                 .eq(SysPrinter::getStatus, 1)
                 .like(SysPrinter::getTemplateType, KEY)
-                .or(queryWrapper -> queryWrapper.like(SysPrinter::getTrigger, "shopGoodsOrder_trigger_pay_after")
-                        .like(SysPrinter::getTrigger, "shopGoodsOrder_trigger_take_delivery")
-                        .like(SysPrinter::getTrigger, "shopGoodsOrder_trigger_manual"));
+                .or(queryWrapper -> queryWrapper.like(SysPrinter::getTrigger, "mallGoodsOrder_trigger_pay_after")
+                        .like(SysPrinter::getTrigger, "mallGoodsOrder_trigger_take_delivery")
+                        .like(SysPrinter::getTrigger, "mallGoodsOrder_trigger_manual"));
         List<SysPrinter> printers = printerMapper.selectList(printerLambdaQueryWrapper);
 
         if (ObjectUtil.isEmpty(printers)) {
@@ -108,9 +110,11 @@ public class PrinterContentListener extends AbstractPrinterContentCallbackListen
             BeanUtils.copyProperties(shopOrder.getPay(), pay);
             order.setPay(pay);
         }
+        log.info("打印订单信息:{}", JSONUtil.toJsonStr(param));
 
         printers = printers.stream()
                 .filter(printer -> {
+                    log.info("printer:{}", JSONUtil.toJsonStr(printer));
                     JSONObject value = JSONObject.parseObject(printer.getValue());
                     JSONObject type = value.getJSONObject(param.getType());
                     JSONObject trigger;

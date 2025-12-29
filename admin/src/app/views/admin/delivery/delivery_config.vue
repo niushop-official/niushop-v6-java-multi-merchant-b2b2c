@@ -21,6 +21,11 @@
                         <el-switch v-model="formData.is_local_delivery" :active-value="1" :inactive-value="0" />
                     </div>
                 </el-form-item>
+                <el-form-item :label="t('isStore')">
+                    <div>
+                        <el-switch v-model="formData.is_store" :active-value="1" :inactive-value="0" />
+                    </div>
+                </el-form-item>
             </el-card>
         </el-form>
         <div class="fixed-footer-wrap">

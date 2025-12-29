@@ -14,9 +14,13 @@ import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.core.sys.ICoreUploadService;
+import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsEvaluate;
 import com.niu.mall.enums.goods.GoodsEvaluateEnum;
 import com.niu.mall.mapper.goods.MallGoodsEvaluateMapper;
+import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.mall.service.core.goods.ICoreGoodsEvaluateService;
+import com.niu.mall.service.core.goods.param.ShopScoreCalcuParam;
 import com.niu.mall.service.site.goods.IMallGoodsEvaluateService;
 import com.niu.mall.service.site.goods.param.MallGoodsEvaluateParam;
 import com.niu.mall.service.site.goods.param.MallGoodsEvaluateSearchParam;
@@ -48,7 +52,13 @@ public class MallGoodsEvaluateServiceImpl implements IMallGoodsEvaluateService {
     MallGoodsEvaluateMapper mallGoodsEvaluateMapper;
 
     @Resource
+    MallGoodsMapper mallGoodsMapper;
+
+    @Resource
     ICoreUploadService coreUploadService;
+
+    @Resource
+    ICoreGoodsEvaluateService coreGoodsEvaluateService;
 
     /**
      * 商品评价列表
@@ -224,6 +234,19 @@ public class MallGoodsEvaluateServiceImpl implements IMallGoodsEvaluateService {
         param.setGoodsId(record.getGoodsId());
         param.setEvaluateNum(1);
         coreGoodsStatService.addStat(param);
+
+        //查询商品信息
+        MallGoods mallGoods = mallGoodsMapper.selectById(mallGoodsEvaluate.getGoodsId());
+        mallGoods.setEvaluateNum(mallGoods.getEvaluateNum()+1);
+        mallGoodsMapper.updateById(mallGoods);
+
+        //计算店铺分数
+        ShopScoreCalcuParam shopScoreCalcuParam = new ShopScoreCalcuParam();
+        shopScoreCalcuParam.setSiteId(mallGoodsEvaluate.getSiteId());
+        shopScoreCalcuParam.setQualityScore(mallGoodsEvaluate.getQualityScore());
+        shopScoreCalcuParam.setServiceScore(mallGoodsEvaluate.getServiceScore());
+        shopScoreCalcuParam.setLogisticsScore(mallGoodsEvaluate.getLogisticsScore());
+        coreGoodsEvaluateService.shopScoreCalculate(shopScoreCalcuParam);
     }
 
     @Override

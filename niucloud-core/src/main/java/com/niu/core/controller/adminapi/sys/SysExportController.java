@@ -8,6 +8,7 @@ import com.niu.core.enums.sys.ExportEnum;
 import com.niu.core.service.admin.sys.ISysExportService;
 import com.niu.core.service.admin.sys.param.SysExportSearchParam;
 import com.niu.core.service.admin.sys.vo.SysExportListVo;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,16 +69,16 @@ public class SysExportController {
      * 报表导出数据检查
      */
     @GetMapping("/export/check/{type}")
-    public Result<Object> check(@Validated @PathVariable("type") String type, @RequestParam Map<String, Object> objectMap) {
-        return Result.success("", sysExportService.checkExportData(type, objectMap));
+    public Result<Object> check(@Validated @PathVariable("type") String type, @RequestParam Map<String, Object> objectMap, HttpServletRequest request) {
+        return Result.success("", sysExportService.checkExportData(type, objectMap,request));
     }
 
     /**
      * 报表导出
      */
     @GetMapping("/export/{type}")
-    public Result<Object> export(@Validated @PathVariable("type") String type, @RequestParam Map<String, Object> jsonObject) {
-        sysExportService.exportData(type, jsonObject);
+    public Result<Object> export(@Validated @PathVariable("type") String type, @RequestParam Map<String, Object> jsonObject, HttpServletRequest request) {
+        sysExportService.exportData(type, jsonObject,request);
         return Result.success();
     }
 

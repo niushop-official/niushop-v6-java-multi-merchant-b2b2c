@@ -35,9 +35,3 @@ export function getShopFollowList(params: Record<string, any>) {
     return request.get(`shop/web/follow`, params)
 }
 
-/**
- * 获取店铺小程序二维码
- */
-export function getShopQrcode(id: number) {
-    return request.get(`shop/web/shop/qrcode/${ id }`)
-}

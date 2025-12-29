@@ -16,15 +16,15 @@ public class PayRefundTransferParam implements Serializable {
 
     private Integer siteId;
 
-    @NotNull(message = "refundNo参数缺失")
-    @NotBlank(message = "退款单号不能为空")
+
     private String refundNo;
 
-    @NotNull(message = "refund_type参数缺失")
-    @NotBlank(message = "退款方式不能为空")
+
     private String refundType = "back";
 
-    @NotNull(message = "voucher参数缺失")
+
     private String voucher;
 
+    private String mainType;
+    private Integer mainId;
 }

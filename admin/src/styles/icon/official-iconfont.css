@@ -13,14 +13,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.nc-icon-xia:before {
-  content: "\e8de";
-}
-
-.nc-icon-shang:before {
-  content: "\e8df";
-}
-
 .nc-icon-shoujiV6xx:before {
   content: "\e7a1";
 }

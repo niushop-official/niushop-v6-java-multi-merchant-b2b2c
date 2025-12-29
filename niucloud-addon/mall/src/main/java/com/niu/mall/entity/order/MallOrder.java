@@ -88,7 +88,7 @@ public class MallOrder implements Serializable {
     private BigDecimal supplyRefundMoney; // 返还供货商支出
     private BigDecimal supplyDeliveryMoney; // 供货商运费
     private String settlementStatus; // 结算状态
-    private Integer settlementTime; // 结算时间
+    private Long settlementTime; // 结算时间
     
     /** 购买人要求的配送/发货/自提时间（文本） */
     private String buyerAskDeliveryTime;

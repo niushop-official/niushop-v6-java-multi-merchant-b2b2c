@@ -140,7 +140,7 @@
         </view>
         <!--  #endif -->
         <!--  #ifndef  H5 -->
-        <view v-if="cartList.length" class="pl-[30rpx] pr-[20rpx] flex h-[96rpx] items-center bg-[#fff] fixed left-0 right-0 bottom-[100rpx] box-solid mb-ios justify-between border-0 border-t-[2rpx] border-solid border-[#f6f6f6]">
+        <view v-if="cartList.length" class="pl-[30rpx] pr-[20rpx] flex h-[96rpx] items-center bg-[#fff] z-50 fixed left-0 right-0 bottom-[100rpx] box-solid mb-ios justify-between border-0 border-t-[2rpx] border-solid border-[#f6f6f6]">
             <view class="flex items-center" @click="allChange">
                 <text class="self-center iconfont text-color text-[30rpx] mr-[20rpx] w-[34rpx] h-[34rpx] rounded-[17rpx] overflow-hidden flex-shrink-0" :class=" isSelectAll ? 'iconxuanze1' : 'bg-[#F5F5F5]'"></text>
                 <text class="font-400 text-[#303133] text-[26rpx]">全选</text>

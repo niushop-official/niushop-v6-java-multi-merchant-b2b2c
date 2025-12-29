@@ -1,6 +1,7 @@
 package com.niu.core.service.api.shop.param;
 
 
+import cn.hutool.json.JSONArray;
 import lombok.Data;
 
 import java.util.List;
@@ -17,6 +18,9 @@ public class ShopSearchParam {
     private String keyword;
     private String order;
     private Integer groupId;
-    private List<Integer> categoryId;
+    private List< Integer> categoryId;
     private Integer isSelf;
+    private Integer isLocalDelivery;
+    private Integer isLocation;
+    private List<String> deliveryType;
 }

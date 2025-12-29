@@ -1,7 +1,7 @@
 package com.niu.core.controller.siteapi.delivery;
 
 import com.niu.core.common.domain.Result;
-import com.niu.core.service.site.delivery.IDeliveryStoreService;
+import com.niu.core.service.site.delivery.IDeliveryStoreServiceService;
 import com.niu.core.service.core.delivery_store.param.DeliveryStoreShopEditParam;
 import com.niu.core.service.core.delivery_store.param.DeliveryShopOpenParam;
 import com.niu.core.service.core.delivery_store.vo.DeliveryStoreListVo;
@@ -18,7 +18,7 @@ import java.util.List;
 public class DeliveryStoreController {
     
     @Resource
-    private IDeliveryStoreService deliveryStoreService;
+    private IDeliveryStoreServiceService deliveryStoreService;
 
     /**
      * 获取配送服务商列表
@@ -37,9 +37,9 @@ public class DeliveryStoreController {
      * @return 操作结果
      */
     @PutMapping("/delivery_shop_open/{id}")
-    public Result<String> deliveryShopOpen(@PathVariable("id") Integer id, @RequestBody DeliveryShopOpenParam param) {
+    public Result deliveryShopOpen(@PathVariable("id") Integer id, @RequestBody DeliveryShopOpenParam param) {
         deliveryStoreService.deliveryShopOpen(id, param);
-        return Result.success("SUCCESS");
+        return Result.success(true);
     }
 
     /**
@@ -49,8 +49,8 @@ public class DeliveryStoreController {
      * @return 操作结果
      */
     @PutMapping("/delivery_shop_edit/{id}")
-    public Result<String> deliveryShopEdit(@PathVariable("id") Integer id, @RequestBody DeliveryStoreShopEditParam param) {
+    public Result deliveryShopEdit(@PathVariable("id") Integer id, @RequestBody DeliveryStoreShopEditParam param) {
         deliveryStoreService.deliveryShopEdit(id, param);
-        return Result.success("SUCCESS");
+        return Result.success(true);
     }
 }

@@ -13,6 +13,7 @@ import com.freewayso.image.combiner.enums.OutputFormat;
 import com.niu.core.common.component.context.WebAppEnvs;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.QrcodeUtils;
+import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.file.FileTools;
 import com.niu.core.common.utils.image.ImageUtils;
 import com.niu.core.common.utils.json.JsonModuleLoader;
@@ -67,14 +68,37 @@ public class CorePosterServiceImpl implements ICorePosterService {
             JSONObject poster = new JSONObject();
             if (model == null) {
                 JSONArray template = template("", normalizedType);
+                System.out.println("海报模板查询结果数量: " + template.size() + ", type: " + normalizedType);
                 if (template.size() > 0) {
                     poster = template.getJSONObject(0).getJSONObject("data");
+                    System.out.println("海报模板加载成功");
+                } else {
+                    System.out.println("海报模板为空，type: " + normalizedType);
                 }
             } else {
                 poster = JSONUtil.parseObj(model.getValue());
+                System.out.println("从数据库加载海报模板");
             }
+            
+            if (poster.isEmpty()) {
+                System.out.println("警告：海报模板为空，type: " + normalizedType);
+                // 如果海报模板为空，尝试从模板文件加载
+                JSONArray template = template("", normalizedType);
+                if (template.size() > 0) {
+                    poster = template.getJSONObject(0).getJSONObject("data");
+                    System.out.println("从模板文件重新加载海报模板成功");
+                } else {
+                    System.out.println("从模板文件加载失败，模板文件可能不存在");
+                }
+            }
+            
             Map<String, Object> posterDataparam = BeanUtil.beanToMap(param);
             posterDataparam.putAll(param.getParam());
+            System.out.println("海报参数: " + posterDataparam);
+            System.out.println("海报类型: " + normalizedType);
+            System.out.println("站点ID: " + param.getSiteId());
+            System.out.println("渠道: " + param.getChannel());
+            
             // 获取海报数据
             GetPosterDataEventDefiner.GetPosterDataEvent event = new GetPosterDataEventDefiner.GetPosterDataEvent();
             event.setSiteId(param.getSiteId());
@@ -82,16 +106,32 @@ public class CorePosterServiceImpl implements ICorePosterService {
             event.addAppSign("mall");
             event.addAppSign("mall_fenxiao");
             event.addAppSign("shop");
+            event.addAppSign("points_mall");
             event.setName("GetPosterDataEvent");
             event.setType(normalizedType);
             event.setParam(posterDataparam);
             event.setChannel(param.getChannel());
+            
+            System.out.println("发布GetPosterDataEvent，type: " + normalizedType + ", appSigns: [core, mall, mall_fenxiao, shop, points_mall]");
             List<GetPosterDataEventDefiner.GetPosterDataResult> eventData = EventAndSubscribeOfPublisher.publishAndCallback(event);
+            System.out.println("海报数据监听器返回结果数量: " + eventData.size());
+            for (int i = 0; i < eventData.size(); i++) {
+                GetPosterDataEventDefiner.GetPosterDataResult result = eventData.get(i);
+                System.out.println("结果[" + i + "]: " + (result == null ? "null" : "not null"));
+                if (result != null && result.getData() != null) {
+                    System.out.println("结果[" + i + "] data: " + result.getData());
+                    System.out.println("结果[" + i + "] data isEmpty: " + result.getData().isEmpty());
+                }
+            }
             GetPosterDataEventDefiner.GetPosterDataResult posterData = eventData.stream()
                     .filter(r -> r != null && r.getData() != null && !r.getData().isEmpty())
                     .findFirst()
                     .orElse(null);
-            if (posterData == null) throw new CommonException("未获取到海报数据");
+            if (posterData == null) {
+                System.out.println("未获取到海报数据，抛出异常");
+                throw new CommonException("未获取到海报数据");
+            }
+            System.out.println("成功获取到海报数据");
 
             String dir = "upload/poster/" + param.getSiteId() + "/";
             String posterName = "poster_" + SecureUtil.md5(poster.toString()) + "_" + SecureUtil.md5(JSONUtil.parseObj(posterData).toString()) + "_" + param.getChannel() + ".png";
@@ -101,12 +141,16 @@ public class CorePosterServiceImpl implements ICorePosterService {
             }
 
             // 绘制海报
-            create(param.getSiteId(), poster, posterData.getData(), dir, posterName);
+            create(param.getSiteId(), poster, posterData.getData(), dir, posterName, param.getChannel());
             return dir + posterName;
         } catch (Exception e) {
-            System.out.println("海报生成错误");
+            System.out.println("海报生成错误: " + e.getMessage());
             e.printStackTrace();
-            if (param.getIsThrowException()) throw new CommonException(e.getMessage());
+            if (param.getIsThrowException()) {
+                System.out.println("抛出异常: " + e.getMessage());
+                throw new CommonException(e.getMessage());
+            }
+            System.out.println("返回空字符串（isThrowException=false）");
             return "";
         }
     }
@@ -116,8 +160,9 @@ public class CorePosterServiceImpl implements ICorePosterService {
      *
      * @param poster
      * @param posterData
+     * @param channel 渠道
      */
-    private void create(Integer siteId, JSONObject poster, Map<String, Object> posterData, String dir, String posterName) throws Exception {
+    private void create(Integer siteId, JSONObject poster, Map<String, Object> posterData, String dir, String posterName, String channel) throws Exception {
         ImageCombiner combiner = null;
         String bgType = poster.getByPath("global.bgType", String.class);
         if ("color".equals(bgType)) {
@@ -157,6 +202,37 @@ public class CorePosterServiceImpl implements ICorePosterService {
         if (items == null) {
             items = new JSONArray();
         }
+        
+        // 对应PHP逻辑：在绘制前处理qrcode类型，将其转换为image类型并生成二维码图片路径
+        if (channel == null || channel.isEmpty()) {
+            channel = RequestUtils.channel();
+        }
+        for (int i = 0; i < items.size(); i++) {
+            JSONObject item = items.getJSONObject(i);
+            String itemType = item.getStr("type", "").toLowerCase();
+            String relate = item.getStr("relate", "");
+            
+            // 如果类型是二维码，需要先生成二维码图片路径
+            if ("qrcode".equals(itemType) && !relate.isEmpty()) {
+                Object urlObj = posterData.get(relate);
+                if (urlObj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> urlMap = (Map<String, Object>) urlObj;
+                    String url = (String) urlMap.getOrDefault("url", "");
+                    String page = (String) urlMap.getOrDefault("page", "");
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> urlData = (Map<String, Object>) urlMap.getOrDefault("data", new HashMap<>());
+                    
+                    // 生成二维码图片路径
+                    String qrcodePath = QrcodeUtils.qrcodeToFile(siteId, channel, url, page, urlData, "");
+                    
+                    // 将类型改为image，value设置为二维码图片路径
+                    item.set("type", "image");
+                    item.set("value", qrcodePath);
+                }
+            }
+        }
+        
         for (int i = 0; i < items.size(); i++) {
             JSONObject item = items.getJSONObject(i);
 

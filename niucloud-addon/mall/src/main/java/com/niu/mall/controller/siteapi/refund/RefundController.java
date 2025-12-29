@@ -2,6 +2,7 @@ package com.niu.mall.controller.siteapi.refund;
 
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.Result;
+import com.niu.mall.enums.order.OrderRefundStatusEnum;
 import com.niu.mall.service.site.refund.IRefundActionService;
 import com.niu.mall.service.core.refund.param.ActiveRefundParam;
 import com.niu.mall.service.site.refund.param.AuditApplyParam;
@@ -88,5 +89,15 @@ public class RefundController {
     public Result active(@RequestBody ActiveRefundParam param) {
         refundActionService.shopActiveRefund(param);
         return Result.success();
+    }
+
+    /**
+     * 退款地址列表
+     *
+     * @return
+     */
+    @GetMapping("/status")
+    public Result status() {
+        return Result.success(OrderRefundStatusEnum.getRefundShowStatus());
     }
 }

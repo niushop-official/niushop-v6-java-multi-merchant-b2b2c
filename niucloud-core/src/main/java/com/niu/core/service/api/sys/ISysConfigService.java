@@ -53,5 +53,12 @@ public interface ISysConfigService {
      */
     CoreSysConfigVo service();
 
+    /**
+     * 获取服务信息
+     *
+     * @return
+     */
+    String getIndexQrcode();
+
     SysWeappListSettingVo getWeappListSetting();
 }

@@ -5,6 +5,8 @@ import com.niu.mall.entity.order.MallOrderDelivery;
 import com.niu.mall.service.core.order.param.OrderDeliveryDataParam;
 import com.niu.mall.service.core.order.param.OrderDeliveryParam;
 
+import java.math.BigDecimal;
+
 /**
  * 订单发货接口
  */
@@ -35,6 +37,13 @@ public interface ICoreOrderDeliveryService {
      * @param orderDeliveryDataParam
      */
     void localDelivery(OrderDeliveryDataParam orderDeliveryDataParam);
+
+    /**
+     * 门店自提
+     * @param orderDeliveryDataParam
+     */
+    void store(OrderDeliveryDataParam orderDeliveryDataParam);
+
     /**
      * 检测订单发货完成
      * @return

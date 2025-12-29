@@ -1,21 +1,27 @@
 package com.niu.core.service.site.local_delivery.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDelivery;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryService;
+import com.niu.core.entity.delivery.DeliveryStore;
 import com.niu.core.entity.site.SiteAddress;
 import com.niu.core.enums.local_delivery.LocalDeliveryOpenEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryMapper;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryServiceMapper;
+import com.niu.core.mapper.delivery.DeliveryStoreMapper;
 import com.niu.core.mapper.site.SiteAddressMapper;
 import com.niu.core.service.site.local_delivery.ILocalDeliveryService;
 import com.niu.core.service.site.local_delivery.ILocalDeliveryServiceService;
 import com.niu.core.service.site.local_delivery.param.SetLocalDeliveryParam;
 import com.niu.core.service.site.local_delivery.vo.LocalDeliveryServiceListVo;
 import com.niu.core.service.site.local_delivery.vo.LocalDeliveryServiceVo;
+import com.niu.core.service.site.local_delivery.vo.LocalDeliveryStoreVo;
 import com.niu.core.service.site.local_delivery.vo.LocalDeliveryVo;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
@@ -38,6 +44,8 @@ public class LocalDeliveryServiceImpl implements ILocalDeliveryService {
 
     @Resource
     private DeliveryLocalDeliveryMapper deliveryLocalDeliveryMapper;
+    @Resource
+    private DeliveryStoreMapper deliveryStoreMapper;
 
     @Override
     public Integer setLocal(SetLocalDeliveryParam param) {
@@ -48,33 +56,29 @@ public class LocalDeliveryServiceImpl implements ILocalDeliveryService {
         local.setSiteId(siteId);
         local.setAdvanceDay(0);
         local.setMostDay(7);
-        local.setArea(ObjectUtil.isNotEmpty(param.getArea()) ? param.getArea().toString() : "");
-        local.setCenter(ObjectUtil.isNotEmpty(param.getCenter()) ? param.getCenter().toString() : "");
+        local.setTimeWeek(ObjectUtil.isNotEmpty(param.getTimeWeek()) ? param.getTimeWeek().toString() : "");
         local.setDeliveryTime(ObjectUtil.isNotEmpty(param.getDeliveryTime()) ? param.getDeliveryTime().toString() : "");
-        
+        local.setArea("");
         deliveryLocalDeliveryMapper.insert(local);
+
+        if(ObjectUtil.isNotEmpty(param.getAreaData())){
+            JSONArray areaData = param.getAreaData();
+            for (int i = 0; i < areaData.size(); i++){
+                JSONObject area = areaData.getJSONObject(i);
+                deliveryStoreMapper.update(new DeliveryStore(), new UpdateWrapper<DeliveryStore>()
+                        .eq("store_id", area.getInt("storeId")).set("area", area));
+            }
+        }
         return local.getLocalId();
     }
 
     @Override
-    public LocalDeliveryVo getLocal(Integer siteId) {
+    public LocalDeliveryStoreVo getLocal(Integer siteId) {
         DeliveryLocalDelivery model = deliveryLocalDeliveryMapper.selectOne(new QueryWrapper<DeliveryLocalDelivery>().eq("site_id", siteId));
-        LocalDeliveryVo local = new LocalDeliveryVo();
+        LocalDeliveryStoreVo local = new LocalDeliveryStoreVo();
         if(ObjectUtil.isNotEmpty(model)){
             BeanUtils.copyProperties(model, local);
         } else {
-            // 设置默认值
-            local.setArea("");
-            local.setCenter("");
-            local.setDeliveryTime("");
-            local.setTimeIsOpen(0); // 配送时间
-            local.setTimeType(0); // 时间
-            local.setTimeWeek(""); // 营业时间
-            local.setTimeInterval(30); //时段设置
-            local.setAdvanceDay(0); // 时间选择需提前多少天
-            local.setMostDay(7); // 最多可预约多少天
-            local.setStartTime(0L); // 当日的起始时间
-            local.setEndTime(0L); // 当日的营业结束时间
             // 收费标准默认值
             local.setBaseDist(BigDecimal.ZERO);
             local.setBasePrice(BigDecimal.ZERO);

@@ -7,6 +7,7 @@ import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.shop.SiteShopCashOut;
@@ -56,20 +57,20 @@ public class SiteShopCashOutExportDataListener extends ExportDataEventDefiner {
             Object keyword = where.get("keyword");
             if (ObjectUtil.isNotEmpty(keyword)) {
                 queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", keyword))
-                        .or(j -> j.like("ns.transfer_mobile", keyword))
+                        .or(j -> j.like("nssco.transfer_mobile", keyword))
                 );
             }
 
-            if ((where.get("create_time") instanceof String[] createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "nssco.create_time", createTimes);
+            if ((where.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "nssco.create_time", StringUtils.jsonArrayToStringArray(createTimes));
             }
 
-            if ((where.get("audit_time") instanceof String[] auditTime) && ObjectUtil.isNotEmpty(auditTime)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "nssco.audit_time", auditTime);
+            if ((where.get("audit_time") instanceof JSONArray auditTime) && ObjectUtil.isNotEmpty(auditTime)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "nssco.audit_time", StringUtils.jsonArrayToStringArray(auditTime));
             }
 
-            if ((where.get("transfer_time") instanceof String[] transferTime) && ObjectUtil.isNotEmpty(transferTime)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "nssco.transfer_time", transferTime);
+            if ((where.get("transfer_time") instanceof JSONArray transferTime) && ObjectUtil.isNotEmpty(transferTime)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "nssco.transfer_time", StringUtils.jsonArrayToStringArray(transferTime));
             }
 
             Object cashOutNo = where.get("cash_out_no");

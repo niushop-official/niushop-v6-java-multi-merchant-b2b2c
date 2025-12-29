@@ -13,6 +13,7 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.AdminException;
 import com.niu.core.common.utils.IpUtils;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.crypto.PasswordEncipher;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.entity.sys.SysRole;
@@ -178,7 +179,7 @@ public class SysUserServiceImpl implements ISysUserService {
         Integer limit =pageParam.getLimit();
 
         MPJQueryWrapper<SysUserRole> userRoleMPJQueryWrapper = new MPJQueryWrapper<>();
-        userRoleMPJQueryWrapper.select("nsur.id, nsur.is_admin, nsu.status, nsur.site_id, nsur.role_ids, nsu.uid, nsu.username, nsu.head_img, nsu.real_name, nsu.last_ip, nsu.last_time, nsu.create_time, nsu.login_count")
+        userRoleMPJQueryWrapper.select("nsur.id, nsur.is_admin, nsur.status, nsur.site_id, nsur.role_ids, nsu.uid, nsu.username, nsu.head_img, nsu.real_name, nsu.last_ip, nsu.last_time, nsu.create_time, nsu.login_count,nsu.mobile")
                 .setAlias("nsur")
                 .leftJoin("?_sys_user nsu ON nsur.uid = nsu.uid".replace("?_", GlobalConfig.tablePrefix));
         if(ObjectUtil.isNotNull(searchParam.getUsername()) && ObjectUtil.isNotEmpty(searchParam.getUsername())){
@@ -305,6 +306,10 @@ public class SysUserServiceImpl implements ISysUserService {
         if(checkUserName(addParam.getUsername())){
             throw new AdminException("USERNAME_REPEAT");
         }
+        //查询手机号是否唯一
+        if(StringUtils.isNotEmpty(addParam.getMobile()) && checkUserMobile(addParam.getMobile(), null)){
+            throw new AdminException("手机号必须是唯一的");
+        }
         SysUser sysUser = new SysUser();
         BeanUtils.copyProperties(addParam, sysUser);
         sysUser.setCreateTime(DateUtils.currTime());
@@ -336,11 +341,18 @@ public class SysUserServiceImpl implements ISysUserService {
      */
     @Override
     public void edit(Integer uid, SysUserParam editParam) {
+
         SysUser model = sysUserMapper.selectOne(
                 new QueryWrapper<SysUser>()
                         .eq("uid", uid)
                         .last("limit 1"));
         Assert.notNull(model, "数据不存在!");
+
+        //查询手机号是否唯一
+        if(StringUtils.isNotEmpty(editParam.getMobile()) && checkUserMobile(editParam.getMobile(), uid)){
+            throw new AdminException("手机号必须是唯一的");
+        }
+
         Boolean isOffStatus=false;
         if(ObjectUtil.isNotNull(editParam.getStatus())){
             model.setStatus(editParam.getStatus());
@@ -397,11 +409,23 @@ public class SysUserServiceImpl implements ISysUserService {
      */
     @Override
     public SysUserInfoVo getUserInfoByUserName(String userName) {
-        SysUser model=sysUserMapper.selectOne(new QueryWrapper<SysUser>().eq("username", userName).last("limit 1"));
+        SysUser model=sysUserMapper.selectOne(new QueryWrapper<SysUser>()
+                .and(it->  it.eq("username", userName).or().eq("mobile", userName))
+                .last("limit 1"));
         Assert.notNull(model, "账号或密码错误");
         SysUserInfoVo vo = new SysUserInfoVo();
         BeanUtils.copyProperties(model, vo);
         return vo;
+    }
+
+    @Override
+    public Boolean getUserInfoByMobile(String mobile) {
+        SysUser model=sysUserMapper.selectOne(new QueryWrapper<SysUser>().eq("mobile", mobile)
+                .last("limit 1"));
+        if(ObjectUtil.isNotEmpty(model)){
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -444,6 +468,10 @@ public class SysUserServiceImpl implements ISysUserService {
                     throw new AdminException("USER_NOT_EXIST");
                 } else {
                     if (ObjectUtil.isNotEmpty(siteUserParam.getMobile())) {
+                        //查询手机号是否唯一
+                        if(checkUserMobile(siteUserParam.getMobile(), uid)){
+                            throw new AdminException("手机号必须是唯一的");
+                        }
                         SysUser updateUser = new SysUser();
                         updateUser.setMobile(siteUserParam.getMobile());
                         QueryWrapper<SysUser> updateWrapper = new QueryWrapper<>();
@@ -504,6 +532,23 @@ public class SysUserServiceImpl implements ISysUserService {
         return false;
     }
 
+    /**
+     * 检测用户手机号是否存在
+     * @return
+     */
+    @Override
+    public boolean checkUserMobile(String mobile, Integer uid) {
+        QueryWrapper<SysUser> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("mobile", mobile);
+        if(ObjectUtil.isNotEmpty(uid)){
+            queryWrapper.ne("uid", uid);
+        }
+        long count=sysUserMapper.selectCount(queryWrapper);
+        if(count>0){
+            return true;
+        }
+        return false;
+    }
 
     /**
      * 获取用户站点创建限制

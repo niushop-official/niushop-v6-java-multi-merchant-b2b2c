@@ -154,7 +154,7 @@
         formData.value.order_goods_id = orderGoodsId.value
         formData.value.order_id = data.order_id || 0
         if (data.order_id && data.order_goods_id) {
-            getMallOrderDetail(data.order_id).then(({ data }) => {
+            getMallOrderDetail({order_id: data.order_id}).then(({ data }) => {
                 detail.value = data
                 detail.value.order_goods.forEach((item,index)=>{
                     if(orderGoodsId.value == item.order_goods_id){
@@ -240,8 +240,8 @@
 		operateLoading.value = true
         applyRefund(formData.value).then((res) => {
             operateLoading.value = false
-			// 订阅消息
-			useSubscribeMessage().request('mall_refund_agree,mall_refund_refuse')
+            // 订阅消息
+            useSubscribeMessage().request('mall_refund_agree,mall_refund_refuse')
             setTimeout(()=> {
                 redirect({ url: '/addon/mall/pages/order/detail', param: { order_id: formData.value.order_id } })
             }, 1000)

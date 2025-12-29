@@ -125,9 +125,14 @@ public class DeliveryStore implements Serializable {
     private Integer timeInterval;
 
     /**
-     * 支持的提货类型
+     * 支持同城配送
      */
-    private String pickUpType;
+    private Integer supportLocalDelivery;
+
+    /**
+     * 支持门店自提
+     */
+    private Integer supportStore;
 
     /**
      * 开启状态 1开启 0关闭
@@ -141,4 +146,9 @@ public class DeliveryStore implements Serializable {
 
     private Long createTime; // 添加时间
     private Long updateTime; // 更新时间
+
+    /**
+     * 是否系统门店
+     */
+    private Integer isSystem;
 }

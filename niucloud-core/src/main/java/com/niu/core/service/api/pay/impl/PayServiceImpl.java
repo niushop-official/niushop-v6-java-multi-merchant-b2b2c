@@ -123,8 +123,7 @@ public class PayServiceImpl implements IPayService {
         vo.setSelf(payInfo.getMainId().equals(RequestUtils.memberId()));
 
         QueryWrapper<SysPoster> posterQueryWrapper = new QueryWrapper<>();
-        posterQueryWrapper.eq("site_id", RequestUtils.siteId())
-                .eq("type", "friendspay")
+        posterQueryWrapper.eq("type", "friendspay")
                 .eq("status", 1)
                 .eq("is_default", 1);
         SysPoster sysPoster = sysPosterMapper.selectOne(posterQueryWrapper);

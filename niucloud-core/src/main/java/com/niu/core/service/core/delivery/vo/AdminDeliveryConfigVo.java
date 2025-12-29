@@ -14,9 +14,11 @@ public class AdminDeliveryConfigVo implements Serializable {
 
     private Integer isShow = 0;
 
-    private Integer isExpress = 0;
+    private Integer isExpress = 1;
 
     private Integer isLocalDelivery = 0;
 
     private Integer isStore = 0;
+
+    private Integer isShowPolyline = 0;
 }

@@ -41,7 +41,9 @@ public class MallGoodsEvaluateDetailVo implements Serializable {
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long updateTime; // 修改时间
     private MallGoodsEvaluateDetailVo.OrderGoods orderGoods; // 订单商品信息
-
+    private BigDecimal qualityScore; // 商品质量
+    private BigDecimal serviceScore; // 商家服务
+    private BigDecimal logisticsScore; // 发货物流
 
     @Data
     public static class OrderGoods {

@@ -3,6 +3,7 @@ package com.niu.mall.service.site.order.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -20,16 +21,24 @@ import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDelivery;
+import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrder;
+import com.niu.core.entity.delivery.DeliveryStore;
 import com.niu.core.entity.diy_form.DiyFormRecordsFields;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.pay.Pay;
 import com.niu.core.entity.shop.SiteShopCashOut;
+import com.niu.core.entity.verify.Verify;
+import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
+import com.niu.core.enums.local_delivery.LocalDeliveryStatusEnum;
 import com.niu.core.enums.shop.ShopCashOutEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryMapper;
+import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderMapper;
+import com.niu.core.mapper.delivery.DeliveryStoreMapper;
 import com.niu.core.mapper.diy_form.DiyFormRecordsFieldsMapper;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.mapper.pay.PayMapper;
 import com.niu.core.mapper.shop.SiteShopCashOutMapper;
+import com.niu.core.mapper.verify.VerifyMapper;
 import com.niu.core.service.admin.member.vo.MemberBriefInfoVo;
 import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
@@ -40,6 +49,7 @@ import com.niu.core.service.site.delivery.IDeliveryService;
 import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsSku;
 import com.niu.mall.entity.order.*;
+import com.niu.mall.enums.goods.GoodsSourceEnum;
 import com.niu.mall.enums.order.*;
 import com.niu.mall.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
@@ -136,6 +146,12 @@ public class MallOrderServiceImpl implements IMallOrderService {
     ICoreStatService coreStatService;
     @Resource
     private ICoreGoodsStatService coreGoodsStatService;
+    @Resource
+    private DeliveryStoreMapper deliveryStoreMapper;
+    @Resource
+    private VerifyMapper verifyMapper;
+    @Resource
+    private DeliveryLocalDeliveryOrderMapper deliveryLocalDeliveryOrderMapper;
 
     /**
      * 订单列表
@@ -164,8 +180,24 @@ public class MallOrderServiceImpl implements IMallOrderService {
         if (ObjectUtil.isNotEmpty(searchParam.getPayType())) queryWrapper.eq("p.type", searchParam.getPayType());
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) QueryMapperUtils.buildByTime(queryWrapper, "o.create_time", searchParam.getCreateTime());
         if (ObjectUtil.isNotEmpty(searchParam.getPayTime())) QueryMapperUtils.buildByTime(queryWrapper, "p.pay_time", searchParam.getPayTime());
-        if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) queryWrapper.and(i -> i.eq("taker_name", searchParam.getKeyword()).or().eq("taker_mobile", searchParam.getKeyword()));
+        if (ObjectUtil.isNotEmpty(searchParam.getKeyword())){
+            queryWrapper.and(i -> i.like("m.member_no", searchParam.getKeyword()).or()
+                    .like("m.nickname", searchParam.getKeyword()).or()
+                    .like("m.username", searchParam.getKeyword()).or()
+                    .like("m.mobile", searchParam.getKeyword()));
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getOrderNo())){
+            queryWrapper.like("o.order_no", searchParam.getOrderNo());
+        }
         if (ObjectUtil.isNotEmpty(searchParam.getActivityType())) queryWrapper.eq("o.activity_type", searchParam.getActivityType());
+        if (ObjectUtil.isNotEmpty(searchParam.getDeliveryType())) queryWrapper.eq("o.delivery_type", searchParam.getDeliveryType());
+        if (ObjectUtil.isNotEmpty(searchParam.getGoodsSource())){
+            if(searchParam.getGoodsSource().equals("self_goods") || searchParam.getGoodsSource().equals("0")){
+                queryWrapper.eq("o.supply_order_id", 0);
+            }else{
+                queryWrapper.ne("o.supply_order_id", 0);
+            }
+        }
 
         IPage<MallOrderListVo> iPage = mallOrderMapper.selectJoinPage(new Page<>(page, limit), MallOrderListVo.class, queryWrapper);
         for (MallOrderListVo vo : iPage.getRecords()) {
@@ -275,7 +307,6 @@ public class MallOrderServiceImpl implements IMallOrderService {
             MallGoods goodsInfo = mallGoodsMapper.selectById(orderGoodsItem.getGoodsId());
             orderGoodsItem.setUnit(goodsInfo.getUnit().equals("") ? "件"  : goodsInfo.getUnit() );
             orderGoodsItem.setDeliveryTypeName(vo.getDeliveryTypeName());
-
             if(!orderGoodsItem.getStatus().equals(OrderGoodsRefundEnum.NORMAL.getStatus())){
                 isRefundStatusShow =true;
             }
@@ -284,6 +315,29 @@ public class MallOrderServiceImpl implements IMallOrderService {
         vo.setOrderGoods(orderGoodsListAll);
 
 
+        //查询订单配送信息 mall_order_delivery
+        List<MallOrderDelivery> orderDelivery = mallOrderDeliveryMapper.selectList(new QueryWrapper<MallOrderDelivery>().eq("order_id", vo.getOrderId()));
+
+        if (!orderDelivery.isEmpty()){
+            List<MallOrderInfoVo.OrderDelivery> orderDeliveryVoList = new ArrayList<>();
+            for (MallOrderDelivery orderDeliveryItem : orderDelivery){
+                //查询订单配送信息 mall_order_delivery
+                MallOrderInfoVo.OrderDelivery orderDeliveryVo = new MallOrderInfoVo.OrderDelivery();
+                BeanUtils.copyProperties(orderDeliveryItem, orderDeliveryVo);
+                if(ObjectUtil.isNotEmpty(orderDeliveryItem.getLocalDeliveryOrderId())){
+                    DeliveryLocalDeliveryOrder localOrderDelivery = deliveryLocalDeliveryOrderMapper.selectOne(new QueryWrapper<DeliveryLocalDeliveryOrder>()
+                            .eq("delivery_no", orderDeliveryItem.getLocalDeliveryOrderId()).last("LIMIT 1"));
+                    orderDeliveryVo.setLocalDeliveryStatus(localOrderDelivery.getStatus());
+                    orderDeliveryVo.setLocalDeliveryStatusName(LocalDeliveryStatusEnum.getNameByStatus(Integer.parseInt(localOrderDelivery.getStatus())));
+                    orderDeliveryVo.setRiderMobile(localOrderDelivery.getRiderMobile());
+                    orderDeliveryVo.setRiderName(localOrderDelivery.getRiderName());
+                    orderDeliveryVo.setDeliveryService(localOrderDelivery.getDeliveryService());
+                    orderDeliveryVo.setDeliveryServiceName(DeliveryStoreTypeEnum.getNameByKey(localOrderDelivery.getDeliveryService()));
+                }
+                orderDeliveryVoList.add(orderDeliveryVo);
+            }
+            vo.setOrderDelivery(orderDeliveryVoList);
+        }
 
         // 查询订单支付信息
         if (!vo.getOutTradeNo().isEmpty()) {
@@ -295,10 +349,39 @@ public class MallOrderServiceImpl implements IMallOrderService {
             }
         }
 
+        if (vo.getDeliveryType().equals(OrderDeliveryTypeEnum.STORE.getType())) {
+            DeliveryStore store = deliveryStoreMapper.selectById(vo.getTakeStoreId());
+            MallOrderInfoVo.Store storeVo = new MallOrderInfoVo.Store();
+            BeanUtil.copyProperties(store, storeVo);
+            vo.setStore(storeVo);
+            //查询核销记录
+            Verify verify = verifyMapper.selectOne(new QueryWrapper<Verify>()
+                    .eq("site_id", vo.getSiteId()).eq("type", "shopPickUpOrder").eq("relate_tag",id));
+            if(ObjectUtil.isNotEmpty( verify)){
+                //查询会员信息
+                Member memberVerify = memberMapper.selectOne(new QueryWrapper<Member>().eq("member_id", verify.getVerifierMemberId()));
+                vo.setVerifyCode(verify.getCode());
+                MallOrderInfoVo.VerifierMemberInfo memberVerifyObj = new MallOrderInfoVo.VerifierMemberInfo();
+                if(ObjectUtil.isNotEmpty(memberVerify)){
+                    memberVerifyObj.setMemberId(memberVerify.getMemberId());
+                    memberVerifyObj.setNickname(memberVerify.getNickname());
+                }
+                vo.setVerifierMember(memberVerifyObj);
+            }
+        }
+
+        // 查询订单包裹信息
+        if (vo.getDeliveryType().equals(OrderDeliveryTypeEnum.LOCAL_DELIVERY.getType())) {
+            DeliveryStore store = deliveryStoreMapper.selectById(vo.getTakeStoreId());
+            MallOrderInfoVo.Store storeVo = new MallOrderInfoVo.Store();
+            BeanUtil.copyProperties(store, storeVo);
+            vo.setStore(storeVo);
+        }
+
         // 查询订单包裹信息
         if (vo.getDeliveryType().equals(OrderDeliveryTypeEnum.EXPRESS.getType())) {
-            List<MallOrderInfoVo.OrderDelivery> orderDelivery = CollectUtils.convert(mallOrderDeliveryMapper.selectList(new QueryWrapper<MallOrderDelivery>().eq("order_id", vo.getOrderId())), MallOrderInfoVo.OrderDelivery.class);
-            vo.setOrderDelivery(orderDelivery);
+            List<MallOrderInfoVo.OrderDelivery> orderDelivery1 = CollectUtils.convert(mallOrderDeliveryMapper.selectList(new QueryWrapper<MallOrderDelivery>().eq("order_id", vo.getOrderId())), MallOrderInfoVo.OrderDelivery.class);
+            vo.setOrderDelivery(orderDelivery1);
         }
 
         //查询店铺信息

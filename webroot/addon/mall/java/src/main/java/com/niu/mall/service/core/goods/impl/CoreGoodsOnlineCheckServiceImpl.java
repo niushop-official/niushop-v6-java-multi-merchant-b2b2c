@@ -79,7 +79,7 @@ public class CoreGoodsOnlineCheckServiceImpl implements ICoreGoodsOnlineCheckSer
 
             if (sku.getMinPrice() != null && sku.getMinPrice().compareTo(BigDecimal.ZERO) > 0
                     && sku.getPrice().compareTo(sku.getMinPrice()) < 0) {
-                throw new CommonException("销售价不能小于最第价格");
+                throw new CommonException("销售价不能小于最低价格");
             }
 
             if (sku.getMaxPrice() != null && sku.getMaxPrice().compareTo(BigDecimal.ZERO) > 0

@@ -169,7 +169,6 @@ const show = () => {
         if (value.value.name != '') {
             selectLink.value = cloneDeep(value.value)
             parentLinkName.value = selectLink.value.parent
-            console.log("parentLinkName.value",parentLinkName.value)
             for (const key in link.value) {
                 if (link.value[key].type == 'folder') {
                     // 兼容以前数据结构

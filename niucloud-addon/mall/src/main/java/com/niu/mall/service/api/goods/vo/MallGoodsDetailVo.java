@@ -2,12 +2,14 @@ package com.niu.mall.service.api.goods.vo;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.upload.model.ThumbModelResult;
 import com.niu.core.common.domain.BeanJsonSerializer;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.enums.site.SiteStatusEnum;
@@ -117,7 +119,7 @@ public class MallGoodsDetailVo implements Serializable {
         private String labelIds; // 标签组
         @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
         private String serviceIds; // 商品服务
-        private String unit; // 单位
+        private String unit = "件"; // 单位
         private Integer stock; // 商品库存（总和）
         private Integer saleNum; // 销量
         private Integer virtualSaleNum; // 虚拟销量
@@ -146,7 +148,8 @@ public class MallGoodsDetailVo implements Serializable {
         private Integer minBuy = 0;
         private Integer isGift = 0;
         private Integer formId;
-        private Map<String, DeliveryConfigVo> deliveryTypeList;
+        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        private String deliveryTypeList;
 
         /** 平台商品参数id，支持多个 */
         private String attrIds;
@@ -220,6 +223,28 @@ public class MallGoodsDetailVo implements Serializable {
                 }
             }
             return list;
+        }
+
+        public String getDeliveryTypeList() {
+            Map<String, DeliveryConfigVo> listMap = new HashMap<>();
+            if(StringUtils.isNotEmpty(this.deliveryType)){
+                List<DeliveryConfigVo> deliveryTypeList = new ArrayList<>();
+                List<DeliveryConfigVo> list = SpringContext.bean(ICoreDeliveryConfigService.class).getDeliveryConfig(this.siteId);
+                JSONArray jsonArray = JSONUtil.parseArray(this.deliveryType);
+                for (int i = 0; i < jsonArray.size(); i++){
+                    String key = jsonArray.get(i).toString();
+                    DeliveryConfigVo deliveryConfigVo = list.stream().filter(item -> item.getKey().equals(key)).findFirst().orElse(null);
+                    if (ObjectUtil.isNotEmpty(deliveryConfigVo) && ObjectUtil.isNotEmpty(deliveryConfigVo.getStatus()) && deliveryConfigVo.getStatus() == 1) {
+                        deliveryTypeList.add(deliveryConfigVo);
+                    }
+                }
+                // 排序
+                deliveryTypeList.sort(Comparator.comparing(DeliveryConfigVo::getKey));
+                for (DeliveryConfigVo deliveryConfigVo : deliveryTypeList){
+                    listMap.put(deliveryConfigVo.getKey(), deliveryConfigVo);
+                }
+            }
+            return JSONUtil.toJsonStr(listMap);
         }
 
     }
@@ -342,6 +367,11 @@ public class MallGoodsDetailVo implements Serializable {
         private SiteShopInfo shop;
 
         private String deliveryConfig;
+
+
+        private BigDecimal qualityScore; // 商品质量
+        private BigDecimal serviceScore; // 商家服务
+        private BigDecimal logisticsScore; // 发货物流
     }
     @Data
     public static class SiteShopInfo {
@@ -362,6 +392,7 @@ public class MallGoodsDetailVo implements Serializable {
         private Integer siteId;
 
         private Integer businessStatus;
+
     }
 
     @Data

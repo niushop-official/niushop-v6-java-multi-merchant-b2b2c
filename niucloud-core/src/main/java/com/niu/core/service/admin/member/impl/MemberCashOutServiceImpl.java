@@ -78,6 +78,7 @@ public class MemberCashOutServiceImpl implements IMemberCashOutService {
         if (ObjectUtil.isNotEmpty(searchParam.getTransferType())) queryWrapper.like("mco.transfer_type", searchParam.getTransferType());
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) QueryMapperUtils.buildByTime(queryWrapper, "mco.create_time", searchParam.getCreateTime());
         if (ObjectUtil.isNotEmpty(searchParam.getTransferTime())) QueryMapperUtils.buildByTime(queryWrapper, "mco.transfer_time", searchParam.getTransferTime());
+        if (ObjectUtil.isNotEmpty(searchParam.getAuditTime())) QueryMapperUtils.buildByTime(queryWrapper, "mco.audit_time", searchParam.getAuditTime());
 
         IPage<MemberCashOutListVo> iPage = memberCashOutMapper.selectJoinPage(new Page<>(page, limit), MemberCashOutListVo.class, queryWrapper);
         for (MemberCashOutListVo item : iPage.getRecords()) {

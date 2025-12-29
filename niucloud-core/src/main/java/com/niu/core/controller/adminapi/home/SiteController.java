@@ -39,8 +39,19 @@ public class SiteController {
     @GetMapping("/site")
     public Result<PageResult<SiteListVo>> list(@Validated PageParam pageParam,
                                                      @Validated SiteSearchParam searchParam) {
-        PageResult<SiteListVo> list = authSiteService.list(pageParam, searchParam);
+        PageResult<SiteListVo> list = authSiteService.pages(pageParam, searchParam);
         return Result.success(list);
+    }
+
+    /**
+     * 站点列表 不分页
+     *
+     * @param searchParam 搜索条件
+     * @return Result<PageResult<SiteListVo>>
+     */
+    @GetMapping("/site/list")
+    public Result<List<SiteListVo>> list(@Validated SiteSearchParam searchParam) {
+        return Result.success(authSiteService.list(searchParam));
     }
 
     /**

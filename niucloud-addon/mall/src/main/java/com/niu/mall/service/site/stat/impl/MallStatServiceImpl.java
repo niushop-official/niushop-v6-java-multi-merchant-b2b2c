@@ -336,7 +336,7 @@ public class MallStatServiceImpl implements IMallStatService {
             queryWrapper.gt("gs.date_time", 0);
         }
         queryWrapper.groupBy("gs.goods_id");
-        queryWrapper.orderByDesc("gs.sale_num");
+        queryWrapper.orderByDesc("sum(gs.sale_num)");
         queryWrapper.last("limit 5");
         List<GoodsRankVo> list = mallGoodsStatMapper.selectJoinList(GoodsRankVo.class,queryWrapper);
         for (GoodsRankVo item : list) {

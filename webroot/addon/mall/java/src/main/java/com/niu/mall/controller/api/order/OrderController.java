@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("api/mall/order")
 //@SaCheckLogin
@@ -44,8 +46,8 @@ public class OrderController {
      * @return
      */
     @GetMapping("/{order_id}")
-    public Result detail(@PathVariable(name = "order_id") Integer orderId) {
-        return Result.success(orderService.detail(orderId));
+    public Result detail(@PathVariable(name = "order_id") Integer orderId,@RequestParam Map<String, String> allParams) {
+        return Result.success(orderService.detail(orderId, allParams));
     }
 
     /**

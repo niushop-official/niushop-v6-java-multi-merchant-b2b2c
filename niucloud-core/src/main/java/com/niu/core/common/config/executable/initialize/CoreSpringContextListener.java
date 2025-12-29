@@ -5,10 +5,12 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.utils.file.FileTools;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.context.WebAppEnvs;
 import com.niu.core.common.config.GlobalConfig;
+import com.niu.core.common.utils.file.PipeNameUtils;
 import com.niu.core.common.utils.json.JsonLoadUtils;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.site.Site;
@@ -63,6 +65,8 @@ public class CoreSpringContextListener implements ApplicationListener<ContextRef
         log.info("当前应用运行环境：" + GlobalConfig.runActive);
         log.info("当前应用运行环境工作目录：" + WebAppEnvs.get());
         if (this.isInit()) {
+            Cached cached = SpringContext.bean(Cached.class);
+            cached.tag("json_file").clear();
             // 初始话菜单
             this.initMenu();
             // 初始话计划任务
@@ -70,7 +74,7 @@ public class CoreSpringContextListener implements ApplicationListener<ContextRef
             // 初始化数据
             this.initData();
             // 安裝插件
-            if (this.isInstallAddon()) this.installAddon();
+            this.installAddon();
             // 创建完成
             this.setCreated();
             Site site = new Site();
@@ -248,6 +252,8 @@ public class CoreSpringContextListener implements ApplicationListener<ContextRef
                         AddonInstallJavaTools.addAddonJson(addon);
                     }
                 }
+                //重启项目
+                PipeNameUtils.noticeBootCommand(GlobalConfig.applicationName, "restart");
             } catch (Exception e) {
                 log.warn("插件安装失败");
                 e.printStackTrace();

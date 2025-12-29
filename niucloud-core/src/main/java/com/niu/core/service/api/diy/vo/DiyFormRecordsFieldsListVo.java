@@ -3,6 +3,7 @@ package com.niu.core.service.api.diy.vo;
 import cn.hutool.core.util.ClassLoaderUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.enums.diy_form.DiyFormComponentEnum;
@@ -65,8 +66,8 @@ public class DiyFormRecordsFieldsListVo implements Serializable {
         /** 字段修改次数 */
         private Integer updateNum;
 
-        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
-        private String handleFieldValue;
+        //@JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        private Object handleFieldValue;
 
         private Object renderValue;
 
@@ -74,7 +75,7 @@ public class DiyFormRecordsFieldsListVo implements Serializable {
          * 最后解析
          * @return
          */
-        public String getHandleFieldValue(){
+        public Object getHandleFieldValue(){
                 DiyFormComponentEnum diyFormComponentEnum = new DiyFormComponentEnum();
                 JSONObject component = diyFormComponentEnum.getComponent(this.fieldType);
                 if(component.containsKey("convert")){
@@ -86,7 +87,7 @@ public class DiyFormRecordsFieldsListVo implements Serializable {
                                         Object obj = clazz.getDeclaredConstructor().newInstance();
                                         Method method = clazz.getMethod("convert", String.class, String.class);
                                         Object result = method.invoke(obj, this.fieldValue, this.fieldType);
-                                        return ObjectUtil.isNotEmpty(result) ? result.toString() : this.fieldValue;
+                                        return ObjectUtil.isNotEmpty(result) ? JSONUtil.parseObj( result) : this.fieldValue;
                                 }catch (Exception e){
                                         e.printStackTrace();
                                 }

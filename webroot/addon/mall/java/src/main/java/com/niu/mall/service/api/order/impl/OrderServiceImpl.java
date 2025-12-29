@@ -2,6 +2,8 @@ package com.niu.mall.service.api.order.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -9,14 +11,14 @@ import com.niu.core.common.Constants;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.CommonException;
-import com.niu.core.common.utils.CollectUtils;
-import com.niu.core.common.utils.CommonUtils;
-import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.*;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrder;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrderLog;
+import com.niu.core.entity.delivery.DeliveryStore;
 import com.niu.core.entity.pay.Pay;
 import com.niu.core.entity.shop.SiteShopCashOut;
 import com.niu.core.entity.delivery.DeliveryCompany;
+import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderLogMapper;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderMapper;
 import com.niu.core.mapper.delivery.DeliveryStoreMapper;
@@ -25,6 +27,10 @@ import com.niu.core.mapper.shop.SiteShopCashOutMapper;
 import com.niu.core.mapper.site.DeliveryCompanyMapper;
 import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
+import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
+import com.niu.core.service.core.weapp.ICoreWeappDeliveryService;
+import com.niu.core.service.core.weapp.impl.CoreWeappDeliveryServiceImpl;
+import com.niu.core.service.core.weapp.vo.IsTradeManagedVo;
 import com.niu.mall.entity.order.*;
 import com.niu.mall.enums.order.*;
 import com.niu.mall.mapper.order.*;
@@ -50,6 +56,7 @@ import org.springframework.util.Assert;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -110,6 +117,8 @@ public class OrderServiceImpl implements IOrderService {
     DeliveryLocalDeliveryOrderMapper deliveryLocalDeliveryOrderMapper;
     @Resource
     private ICoreOrderGroupService coreOrderGroupService;
+    @Resource
+    private ICoreWeappDeliveryService coreWeappDeliveryService;
 
     /**
      * 订单列表
@@ -169,7 +178,7 @@ public class OrderServiceImpl implements IOrderService {
      * @return ShopOrderInfoVo
      */
     @Override
-    public MallOrderInfoVo detail(Integer orderId) {
+    public MallOrderInfoVo detail(Integer orderId, Map<String, String> allParams) {
         MallOrder model = mallOrderMapper.selectOne(
                 new QueryWrapper<MallOrder>()
                     .eq("order_id", orderId)
@@ -230,7 +239,36 @@ public class OrderServiceImpl implements IOrderService {
 
             }
         }
+        if(vo.getDeliveryType().equals(OrderDeliveryTypeEnum.STORE.getType())){
+            String latitude = StringUtils.isNotEmpty(allParams.get("position[latitude]")) ? allParams.get("position[latitude]") : "";
+            String longitude = StringUtils.isNotEmpty(allParams.get("position[longitude]")) ? allParams.get("position[longitude]") : "";
 
+            //查信息门店信息
+            DeliveryStore storeInfoVo = deliveryStoreMapper.selectById(vo.getTakeStoreId());
+            if(ObjectUtil.isNotEmpty(storeInfoVo)){
+                MallOrderInfoVo.Store store = new MallOrderInfoVo.Store();
+                BeanUtils.copyProperties(storeInfoVo, store);
+                vo.setStore(store);
+                if(StringUtils.isEmpty(latitude) || StringUtils.isEmpty(longitude)){
+                    vo.getStore().setDistance(0D);
+                }else{
+                    Double distance = DistanceCalculateUtils.calculateDistance(
+                            Double.parseDouble(latitude),
+                            Double.parseDouble(longitude),
+                            Double.parseDouble(storeInfoVo.getLatitude()),
+                            Double.parseDouble(storeInfoVo.getLongitude())
+                    );
+                    vo.getStore().setDistance( distance);
+                }
+            }
+        }
+
+        //查询小程序是否开通发货信息管理服务
+        IsTradeManagedVo isTradeManagedVo = coreWeappDeliveryService.getIsTradeManaged(RequestUtils.defaultSiteId());
+        if (ObjectUtil.isNotEmpty(isTradeManagedVo)){
+            vo.setIsTradeManaged(isTradeManagedVo.getIsTradeManaged());
+            vo.setMchId(isTradeManagedVo.getMchId());
+        }
         //查询订单优惠信息
         List<MallOrderDiscount> mallOrderDiscountList = mallOrderDiscountMapper.selectList(new QueryWrapper<MallOrderDiscount>().eq("order_id", vo.getOrderId()));
 
@@ -354,10 +392,15 @@ public class OrderServiceImpl implements IOrderService {
                 new QueryWrapper<MallOrder>()
                         .eq("order_id", id)
                         .eq("member_id", RequestUtils.memberId())
-                        .select("status"));
+                        .select("status", "order_from"));
 
         Assert.notNull(order, "订单不存在");
         if (!order.getStatus().equals(OrderStatusEnum.WAIT_TAKE.getStatus().toString())) throw new CommonException("只有待收货的订单才可以收货");
+
+        if (!order.getOrderFrom().equals(ChannelEnum.WEAPP.getCode())){
+            throw new CommonException("微信小程序订单需在小程序端收货后才能操作完成");
+        }
+
 
         OrderFinishParam finishParam = new OrderFinishParam();
         finishParam.setOrderId(id);

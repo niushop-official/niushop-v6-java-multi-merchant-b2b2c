@@ -59,7 +59,7 @@ public class CoreShopDeliveryOrderCloseServiceImpl implements ICoreShopDeliveryO
             notifyParam.setMainName(param.getMainName());
             notifyParam.setCancelReason(param.getCancelReason());
             notifyParam.setStatus(LocalDeliveryStatusEnum.CANCELED.getStatus().toString());
-            coreLocalDeliveryOrderNotifyService.notify(deliveryShopDeliveryOrder.getSiteId(), DeliveryStoreTypeEnum.MERCHANT.getKey(), "order", notifyParam);
+            coreLocalDeliveryOrderNotifyService.notify(deliveryShopDeliveryOrder.getSiteId(), DeliveryStoreTypeEnum.MERCHANT.getKey(),deliveryShopDeliveryOrder.getOutDeliveryNo(), "order", notifyParam);
             //添加配送订单日志
             LocalDeliveryOperateEnum.OperateResult operateResult = LocalDeliveryOperateEnum.getOperateByStatus(ShopDeliveryStatusEnum.convertStatus(ShopDeliveryStatusEnum.CANCELED.getStatus()));
             AddShopDeliveryOrderLogParam logParam = new AddShopDeliveryOrderLogParam();

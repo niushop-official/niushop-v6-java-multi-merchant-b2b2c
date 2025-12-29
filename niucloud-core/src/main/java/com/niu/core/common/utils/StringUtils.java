@@ -1,5 +1,6 @@
 package com.niu.core.common.utils;
 
+import cn.hutool.json.JSONArray;
 import com.niu.core.common.Constants;
 import org.springframework.util.AntPathMatcher;
 
@@ -684,6 +685,14 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils
         String[] result = new String[arr1.length + arr2.length];
         System.arraycopy(arr1, 0, result, 0, arr1.length);
         System.arraycopy(arr2, 0, result, arr1.length, arr2.length);
+        return result;
+    }
+
+    public static String[] jsonArrayToStringArray(JSONArray jsonArray) {
+        String[] result = new String[jsonArray.size()];
+        for (int i = 0; i < jsonArray.size(); i++) {
+            result[i] = jsonArray.get( i).toString();
+        }
         return result;
     }
 }

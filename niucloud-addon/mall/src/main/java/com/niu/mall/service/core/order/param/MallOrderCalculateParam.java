@@ -19,15 +19,19 @@ public class MallOrderCalculateParam implements Serializable {
     private Map<Integer, Body> body;
     private MallDiscount mallDiscount = new MallDiscount();
     private OrderHelperParam.Delivery delivery = new OrderHelperParam.Delivery();
+    private Object position = new OrderHelperParam.Position();
     private JSONObject extendData;
 
     @Data
     public static class Body {
         private String orderKey;
+        private String orderType;
+        private String memberRemark;
         private List<Integer> cartIds = new ArrayList<>();
         private List<OrderHelperParam.SkuItem> skuData = new ArrayList<>();
         private OrderHelperParam.Discount discount = new OrderHelperParam.Discount();
         private OrderHelperParam.Delivery delivery = new OrderHelperParam.Delivery();
+        private JSONObject extendData;
     }
 
     @Data

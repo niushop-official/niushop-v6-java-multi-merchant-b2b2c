@@ -39,6 +39,8 @@ public enum OrderDeliveryTypeEnum {
             map.put(VIRTUAL.type, VIRTUAL.name);
         }else if (deliveryType.equals(OrderDeliveryTypeEnum.LOCAL_DELIVERY.getType())) {
             map.put(LOCAL_DELIVERY.type, LOCAL_DELIVERY.name);
+        } else if (deliveryType.equals(OrderDeliveryTypeEnum.STORE.getType())) {
+            map.put(STORE.type, STORE.name);
         } else {
             return getMap();
         }

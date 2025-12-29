@@ -1,5 +1,8 @@
 package com.niu.mall.enums.order;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.niu.core.common.utils.StringUtils;
+import com.niu.core.enums.delivery.DeliveryTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -38,6 +41,23 @@ public enum OrderStatusEnum {
             {
                 map.put("name", item.getName());
                 map.put("status", item.getStatus());
+            }
+        }
+        return map;
+    }
+
+    public static Map<String, Object> getDeliveryTypeMapByStatus(Integer status,String deliveryType){
+        Map<String, Object> map = new HashMap<>();
+        if(StringUtils.isEmpty(deliveryType)){
+            map = getMapByStatus(status);
+        }else{
+            map = getMapByStatus(status);
+            if(DeliveryTypeEnum.STORE.getType().equals(deliveryType) && ObjectUtil.isNotEmpty(status)){
+                if(WAIT_DELIVERY.getStatus().equals(status)){
+                    map.put("name", "待提货");
+                }else if(WAIT_TAKE.getStatus().equals(status)){
+                    map.put("name", "已提货");
+                }
             }
         }
         return map;

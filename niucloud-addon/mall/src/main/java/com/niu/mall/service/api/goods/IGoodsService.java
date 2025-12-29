@@ -8,13 +8,16 @@ import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
 import com.niu.mall.service.api.goods.param.MallGoodsComponentsSearchParam;
 import com.niu.mall.service.api.goods.param.MallGoodsDetailParam;
 import com.niu.mall.service.api.goods.param.MallGoodsSearchParam;
+import com.niu.mall.service.api.goods.param.ShopComponentsSearchParam;
 import com.niu.mall.service.api.goods.vo.GoodsLabelListVo;
 import com.niu.mall.service.api.goods.vo.MallGoodsDetailVo;
 import com.niu.mall.service.api.goods.vo.MallGoodsListVo;
 import com.niu.mall.service.api.goods.vo.MallGoodsSkuVo;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 public interface IGoodsService {
 
@@ -25,7 +28,7 @@ public interface IGoodsService {
      * @param searchParam
      * @return
      */
-    PageResult<MallGoodsListVo> page(PageParam pageParam, MallGoodsSearchParam searchParam);
+    PageResult<MallGoodsListVo> page(PageParam pageParam, MallGoodsSearchParam searchParam,Map<String, String>  position);
 
     /**
      * 店铺商品列表
@@ -89,7 +92,7 @@ public interface IGoodsService {
      *
      * @param param
      */
-    List<MallGoodsListVo> getGoodsComponents(MallGoodsComponentsSearchParam param);
+    List<MallGoodsListVo> getGoodsComponents(MallGoodsComponentsSearchParam param, Map<String, String> allParams);
 
     /**
      * 根据商品标签获取标签名称
@@ -101,4 +104,11 @@ public interface IGoodsService {
     PageResult<MallGoodsListVo> getRecommend(PageParam pageParam);
 
     List<com.niu.core.service.api.shop.vo.MallGoodsListVo> selectGoodsAndSkuList(MallShopGoodsListEventDefiner.MallShopGoodsListEvent event);
+
+    /**
+     * 获取店铺推荐组件商品列表
+     * @param param
+     * @return
+     */
+    List<MallGoodsListVo> shopRecommendComponents(ShopComponentsSearchParam param);
 }

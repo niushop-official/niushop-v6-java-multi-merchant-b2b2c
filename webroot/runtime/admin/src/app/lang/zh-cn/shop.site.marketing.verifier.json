@@ -28,5 +28,6 @@
 	"memberIdPlaceholder": "请选择会员",
 	"member": "会员",
     "memberNo": "编号：",
-	"searchPlaceholder": "请输入会员昵称搜索"
+	"searchPlaceholder": "请输入会员昵称搜索",
+    "editVerifier":"编辑核销员"
 }

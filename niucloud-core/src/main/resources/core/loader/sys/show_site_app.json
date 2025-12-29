@@ -20,6 +20,13 @@
       "icon": "static/resource/images/tool/printer_icon.png",
       "key": "printer_management",
       "url": "/printer/list"
+    },
+    {
+      "title": "店铺助手",
+      "desc": "手机端业务后台，轻量化移动办公",
+      "icon": "static/resource/images/tool/adminapp_icon.jpg",
+      "key": "adminapp",
+      "url": "/adminapp"
     }
   ],
   "addon": [

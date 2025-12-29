@@ -3,6 +3,7 @@ package com.niu.core.service.site.local_delivery;
 import com.niu.core.service.site.local_delivery.param.SetLocalDeliveryParam;
 import com.niu.core.service.site.local_delivery.vo.LocalDeliveryServiceListVo;
 import com.niu.core.service.site.local_delivery.vo.LocalDeliveryServiceVo;
+import com.niu.core.service.site.local_delivery.vo.LocalDeliveryStoreVo;
 import com.niu.core.service.site.local_delivery.vo.LocalDeliveryVo;
 
 import java.util.List;
@@ -20,5 +21,5 @@ public interface ILocalDeliveryService {
     /**
      * 获取同城配送设置
      */
-    LocalDeliveryVo getLocal(Integer siteId);
+    LocalDeliveryStoreVo getLocal(Integer siteId);
 }

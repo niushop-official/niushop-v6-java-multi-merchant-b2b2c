@@ -2,13 +2,19 @@ package com.niu.core.entity.diy_form;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 /**
 * 万能表单填写字段表实体
 */
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class DiyFormRecordsFields implements Serializable {
 

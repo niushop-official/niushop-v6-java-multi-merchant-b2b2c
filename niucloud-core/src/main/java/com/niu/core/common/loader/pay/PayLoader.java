@@ -24,6 +24,9 @@ public class PayLoader extends SystemLoader {
     public static BasePay getDriver(String key) {
         JSONObject jsonObject = PayLoader.getType();
         JSONObject keyJson = jsonObject.getJSONObject(key);
+        if (keyJson == null) {
+            throw new CommonException("支付驱动不存在");
+        }
         BasePay base = BasePay.forName(keyJson.getStr("driver", ""));
         if (base == null) throw new CommonException("支付驱动不存在");
         return base;

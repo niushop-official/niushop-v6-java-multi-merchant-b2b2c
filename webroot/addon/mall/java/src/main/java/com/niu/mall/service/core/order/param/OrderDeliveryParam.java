@@ -15,7 +15,7 @@ public class OrderDeliveryParam implements Serializable {
     private Integer orderId;
 
     private Integer siteId;
-
+    private Integer storeId;
     private Integer[] orderGoodsIds;
 
     private Integer[] deliveryIds;

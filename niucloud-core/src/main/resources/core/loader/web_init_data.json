@@ -5,7 +5,23 @@
       "ap_key": "ADV_INDEX",
       "adv_title": "首页广告",
       "adv_url": "{\"name\":\"\",\"title\":\"\",\"url\":\"\",\"parent\":\"\"}",
-      "adv_image": "static/resource/images/web/adv_06.png",
+      "adv_image": "static/resource/images/web/adv_08.jpg",
+      "slide_sort": "1",
+      "background": "#FFFFFF"
+    },
+    {
+      "ap_key": "ADV_INDEX",
+      "adv_title": "首页广告",
+      "adv_url": "{\"name\":\"\",\"title\":\"\",\"url\":\"\",\"parent\":\"\"}",
+      "adv_image": "static/resource/images/web/adv_09.jpg",
+      "slide_sort": "1",
+      "background": "#FFFFFF"
+    },
+    {
+      "ap_key": "ADV_INDEX",
+      "adv_title": "首页广告",
+      "adv_url": "{\"name\":\"\",\"title\":\"\",\"url\":\"\",\"parent\":\"\"}",
+      "adv_image": "static/resource/images/web/adv_10.jpg",
       "slide_sort": "1",
       "background": "#FFFFFF"
     }

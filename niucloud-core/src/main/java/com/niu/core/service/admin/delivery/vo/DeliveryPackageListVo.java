@@ -51,7 +51,8 @@ public class DeliveryPackageListVo implements Serializable {
     /**
      * 创建时间（时间戳）
      */
-    private Integer createTime;
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long createTime;
 
     /**
      * 配送单号

@@ -1,6 +1,7 @@
 package com.niu.core.service.admin.member;
 
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.entity.member.MemberLabel;
 import com.niu.core.service.admin.member.param.MemberLabelEditParam;
 import com.niu.core.service.admin.member.param.MemberLabelParam;
 import com.niu.core.service.admin.member.param.MemberLabelSearchParam;
@@ -10,6 +11,7 @@ import com.niu.core.service.admin.member.vo.MemberLabelInfoVo;
 import com.niu.core.service.admin.member.vo.MemberLabelListVo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 会员标签服务接口
@@ -56,4 +58,11 @@ public interface IMemberLabelService {
      * @return
      */
     List<MemberLabelAllListVo> all();
+
+    /**
+     * 获取会员标签列表（对应PHP的getList方法）
+     * @param searchParam 搜索参数
+     * @return List<Map<String, Object>>
+     */
+    List<MemberLabel> getList(MemberLabelSearchParam searchParam);
 }

@@ -10,7 +10,7 @@
                         </div>
                     </NuxtLink>
                     <div class="ml-[30px]">
-                        <el-popover placement="bottom" :width="configStore.weappOpen ? '250px' : '130px'" trigger="hover" :popper-class="configStore.weappOpen ? '!min-w-[250px]': '!min-w-[130px]' ">
+                        <el-popover placement="bottom" :width="weappImage ? '250px' : '130px'" trigger="hover" :popper-class="weappImage ? '!min-w-[250px]': '!min-w-[130px]' ">
                             <template #reference>
                                 <div class="text-[#666] flex items-center cursor-pointer hover:text-[var(--el-color-primary)]">
                                     <i class="iconfont icon-shoujiV6xx mr-[5px] !text-[14px]"></i>
@@ -18,7 +18,7 @@
                                 </div>
                             </template>
                             <div class="flex">
-                                <div class="mr-[20px]" v-if="configStore.weappOpen">
+                                <div class="mr-[20px]" v-if="weappImage">
                                     <div class="promote-img flex justify-center items-center w-[100px] h-[100px] rounded-[4px] mb-[10px] border-solid border-[1px] border-[#eee]">
                                         <el-image :src="img(weappImage)" class=" w-[92px] h-[92px]" />
                                     </div>
@@ -209,20 +209,17 @@ loadQrcode()
 
 const weappImage = ref('')
 const loadWeapp = () => {
-	getQrcode().then((res:any) =>{
+	getQrcode({
+        scene: 'wap_index',
+        type: 'image',
+        channel: 'weapp'
+    }).then((res:any) =>{
 		weappImage.value = res.data
 	})
 }
+ loadWeapp()
 
 
-watch(() => configStore.weappOpen, (nval, oval) => {
-    if(nval){
-        loadWeapp()
-    }
-})
-if(configStore.weappOpen){
-    loadWeapp()
-}
 // 商户入驻
 const handleCommand = (type:string) =>{
     if(!getToken()){

@@ -94,7 +94,7 @@ public class CoreSysConfigServiceImpl implements ICoreSysConfigService {
      */
     @Override
     public SysServiceVo getService(Integer siteId) {
-        JSONObject config = coreConfigService.getConfigValue(siteId, "SERVICE_INFO");
+        JSONObject config = coreConfigService.getConfigValue(RequestUtils.defaultSiteId(), "SERVICE_INFO");
         return JSONUtil.toBean(config, SysServiceVo.class);
     }
 
@@ -130,7 +130,7 @@ public class CoreSysConfigServiceImpl implements ICoreSysConfigService {
      */
     @Override
     public SysMapVo getMap(Integer siteId) {
-        JSONObject config = coreConfigService.getConfigValue(siteId, "MAPKEY");
+        JSONObject config = coreConfigService.getConfigValue(RequestUtils.defaultSiteId(), "MAPKEY");
         return JSONUtil.toBean(config, SysMapVo.class);
     }
 

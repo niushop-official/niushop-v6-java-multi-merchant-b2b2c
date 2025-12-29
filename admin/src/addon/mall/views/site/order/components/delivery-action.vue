@@ -45,6 +45,11 @@
                         </el-radio-group>
                     </el-form-item>
                     <div v-if="formData.delivery_way == 'store_delivery'">
+                        <el-form-item :label="t('deliveryStore')" prop="store_id">
+                            <el-select v-model="formData.store_id" :placeholder="t('deliveryStorePlaceholder')" clearable class="input-width">
+                                <el-option v-for="(item) in deliveryStoreData" :key="item.store_id" :label="item.store_name" :value="item.store_id" />
+                            </el-select>
+                        </el-form-item>
                         <el-form-item :label="t('deliverName')" prop="local_deliver_id">
                             <el-select v-model="formData.local_deliver_id" :placeholder="t('deliverNamePlaceholder')" clearable class="input-width" @change="deliverNameChange">
                                 <el-option v-for="(item) in deliverData" :key="item.deliver_id" :label="item.deliver_name" :value="item.deliver_id" />
@@ -55,9 +60,11 @@
                         </el-form-item>
                     </div>
                     <div v-if="formData.delivery_way == 'third_party_delivery'">
-                        <el-form-item :label="t('deliveryAddress')" prop="delivery_address">
+                        <el-form-item :label="t('deliveryStore')" prop="store_id">
                             <div>
-                                <span>{{ deliveryAddress }}</span>
+                                <el-select v-model="formData.store_id" :placeholder="t('deliveryStorePlaceholder')" clearable class="input-width" @change="deliveryStoreChange">
+                                    <el-option v-for="(item) in deliveryStoreData" :key="item.store_id" :label="item.store_name" :value="item.store_id" />
+                                </el-select>
                                 <span class="ml-[10px] cursor-pointer text-primary" @click="toAddress" v-if="curThirdDelivery?.open_status == 2">去开通</span>
                             </div>
                         </el-form-item>
@@ -67,7 +74,7 @@
                                     <el-option v-for="(item,index) in thirdDeliveryData" :key="index" :label="item.name" :value="item.key" />
                                 </el-select>
                                 <div class="ml-[10px]">
-                                    <span class="cursor-pointer text-primary mr-[10px]" @click="getInUseLocalDeliveryListFn">{{ t('refresh') }}</span>
+                                    <span class="cursor-pointer text-primary mr-[10px]" @click="getInUseLocalDeliveryListFn(formData.store_id)">{{ t('refresh') }}</span>
                                     <span class="cursor-pointer text-primary" @click="toThirdDelivery">{{ t('去配置') }}</span>
                                 </div>
                             </div>
@@ -141,7 +148,7 @@ import { FormInstance, ElMessage } from 'element-plus'
 import { getOrderDeliveryType, orderDelivery, getSelectOrderGoodsWeight, getDeliveryFee } from '@/addon/mall/api/site/order'
 import { getIsTradeManaged } from '@/app/api/weapp'
 import { cloneDeep } from 'lodash-es'
-import { getElectronicSheetConfig, getElectronicSheetList, printElectronicSheet, getCompanyList, getShopDeliverList, getInUseLocalDeliveryList, getShopDefaultDeliveryAddressInfo } from '@/app/api/delivery_site'
+import { getElectronicSheetConfig, getElectronicSheetList, printElectronicSheet, getCompanyList, getShopDeliverList, getInUseLocalDeliveryList, getDeliveryStoreListAll } from '@/app/api/delivery_site'
 import { useRouter } from 'vue-router'
 import { loadCLodop, getLodop } from '@/utils/lodop'
 
@@ -218,22 +225,31 @@ getShopDeliverList({}).then((res: any) => {
  * 三方配送列表
  */
 const thirdDeliveryData = ref([])
-const getInUseLocalDeliveryListFn = () => {
-    getInUseLocalDeliveryList().then((res: any) => {
+const getInUseLocalDeliveryListFn = (value: any) => {
+    getInUseLocalDeliveryList({store_id: value}).then((res: any) => {
         thirdDeliveryData.value = res.data
     })
 }
-getInUseLocalDeliveryListFn()
 
 /**
- * 获取默认发货地址
+ * 获取提货点列表
  */
-const deliveryAddress = ref('')
-const deliveryData = ref({})
-getShopDefaultDeliveryAddressInfo().then((res: any) => {
-    deliveryAddress.value = res.data.full_address
-    deliveryData.value = res.data
+const deliveryStoreData = ref([])
+getDeliveryStoreListAll({
+    pick_up_type: 'local_delivery',
+}).then((res: any) => {
+    deliveryStoreData.value = res.data
 })
+
+const deliveryStoreChange = (value: any) => {
+    if (formData.delivery_way == 'third_party_delivery' && value) {
+        formData.local_delivery_type = ''
+        deliveryFee.value = 0
+        getInUseLocalDeliveryListFn(value)
+    } else {
+        thirdDeliveryData.value = []
+    }
+}
 
 /**
  * 表单数据
@@ -250,7 +266,8 @@ const initialFormData = {
     express_company_id: '',
     express_number: '',
     electronic_sheet_id: '',
-    order_goods_ids: []
+    order_goods_ids: [],
+    store_id: ''
 }
 
 const formData: Record<string, any> = reactive({ ...initialFormData })
@@ -282,6 +299,9 @@ const formRules = computed(() => {
         ],
         local_deliver_id: [
             { required: true, validator: localDeliverIdPass, trigger: 'blur' }
+        ],
+        store_id: [
+            { required: true, validator: storeIdPass, trigger: 'blur' }
         ],
         local_delivery_type: [
             { required: true, validator: thirdDeliveryTypePass, trigger: ['blur', 'change'] }
@@ -319,6 +339,14 @@ const electronicSheetIdPass = (rule: any, value: any, callback: any) => {
 const localDeliverIdPass = (rule: any, value: any, callback: any) => {
     if (formData.delivery_type == 'local_delivery' && formData.delivery_way == 'store_delivery' && value == '') {
         callback(new Error(t('deliverNamePlaceholder')))
+    } else {
+        callback()
+    }
+}
+
+const storeIdPass = (rule: any, value: any, callback: any) => {
+    if (formData.delivery_type == 'local_delivery' && value == '') {
+        callback(new Error(t('deliveryStorePlaceholder')))
     } else {
         callback()
     }
@@ -385,6 +413,7 @@ const deliveryChange = () => {
 }
 
 const deliveryWayChange = () => {
+    curThirdDelivery.value = {}
     if (formData.delivery_way && formData.delivery_way == 'store_delivery') {
         formData.local_delivery_type = 'merchant'
     } else {
@@ -473,6 +502,7 @@ const setFormData = async (row: any = null, type:any) => {
         formData.delivery_type = ''
         formData.delivery_way = 'manual_write'
         formData.local_delivery_type = 'merchant'
+        formData.store_id = row.take_store_id
         goodsData.value = row.order_goods
         goodsDataArr.value = row.order_goods
         isHasVirtual.value = false
@@ -512,6 +542,7 @@ const setFormData = async (row: any = null, type:any) => {
                     }
                 }
                 getSelectOrderGoodsWeightFn()
+                getInUseLocalDeliveryListFn(formData.store_id)
             })
         }
     }
@@ -575,9 +606,9 @@ const toThirdDelivery = () => {
 
 const toAddress = () => {
     const url = router.resolve({
-        path: '/site/site_address/delivery_set',
+        path: '/site/delivery_store/delivery_set',
         query: {
-            id: deliveryData.value.id
+            id: formData.store_id
         }
     })
     window.open(url.href)

@@ -96,3 +96,10 @@ export function delBrowse(params: Record<string, any>) {
 export function getGoodsConfigSearch() {
     return request.get(`mall/goods/config/search`)
 }
+
+/**
+ *  获取装修推荐商品
+ */
+export function getShopRecommendComponents(params: Record<string, any>) {
+    return request.get(`mall/goods/shop_recommend/components`, params)
+}

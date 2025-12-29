@@ -18,6 +18,7 @@ import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.member.MemberAddress;
+import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.delivery.DeliveryTypeEnum;
 import com.niu.core.mapper.member.MemberAddressMapper;
 import com.niu.core.mapper.member.MemberMapper;
@@ -95,10 +96,17 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
     @Resource
     MallCouponGoodsMapper mallCouponGoodsMapper;
 
+
     @Override
     public MallOrderCreateDataVo calculate(MallOrderCalculateParam param) {
         this.param = param;
+        //清除错误提示
+        mallOrderCreateDataVo.setError(new ArrayList<>());
         mallOrderCreateDataVo.setBuyerId(param.getMemberId());
+        OrderHelperParam.Position position = new OrderHelperParam.Position();
+        if (ObjectUtil.isNotEmpty(param.getPosition()) && StringUtils.isNotEmpty(param.getPosition().toString())){
+            position =  BeanUtil.toBean(param.getPosition(), OrderHelperParam.Position.class);
+        }
 
         // 查询会员信息
         MallOrderCreateDataVo.Buyer buyer = new MallOrderCreateDataVo.Buyer();
@@ -122,30 +130,36 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
             orderCalculateParam.setSkuData(entry.getValue().getSkuData());
             orderCalculateParam.setDiscount(entry.getValue().getDiscount());
             orderCalculateParam.setDelivery(entry.getValue().getDelivery());
+            orderCalculateParam.setPosition(position);
             orderCalculateParam.setMemberId(param.getMemberId());
             orderCalculateParam.setOrderFrom(param.getOrderFrom());
-
+            orderCalculateParam.setOrderType(entry.getValue().getOrderType());
+            orderCalculateParam.setExtendData(entry.getValue().getExtendData());
+            orderCalculateParam.setMemberRemark(entry.getValue().getMemberRemark());
             mallOrderCreateDataVo.getOrderHandleList().put(
                     entry.getKey().toString(),
-                    coreOrderCreateService.calculate(orderCalculateParam)
+                    coreOrderCreateService.calculate(orderCalculateParam,mallOrderCreateDataVo)
             );
         }
+        //核验是否需要地址
+        checkHasAddress();
+        //统筹多站点订单
+        calculateOfMall();
+
         mallOrderCreateDataVo.setOrderList(new HashMap<>());
-        Set<String> hasGoodsTypes = new HashSet<>();
+        Set<String> tempHasGoodsTypes = new HashSet<>();
         Integer tempVirtualVerifyMobile = 0;
         for(Map.Entry<String, OrderCreateDataVo> entryMap : mallOrderCreateDataVo.getOrderHandleList().entrySet())
         {
             mallOrderCreateDataVo.getOrderList().put(entryMap.getValue().getSiteId(), entryMap.getValue());
-            hasGoodsTypes.addAll(entryMap.getValue().getBasic().getHasGoodsTypes());
+            tempHasGoodsTypes.addAll(entryMap.getValue().getBasic().getHasGoodsTypes());
             if(ObjectUtil.isNotEmpty(entryMap.getValue().getBasic().getVirtualVerifyMobile()) && entryMap.getValue().getBasic().getVirtualVerifyMobile() > 0){
                 tempVirtualVerifyMobile = entryMap.getValue().getBasic().getVirtualVerifyMobile();
             }
         }
-        mallOrderCreateDataVo.getBasic().setHasGoodsTypes(hasGoodsTypes);
+        mallOrderCreateDataVo.getBasic().setHasGoodsTypes(tempHasGoodsTypes);
         mallOrderCreateDataVo.getBasic().setVirtualVerifyMobile(tempVirtualVerifyMobile);
-        checkHasAddress();
 
-        calculateOfMall();
         mallOrderCreateDataVo.setOrderHandleList(new HashMap<>());
         cacheOrderVo();
         this.param = null;
@@ -196,6 +210,13 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
             }
             entry.getValue().setInvoice(invoiceCreateParam);
             entry.getValue().setOrderFrom(param.getOrderFrom());
+            if (ObjectUtil.isNotEmpty(param.getDelivery().getTakerName())){
+                entry.getValue().getDelivery().setTakerName(param.getDelivery().getTakerName());
+            }
+            if(ObjectUtil.isNotEmpty(param.getDelivery().getTakerMobile())){
+                entry.getValue().getDelivery().setTakerMobile(param.getDelivery().getTakerMobile());
+            }
+            entry.getValue().setMemberRemark(param.getBody().get(entry.getValue().getSiteId()).getMemberRemark());
             coreOrderCreateService.create(entry.getValue());
         }
         //平台优惠
@@ -512,9 +533,10 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
         }
         mallOrderCreateDataVo.getBasic().setHasSelectDeliveryTypes(hasSelectDeliveryTypes);
 
-
+        //定义收货地址
+        //查询默认收货地址
         MemberAddress address = null;
-        if (ObjectUtil.isEmpty(param.getDelivery()) && param.getDelivery().getTakeAddressId() > 0) {
+        if (ObjectUtil.isNotEmpty(param.getDelivery()) && ObjectUtil.isNotEmpty(param.getDelivery().getTakeAddressId()) && param.getDelivery().getTakeAddressId() > 0) {
             address = memberAddressMapper.selectOne(new QueryWrapper<MemberAddress>()
                     .eq("id", param.getDelivery().getTakeAddressId())
                     .eq("member_id", param.getMemberId()));
@@ -529,12 +551,43 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
                         .eq("member_id", param.getMemberId())
                         .last("LIMIT 1"));
             }
+            //获取会员存在经纬度的地址
+            if (hasSelectDeliveryTypes.contains(DeliveryTypeEnum.LOCAL_DELIVERY.getType()) && ObjectUtil.isNotEmpty(address) && StringUtils.isEmpty(address.getLng())) {
+                address = memberAddressMapper.selectOne(new QueryWrapper<MemberAddress>()
+                        .eq("member_id", param.getMemberId())
+                        .and(item ->item.isNotNull("lng").ne("lng",""))
+                        .and(item ->item.isNotNull("lat").ne("lat",""))
+                        .orderByAsc("is_default","id")
+                        .last("LIMIT 1"));
+            }
         }
 
         if (address == null) {
             mallOrderCreateDataVo.getDelivery().setTakeAddress(new JSONObject());
         } else {
             mallOrderCreateDataVo.getDelivery().setTakeAddress(address);
+            mallOrderCreateDataVo.getDelivery().setTakerName(address.getName());
+            mallOrderCreateDataVo.getDelivery().setTakerMobile(address.getMobile());
+        }
+
+        //填充默认收货地址的姓名和手机号给收货人姓名和收货人手机号
+        if (param.getOrderFrom().equals(ChannelEnum.PC.getCode())) return;
+        if (hasSelectDeliveryTypes.contains(DeliveryTypeEnum.LOCAL_DELIVERY.getType()) || hasSelectDeliveryTypes.contains(DeliveryTypeEnum.EXPRESS.getType())) {
+            mallOrderCreateDataVo.getBasic().setIsNeedTakeAddress(1);
+            if(ObjectUtil.isEmpty(mallOrderCreateDataVo.getDelivery().getTakeAddress())){
+                mallOrderCreateDataVo.getError().add("需要先选择收货地址");
+            }else{
+                if (hasSelectDeliveryTypes.contains(DeliveryTypeEnum.LOCAL_DELIVERY.getType())){
+                    JSONObject takeAddress = JSONUtil.parseObj(mallOrderCreateDataVo.getDelivery().getTakeAddress());
+                    if(ObjectUtil.isEmpty(takeAddress.get("lng"))){
+                        mallOrderCreateDataVo.getError().add("所选收货地址没有使用地图精确定位");
+                    }
+                }
+            }
+        } else {
+            //如果没有店铺选择物流配送和门店自提,则不需要收货地址
+            mallOrderCreateDataVo.getBasic().setIsNeedTakeAddress(0);
+            mallOrderCreateDataVo.getDelivery().setTakeAddress(new JSONObject());
         }
     }
 
@@ -543,15 +596,22 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
      * @return
      */
     private Boolean checkHasAddress(){
-
+        Boolean er = false;
         for (OrderCreateDataVo order : mallOrderCreateDataVo.getOrderHandleList().values()) {
             if(order.getBasic().getHasGoodsTypes().contains(GoodsTypeEnum.REAL.getType()))
             {
-                return true;
+                er = true;
             }
         }
-        mallOrderCreateDataVo.getDelivery().setTakeAddress(new JSONObject());
-        return false;
+        if (!er){
+            mallOrderCreateDataVo.getDelivery().setTakeAddress(new JSONObject());
+        }
+
+        for (OrderCreateDataVo order : mallOrderCreateDataVo.getOrderHandleList().values()){
+            order.getDelivery().setTakerMobile(mallOrderCreateDataVo.getDelivery().getTakerMobile());
+            order.getDelivery().setTakerName(mallOrderCreateDataVo.getDelivery().getTakerName());
+        }
+        return er;
     }
 
     /**

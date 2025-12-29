@@ -76,13 +76,13 @@ const latLngChange = (lat: number, lng: number) => {
         if (message == 'query ok' || message == 'Success') {
             formData.taker_latitude = result.location.lat
             formData.taker_longitude = result.location.lng
-            formData.taker_address = result.formatted_addresses.recommend
+            formData.taker_address = result.formatted_addresses && result.formatted_addresses.recommend ? result.formatted_addresses.recommend : ''
         } else {
             mapMessage.value = '地图加载失败：' + message
-            console.log(message, result)
+            // console.log(message, result)
         }
     }).catch(err => {
-        console.log(err)
+        // console.log(err)
     })
 }
 

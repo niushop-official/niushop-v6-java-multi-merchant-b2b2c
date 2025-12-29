@@ -1,19 +1,35 @@
 package com.niu.core.service.admin.auth;
 
+import cn.hutool.json.JSONObject;
 import com.niu.core.common.domain.Result;
+import com.niu.core.service.admin.auth.param.SendMobileParam;
 import com.niu.core.service.admin.auth.param.UserLoginParam;
+import com.niu.core.service.admin.auth.param.UserMobileLoginParam;
 import com.niu.core.service.admin.auth.vo.LoginResultVo;
 
 /**
  * 用户登录服务层
  */
 public interface ILoginService {
+
     /**
-     * 用户登录
+     * 账号密码登录
      * @param userLoginParam
      * @return
      */
-    LoginResultVo login(UserLoginParam userLoginParam);
+    LoginResultVo account(UserLoginParam userLoginParam);
+
+    /**
+     * 手机号登录
+     * @return
+     */
+    LoginResultVo mobile(UserMobileLoginParam param);
+
+    /**
+     * 手机发送验证码
+     * @return
+     */
+    JSONObject sendMobileCode(SendMobileParam param);
 
     /**
      * 用戶登出

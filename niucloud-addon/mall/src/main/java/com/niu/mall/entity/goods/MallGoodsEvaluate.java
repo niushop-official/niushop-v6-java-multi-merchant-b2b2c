@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 商品评价实体
@@ -31,5 +32,9 @@ public class MallGoodsEvaluate implements Serializable {
     private Integer topping; // 排序 置顶
     private Long createTime; // 评论时间
     private Long updateTime; // 修改时间
+
+    private BigDecimal qualityScore; // 商品质量
+    private BigDecimal serviceScore; // 商家服务
+    private BigDecimal logisticsScore; // 发货物流
 
 }

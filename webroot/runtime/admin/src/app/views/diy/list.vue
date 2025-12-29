@@ -45,7 +45,7 @@
 
                 <el-table-column :label="t('operation')" fixed="right" align="right" min-width="160">
                     <template #default="{ row }">
-                        <el-button type="primary" link @click="toPreview(row)">{{ t('preview') }}</el-button>
+                        <el-button type="primary" link @click="toPreview(row)" v-if="row.type !== 'DIY_MALL_GOODS_DETAIL'">{{ t('preview') }}</el-button>
                         <el-button v-if="row.is_default == 0" type="primary" link @click="setUse(row.id)">{{ t('use') }}</el-button>
                         <el-button v-if="row.type == 'DIY_PAGE'" type="primary" link @click="openShare(row)">{{ t('shareSet') }}</el-button>
                         <el-button type="primary" link @click="editEvent(row)">{{ t('edit') }}</el-button>

@@ -97,11 +97,3 @@ export function getRecommendGoods(params: Record<string, any>) {
     return request.get(`mall/goods/recommend/${ params.site_id }`, params)
 }
 
-
-
-/**
- * 获取商品详情二维码
- */
-export function getGoodsQrcode(params: Record<string, any>) {
-    return request.get(`mall/goods/detail/qrcode`, params)
-}

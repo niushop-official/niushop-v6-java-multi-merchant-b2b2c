@@ -68,7 +68,7 @@ public class MallGoodsRankParam implements Serializable {
     /**
      * 排序号
      */
-    private String sort;
+    private Integer sort;
 
     /**
      * 显示状态（0不显示 1显示）

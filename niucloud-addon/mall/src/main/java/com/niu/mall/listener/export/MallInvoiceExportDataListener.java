@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.domain.PageParam;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.basic.Invoice;
@@ -52,12 +53,12 @@ public class MallInvoiceExportDataListener extends ExportDataEventDefiner {
                 queryWrapper.like("header_name", headerName);
             }
 
-            if ((where.get("create_time") instanceof String[] createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "create_time", createTimes);
+            if ((where.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "create_time", StringUtils.jsonArrayToStringArray(createTimes));
             }
 
-            if ((where.get("invoice_time") instanceof String[] invoiceTimes) && ObjectUtil.isNotEmpty(invoiceTimes)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "invoice_time", invoiceTimes);
+            if ((where.get("invoice_time") instanceof JSONArray invoiceTimes) && ObjectUtil.isNotEmpty(invoiceTimes)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "invoice_time", StringUtils.jsonArrayToStringArray(invoiceTimes));
             }
         }
 

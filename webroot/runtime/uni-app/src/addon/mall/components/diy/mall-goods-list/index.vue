@@ -17,7 +17,7 @@
                             </view>
 							<view class="text-[24rpx] text-[#999] leading-[30rpx] using-hidden mb-[5rpx]" v-if="item.sub_title">{{ item.sub_title }}</view>
                             <view class="flex mb-[10rpx]" v-if="item.site?.distance && diyComponent.distanceStyle.control">
-								<view class="bg-[#f6f6f6] px-[10rpx] h-[42rpx] rounded-[6rpx] flex items-center">
+								<view class="bg-[#f6f6f6] px-[10rpx] h-[42rpx] rounded-[6rpx] flex items-center using-hidden">
 									<view class="flex items-center">
 										<view class="w-[28rpx] h-[28rpx] rounded-[2rpx] overflow-hidden mr-[8rpx] flex-center">
 											<up-image radius="2rpx" width="28rpx" height="28rpx" :src="diyShop.siteLogo(item.site)" mode="aspectFill">
@@ -26,9 +26,9 @@
 												</template>
 											</up-image>
 										</view>
-										<view class="text-[24rpx] max-w-[240rpx] truncate">{{ item.site?.site_name }}</view>
+										<view class="text-[24rpx] max-w-[200rpx] truncate">{{ item.site?.site_name }}</view>
 									</view>
-									<view class="w-[2rpx] h-[18rpx] bg-[#bbb] mx-[10rpx]"></view>
+									<view class="w-[2rpx] h-[18rpx] bg-[#bbb] mx-[10rpx] flex-shrink-0"></view>
 									<view class="text-[24rpx] flex-shrink-0">{{ distance(item.site.distance) }}</view>
 								</view>
 							</view>

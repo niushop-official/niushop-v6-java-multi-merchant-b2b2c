@@ -73,18 +73,16 @@ public class InstallDataServiceImpl implements IInstallDataService {
     public void install() {
         //初始化
         this.init();
-        //初始化站点套餐
-        initSiteGroup();
-        //创建默认站点分类
-        shopCategoryAdd();
-        //初始化系统首页微页面
-        diyService.initDefaultPage(0, "DIY_INDEX", null);
-        //初始化系统个人中心微页面
-        diyService.initDefaultPage(0, "DIY_MEMBER_INDEX", null);
-        //创建默认找朋友帮忙付海报
-        corePosterService.initDefaultPoster(0, "friendspay", null);
         //创建默认主题风格颜色
         coreDiyService.initDefaultDiyTheme();
+        //初始化站点套餐
+        try {
+            initSiteGroup();
+        }catch (Exception e){
+            log.error("初始化数据失败", e);
+        }
+        //创建默认站点分类
+        shopCategoryAdd();
     }
 
     private void init(){
@@ -103,15 +101,19 @@ public class InstallDataServiceImpl implements IInstallDataService {
         }
         try {
             //初始化首页轮播
-            JSONArray adv  =  initData.getJSONArray("adv");
-            DiyAdvParam diyAdvParam = new DiyAdvParam();
-            diyAdvParam.setAdvTitle(adv.getJSONObject(0).getStr("adv_title"));
-            diyAdvParam.setAdvImage(adv.getJSONObject(0).getStr("adv_image"));
-            diyAdvParam.setAdvUrl(adv.getJSONObject(0).getJSONObject("adv_url"));
-            diyAdvParam.setApKey(adv.getJSONObject(0).getStr("ap_key"));
-            diyAdvParam.setSlideSort(adv.getJSONObject(0).getInt("slide_sort"));
-            diyAdvParam.setBackground(adv.getJSONObject(0).getStr("background"));
-            diyAdvService.add(diyAdvParam);
+            JSONArray advJSON  =  initData.getJSONArray("adv");
+            for (int i = 0; i < advJSON.size(); i++){
+                JSONObject adv = advJSON.getJSONObject(i);
+                DiyAdvParam diyAdvParam = new DiyAdvParam();
+                diyAdvParam.setAdvTitle(adv.getStr("adv_title"));
+                diyAdvParam.setAdvImage(adv.getStr("adv_image"));
+                diyAdvParam.setAdvUrl(adv.getJSONObject("adv_url"));
+                diyAdvParam.setApKey(adv.getStr("ap_key"));
+                diyAdvParam.setSlideSort(adv.getInt("slide_sort"));
+                diyAdvParam.setBackground(adv.getStr("background"));
+                diyAdvService.add(diyAdvParam);
+            }
+
         }catch (Exception e){
             log.error("初始化数据失败", e);
         }
@@ -161,7 +163,9 @@ public class InstallDataServiceImpl implements IInstallDataService {
             siteGroupAddParam.setGroupName("店铺套餐");
             siteGroupAddParam.setGroupDesc("");
             siteGroupAddParam.setAddon(new JSONArray());
-            siteGroupAddParam.setApp(new JSONArray());
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.add("mall");
+            siteGroupAddParam.setApp(jsonArray);
             shopSiteGroupService.add(siteGroupAddParam);
         }
     }

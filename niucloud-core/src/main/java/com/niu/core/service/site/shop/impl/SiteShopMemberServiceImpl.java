@@ -14,6 +14,7 @@ import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.shop.MemberLabel;
 import com.niu.core.entity.shop.SiteShopMember;
 import com.niu.core.entity.site.Site;
@@ -65,7 +66,7 @@ public class SiteShopMemberServiceImpl implements ISiteShopMemberService {
 
         MPJQueryWrapper<SiteShopMember> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("ssm");
-        queryWrapper.select("ssm.id,ssm.site_id,ssm.member_id, ssm.is_follow, ssm.first_consum_time, ssm.last_consum_time, ssm.shop_member_label, m.member_no, m.mobile, m.nickname, m.username, m.headimg, m.register_channel");
+        queryWrapper.select("ssm.id,ssm.site_id,ssm.member_id, ssm.is_follow, ssm.first_consum_time, ssm.last_consum_time, ssm.shop_member_label, m.member_no, m.mobile, m.nickname, m.username, m.headimg, m.register_channel,ssm.comsum_money,ssm.comsum_num");
         queryWrapper.leftJoin("?_member m ON m.`member_id` = ssm.member_id".replace("?_", "ns_"));
 
         queryWrapper.eq("ssm.site_id", RequestUtils.siteId());
@@ -110,6 +111,9 @@ public class SiteShopMemberServiceImpl implements ISiteShopMemberService {
         if (ObjectUtil.isNotEmpty(searchParam.getSiteId())) {
         queryWrapper.eq("ssm.site_id", searchParam.getSiteId());
         }
+        if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
+            QueryMapperUtils.buildByTime(queryWrapper, "m.create_time", searchParam.getCreateTime());
+        }
         queryWrapper.orderByDesc("ssm.id");
 
         IPage<SiteShopMemberListVo> iPage = siteShopMemberMapper.selectJoinPage(new Page<>(page, limit), SiteShopMemberListVo.class,  queryWrapper);
@@ -141,7 +145,7 @@ public class SiteShopMemberServiceImpl implements ISiteShopMemberService {
     public SiteShopMemberInfoVo info(Integer id) {
 
         Integer siteId = RequestUtils.defaultSiteId();
-        SiteShopMember model = siteShopMemberMapper.selectOne(
+        SiteShopMemberInfoVo model = siteShopMemberMapper.selectJoinOne(SiteShopMemberInfoVo.class,
                 new MPJQueryWrapper<SiteShopMember>()
                         .setAlias("ssm")
                         .leftJoin("?_member m ON m.`member_id` = ssm.member_id".replace("?_", "ns_"))
@@ -153,11 +157,9 @@ public class SiteShopMemberServiceImpl implements ISiteShopMemberService {
 
         Assert.notNull(model, "数据不存在");
 
-        SiteShopMemberInfoVo vo = new SiteShopMemberInfoVo();
-        BeanUtils.copyProperties(model, vo);
 
         if (StrUtil.isNotEmpty(model.getShopMemberLabel()) && !Arrays.asList(model.getShopMemberLabel()).isEmpty()) {
-            JSONArray memberLabelArrays = JSONUtil.parseArray(vo.getShopMemberLabel());
+            JSONArray memberLabelArrays = JSONUtil.parseArray(model.getShopMemberLabel());
             if (memberLabelArrays != null && memberLabelArrays.size() > 0) {
                 List<SiteShopMemberLabelAllListVo> memberLabelArray = new LinkedList<>();
                 List<MemberLabel> labelList = siteShopMemberLabelMapper.selectList(new QueryWrapper<MemberLabel>().select("label_name").in("label_id", memberLabelArrays));
@@ -166,10 +168,10 @@ public class SiteShopMemberServiceImpl implements ISiteShopMemberService {
                     BeanUtils.copyProperties(labelItem, labelVo);
                     memberLabelArray.add(labelVo);
                 }
-                vo.setShopMemberLabelArray(memberLabelArray);
+                model.setShopMemberLabelArray(memberLabelArray);
             }
         }
-        return vo;
+        return model;
     }
 
     @Override

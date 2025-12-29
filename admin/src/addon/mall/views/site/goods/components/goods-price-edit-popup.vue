@@ -214,7 +214,7 @@ const verify = () => {
                 message: `${t('pricePlaceholder')}`
             })
             break
-        } else if (Number(item.price) < Number(item.cost_price)) {
+        } else if (Number(item.price) < Number(item.cost_price) && goods.supply_id) {
             result = false
             ElMessage({
                 type: 'warning',

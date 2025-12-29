@@ -129,7 +129,6 @@ headers['site-id'] = useCookie('siteId').value || useRuntimeConfig().public.VITE
 const runtimeConfig = useRuntimeConfig()
 
 let url = runtimeConfig.public.VITE_APP_BASE_URL || `${location.origin}/api/`
-url = url.replace(/\/$/, '')
 const upload: Record<string, any> = {
     action: `${url}/file/image`,
     headers,

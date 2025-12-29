@@ -62,6 +62,11 @@ public class AddonInstallJavaTools {
                 // 3、niucloud-addon模块下添加模块依赖
                 String addonProject = webAppEnvs.projectNiucloudAddon;
                 LocalMavenTools.addPomModuleNode(addonProject, addonName);
+
+                // 4、niucloud-web-app 模块下添加依赖
+                Map<String, String> coordinateMap = LocalMavenTools.readPomXmlCoordinate(addonPomPath);
+                LocalMavenTools.addPomDependencyNode(webAppEnvs.projectRoot + "/niucloud-web-app", coordinateMap);
+
                 log.info("已添加maven依赖.");
                 tips.add("已添加maven依赖.");
             } else {
@@ -108,7 +113,7 @@ public class AddonInstallJavaTools {
         } else {
             // 生产环境
             // 1、读取JAR内容
-            String addonJarPath = RuntimeTools.getWebRootPath() + "/jar/addon/" + addonName + ".jar";
+            String addonJarPath = WebAppEnvs.get().webRootDownJar + "addon/" + addonName + ".jar";
             File addonJarFile = new File(addonJarPath);
             if (!addonJarFile.exists()) {
                 throw new RuntimeException("插件" + addonName + ".jar文件不存在.");
@@ -121,7 +126,7 @@ public class AddonInstallJavaTools {
             String addonJar = addonInfoJsonObject.getStr("jar");
             String addonMainClass = addonInfoJsonObject.getStr("mainClass");
             // 3、插件归档目录下读取==>addon.json文件，文件可以为空
-            String addonRunDescPath = RuntimeTools.getWebRootPath() + "/jar/addon/addon.json";
+            String addonRunDescPath = WebAppEnvs.get().webRootDownJar + "addon/addon.json";
             JSONArray runAddonJsonArray = JsonLoadUtils.readFileToJSONArray(addonRunDescPath);
             boolean containedAddon = checkContainedAddon(runAddonJsonArray, addonName);
             if (containedAddon) {
@@ -178,8 +183,10 @@ public class AddonInstallJavaTools {
                 // 源码安装进行卸载
                 // ==========================================================================================//
                 // 1、、Maven卸载依赖
-                String addonProject = webAppEnvs.projectNiucloudAddon + "/" + addonName;
+                String addonProject = webAppEnvs.projectNiucloudAddon;
                 LocalMavenTools.removePomModuleNode(addonProject, addonName);
+                // 移除niucloud-web-app模块的依赖
+                LocalMavenTools.removePomDependencyNode(webAppEnvs.projectRoot + "/niucloud-web-app", LocalMavenTools.readPomXmlCoordinate(projectAddonPomXmlPath));
                 // 3、删除模块的所有项目文件（如果存在）
                 String addonProjectPath = webAppEnvs.projectNiucloudAddon + "/" + addonName + "/";
                 try {
@@ -269,7 +276,7 @@ public class AddonInstallJavaTools {
 
     public static void addAddonJson(String addonName) {
         // 1、读取JAR内容
-        String addonJarPath = RuntimeTools.getWebRootPath() + "/jar/addon/" + addonName + ".jar";
+        String addonJarPath = WebAppEnvs.get().webRootDownJar + "addon/" + addonName + ".jar";
         File addonJarFile = new File(addonJarPath);
         if (!addonJarFile.exists()) {
             throw new RuntimeException("插件" + addonName + ".jar文件不存在.");
@@ -282,7 +289,7 @@ public class AddonInstallJavaTools {
         String addonJar = addonInfoJsonObject.getStr("jar");
         String addonMainClass = addonInfoJsonObject.getStr("mainClass");
         // 3、插件归档目录下读取==>addon.json文件，文件可以为空
-        String addonRunDescPath = RuntimeTools.getWebRootPath() + "/jar/addon/addon.json";
+        String addonRunDescPath = WebAppEnvs.get().webRootDownJar + "addon/addon.json";
         JSONArray runAddonJsonArray = JsonLoadUtils.readFileToJSONArray(addonRunDescPath);
         boolean containedAddon = checkContainedAddon(runAddonJsonArray, addonName);
         if (containedAddon) {

@@ -214,6 +214,9 @@
 				{
 					"path": "pages/order/payment",
 					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
 						"navigationBarTitleText": "%mall.pages.order.payment%"
 					},
 					"needLogin": true

@@ -93,6 +93,14 @@ export default [
         }
     },
     {
+        path: "/member/invoice",
+        component: () => import('~/addon/mall/pages/member/invoice.vue'),
+        meta: {
+            middleware: ["auth"],
+            layout: "member"
+        }
+    },
+    {
         path: "/member/merchant_settled",
         component: () => import('~/addon/mall/pages/member/merchant_settled.vue'),
         meta: {

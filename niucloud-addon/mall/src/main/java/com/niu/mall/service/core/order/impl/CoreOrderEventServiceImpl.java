@@ -529,7 +529,7 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         data.put("from_type", "consume_reward");
         data.put("order_money", order.getOrderMoney());
         coreMemberService.sendGrowth(RequestUtils.defaultSiteId(), order.getMemberId(), "mall_buy_goods", data);
-        //coreMemberService.sendGrowth(RequestUtils.defaultSiteId(), order.getMemberId(), "mall_buy_goods", data);
+        coreMemberService.sendGrowth(RequestUtils.defaultSiteId(), order.getMemberId(), "mall_buy_order", new HashMap<>());
         coreMemberService.sendPoint(RequestUtils.defaultSiteId(), order.getMemberId(), "mall_buy_goods", data);
 
         //小票打印，订单付款之后

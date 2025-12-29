@@ -15,10 +15,8 @@
                             <el-checkbox v-model="formData.is_refund_address" :label="t('refundAddress')" :true-label="1" :false-label="0"/>
                             <el-checkbox v-model="formData.is_default_refund" :label="t('defaultRefundAddress')" :true-label="1" :false-label="0" v-show="formData.is_refund_address"/>
                         </div>
+                        <div class="text-[#999] text-[12px]">如需开启同城配送，则必须勾选默认发货地址</div>
                     </div>
-                </el-form-item>
-                <el-form-item :label="t('shopName')" prop="shop_name">
-                    <el-input v-model.trim="formData.shop_name" clearable :placeholder="t('shopNamePlaceholder')" class="input-width" maxlength="30" />
                 </el-form-item>
 
                 <el-form-item :label="t('contactName')" prop="contact_name">
@@ -159,7 +157,7 @@ const latLngChange = (lat: number, lng: number) => {
         if (message == 'query ok' || message == 'Success') {
             formData.lat = result.location.lat
             formData.lng = result.location.lng
-            formData.address = result.formatted_addresses.recommend
+            formData.address = result.formatted_addresses && result.formatted_addresses.recommend ? result.formatted_addresses.recommend : ''
 
             getAreaByCode(result.ad_info.adcode).then(({ data }) => {
                 storeArea.province_id = data.province ? data.province.id : 0
@@ -170,7 +168,7 @@ const latLngChange = (lat: number, lng: number) => {
             console.error(message, result)
         }
     }).catch(err => {
-        console.log(err)
+        // console.log(err)
     })
 }
 
@@ -179,7 +177,6 @@ const latLngChange = (lat: number, lng: number) => {
 */
 const initialFormData = {
     id: 0,
-    shop_name: '',
     contact_name: '',
     mobile: '',
     province_id: 0,
@@ -222,9 +219,6 @@ const formRules = computed(() => {
                     callback()
                 }
             }
-        ],
-        shop_name: [
-            { required: true, message: t('shopNamePlaceholder'), trigger: 'blur' }
         ],
         contact_name: [
             { required: true, message: t('contactNamePlaceholder'), trigger: 'blur' }

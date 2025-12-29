@@ -59,7 +59,7 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
 
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) {
             queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", searchParam.getKeyword()))
-                    .or(j-> j.like("ns.transfer_mobile", searchParam.getKeyword()))
+                    .or(j-> j.like("nssco.transfer_mobile", searchParam.getKeyword()))
             );
         }
 

@@ -20,7 +20,14 @@ public interface IAuthSiteService {
      * @param searchParam 搜索参数
      * @return PageResult<SiteListVo>
      */
-    PageResult<SiteListVo> list(PageParam pageParam, SiteSearchParam searchParam);
+    PageResult<SiteListVo> pages(PageParam pageParam, SiteSearchParam searchParam);
+
+    /**
+     * 站点列表
+     * @param searchParam 搜索参数
+     * @return PageResult<SiteListVo>
+     */
+    List<SiteListVo> list( SiteSearchParam searchParam);
 
     /**
      * 站点详情

@@ -46,7 +46,7 @@ public class MemberCashOutSearchParam implements Serializable {
 
     private BigDecimal money;
 
-    private Integer auditTime;
+    private String[] auditTime;
 
     private Integer status;
 

@@ -5,6 +5,7 @@ import com.niu.core.common.domain.Result;
 import com.niu.mall.service.core.goods.vo.ShopGoodsCategoryConfigVo;
 import com.niu.mall.service.site.goods.IGoodsCategoryService;
 import jakarta.annotation.Resource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.*;
 
 /**

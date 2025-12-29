@@ -50,15 +50,17 @@ public class ProjectCompileAndBuildTools {
         }
         // 打包编译
         if (installAndBuild) {
-//            installAndBuildAdmin(projectHome);
-//            installAndBuildH5(projectHome);
-//            installAndBuildWeb(projectHome);
+            installAndBuildAdmin(projectHome);
+            installAndBuildSite(projectHome);
+            installAndBuildH5(projectHome);
+            installAndBuildWeb(projectHome);
         }
         // 工程源码复制
         if (srcBuild) {
             buildAdminToRuntime(projectHome);
             buildH5ToRuntime(projectHome);
             buildWebToRuntime(projectHome);
+            buildSiteToRuntime(projectHome);
         }
     }
 
@@ -87,6 +89,39 @@ public class ProjectCompileAndBuildTools {
         System.out.println("[INFO] BUILD admin");
         System.out.println("[INFO] ------------------------------------------------------------------------");
         int buildResult = execute(home + "/admin", "npm run build");
+        System.out.println("[INFO] ------------------------------------------------------------------------");
+        if (buildResult == 0) {
+            System.out.println("[INFO] BUILD SUCCESS");
+        } else {
+            System.out.println("[INFO] BUILD ERROR");
+        }
+        System.out.println("[INFO] ------------------------------------------------------------------------");
+    }
+
+    /**
+     * @param home
+     */
+    public static void installAndBuildSite(String home) {
+        System.out.println("[INFO] ------------------------------------------------------------------------");
+        System.out.println("[INFO] Installing site-uniapp");
+        System.out.println("[INFO] ------------------------------------------------------------------------");
+        int installResult = execute(home + "/site-uniapp", "npm install");
+        System.out.println();
+        if (installResult == 0) {
+            System.out.println("[INFO] Installing SUCCESS");
+        } else {
+            System.out.println("[INFO] Installing ERROR");
+        }
+        // 检查目标目录是否存在
+        File distFile = new File(home + "/webroot/public/adminapp/");
+        if (!distFile.exists()) {
+            System.out.println("[INFO] create wap directory");
+            distFile.mkdirs();
+        }
+        System.out.println("[INFO] ------------------------------------------------------------------------");
+        System.out.println("[INFO] BUILD site-uniapp");
+        System.out.println("[INFO] ------------------------------------------------------------------------");
+        int buildResult = execute(home + "/site-uniapp", "npm run build:h5");
         System.out.println("[INFO] ------------------------------------------------------------------------");
         if (buildResult == 0) {
             System.out.println("[INFO] BUILD SUCCESS");
@@ -331,9 +366,9 @@ public class ProjectCompileAndBuildTools {
             // 移除插件
             File addonDir = new File(home + "/webroot/runtime/admin/src/addon");
             Collection<File> addonDirFile = FileUtils.listFilesAndDirs(
-                    addonDir,
-                    TrueFileFilter.INSTANCE,   // 匹配所有文件
-                    TrueFileFilter.INSTANCE    // 匹配所有目录
+                addonDir,
+                TrueFileFilter.INSTANCE,   // 匹配所有文件
+                TrueFileFilter.INSTANCE    // 匹配所有目录
             );
             for (File file : addonDirFile) {
                 // 跳过根目录和商城
@@ -357,6 +392,49 @@ public class ProjectCompileAndBuildTools {
     /**
      * @param home
      */
+    private static void buildSiteToRuntime(String home) {
+        System.out.println("[INFO] ------------------------------------------------------------------------");
+        System.out.println("[INFO] copying site-uniapp start ->");
+        System.out.println("[INFO] ------------------------------------------------------------------------");
+        try {
+            File srcDir = new File(home + "/site-uniapp");
+            File destDir = new File(home + "/webroot/runtime/site-uniapp");
+            if (destDir.exists()) {
+                FileUtils.deleteDirectory(destDir);
+            }
+
+            String[] exclusionDir = {"node_modules", "unpackage", "dist", ".hbuilderx"};
+            FileUtils.copyDirectory(srcDir, destDir, createExclusionFilter(exclusionDir));
+
+            // 移除插件
+            File addonDir = new File(home + "/webroot/runtime/site-uniapp/src/addon");
+            Collection<File> addonDirFile = FileUtils.listFilesAndDirs(
+                    addonDir,
+                    TrueFileFilter.INSTANCE,   // 匹配所有文件
+                    TrueFileFilter.INSTANCE    // 匹配所有目录
+            );
+            for (File file : addonDirFile) {
+                // 跳过根目录和商城
+                if (file.equals(addonDir) || file.getName().equals("mall") || file.getName().equals("components")) {
+                    continue;
+                }
+                if (file.isDirectory()) {
+                    FileUtils.deleteDirectory(file);
+                } else {
+                    file.delete();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("[INFO] ------------------------------------------------------------------------");
+        System.out.println("[INFO] copying site-uniapp ended <-");
+        System.out.println("[INFO] ------------------------------------------------------------------------");
+    }
+
+    /**
+     * @param home
+     */
     private static void buildH5ToRuntime(String home) {
         System.out.println("[INFO] ------------------------------------------------------------------------");
         System.out.println("[INFO] copying uni-app start ->");
@@ -374,9 +452,9 @@ public class ProjectCompileAndBuildTools {
             // 移除插件
             File addonDir = new File(home + "/webroot/runtime/uni-app/src/addon");
             Collection<File> addonDirFile = FileUtils.listFilesAndDirs(
-                    addonDir,
-                    TrueFileFilter.INSTANCE,   // 匹配所有文件
-                    TrueFileFilter.INSTANCE    // 匹配所有目录
+                addonDir,
+                TrueFileFilter.INSTANCE,   // 匹配所有文件
+                TrueFileFilter.INSTANCE    // 匹配所有目录
             );
             for (File file : addonDirFile) {
                 // 跳过根目录和商城
@@ -462,9 +540,9 @@ public class ProjectCompileAndBuildTools {
             // 移除插件
             File addonDir = new File(home + "/webroot/runtime/web/addon");
             Collection<File> addonDirFile = FileUtils.listFilesAndDirs(
-                    addonDir,
-                    TrueFileFilter.INSTANCE,   // 匹配所有文件
-                    TrueFileFilter.INSTANCE    // 匹配所有目录
+                addonDir,
+                TrueFileFilter.INSTANCE,   // 匹配所有文件
+                TrueFileFilter.INSTANCE    // 匹配所有目录
             );
             for (File file : addonDirFile) {
                 // 跳过根目录和商城

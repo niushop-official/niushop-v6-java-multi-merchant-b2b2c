@@ -1,27 +1,34 @@
 <template>
-    <u-popup :show="show" @close="show = false" mode="bottom" :round="10">
+    <u-popup :show="show" @close="handleClose" mode="bottom" :round="10">
         <view @touchmove.prevent.stop class="popup-common">
             <view class="title">请选择自提点</view>
             <scroll-view scroll-y="true" class="h-[50vh]">
                 <view class="p-[var(--popup-sidebar-m)] pt-0 text-sm">
-                    <view
-                        class="mt-[var(--top-m)] border-1 border-[#eee] border-solid rounded-[var(--rounded-mid)] px-[var(--pad-sidebar-m)] py-[var(--pad-top-m)] mb-[var(--top-m)]"
+                    <view class="card-template mt-[var(--top-m)] border-1 border-[#eee] border-solid  mb-[var(--top-m)]"
                         :class="{'!border-primary bg-[var(--primary-color-light2)]': store && store.store_id == item.store_id}"
                         v-for="item in storeList" @click="selectStore(item)">
-                        <view class="flex">
-                            <view class="flex-1 w-0">
-                                <text class="text-[30rpx] text-[#333]">{{ item.store_name }}</text>
-                                <text class="text-[26rpx] ml-[12rpx] text-[var(--text-color-light6)]">{{ item.store_mobile }}</text>
+                        <view class="flex items-center mb-[20rpx]">
+                            <view class="flex-1 using-hidden text-[30rpx] text-[#333]">{{ item.store_name }} </view>
+                            <view v-if="item.distance" class="flex-shrink-0 ml-[20rpx] text-[#999] text-[24rpx] font-normal">{{ distanceFormat(item.distance) }}</view>
+                        </view>
+                        <view class="flex items-center justify-between">
+                            <view class="flex-1">
+                                <view class=" text-[22rpx] leading-[1.4] text-[#666]">
+                                    <text class="nc-iconfont nc-icon-dizhiguanliV6xx text-[26rpx] mr-[12rpx]"></text>
+                                    <text class="flex-shrink-0">门店地址：</text>
+                                    <text>{{ item.full_address }}</text>
+                                </view>
+                                <view class="mt-[12rpx] text-[22rpx] text-[#666]">
+                                    <text class="nc-iconfont nc-icon-shijianV6xx text-[26rpx] mr-[12rpx]"></text>
+                                    <text>营业时间：{{ item.trade_time }}</text>
+                                </view>
                             </view>
-                            <view v-if="item.distance">
-                                <text class="text-red text-[26rpx] font-normal">{{ distanceFormat(item.distance) }}</text>
+                            <view class="w-[1rpx] h-[42rpx] bg-[#ddd] mx-[24rpx]"></view>
+                            <view class="flex-shrink-0">
+                                <image @click="callFn(item)" class="w-[42rpx] h-[42rpx] mr-[20rpx]" :src="img('addon/mall/payment/phone.png')" mode="heightFix" />
+                                <image @click="getAddress(item)" class="w-[42rpx] h-[42rpx]" :src="img('addon/mall/payment/navigation.png')" mode="heightFix" />
                             </view>
                         </view>
-                        <view class="mt-[20rpx] text-[26rpx] leading-[1.4] flex">
-                            <text class="flex-shrink-0">门店地址：</text>
-                            <text>{{ item.full_address }}</text>
-                        </view>
-                        <view class="mt-[16rpx] text-[26rpx]">营业时间：{{ item.trade_time }}</view>
                     </view>
                 </view>
                 <view class="h-[50vh] flex items-center flex-col justify-center" v-if="loading">
@@ -40,71 +47,60 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { getStoreList } from '@/addon/mall/api/order'
-import { img } from '@/utils/common'
+import { getDeliveryStoreList } from '@/app/api/basic'
+import { img, isWeixinBrowser } from '@/utils/common'
+import wechat from '@/utils/wechat'
 
 const show = ref(false)
-const loaded = ref(false)
 const loading = ref(true)
 const storeList = ref<object[]>([])
 const store = ref<null | object>(null)
-const latlng = reactive({
-    lat: 0,
-    lng: 0
-})
+const initParam = ref<any>({})
 
-const getStoreListFn = (callback: any) => {
-    if (!loaded.value) {
-        loaded.value = true
-
-        if (uni.getStorageSync('location_address')) {
-            let location_address = uni.getStorageSync('location_address');
-            latlng.lat = location_address.latitude;
-            latlng.lng = location_address.longitude;
-        } else {
-            uni.getLocation({
-                type: 'gcj02',
-                success: (res) => {
-                    latlng.lat = res.latitude
-                    latlng.lng = res.longitude
-                },
-                fail: (res) => {
-                    if (res.errno) {
-                        if (res.errno == 104) {
-                            let msg = '用户未授权隐私权限，获取位置失败';
-                            uni.showToast({ title: msg, icon: 'none' })
-                        } else if (res.errno == 112) {
-                            let msg = '隐私协议中未声明，获取位置失败';
-                            uni.showToast({ title: msg, icon: 'none' })
-                        }
-                    }
-                    if (res.errMsg) {
-                        if (res.errMsg.indexOf('getLocation:fail') != -1 || res.errMsg.indexOf('deny') != -1 || res.errMsg.indexOf('denied') != -1) {
-                            let msg = '用户未授权获取位置权限，将无法提供距离最近的门店';
-                            uni.showToast({ title: msg, icon: 'none' })
-                        } else {
-                            uni.showToast({ title: res.errMsg, icon: 'none' })
-                        }
-                    }
-                }
-            });
-        }
-
-        setTimeout(() => {
-            getStoreList({ latlng }).then(({ data }) => {
-                storeList.value = data
-                if (typeof callback == 'function') {
-                    callback(data);
-                }
-                loading.value = false
-            }).catch(() => {
-                loading.value = false
-            })
-        }, 1500)
+// 位置
+// #ifdef H5
+if (isWeixinBrowser()) {
+    wechat.init();
+}
+// #endif
+const getAddress = (data: any) => {
+    // #ifdef H5
+    if (isWeixinBrowser()) {
+        wechat.openLocation({
+            latitude: Number(data.latitude),
+            longitude: Number(data.longitude),
+            name: data.full_address,
+            address: data.full_address
+        })
     }
+    // #endif
+    // #ifdef MP
+	uni.openLocation({
+		latitude: Number(data.latitude),
+		longitude: Number(data.longitude),
+        name: data.full_address,
+        address: data.full_address,
+		success: function () { }
+	});
+    // #endif
 }
 
-const open = () => {
+const callFn = (data: any) => {
+    uni.makePhoneCall({
+        phoneNumber: data,
+        success: (res: any) => {
+        },
+        fail: (res: any) => {
+        }
+    })
+}
+
+
+const open = (data: any) => {
+    initParam.value.site_id = data.site_id
+    storeList.value = data.store_list || []
+    store.value = data.take_store || storeList.value[0] || null
+    loading.value = false
     show.value = true
 }
 
@@ -115,11 +111,21 @@ const selectStore = (data: object) => {
         store.value = data
     }
 }
+const handleClose = () => {
+    store.value = null
+	show.value = false
+}
 
 const emits = defineEmits(['confirm'])
 
 const confirm = () => {
+    if (!store.value) {
+        uni.showToast({ title: '请选择自提点', icon: 'none' })
+        return
+    }
+    store.value.site_id = initParam.value.site_id
     emits('confirm', store.value)
+    store.value = null
     show.value = false
 }
 
@@ -134,8 +140,7 @@ const distanceFormat = (distance: any) => {
 }
 
 defineExpose({
-    open,
-    getData: getStoreListFn
+    open
 })
 </script>
 

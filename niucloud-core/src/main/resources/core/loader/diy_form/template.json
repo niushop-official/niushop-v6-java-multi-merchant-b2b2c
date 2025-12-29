@@ -669,7 +669,10 @@
               "name": ""
             }
           },
-          "bottomTabBarSwitch": true,
+          "bottomTabBar": {
+            "isShow": true,
+            "control": true
+          },
           "popWindow": {
             "imgUrl": "",
             "imgWidth": "",

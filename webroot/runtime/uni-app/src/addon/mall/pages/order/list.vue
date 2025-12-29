@@ -39,7 +39,7 @@
 										<view>
 											<view class="text-[24rpx] text-[var(--text-color-light6)] font-400 truncate leading-[34rpx] max-w-[369rpx] mb-[10rpx]" v-if="subitem.sku_name">{{ subitem.sku_name }}</view>
 											<view class="text-[24rpx] font-400 leading-[34rpx] text-[var(--text-color-light6)]" v-if="item.delivery_type != 'virtual'">
-												{{t('deliveryType') }} ： {{item.delivery_type_name}}
+												{{t('deliveryType') }}：{{item.delivery_type_name}}
 											</view>
 											<view class="text-[24rpx] font-400 leading-[34rpx] text-[var(--text-color-light6)]" v-else>{{t('createTime') }} ：{{item.create_time}}</view>
 										</view>
@@ -90,7 +90,7 @@ import { getEvaluateConfig } from '@/addon/mall/api/shop';
 import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue';
 import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.vue';
 import useMescroll from '@/components/mescroll/hooks/useMescroll.js';
-import { onLoad, onPageScroll, onReachBottom } from '@dcloudio/uni-app';
+import { onLoad, onPageScroll, onReachBottom, onShow } from '@dcloudio/uni-app';
 import useConfigStore from "@/stores/config";
 
 const { mescrollInit, downCallback, getMescroll } = useMescroll(onPageScroll, onReachBottom);
@@ -124,7 +124,9 @@ const evaluateEvent = () => {
 		evaluateConfig.value = data.data
 	})
 }
-
+onShow(() => {
+	getMescroll().resetUpScroll();
+});
 const getMallOrderFn = (mescroll:any) => {
 	loading.value = false;
 	let data: object = {

@@ -30,8 +30,8 @@
 					<template #empty>
 						<span>{{ !ShopAddressTable.loading ? t('emptyData') : '' }}</span>
 					</template>
-					<el-table-column prop="contact_name" :label="t('contactName')" min-width="120"/>
-					<el-table-column prop="mobile" :label="t('mobile')" min-width="120"/>
+					<el-table-column prop="contact_name" :label="t('contactName')" min-width="100"/>
+					<el-table-column prop="mobile" :label="t('mobile')" min-width="100"/>
 					<el-table-column prop="full_address" :label="t('fullAddress')" min-width="120" :show-overflow-tooltip="true"/>
 					<el-table-column prop="is_delivery_address" :label="t('addressType')" min-width="120" align="left">
 						<template #default="{ row }">
@@ -48,7 +48,6 @@
 
 					<el-table-column :label="t('operation')" fixed="right" min-width="120" align="right">
 						<template #default="{ row }">
-							<el-button type="primary" link @click="deliverySetEvent(row)">{{ t('deliverySet') }}</el-button>
 							<el-button type="primary" link @click="editEvent(row)">{{ t('edit') }}</el-button>
 							<el-button type="primary" link @click="deleteEvent(row.id)">{{ t('delete') }}</el-button>
 						</template>
@@ -150,13 +149,6 @@ const resetForm = (formEl: FormInstance | undefined) => {
     loadShopAddressList()
 }
 
-/**
- * 发货配置
- * @param data
- */
- const deliverySetEvent = (data: any) => {
-    router.push('/site_address/delivery_set?id=' + data.id)
-}
 </script>
 
 <style lang="scss" scoped>

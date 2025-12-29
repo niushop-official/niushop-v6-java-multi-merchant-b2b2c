@@ -10,9 +10,16 @@
     {
       "title": "数据导出",
       "desc": "数据导出管理",
-      "icon": "element Files",
+      "icon": "static/resource/images/tool/export_icon.png",
       "key": "setting_export",
       "url": "/setting/export"
+    },
+    {
+      "title": "店铺助手",
+      "desc": "手机端业务后台，轻量化移动办公",
+      "icon": "static/resource/images/tool/adminapp_icon.jpg",
+      "key": "adminapp",
+      "url": "/adminapp"
     }
   ],
   "addon": [

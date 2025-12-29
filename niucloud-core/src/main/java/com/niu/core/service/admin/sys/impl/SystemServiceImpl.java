@@ -52,17 +52,20 @@ public class SystemServiceImpl implements ISystemService {
     }
 
     @Override
-    public SysQrcodeVo getQrcode(String folder, String page, List<Map<String,Object>> params) {
+    public SysQrcodeVo getQrcode(String folder, String page, Map<String, String> allParams) {
         SysQrcodeVo result = new SysQrcodeVo();
         result.setH5Path("");
         result.setWeappPath("");
         Integer siteId = RequestUtils.siteId();
         List<Map<String,Object>> paramList = new ArrayList<>();
-        if(params != null){
+
+        if(!allParams.isEmpty() && containsKeyWithParam(allParams,"params")){
+            //提取数字
+            List<String> params = allParams.keySet().stream().filter(param -> param.contains("params")).map(param -> param.substring(7,8)).distinct().toList();
             params.forEach(param -> {
                 Map<String,Object> paramMap = new HashMap<>();
-                paramMap.put("key",param.get("column_name").toString());
-                paramMap.put("value",param.get("column_value").toString());
+                paramMap.put("key",containsKeyText(allParams,param,"column_name"));
+                paramMap.put("value",containsKeyText(allParams,param,"column_value"));
                 paramList.add(paramMap);
             });
         }
@@ -77,5 +80,23 @@ public class SystemServiceImpl implements ISystemService {
             }
         }
         return result;
+    }
+
+    public static boolean containsKeyWithParam(Map<String, String> map, String param) {
+        for (String key : map.keySet()) {
+            if (key.contains(param)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static String containsKeyText(Map<String, String> map, String index, String keyText) {
+        for (String key : map.keySet()) {
+            if (key.contains(index) && key.contains(keyText)) {
+                return map.get(key);
+            }
+        }
+        return "";
     }
 }

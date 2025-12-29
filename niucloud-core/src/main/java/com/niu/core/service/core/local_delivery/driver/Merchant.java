@@ -2,7 +2,9 @@ package com.niu.core.service.core.local_delivery.driver;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.niu.core.common.component.context.SpringContext;
+import com.niu.core.common.domain.Result;
 import com.niu.core.common.loader.local_delivery.BaseLocalDelivery;
 import com.niu.core.common.loader.local_delivery.param.AddShopDeliveryOrderParam;
 import com.niu.core.common.loader.local_delivery.param.CloseShopDeliveryOrderParam;
@@ -40,18 +42,18 @@ public class Merchant extends BaseLocalDelivery {
     }
 
     @Override
-    public void reCreateOrder() {
-
+    public ShopDeliveryOrderCreateVo reCreateOrder(AddShopDeliveryOrderParam param) {
+        return null;
     }
 
     @Override
-    public void calculate() {
-
+    public ShopDeliveryOrderCreateVo calculate(AddShopDeliveryOrderParam param) {
+        return null;
     }
 
     @Override
-    public void createOrderAfterCalculate() {
-
+    public JSONObject createOrderAfterCalculate(String deliveryThirdOrderNo) {
+        return JSONUtil.parseObj("{}");
     }
 
     @Override
@@ -86,8 +88,8 @@ public class Merchant extends BaseLocalDelivery {
     }
 
     @Override
-    public void getTransporterPosition() {
-
+    public Map<String, Object> getTransporterPosition(Map<String, Object> requestData) {
+        return null;
     }
 
     @Override
@@ -101,7 +103,7 @@ public class Merchant extends BaseLocalDelivery {
     }
 
     @Override
-    public void notify(String action, NotifyShopDeliveryOrderParam param) {
+    public Result notify(String action, NotifyShopDeliveryOrderParam param) {
         try {
             switch (action) {
                 case "order":
@@ -109,8 +111,9 @@ public class Merchant extends BaseLocalDelivery {
                     coreShopDeliveryOrderMessageService.orderNotify(param);
                     break;
             }
+            return Result.success();
         }catch (Exception e){
-            e.printStackTrace();
+            return Result.fail(e.getMessage());
         }
     }
 }

@@ -240,7 +240,7 @@ export function setSitePaymentStatus(params: Record<string, any>) {
 }
 
 /**
- * 分账账户状态改变
+ * 切换营业状态
  */
 export function updateBusinessStatus(params: Record<string, any>) {
     return request.put(`shop/site/shop/business_status`, params, { showSuccessMessage: true })

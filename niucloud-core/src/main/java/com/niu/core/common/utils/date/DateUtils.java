@@ -29,6 +29,23 @@ public class DateUtils {
         return DateUtil.format(date, "yyyy-MM-dd HH:mm:ss");
     }
 
+    /**
+     * 时间戳 根据时间格式转 时间日期
+     *
+     * @param timestamp
+     * @return
+     */
+    public static String timestampToFormString(long timestamp,String formatStr) {
+        //转化成毫秒
+        if(timestamp == 0L)
+        {
+            return "";
+        }
+        long minTimestamp = timestamp * 1000;
+        Date date = DateUtil.date(minTimestamp);
+        return DateUtil.format(date, formatStr);
+    }
+
     public static String timestampToString(long timestamp, String format) {
         //转化成毫秒
         if(timestamp == 0L)

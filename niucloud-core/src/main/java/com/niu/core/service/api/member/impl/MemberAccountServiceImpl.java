@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.Arrays;
 
 @Service
 @Slf4j
@@ -58,8 +59,14 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
         if (StrUtil.isNotEmpty(param.getFromType())) {
             queryWrapper.eq("from_type", param.getFromType());
         }
+        // 对应PHP: withSearch(['create_time'], $where)
+        // PHP逻辑：searchCreateTimeAttr方法，接收数组参数
         if (ObjectUtil.isNotEmpty(param.getCreateTime())) {
+            log.info("日期筛选参数: {}", Arrays.toString(param.getCreateTime()));
             QueryMapperUtils.buildByTime(queryWrapper, "create_time", param.getCreateTime());
+            log.info("查询条件SQL: {}", queryWrapper.getTargetSql());
+        } else {
+            log.info("createTime参数为空或null");
         }
         if (StrUtil.isNotEmpty(param.getAccountDataGt())) {
             queryWrapper.gt("account_data", param.getAccountDataGt());
@@ -70,15 +77,37 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
         queryWrapper.orderByDesc("create_time");
         IPage<MemberAccountLog> iPage = this.memberAccountLogMapper.selectPage(new Page<>(page, limit), queryWrapper);
 
+        log.info("查询结果总数: {}, 当前页记录数: {}", iPage.getTotal(), iPage.getRecords().size());
+        if (iPage.getRecords().size() > 0) {
+            log.info("第一条记录时间戳: {}, 转换为日期: {}", 
+                iPage.getRecords().get(0).getCreateTime(),
+                DateUtil.format(new Date(iPage.getRecords().get(0).getCreateTime() * 1000), "yyyy-MM-dd HH:mm:ss"));
+            log.info("最后一条记录时间戳: {}, 转换为日期: {}", 
+                iPage.getRecords().get(iPage.getRecords().size() - 1).getCreateTime(),
+                DateUtil.format(new Date(iPage.getRecords().get(iPage.getRecords().size() - 1).getCreateTime() * 1000), "yyyy-MM-dd HH:mm:ss"));
+        }
+
         List<AccountPointFlowVo> dataList = new LinkedList<>();
         if (iPage.getRecords().size() > 0) {
             Map<String, List<AccountPointFlowVo.Record>> month = new HashMap<String, List<AccountPointFlowVo.Record>>();
+
+            // 统计所有记录的月份分布
+            Map<String, Integer> monthCount = new HashMap<>();
+            for (MemberAccountLog item : iPage.getRecords()) {
+                String time = DateUtil.format(new Date(item.getCreateTime() * 1000), "yyyy-MM");
+                monthCount.put(time, monthCount.getOrDefault(time, 0) + 1);
+            }
+            log.info("当前页数据月份分布: {}", monthCount);
 
             for (MemberAccountLog item : iPage.getRecords()) {
                 String time = DateUtil.format(new Date(item.getCreateTime() * 1000), "yyyy-MM");
 
                 AccountPointFlowVo.Record record = new AccountPointFlowVo.Record();
                 BeanUtil.copyProperties(item, record);
+                
+
+                record.setFromTypeName(record.getFromTypeName());
+                record.setAccountTypeName(record.getAccountTypeName());
 
                 if (month.get(time) == null) {
                     List<AccountPointFlowVo.Record> records = new LinkedList<>();
@@ -88,9 +117,15 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
                     month.get(time).add(record);
                 }
             }
+            
+            log.info("分组后的月份: {}", month.keySet());
 
             if (month.size() > 0) {
-                for (String key: month.keySet()) {
+                // 按照月份降序排序，确保最新的月份在前（与PHP逻辑一致）
+                List<String> sortedKeys = new ArrayList<>(month.keySet());
+                sortedKeys.sort((o1, o2) -> o2.compareTo(o1)); // 降序排序
+                
+                for (String key: sortedKeys) {
                     AccountPointFlowVo vo = new AccountPointFlowVo();
 
                     AccountPointFlowVo.Month monthInfo = new AccountPointFlowVo.Month();

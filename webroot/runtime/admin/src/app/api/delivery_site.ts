@@ -382,8 +382,8 @@ export function setLocal(params: Record<string, any>) {
  * @param params
  * @returns
  */
-export function getInUseLocalDeliveryList() {
-    return request.get('delivery/site/local_delivery/list')
+export function getInUseLocalDeliveryList(params: Record<string, any>) {
+    return request.get('delivery/site/local_delivery/list', {params})
 }
 
 /**
@@ -529,4 +529,83 @@ export function setShopDeliveryCancel(params: Record<string, any>) {
  */
 export function getShopDeliveryType() {
     return request.get(`delivery/site/delivery/type`);
+}
+
+
+/*********************************  门店自提  ***************************************/
+
+/**
+ * 获取门店自提分页列表
+ * @param params
+ * @returns
+ */
+export function getDeliveryStoreList(params: Record<string, any>) {
+    return request.get(`delivery/site/delivery/store`, {params})
+}
+
+/**
+ * 获取门店选择列表
+ * @param params
+ * @returns
+ */
+export function getDeliveryStoreListAll(params: Record<string, any>) {
+    return request.get(`delivery/site/delivery/store/list`, {params})
+}
+
+/**
+ * 获取提货方式
+ * @returns
+ */
+export function getStorePickUpType() {
+    return request.get(`delivery/site/delivery/store/pick_up_type`);
+}
+
+/**
+ * 获取配送门店详情
+ * @returns
+ */
+export function getDeliveryStoreDetail(id: number) {
+    return request.get(`delivery/site/delivery/store/${ id }`);
+}
+
+/**
+ * 添加配送门店
+ * @param params
+ * @returns
+ */
+export function addDeliveryStore(params: Record<string, any>) {
+    return request.post('delivery/site/delivery/store', params, {showErrorMessage: true, showSuccessMessage: true})
+}
+
+/**
+ * 编辑配送门店
+ * @param params
+ * @returns
+ */
+export function editDeliveryStore(params: Record<string, any>) {
+    return request.put(`delivery/site/delivery/store/${params.store_id}`, params, { showErrorMessage: true, showSuccessMessage: true })
+}
+/**
+ * 删除运费模版
+ * @param template_id
+ * @returns
+ */
+export function deleteDeliveryStore(store_id: number) {
+    return request.delete(`delivery/site/delivery/store/${store_id}`, {showErrorMessage: true, showSuccessMessage: true})
+}
+
+/**
+ * 编辑配送门店状态
+ * @param params
+ * @returns
+ */
+export function editDeliveryStoreStatus(params: Record<string, any>) {
+    return request.put(`delivery/site/delivery/store/modify_status`, params, { showErrorMessage: true, showSuccessMessage: true })
+}
+/**
+ * 获取配送门店初始化信息
+ * @returns
+ */
+export function getStoreInit() {
+    return request.get(`delivery/site/delivery/store/init`);
 }

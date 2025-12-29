@@ -62,7 +62,7 @@ public class MallOrderBatchDeliveryServiceImpl implements IMallOrderBatchDeliver
             queryWrapper.eq("type", searchParam.getType());
         }
 
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
             QueryMapperUtils.buildByTime(queryWrapper, "create_time", searchParam.getCreateTime());
         }
 

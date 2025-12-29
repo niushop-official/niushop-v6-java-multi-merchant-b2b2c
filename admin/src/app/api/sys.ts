@@ -538,13 +538,6 @@ export function clearCronLog(params: Record<string, any>) {
     return request.put(`sys/schedule/log/clear`, params, { showSuccessMessage: true })
 }
 
-/**
- * 重置计划任务
- * @returns
- */
-export function resetCron() {
-    return request.post(`sys/schedule/reset`, { showSuccessMessage: true })
-}
 
 /***************************************************** 协议管理 ****************************************************/
 
@@ -640,6 +633,8 @@ export function clearSchemaCache(params: Record<string, any>) {
 export function clearCache(params: Record<string, any>) {
     return request.post(`sys/cache/clear`, {}, { showSuccessMessage: true })
 }
+
+
 
 /***************************************************** 获取应用 ****************************************************/
 /**
@@ -830,7 +825,7 @@ export function checkJobStatus() {
  * @returns
  */
 export function getQrcode(params: Record<string, any>) {
-    return request.post(`sys/qrcode`,  params ,{ showSuccessMessage: false })
+    return request.get(`sys/qrcode`, { params })
 }
 
 /*****************************************************小程序审核 ****************************************************/
@@ -868,6 +863,27 @@ export function getAdminPayInfo(params: Record<string, any>) {
  */
 export function getSitePayInfo(params: Record<string, any>) {
     return request.get('pay/info_by_trade', { params })
+}
+
+/**
+ * 发送短信验证码
+ */
+export function sendSms(data: Record<string, any>) {
+    return request.post(`send/mobile/${ data.type }/site`, data, { showErrorMessage: true })
+}
+
+/**
+ * 获取悬浮按钮
+ */
+export function getFabNavs() {
+    return request.get(`sys/fab/fabnavs`)
+}
+
+/**
+ * 获取悬浮按钮
+ */
+export function setFabNavs(params: Record<string, any>) {
+    return request.post(`sys/fab/fabnavs`, params , { showErrorMessage: true })
 }
 
 /**

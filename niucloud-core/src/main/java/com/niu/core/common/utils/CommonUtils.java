@@ -42,6 +42,18 @@ public class CommonUtils {
         return DateUtil.format(DateUtil.date(System.currentTimeMillis()), "yyyyMMdd") + id;
     }
 
+    /**
+     * 全局唯一ID
+     * @return
+     */
+    public static String createNo(String  prefix, String  tag) {
+        Snowflake snowflake = IdUtil.getSnowflake(1, 1);
+        long id = snowflake.nextId();
+        prefix =  StringUtils.isNotEmpty( prefix) ? prefix : "";
+        tag =  StringUtils.isNotEmpty( tag) ? tag : "";
+        return prefix + DateUtil.format(DateUtil.date(System.currentTimeMillis()), "yyyyMMdd") + tag + id;
+    }
+
 
     /**
      * 生成缩略图

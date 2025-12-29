@@ -109,6 +109,7 @@ public class CoreFinanceServiceImpl implements ICoreFinanceService {
         sysStatParam.setSiteId(RequestUtils.defaultSiteId());
         sysStatParam.setShopSeparateMoney(calculateVo.getShopSeparateMoney());
         sysStatParam.setShopCommission(orderFinanceParam.getShopCommission());
+        sysStatParam.setMallServiceMoney(calculateVo.getMallMoney());
         coreStatService.addStat(sysStatParam);
 
         // 店铺统计

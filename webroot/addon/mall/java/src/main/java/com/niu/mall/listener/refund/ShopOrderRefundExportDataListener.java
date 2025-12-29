@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.event.sys.ExportDataEventDefiner;
@@ -68,8 +69,8 @@ public class ShopOrderRefundExportDataListener extends ExportDataEventDefiner {
             if(ObjectUtil.isNotEmpty(orderRefundNo)){
                 queryWrapper.like("order_refund_no", orderRefundNo);
             }
-            if ((where.get("create_time") instanceof String[] createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
-                QueryMapperUtils.buildByTime(queryWrapper, "create_time", createTimes);
+            if ((where.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "create_time",StringUtils.jsonArrayToStringArray(  createTimes));
             }
         }
         PageParam pageParam = event.getPageParam();
@@ -99,9 +100,12 @@ public class ShopOrderRefundExportDataListener extends ExportDataEventDefiner {
                 mallOrderInfoVo = mallOrderService.detail(vo.getOrderId());
                 if(mallOrderInfoVo != null) {
                     if (mallOrderInfoVo.getOrderDelivery() != null) {
-                        if (mallOrderInfoVo.getOrderDelivery().size() > 0) {
-                            deliveryCompanyInfoVo = deliveryCompanyService.info(mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId());
-                            orderDelivery = mallOrderInfoVo.getOrderDelivery().get(0);
+                        if (!mallOrderInfoVo.getOrderDelivery().isEmpty()) {
+                            if (mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId() != null && mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId() > 0) {
+                                deliveryCompanyInfoVo = deliveryCompanyService.info(mallOrderInfoVo.getOrderDelivery().get(0).getExpressCompanyId());
+                                orderDelivery = mallOrderInfoVo.getOrderDelivery().get(0);
+                            }
+
                         }
                     }
                 }

@@ -14,11 +14,9 @@
 
         </view>
 
-        <!-- #ifdef MP-WEIXIN -->
-        <collect-tip ref="collectTipRef" ></collect-tip>
         <!-- 小程序隐私协议 -->
         <wx-privacy-popup ref="wxPrivacyPopupRef"></wx-privacy-popup>
-        <!-- #endif -->
+      
 
     </view>
 </template>

@@ -236,7 +236,14 @@ public class SiteShopServiceImpl implements ISiteShopService {
     @Override
     public SiteShopInfoVo info(Integer id) {
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license")
+        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude," +
+                        " ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours," +
+                        " ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app," +
+                        " ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend," +
+                        " nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, " +
+                        "nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, " +
+                        "nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no," +
+                        " nss.wechat_payment_code, nss.business_license,nss.quality_score,nss.service_score,nss.logistics_score")
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
@@ -330,7 +337,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
             }
         }
         }
-        
+
         vo.setList(list);
         vo.setWebConfigVo(webConfigVo);
         return vo;

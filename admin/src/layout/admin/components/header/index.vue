@@ -35,7 +35,33 @@
                     <icon name="element Refresh" color="#fff" />
                 </div>
                 <!-- 预览-->
-                <i class="iconfont iconicon_huojian1 cursor-pointer text-[#fff] px-[8px]" :title="t('visitAdmin')" @click="toPreview"></i>
+                <el-popover placement="bottom" :width="400" trigger="hover">
+                    <template #reference>
+                        <i class="iconfont iconicon_huojian1 cursor-pointer text-[#fff] px-[8px]" :title="t('visitAdmin')"></i>
+                    </template>
+                    <div class="px-[8px]">
+                        <div class="pt-[8px] pb-[20px] border-0 border-b-[1px] border-solid border-[#E5E5E5] cursor-pointer" @click="toWeb">
+                            <div class="flex items-center text-[#333] mb-[14px]">
+                                <span class="nc-iconfont nc-icon-gongzuotai mr-[10px]"></span>
+                                <span class="text-[14px] font-500">PC端</span>
+                            </div>
+                            <div class="text-[14px] text-[#333]">
+                                <span>链接：</span>
+                                <span class="hover:text-primary">{{ webUrl  }}</span>
+                            </div>
+                        </div>
+                        <div class="py-[20px] cursor-pointer" @click="toPreview">
+                            <div class="flex items-center text-[#333] mb-[14px]">
+                                <span class="nc-iconfont nc-icon-shoujiV6xx1 mr-[10px]"></span>
+                                <span class="text-[14px] font-500">H5端</span>
+                            </div>
+                            <div class="text-[14px] text-[#333]">
+                                <span>链接：</span>
+                                <span class="hover:text-primary">{{ wapUrl  }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </el-popover>
                 <!-- 布局设置 -->
                 <div class="navbar-item flex items-center h-full cursor-pointer">
                     <layout-setting />
@@ -64,11 +90,25 @@
                 </div>
             </div>
             <div class="flex items-center flex-shrink-0">
+                <el-popover placement="bottom" width="130px" trigger="hover" opper-class="!min-w-[130px]">
+                    <template #reference>
+                        <div class="w-[90px] h-[28px] bg-[#FF7D00] text-[14px] text-[#fff] flex items-center justify-center cursor-pointer">商家手机端</div>
+                    </template>
+                    <div class="flex justify-center">
+                        <div>
+                            <div class="flex justify-center items-center w-[110px] h-[110px] rounded-[4px] border-solid border-[1px] border-[#eee] mb-[10px]">
+                                <el-image :src="wapImage" class=" w-[100px] h-[100px]" />
+                            </div>
+                            <div class="text-center  flex items-center justify-center">
+                                <span class="text-[12px] text-primary cursor-pointer" @click="copy(wapPreview)">复制链接</span>
+                            </div>
+                        </div>
+                    </div>
+                </el-popover>
                 <div class="w-[90px] h-[28px] bg-[#F53F3F] text-[14px] text-[#fff] flex items-center justify-center cursor-pointer ml-[10px]" @click="toArticle">最新动态</div>
                 <div class="w-[100px] h-[28px] bg-[#00B42A] text-[14px] text-[#fff] flex items-center justify-center cursor-pointer ml-[10px]" @click="toVersion">版本号V{{ systemStore.website?.version?.version }}</div>
             </div>
         </div>
-
         <input type="hidden" v-model="comparisonToken">
         <input type="hidden" v-model="comparisonSiteId">
 
@@ -93,9 +133,10 @@ import useAppStore from '@/stores/modules/app'
 import { useRoute, useRouter } from 'vue-router'
 import { t } from '@/lang'
 import storage from '@/utils/storage'
-import { img, isUrl } from '@/utils/common'
+import { img, isUrl, copy } from '@/utils/common'
 import useUserStore from '@/stores/modules/user'
 import { ADMIN_ROUTE, findFirstValidRoute } from '@/router/routers'
+import QRCode from 'qrcode'
 
 const appType = storage.get('app_type')
 const { toggle: toggleFullscreen } = useFullscreen()
@@ -181,6 +222,12 @@ onMounted(() => {
 })
 
 // 跳转去预览
+const webUrl = location.origin + '/web/'
+const wapUrl = location.origin + '/wap/'
+
+const toWeb = () => {
+    window.open(webUrl)
+}
 const toPreview = () => {
     const url = router.resolve({
         path: '/preview/wap',
@@ -228,6 +275,17 @@ const refreshRouter = () => {
 // const backFn = () => {
 //     router.go(-1)
 // }
+
+// 商家手机管理端
+const wapPreview = ref('')
+const wapImage = ref('')
+const loadQrcode = () => {
+    wapPreview.value = `${location.origin}/adminapp/`
+    QRCode.toDataURL(wapPreview.value, { errorCorrectionLevel: 'L', margin: 0, width: 120 }).then(url => {
+        wapImage.value = url
+    })
+}
+loadQrcode()
 const toArticle = () => {
     router.push({ path: '/admin/article/list' })
 }

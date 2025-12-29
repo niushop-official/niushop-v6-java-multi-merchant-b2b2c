@@ -7,7 +7,7 @@
         <el-card class="box-card !border-none" shadow="never">
             <el-form label-width="120px" ref="formRef" :rules="formRules" :model="formData" class="page-form"
                 v-loading="loading">
-                <el-form-item :label="t('timeIsOpen')" prop="time_is_open">
+                <!-- <el-form-item :label="t('timeIsOpen')" prop="time_is_open">
                     <div>
                         <el-radio-group v-model="formData.time_is_open">
                             <el-radio :label="1">{{ t('open') }}</el-radio>
@@ -15,8 +15,8 @@
                         </el-radio-group>
                         <div class="mt-[10px] text-[12px] text-[#999] leading-[20px]">{{t('timeIsOpenTips')}}</div>
                     </div>
-                </el-form-item>
-                <template v-if="formData.time_is_open === 1">
+                </el-form-item> -->
+                <!-- <template v-if="formData.time_is_open === 1">
                     <el-form-item>
                         <el-radio-group v-model="formData.time_type">
                             <el-radio :label="0">{{ t('everyDay') }}</el-radio>
@@ -63,11 +63,11 @@
                                 <el-radio :label="90">{{ t('oneHour') }}</el-radio>
                                 <el-radio :label="120">{{ t('twoHour') }}</el-radio>
                             </el-radio-group>
-                            <!-- <p class="text-[12px] text-[#999]">{{ t('storeTimeIntervalTips') }}</p> -->
+                            <p class="text-[12px] text-[#999]">{{ t('storeTimeIntervalTips') }}</p>
                         </div>
 
                     </el-form-item>
-                    <!-- <el-form-item :label="t('advancaDay')" prop="advance_day">
+                    <el-form-item :label="t('advancaDay')" prop="advance_day">
                         <div>
                             <div class="flex">
                                 {{ t('advance') }}
@@ -90,10 +90,10 @@
                             </div>
                             <p class="text-[12px] text-[#999]">{{ t('mostDaysTips') }}</p>
                         </div>
-                    </el-form-item> -->
-                </template>
+                    </el-form-item>
+                </template> -->
 
-                <el-form-item :label="t('deliveryAddress')" prop="delivery_address">
+                <!-- <el-form-item :label="t('deliveryAddress')" prop="delivery_address">
                     <div class="flex flex-col">
                         <div class="flex">
                             {{ defaultDeliveryAddress ? defaultDeliveryAddress.full_address :
@@ -106,7 +106,7 @@
                             v-if="formData.center.lat && defaultDeliveryAddress && (formData.center.lat != defaultDeliveryAddress.lat || formData.center.lng != defaultDeliveryAddress.lng)">
                             {{ t('deliveryAddressChange') }}</div>
                     </div>
-                </el-form-item>
+                </el-form-item> -->
                 <el-form-item :label="t('feeType')">
                     <el-radio-group v-model="formData.fee_type">
                         <el-radio label="region">{{ t('region') }}</el-radio>
@@ -150,8 +150,16 @@
                         {{ t('priceUnit') }}
                     </div>
                 </el-form-item>
+                <el-form-item :label="t('deliveryArea')" prop="delivery_area">
+                    <div class="flex flex-col">
+                        <div class="flex">
+                            {{ t('deliveryAreaTips') }}
+                            <el-button type="primary" @click="newWindow()" link class="ml-[10px]">{{ t('toSetting') }}</el-button>
+                        </div>
+                    </div>
+                </el-form-item>
 
-                <el-form-item prop="area" v-loading="mapLoading">
+                <!-- <el-form-item prop="area" v-loading="mapLoading">
                     <div class="relative w-full">
                         <div id="container" class="w-full h-[520px]"></div>
                         <div class="absolute bg-white w-[270px] h-[500px] top-[10px] left-[10px] region-list">
@@ -194,7 +202,7 @@
                             </el-scrollbar>
                         </div>
                     </div>
-                </el-form-item>
+                </el-form-item> -->
             </el-form>
         </el-card>
         <div class="fixed-footer-wrap">
@@ -487,17 +495,17 @@ getLocal().then(({ data }) => {
 })
 
 onMounted(() => {
-    const mapScript = document.createElement('script')
-    getMap().then(res => {
-        mapScript.type = 'text/javascript'
-        mapScript.src = 'https://map.qq.com/api/gljs?libraries=tools,service&v=1.exp&key=' + res.data.key
-        document.body.appendChild(mapScript)
-    })
-    mapScript.onload = () => {
-        setTimeout(() => {
-            initMap()
-        }, 500)
-    }
+    // const mapScript = document.createElement('script')
+    // getMap().then(res => {
+    //     mapScript.type = 'text/javascript'
+    //     mapScript.src = 'https://map.qq.com/api/gljs?libraries=tools,service&v=1.exp&key=' + res.data.key
+    //     document.body.appendChild(mapScript)
+    // })
+    // mapScript.onload = () => {
+    //     setTimeout(() => {
+    //         initMap()
+    //     }, 500)
+    // }
 })
 
 /**
@@ -565,9 +573,9 @@ const areaTypeChange = (index: number) => {
     data.area_type == 'radius' ? createCircle(map, data.area_json) : createPolygon(map, data.area_json)
 }
 
-onBeforeUnmount(() => {
-    map.destroy()
-})
+// onBeforeUnmount(() => {
+//     map.destroy()
+// })
 
 const onSave = async (formEl: FormInstance | undefined) => {
     if (loading.value || !formEl) return
@@ -575,30 +583,30 @@ const onSave = async (formEl: FormInstance | undefined) => {
     await formEl.validate(async (valid) => {
         let areaValidate = true
 
-        for (let i = 0; i < areaFromRef.value?.length; i++) {
-            const ref = areaFromRef.value[i]
-            await ref.validate(async (valid) => {
-                areaValidate = valid
-            })
-            if (!areaValidate) break
-        }
-        if (!areaValidate) return
+        // for (let i = 0; i < areaFromRef.value?.length; i++) {
+        //     const ref = areaFromRef.value[i]
+        //     await ref.validate(async (valid) => {
+        //         areaValidate = valid
+        //     })
+        //     if (!areaValidate) break
+        // }
+        // if (!areaValidate) return
 
         if (valid) {
             loading.value = true
 
-            formData.value.center = {
-                lat: defaultDeliveryAddress.value.lat,
-                lng: defaultDeliveryAddress.value.lng
-            }
+            // formData.value.center = {
+            //     lat: defaultDeliveryAddress.value.lat,
+            //     lng: defaultDeliveryAddress.value.lng
+            // }
             
             await formEl.validate(async (valid) => {
                 const param = deepClone(toRaw(formData.value))
-                param.time_week = param.time_week.toString()
-                param.delivery_time = param.delivery_time.map(range => ({
-                    start_time: range.start_time ? timeTransition(range.start_time) : null,
-                    end_time: range.end_time ? timeTransition(range.end_time) : null
-                }))
+                // param.time_week = param.time_week.toString()
+                // param.delivery_time = param.delivery_time.map(range => ({
+                //     start_time: range.start_time ? timeTransition(range.start_time) : null,
+                //     end_time: range.end_time ? timeTransition(range.end_time) : null
+                // }))
                 setLocal(param).then(() => {
                     loading.value = false
                 }).catch(() => {
@@ -611,7 +619,7 @@ const onSave = async (formEl: FormInstance | undefined) => {
 // 新窗口打开
 const newWindow = () => {
     const url = router.resolve({
-        path: '/site/site_address'
+        path: '/site/delivery_store'
     })
     window.open(url.href)
 }

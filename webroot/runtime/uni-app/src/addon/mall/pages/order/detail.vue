@@ -35,18 +35,39 @@
                         
                     </view>
                     <view v-if="detail.delivery_type == 'store'">
-                        <view class="flex items-center">
-                            <view>
-                                <up-image class="overflow-hidden" radius="var(--goods-rounded-mid)" width="100rpx" height="100rpx" :src="img(detail.store.store_logo ? detail.store.store_logo : '')" mode="aspectFill">
-                                    <template #error>
-                                        <image class="w-[100rpx] h-[100rpx] rounded-[var(--goods-rounded-mid)] overflow-hidden" :src="img('addon/mall/store_default.png')" mode="aspectFill"></image>
-                                    </template>
-                                </up-image>
+                        <view class="flex items-baseline pb-[22rpx] border-0 border-b-[1px] border-solid border-[#f5f5f5]">
+                            <text class="nc-iconfont nc-icon-huocheV6mm text-primary text-[28rpx]"></text>
+                            <text class="text-[28rpx] text-primary mx-[12rpx]">到店自提</text>
+                            <text class="text-[24rpx] text-[var(--text-color-light9)]">请尽快前往自提点取货</text>
+                        </view>
+                        <view class="flex items-center justify-between mt-[14rpx] mb-[18rpx]">
+                            <view class="max-w-[428rpx]">
+                                <view class="text-[30rpx] font-500 text-[#303133] mb-[12rpx]">{{ detail.store.store_name }}</view>
+                                <view class="text-[24rpx] text-[var(--text-color-light6)] leading-[1.4] mb-[12rpx]">{{ detail.store.full_address }}</view>
+                                <view class="text-[22rpx] text-[var(--text-color-light9)]">营业时间：{{ detail.store.trade_time }}</view>
                             </view>
-                            <view class="flex flex-col ml-[20rpx]">
-                                <text class="text-[30rpx] font-500 text-[#303133] mb-[20rpx]">{{ detail.store.store_name }}</text>
-                                <text class="text-[24rpx] text-[var(--text-color-light6)] mb-[14rpx]">{{ detail.store.trade_time }}</text>
-                                <text class="text-[24rpx] text-[var(--text-color-light6)] leading-[1.4]">{{ detail.store.full_address }}</text>
+                            <view class="flex flex-col items-center w-[188rpx] h-[104rpx]" :style="{ backgroundImage: 'url(' + img('addon/mall/detail/map.png') + ')',backgroundSize: 'cover', backgroundRepeat: 'no-repeat'}">
+                                <view class="distance-wrap using-hidden bg-[#fff] py-[4rpx] px-[16rpx] rounded-[6rpx] text-[20rpx] text-[#333]" v-if="detail.store.distance">距您{{ distance(detail.store.distance) }}</view>
+                                <view class="triangle"></view>
+                                <view class="w-[54rpx] h-[50rpx] bg-[#fff] p-[6rpx] rounded-[6rpx] box-border">
+                                    <up-image class="overflow-hidden" width="40rpx" height="38rpx" radius="6rpx" :src="img(detail.site.front_end_logo)" model="aspectFill">
+                                        <template #error>
+                                            <image :src="img('addon/mall/shop/shop_default.png')" class="w-[40rpx] h-[38rpx] align-middle rounded-[6rpx]"></image>
+                                        </template>
+                                    </up-image>
+                                </view>
+                                <view class="triangle"></view>
+                                <view class="w-[6rpx] h-[6rpx] bg-primary rounded-full"></view>
+                            </view>
+                        </view>
+                        <view class="px-[72rpx] pt-[24rpx] flex items-center justify-between border-0 border-t-[1rpx] border-solid border-[#eee]">
+                            <view class="flex items-center" @click="callFn">
+                                <text class="nc-iconfont nc-icon-dianhuaV6xx text-[24rpx] mr-[8rpx]"></text>
+                                <text class="text-[24rpx]">联系自提点</text>
+                            </view>
+                            <view class="flex items-center" @click="getDistance">
+                                <text class="nc-iconfont nc-icon-fenxiangV6xx1 text-[24rpx] mr-[8rpx]"></text>
+                                <text class="text-[24rpx]">导航至自提点</text>
                             </view>
                         </view>
                     </view>
@@ -61,6 +82,32 @@
                         </view>
                     </view>
                 </view>
+                <!-- 自提核销-->
+				<template v-if="isShowSelfPickup">
+				    <view class="sidebar-margin  mt-[var(--top-m)] card-template" v-if="selfPickupInfo && selfPickupInfo.length">
+				        <swiper class="h-[450rpx]" circular indicator-dots="true" v-if="selfPickupInfo.length > 1">
+				            <swiper-item v-for="(item,index) in selfPickupInfo" :key="index">
+				                <view class="flex flex-col items-center justify-center">
+				                    <image :src="item.qrcode" class="w-[300rpx] h-[auto]" mode="widthFix" />
+				                </view>
+				                <view class="flex items-center justify-center mt-[30rpx]">
+				                    <text class="text-[28rpx] font-500">{{ item.code }}</text>
+				                    <text class="text-[var(--text-color-light6)] text-[24rpx] ml-[10rpx] border-[2rpx] border-solid border-[#666] bg-[#f7f7f7] px-[12rpx] py-[6rpx] rounded" @click="copy(item.code)">复制</text>
+				                </view>
+				            </swiper-item>
+				        </swiper>
+				        <template v-else>
+				            <view class="flex flex-col items-center justify-center">
+				                <image :src="selfPickupInfo[0].qrcode" class="w-[300rpx] h-[auto]" mode="widthFix" />
+				            </view>
+				            <view class="flex items-center justify-center mt-[30rpx]">
+				                <text class="text-[28rpx] font-500">{{ selfPickupInfo[0].code }}</text>
+				                <text class="text-[var(--text-color-light6)] text-[24rpx] ml-[10rpx] border-[2rpx] border-solid border-[#666] bg-[#f7f7f7] px-[12rpx] py-[6rpx] rounded" @click="copy(selfPickupInfo[0].code)">复制</text>
+				            </view>
+				        </template>
+
+				    </view>
+				</template>
                 <view v-if="detail.delivery_type == 'virtual' && detail.taker_mobile" class="flex items-center mb-[var(--top-m)] rounded-[var(--rounded-big)] bg-white p-[30rpx] mb-[20rpx] -mt-[86rpx] mx-[20rpx]">
                     <text class="nc-iconfont nc-icon-dianhuaV6xx mr-[20rpx]"></text>
                     <text>{{ detail.taker_mobile }}</text>
@@ -158,7 +205,7 @@
                         <view class="text-[28rpx]">{{ detail.delivery_type_name }}</view>
                     </view>
                     <view class=" card-template-item justify-between" v-if="detail.buyer_ask_delivery_time">
-                        <view class="text-[28rpx]">预约配送时间</view>
+                        <view class="text-[28rpx]">{{ detail.delivery_type == 'store' ? '提货时间': '预约配送时间' }}</view>
                         <view class="text-[28rpx]">{{ detail.buyer_ask_delivery_time }}</view>
                     </view>
                     <template v-if="detail.order_delivery && detail.order_delivery.length &&  detail.delivery_type == 'local_delivery'">
@@ -311,9 +358,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed,nextTick } from 'vue';
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { t } from '@/locale'
-import { img, redirect, copy, goback } from '@/utils/common';
+import { img, redirect, copy, goback, distance } from '@/utils/common';
 import { getMallOrderDetail, orderClose, orderFinish, getMallOrderPay,getMallOrderClose } from '@/addon/mall/api/order';
 import { getEvaluateConfig } from '@/addon/mall/api/shop';
 import { getVerifyCode } from '@/app/api/verify';
@@ -324,12 +371,16 @@ import { topTabar } from '@/utils/topTabbar'
 import groupPay from './components/group-pay/group-pay.vue'
 import groupClose from './components/group-close/group-close.vue'
 import diyFormDetail from '@/addon/components/diy-form-detail/index.vue'
+import useSystemStore from '@/stores/system';
+import { useLocation } from '@/hooks/useLocation'
 
 /********* 自定义头部 - start ***********/
 const topTabarObj = topTabar()
 let topTabbarData = topTabarObj.setTopTabbarParam({ title: '订单详情' })
 /********* 自定义头部 - end ***********/
 
+
+const systemStore = useSystemStore();
 
 const detail = ref<any>({});
 const loading = ref<boolean>(true);
@@ -344,10 +395,14 @@ const sendMessageImg = ref('')
 
 const wxPrivacyPopupRef:any = ref(null)
 
+/************** 定位-start ****************/
+const locationVal = useLocation(true);
+
+/************** 定位-end ****************/
+
 onLoad((option:any) => {
     if (option.order_id) {
         orderId.value = option.order_id;
-        orderDetailFn(orderId.value);
         // #ifdef MP
         nextTick(()=>{
             if(wxPrivacyPopupRef.value) wxPrivacyPopupRef.value.proactive();
@@ -363,19 +418,34 @@ onLoad((option:any) => {
 	
 });
 
+onShow(() => { 
+    // 刷新定位
+	locationVal.refresh();
+    orderDetailFn(orderId.value);
+})
+
 getEvaluateConfig().then(({ data }) => {
     evaluateConfig.value = data
 })
 
 const orderDetailFn = (id: any) => {
 	loading.value = true;
-	getMallOrderDetail(id).then((res: any) => {
+	getMallOrderDetail({
+        order_id: id,
+        position: systemStore.diyAddressInfo
+    }).then((res: any) => {
 		detail.value = res.data;
         if(res.data.order_goods && res.data.order_goods.length && isShowVerify.value){
 			let obj: any = {};
 			obj.order_goods_id = res.data.order_goods[0].order_goods_id
             obj.site_id = res.data.order_goods[0].site_id
 			getVerifyCodeFn(obj);
+		}
+        if (res.data.order_goods && res.data.order_goods.length && isShowSelfPickup.value) {
+		    let obj: any = {};
+		    obj.order_id = res.data.order_id
+            obj.site_id = res.data.site_id
+		    getSelfPickupCodeFn(obj);
 		}
 
         sendMessageTitle.value = detail.value.order_goods[0].goods_name
@@ -617,6 +687,37 @@ const getVerifyCodeFn = (data:any) => {
 	})
 }
 /************ 虚拟商品核销-end ***************/ 
+
+/************ 自提核销-start ***************/
+// const verifyGoodsData = ref({}) //虚拟商品
+const isShowSelfPickup = computed(() => {
+    let bool = false;
+    bool = detail.value.delivery_type == 'store' && detail.value.status == 2 ? true : false;
+    return bool
+})
+const selfPickupInfo = ref([])
+const getSelfPickupCodeFn = (data: any) => {
+    selfPickupInfo.value = [];
+
+    getVerifyCode('shopPickUpOrder', data).then((res: any) => {
+        selfPickupInfo.value = res.data;
+    })
+}
+/************ 自提核销-end ***************/
+
+const callFn = () => {
+	uni.makePhoneCall({
+		phoneNumber: detail.value.store.mobile
+	})
+}
+
+const getDistance  = () => {
+    uni.openLocation({
+		latitude: Number(detail.value.store.latitude),
+		longitude: Number(detail.value.store.longitude),
+		success: function () { }
+	});
+}
 // 商品表单信息
 const goodsDiyFormData = ref([]);
 const getGoodsDiyFormDetailCallback = (data: any) => {
@@ -643,6 +744,16 @@ const localeDeliveryFn = () => {
 }
 </script>
 <style lang="scss" scoped>
+.distance-wrap{
+    box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, .0784);
+}
+.triangle{
+    content: "";
+    border-top: 3px solid #fff;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, .0784);
+}
 .text-item {
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -667,22 +778,7 @@ const localeDeliveryFn = () => {
 	background: linear-gradient( 94deg, #FF0000 15%, #ff7900 87%);
 }
 
-.triangle {
-	@apply relative;
 
-	&::before {
-		content: "";
-		@apply absolute;
-		width: 0;
-		height: 0;
-		position: absolute;
-		bottom: -40rpx;
-		border: 20rpx solid #EEF3FF;
-		border-left-color: transparent;
-		border-right-color: transparent;
-		border-bottom-color: transparent;
-	}
-}
 
 .tab-bar-placeholder {
 	padding-bottom: calc(constant(safe-area-inset-bottom) + 100rpx);

@@ -24,6 +24,8 @@ import com.niu.core.service.admin.auth.IAuthService;
 import com.niu.core.service.admin.auth.param.EditAuthUserParam;
 import com.niu.core.service.admin.auth.param.EditManagerPwdParam;
 import com.niu.core.service.admin.auth.vo.AuthUserInfoVo;
+import com.niu.core.service.admin.niucloud.INiucloudService;
+import com.niu.core.service.admin.niucloud.vo.AuthInfoVo;
 import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.admin.sys.ISysMenuService;
@@ -66,10 +68,13 @@ public class AuthServiceImpl implements IAuthService {
     ISysUserService sysUserService;
 
     @Resource
+    ICoreAddonService coreAddonService;
+
+    @Resource
     Cached cached;
 
     @Resource
-    ICoreAddonService coreAddonService;
+    INiucloudService niucloudService;
 
     /**
      * 校验用户和传入站点是否存在从属关系
@@ -169,6 +174,28 @@ public class AuthServiceImpl implements IAuthService {
         if (!method.equals("get") && GlobalConfig.isDemo) {
             throw new CommonException("演示环境不允许操作");
         }
+    }
+
+    @Override
+    public void checkAuthInfo(HttpServletRequest request) {
+        String method = RequestUtils.getRequestMethod();
+        if (method.equals("get") || request.getRequestURI().contains("/adminapi/niucloud/authinfo")) return;
+
+        if (!isCheckDomain()) return;
+
+        AuthInfoVo authInfo = niucloudService.getAuthinfo();
+        if (authInfo == null) return;
+
+        String siteAddress = authInfo.getData().getSiteAddress();
+        if (ObjectUtil.isNotEmpty(siteAddress) && RequestUtils.getRequestDomain().contains(siteAddress)) return;
+
+        throw new CommonException("授权域名校验失败！请确保当前访问域名与授权码绑定的域名一致");
+    }
+
+    public boolean isCheckDomain() {
+        String domain = RequestUtils.getRequestDomain();
+
+        return !(domain.startsWith("localhost") || domain.startsWith("127.0.0.1"));
     }
 
     /**
@@ -296,7 +323,6 @@ public class AuthServiceImpl implements IAuthService {
             List<String> menuKeyList = sysRoleService.getMenuIdsByRoleIds(siteId, roleIdList);
             menuList = sysMenuService.getSiteMenuListByMenuKeys(appType, siteId, 100, 0, menuKeyList, addon);
         }
-
         //未安装供应商去除商城选货平台
         Addon checkAddon = coreAddonService.getInfoByKey("supply");
         if(ObjectUtil.isEmpty(checkAddon))

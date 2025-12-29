@@ -5,9 +5,11 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.component.context.task.ThreadPoolManager;
 import com.niu.core.common.exception.CommonException;
@@ -17,6 +19,7 @@ import com.niu.core.common.loader.pay.param.PayAsyncNotifyParam;
 import com.niu.core.common.loader.pay.param.PayNotifyParam;
 import com.niu.core.common.loader.pay.param.PayParam;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.pay.Pay;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.pay.OnliepayStatusEnum;
@@ -33,6 +36,7 @@ import com.niu.core.service.core.pay.vo.PayTypeVo;
 import com.niu.core.service.core.sys.ICorePrinterService;
 import com.niu.core.service.core.sys.param.SysPrinterPrintTicketParam;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +44,7 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +120,11 @@ public class CorePayServiceImpl implements ICorePayService {
         // 支付关闭
         if (param.getPayStatus().getStatus().equals(OnliepayStatusEnum.CLOSED.getStatus())) {
             this.payClose(pay);
+        }
+
+        // 未支付
+        if (param.getPayStatus().getStatus().equals(OnliepayStatusEnum.NOTPAY.getStatus())) {
+            this.check(pay, param);
         }
     }
 
@@ -257,6 +267,32 @@ public class CorePayServiceImpl implements ICorePayService {
     }
 
     /**
+     * 校验支付订单的状态
+     * @return bool
+     */
+    public void check(Pay pay, PayNotifyParam param) {
+
+        //查询第三方支付单据
+        Object obj = this.driver(pay.getChannel(), pay.getType()).getOrder(param.getOutTradeNo());
+        String status = "";
+        if(ObjectUtil.isNotEmpty(obj) && obj.toString().contains("status")){
+            status = JSONUtil.parseObj(obj).getStr("status");
+            if (status.equals(OnliepayStatusEnum.SUCCESS.getStatus())) {
+                this.paySuccess(pay, param);
+            }
+            // 支付关闭
+            if (status.equals(OnliepayStatusEnum.CLOSED.getStatus())) {
+                this.payClose(pay);
+            }
+
+            // 未支付
+            if (status.equals(OnliepayStatusEnum.NOTPAY.getStatus())) {
+                this.check(pay, param);
+            }
+        }
+    }
+
+    /**
      * 支付成功
      *
      * @param pay
@@ -269,7 +305,7 @@ public class CorePayServiceImpl implements ICorePayService {
         pay.setPayTime(System.currentTimeMillis() / 1000);
 
         payMapper.updateById(pay);
-        //同步订单成功，打印
+
         ThreadPoolManager.runTask(() -> {
             PaySuccessEvent event = new PaySuccessEvent();
             event.setSiteId(param.getSiteId());
@@ -280,18 +316,6 @@ public class CorePayServiceImpl implements ICorePayService {
             event.setPay(pay);
             EventAndSubscribeOfPublisher.publishAll(event);
         });
-        ThreadPoolManager.runTask(() -> {
-            SysPrinterPrintTicketParam printParam = new SysPrinterPrintTicketParam();
-            printParam.setSiteId(pay.getSiteId());
-            printParam.setType("shopGoodsOrder");
-            printParam.setTrigger("pay_after");
-            SysPrinterPrintTicketParam.Business business = new SysPrinterPrintTicketParam.Business();
-            business.setOrderId(pay.getTradeId());
-            printParam.setBusiness(business);
-            corePrinterService.printTicket(printParam);
-        });
-
-
     }
 
     /**
@@ -326,7 +350,7 @@ public class CorePayServiceImpl implements ICorePayService {
         }
 
         if (pay.getStatus().equals(PayStatusEnum.STATUS_ING.getCode()) && !pay.getType().isEmpty()) {
-            this.driver(pay.getChannel(), pay.getType()).close(pay);
+           this.driver(pay.getChannel(), pay.getType()).close(pay);
         }
 
         this.payClose(pay);
@@ -345,7 +369,20 @@ public class CorePayServiceImpl implements ICorePayService {
         }
 
         if (pay.getStatus().equals(PayStatusEnum.STATUS_ING.getCode()) && !pay.getType().isEmpty()) {
-            this.driver(pay.getChannel(), pay.getType()).close(pay);
+            Boolean result = this.driver(pay.getChannel(), pay.getType()).close(pay);
+            if(!result){
+                Object obj = this.driver(pay.getChannel(), pay.getType()).getOrder(pay.getOutTradeNo());
+                String status = "";
+                if(ObjectUtil.isNotEmpty(obj) && obj.toString().contains("status")){
+                    status = JSONUtil.parseObj(obj).getStr("status");
+                    if(status.equals(OnliepayStatusEnum.SUCCESS.getStatus())){
+                        PayNotifyParam param = new PayNotifyParam();
+                        BeanUtils.copyProperties(pay, param);
+                        param.setPayStatus(OnliepayStatusEnum.SUCCESS);
+                        this.paySuccess(pay, param);
+                    }
+                }
+            }
         }
 
         this.payClose(pay);
@@ -369,6 +406,41 @@ public class CorePayServiceImpl implements ICorePayService {
     @Override
     public List<PayTypeVo> getPayTypeByTrade(String tradeType, ChannelEnum channel) {
         return corePayChannelService.getAllowPayTypeByChannel(channel.getCode(), tradeType);
+    }
+
+    /**
+     * 修改支付扩展信息
+     * @param json
+     * @param id
+     */
+    @Override
+    public void payEdit(String json, Integer id) {
+        payMapper.update(new Pay(),new UpdateWrapper<Pay>().eq("id",id).set("json",json));
+    }
+
+    @Override
+    public void payEditHuifu(BigDecimal feeAmt, BigDecimal confirmedAmt, BigDecimal unconfirmAmt, Integer id) {
+        payMapper.update(new Pay(),new UpdateWrapper<Pay>().eq("id",id)
+                .set("fee_amt",feeAmt)
+                .set("confirmed_amt",ObjectUtil.isNotEmpty(confirmedAmt) ? confirmedAmt : new BigDecimal("0.00"))
+                .set("unconfirm_amt",ObjectUtil.isNotEmpty(unconfirmAmt) ? unconfirmAmt : new BigDecimal("0.00")));
+    }
+
+    @Override
+    public JSONObject getPayCashierUrl(String payType, String channel, Integer tradeId) {
+        JSONObject json = new JSONObject();
+        if(StringUtils.isNotEmpty(payType)){
+            json.set("payType", payType);
+        }
+        if(ObjectUtil.isNotEmpty(tradeId)){
+            json.set("trade_id", tradeId);
+        }
+        JSONObject result = new JSONObject();
+        result.set("url", "/app/pages/pay/cashier");
+        result.set("query", json);
+        result.set("channel", channel);
+        result.set("to_type", "cashier");
+        return result;
     }
 
 }

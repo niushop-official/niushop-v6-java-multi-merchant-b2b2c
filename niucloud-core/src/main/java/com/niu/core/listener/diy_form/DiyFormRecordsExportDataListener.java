@@ -8,7 +8,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.exception.CommonException;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
+import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.diy_form.DiyForm;
 import com.niu.core.entity.diy_form.DiyFormFields;
 import com.niu.core.entity.diy_form.DiyFormRecords;
@@ -73,17 +75,8 @@ public class DiyFormRecordsExportDataListener extends ExportDataEventDefiner {
 
         QueryWrapper<DiyFormRecords> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("form_id", formId);
-        if ((whereJson.get("create_time") instanceof String[] createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
-            Long startTime = (createTimes[0] == null) ? 0 : DateUtils.StringToTimestamp(createTimes[0]);
-            Long endTime = (createTimes.length == 1) ? 0 : DateUtils.StringToTimestamp(createTimes[1]);
-            
-            if (startTime > 0 && endTime > 0) {
-                queryWrapper.between("create_time", startTime, endTime);
-            } else if (startTime > 0 && endTime == 0) {
-                queryWrapper.ge("create_time", startTime);
-            } else if (startTime == 0 && endTime > 0) {
-                queryWrapper.le("create_time", endTime);
-            }
+        if ((whereJson.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
+            QueryMapperUtils.buildByTime(queryWrapper, "create_time", StringUtils.jsonArrayToStringArray(createTimes));
         }
         queryWrapper.orderByDesc("create_time");
         PageParam pageParam = exportDataEvent.getPageParam();

@@ -22,8 +22,8 @@ public class LocalDeliveryOrderPreStatusEnum {
 
     public static JSONObject getStatusByService(String service) {
         JSONObject jsonObject = LocalDeliveryOrderPreStatusEnum.getStatus();
-        if(ObjectUtil.isNotEmpty(jsonObject) && DeliveryStoreTypeEnum.MERCHANT.getKey().equals(service)){
-            return jsonObject;
+        if(ObjectUtil.isNotEmpty(jsonObject) && ObjectUtil.isNotEmpty(jsonObject.getJSONObject(service))){
+            return jsonObject.getJSONObject(service);
         }else{
             return new JSONObject();
         }

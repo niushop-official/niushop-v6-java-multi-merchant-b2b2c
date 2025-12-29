@@ -42,6 +42,13 @@ public enum ShopTransferEnum {
         }
         return "";
     }
+
+    public static Integer getTagByKey(String key) {
+        if (getMap().get(key) != null) {
+            return getMap().get(key).getTag();
+        }
+        return null;
+    }
     // 按 tag 获取名称
     public static String getNameByTag(Integer tag) {
         ShopTransferEnum anEnum = getMapByTag().get(tag);

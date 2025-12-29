@@ -1,5 +1,6 @@
 package com.niu.core.common.loader.local_delivery.param;
 
+import cn.hutool.json.JSONObject;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -18,6 +19,9 @@ public class NotifyShopDeliveryOrderParam implements Serializable {
 
     private String cancelReason;
 
+    private JSONObject notifyData;
+
     /** 状态 */
     private String status;
+    private String notifyUrl;
 }

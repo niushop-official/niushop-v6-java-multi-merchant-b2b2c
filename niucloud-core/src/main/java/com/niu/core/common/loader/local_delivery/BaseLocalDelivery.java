@@ -2,21 +2,13 @@ package com.niu.core.common.loader.local_delivery;
 
 import cn.hutool.core.util.ClassLoaderUtil;
 import cn.hutool.json.JSONObject;
+import com.niu.core.common.domain.Result;
 import com.niu.core.common.loader.local_delivery.param.AddShopDeliveryOrderParam;
 import com.niu.core.common.loader.local_delivery.param.CloseShopDeliveryOrderParam;
 import com.niu.core.common.loader.local_delivery.param.FinishShopDeliveryOrderParam;
 import com.niu.core.common.loader.local_delivery.param.NotifyShopDeliveryOrderParam;
-import com.niu.core.common.loader.pay.param.PayAsyncNotifyParam;
-import com.niu.core.common.loader.pay.param.PayParam;
-import com.niu.core.common.loader.pay.param.RefundParam;
-import com.niu.core.common.loader.pay.param.TransferParam;
 import com.niu.core.entity.delivery.DeliveryShopDeliveryOrder;
-import com.niu.core.entity.pay.Pay;
-import com.niu.core.service.core.pay.vo.PayTypeVo;
-import com.niu.core.service.core.pay.vo.TransferQueryVo;
 import com.niu.core.service.core.shop_delivery.vo.ShopDeliveryOrderCreateVo;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Map;
 
@@ -48,25 +40,25 @@ public abstract class BaseLocalDelivery {
      * 创建订单
      * @param param
      */
-    public abstract ShopDeliveryOrderCreateVo createOrder(AddShopDeliveryOrderParam param);
+    public abstract ShopDeliveryOrderCreateVo createOrder(AddShopDeliveryOrderParam param) throws Exception;
 
-    public abstract void reCreateOrder();
+    public abstract ShopDeliveryOrderCreateVo reCreateOrder(AddShopDeliveryOrderParam param) throws Exception;
 
-    public abstract void calculate();
+    public abstract ShopDeliveryOrderCreateVo calculate(AddShopDeliveryOrderParam param) throws Exception;
 
-    public abstract void createOrderAfterCalculate();
+    public abstract JSONObject createOrderAfterCalculate(String deliveryThirdOrderNo) throws Exception;
 
-    public abstract Map<String, Object> queryOrderInfo(Map<String, Object> requestData);
+    public abstract Map<String, Object> queryOrderInfo(Map<String, Object> requestData) throws Exception;
 
-    public abstract DeliveryShopDeliveryOrder closeOrder(CloseShopDeliveryOrderParam  param);
+    public abstract DeliveryShopDeliveryOrder closeOrder(CloseShopDeliveryOrderParam  param) throws Exception;
 
     public abstract DeliveryShopDeliveryOrder finishOrder(FinishShopDeliveryOrderParam param);
 
-    public abstract void getTransporterPosition();
+    public abstract Map<String, Object> getTransporterPosition(Map<String, Object> requestData) throws Exception;
 
-    public abstract Map<String, Object> addShop(Map<String, Object>  params);
+    public abstract Map<String, Object> addShop(Map<String, Object>  params) throws Exception;
 
-    public abstract Map<String, Object> editShop(Map<String, Object>  params);
+    public abstract Map<String, Object> editShop(Map<String, Object>  params) throws Exception;
 
 
     /**
@@ -74,9 +66,5 @@ public abstract class BaseLocalDelivery {
      * @param action
      * @return
      */
-    public abstract void notify(String action, NotifyShopDeliveryOrderParam param);
-
-    public JSONObject getConfig() {
-        return config;
-    }
+    public abstract Result notify(String action, NotifyShopDeliveryOrderParam param);
 }

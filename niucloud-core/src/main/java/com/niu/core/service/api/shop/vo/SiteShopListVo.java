@@ -6,6 +6,7 @@ import com.niu.core.enums.site.SiteStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -101,6 +102,8 @@ private static final long serialVersionUID = 1L;
         private String phone;
         /** 营业时间 */
         private String businessHours;
+
+        private BigDecimal distance;
         /** 创建时间 */
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
         private Long createTime;
@@ -113,6 +116,10 @@ private static final long serialVersionUID = 1L;
         private String frontEndLogo;
         /** 前台icon */
         private String frontEndIcon;
+
+        /** 前台icon */
+        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        private String initalledAddon;
         /** 网站图标 */
         private String icon;
 

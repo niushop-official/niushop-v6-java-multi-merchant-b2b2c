@@ -31,7 +31,8 @@ public class PointGoodsPosterDataListener extends GetPosterDataEventDefiner {
 
     public GetPosterDataResult handleCallback(GetPosterDataEvent event) {
         String type = event.getType();
-        if (type.equals("points_mall_goods") || type.equals("mall_point_goods")) {
+        // 只处理mall_point_goods类型，points_mall_goods由points_mall模块的PointsGoodsPosterDataListener处理
+        if (type.equals("mall_point_goods")) {
             String mode = (String) event.getParam().getOrDefault("mode", "");
             
             Object skuIdObj = event.getParam().getOrDefault("sku_id", event.getParam().getOrDefault("id", "0"));

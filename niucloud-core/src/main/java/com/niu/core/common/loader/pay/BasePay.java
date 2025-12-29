@@ -51,7 +51,7 @@ public abstract class BasePay {
     /**
      * 关闭支付
      */
-    public abstract void close(Pay pay);
+    public abstract Boolean close(Pay pay);
 
     /**
      * 异步回调
@@ -64,6 +64,11 @@ public abstract class BasePay {
      * 转账
      */
     public abstract Object transfer(TransferParam param);
+
+    /**
+     * 查询订单信息
+     */
+    public abstract Object getOrder(String outTradeNo);
 
     /**
      * 转账取消

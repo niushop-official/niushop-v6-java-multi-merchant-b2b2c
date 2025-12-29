@@ -37,6 +37,8 @@
                 <span class="text-[#2878FF]" v-if="siteInfo.business_status">营业中</span>
                 <span class="text-[#2878FF]" v-else>暂停营业</span>
             </div>
+            <!-- 商家手机管理端 -->
+            <i class="nc-iconfont nc-icon-shoujiV6xx cursor-pointer px-[8px]" :title="t('商家助手')" @click="toSiteApp"></i>
             <!-- 切换语言 -->
             <!-- <div class="navbar-item flex items-center h-full cursor-pointer">
                 <switch-lang />
@@ -184,6 +186,10 @@ const toPreview = () => {
     window.open(url.href)
 }
 
+// 商家手机管理端
+const toSiteApp = () => {
+    window.open(location.origin + '/adminapp')
+}
 const changeBusinessStatus = () => {
     const data = {
         business_status: siteInfo.value.business_status ? 0 : 1

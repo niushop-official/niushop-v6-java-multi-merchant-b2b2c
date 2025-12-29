@@ -3,10 +3,10 @@
         <u-popup :show="show" @close="show = false">
             <view class="popup-common" @touchmove.prevent.stop>
                 <view class="title">配送方式</view>
-                <scroll-view scroll-y="true" class="h-[450rpx] px-[30rpx] box-border">
+                <scroll-view scroll-y="true" class="h-[350rpx] px-[30rpx] box-border">
                     <template v-if="deliveryTypeList.length">
                         <u-radio-group v-model="deliveryType" placement="column" iconPlacement="right">
-                            <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" :customStyle="{marginBottom: '34rpx'}" v-for="(item, index) in deliveryTypeList" :key="index" :label="item.name" :name="item.key"></u-radio>
+                            <u-radio activeColor="var(--primary-color)" :labelSize="'28rpx'" labelColor="#333" :customStyle="{marginBottom: '20rpx'}" v-for="(item, index) in deliveryTypeList" :key="index" :label="item.name" :name="item.key"></u-radio>
                         </u-radio-group>
                     </template>
                     <view  class="empty-page-popup !mt-0" v-else>

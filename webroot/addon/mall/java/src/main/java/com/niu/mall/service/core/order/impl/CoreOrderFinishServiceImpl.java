@@ -103,7 +103,7 @@ public class CoreOrderFinishServiceImpl implements ICoreOrderFinishService {
         try{
             SysPrinterPrintTicketParam printParam = new SysPrinterPrintTicketParam();
             printParam.setSiteId(mallOrder.getSiteId());
-            printParam.setType("shopGoodsOrder");
+            printParam.setType("mallGoodsOrder");
             printParam.setTrigger("take_delivery");
             SysPrinterPrintTicketParam.Business business = new SysPrinterPrintTicketParam.Business();
             business.setOrderId(mallOrder.getOrderId());

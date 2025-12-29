@@ -7,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.loader.notice.NoticeLoader;
+import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.reflect.ReflectCallField;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.sys.SysNotice;
@@ -186,7 +187,7 @@ public class CoreNoticeServiceImpl implements ICoreNoticeService {
             ReflectCallField.setForInstance(vo, type, notice.getSupport_type_map().get(type));
         }
 
-        SysNotice model = sysNoticeMapper.selectOne(new QueryWrapper<SysNotice>().eq("site_id", siteId).eq("`key`", key));
+        SysNotice model = sysNoticeMapper.selectOne(new QueryWrapper<SysNotice>().eq("site_id", RequestUtils.defaultSiteId()).eq("`key`", key));
         if (model != null) {
             BeanUtil.copyProperties(model, vo);
         }

@@ -17,9 +17,20 @@ public class QueryMapperUtils {
      * @return
      */
     public static QueryWrapper buildByTime(QueryWrapper queryWrapper, String fieldName, String[] stringTimes) {
-
-        Long startTime = (stringTimes[0] == null) ? 0 : DateUtils.StringToTimestamp(stringTimes[0]);
-        Long endTime = (stringTimes.length == 1) ? 0 : DateUtils.StringToTimestamp(stringTimes[1]);
+        if (stringTimes == null || stringTimes.length == 0) {
+            return queryWrapper;
+        }
+        
+        Long startTime = 0L;
+        if (stringTimes.length > 0 && stringTimes[0] != null && !stringTimes[0].trim().isEmpty()) {
+            startTime = DateUtils.StringToTimestamp(stringTimes[0]);
+        }
+        
+        Long endTime = 0L;
+        if (stringTimes.length > 1 && stringTimes[1] != null && !stringTimes[1].trim().isEmpty()) {
+            endTime = DateUtils.StringToTimestamp(stringTimes[1]);
+        }
+        
         if(startTime == 0 && endTime == 0){
             return queryWrapper;
         }
@@ -28,7 +39,7 @@ public class QueryMapperUtils {
         } else if (startTime > 0 && endTime == 0) {
             queryWrapper.ge(fieldName, startTime);
         } else if (startTime == 0 && endTime > 0) {
-            queryWrapper.le(fieldName, startTime);
+            queryWrapper.le(fieldName, endTime);
         }
         return queryWrapper;
     }
@@ -51,7 +62,7 @@ public class QueryMapperUtils {
         } else if (startTime > 0 && endTime == 0) {
             lambdaqueryWrapper.ge(fieldName, startTime);
         } else if (startTime == 0 && endTime > 0) {
-            lambdaqueryWrapper.le(fieldName, startTime);
+            lambdaqueryWrapper.le(fieldName, endTime);
         }
         return lambdaqueryWrapper;
     }
@@ -90,7 +101,7 @@ public class QueryMapperUtils {
         } else if (startTime > 0 && endTime == 0) {
             queryWrapper.ge(fieldName, startTime);
         } else if (startTime == 0 && endTime > 0) {
-            queryWrapper.le(fieldName, startTime);
+            queryWrapper.le(fieldName, endTime);
         }
         return queryWrapper;
     }
@@ -112,7 +123,7 @@ public class QueryMapperUtils {
         } else if (start.compareTo(zero) > 0 && end.compareTo(zero) == 0) {
             queryWrapper.ge(fieldName, start);
         } else if (start.compareTo(zero) == 0 && end.compareTo(zero) > 0) {
-            queryWrapper.le(fieldName, start);
+            queryWrapper.le(fieldName, end);
         }
         return queryWrapper;
     }

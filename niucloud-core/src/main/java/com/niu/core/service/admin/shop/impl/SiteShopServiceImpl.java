@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.google.gson.JsonArray;
+import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
@@ -109,6 +110,8 @@ public class SiteShopServiceImpl implements ISiteShopService {
     @Resource
     IShopSiteGroupService shopSiteGroupService;
 
+    @Resource
+    private Cached cached;
     @Override
     public PageResult<SiteShopListVo> page(PageParam pageParam, SiteShopSearchParam searchParam) {
         Integer page = pageParam.getPage();
@@ -116,7 +119,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, " +
-                        "ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license, nss.supply_service_rate")
+                        "ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license, nss.supply_service_rate,nss.business_status")
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
@@ -250,7 +253,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
                         " ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, " +
                         "nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, " +
                         "nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, " +
-                        "nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license, nss.supply_service_rate")
+                        "nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license, nss.business_status, nss.supply_service_rate")
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
@@ -646,6 +649,26 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
         BeanUtils.copyProperties(editParam, model);
         siteMapper.updateById(model);
+
+        SiteGroup siteGroup = siteGroupService.info(model.getGroupId());
+
+        //修改店铺数据
+        SiteShop siteShop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id",model.getSiteId()).last("Limit 1"));
+        if(ObjectUtil.isNotEmpty(siteShop)){
+            siteShop.setBusinessStatus(editParam.getBusinessStatus());
+            siteShopMapper.updateById(siteShop);
+        }
+
+        SiteEditAfterEvent event = new SiteEditAfterEvent();
+        event.setSiteId(model.getSiteId());
+        event.addAppSign("core");
+        event.setName("SiteEditAfterEvent");
+        event.setSite(model);
+        event.setSiteGroup(siteGroup);
+        EventAndSubscribeOfPublisher.publishAll(event);
+
+        //删除站点缓存
+        coreSiteService.clearSiteCache(id);
     }
 
     @Override

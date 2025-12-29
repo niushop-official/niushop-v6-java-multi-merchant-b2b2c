@@ -15,6 +15,8 @@ import com.niu.core.entity.member.Member;
 import com.niu.core.entity.member.MemberAddress;
 import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.entity.site.Site;
+import com.niu.core.enums.shop.ShopStatusEnum;
+import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.event.common.CommonEventDefiner;
 import com.niu.core.mapper.diy_form.DiyFormMapper;
 import com.niu.core.mapper.member.MemberMapper;
@@ -112,20 +114,22 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
      *
      * @param param
      */
-    public OrderCreateDataVo calculate(OrderCalculateParam param) {
+    public OrderCreateDataVo calculate(OrderCalculateParam param, MallOrderCreateDataVo mallOrderCreateDataVo) {
         OrderCreateDataVo vo = null;
 
         vo = this.confirm(param);
-
+        vo.setOrderFrom(param.getOrderFrom());
         vo.getError().clear();
 
+        // 计算优惠
+        calculateDiscount(vo, param);
+
         // 计算运费
-        calculateDelivery(vo, param);
+        calculateDelivery(vo, param, mallOrderCreateDataVo);
 
         //检测限购
         checkGoodsLimitBuy(vo);
-        // 计算优惠
-        calculateDiscount(vo, param);
+
 
         // 计算订单金额
         OrderCreateDataVo.Basic basic = vo.getBasic();
@@ -133,6 +137,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
         basic.setOrderMoney(orderMoney.max(BigDecimal.ZERO));
 
         cacheOrderVo(vo);
+        vo.setMemberRemark(param.getMemberRemark());
         return vo;
     }
 
@@ -146,7 +151,8 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
 
         // 判断有没有错误信息
         if (vo.getError().size() > 0) throw new CommonException(vo.getError().get(0));
-
+        //校验店铺
+        checkSite(vo);
         //校验商品售价是否低于供货价
         for (OrderCreateDataVo.Sku sku : vo.getGoodsData().values()) {
             //查询商品详情
@@ -179,8 +185,13 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
 
         // 检测库存
         for (OrderCreateDataVo.Sku sku : vo.getGoodsData().values()) {
-            MallGoodsSku goodsSku = mallGoodsSkuMapper.selectOne(new QueryWrapper<MallGoodsSku>().select("stock").eq("sku_id", sku.getSkuId()));
-            if (goodsSku.getStock().compareTo(sku.getNum()) == -1) throw new CommonException("商品库存不足");
+            MallGoodsSku goodsSku = mallGoodsSkuMapper.selectOne(new QueryWrapper<MallGoodsSku>().select("stock,is_sell").eq("sku_id", sku.getSkuId()));
+            if (!(ObjectUtil.isNotEmpty(goodsSku.getIsSell()) && goodsSku.getIsSell().equals(1))) {
+                throw new CommonException("商品"+sku.getGoods().getGoodsName()+" "+sku.getSkuName()+"暂未开售");
+            }
+            if (goodsSku.getStock().compareTo(sku.getNum()) == -1) {
+                throw new CommonException("商品"+sku.getGoods().getGoodsName()+" "+sku.getSkuName()+"库存不足");
+            }
         }
         //发票创建
         vo.setMemberRemark(vo.getMemberRemark());
@@ -228,8 +239,9 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
             order.setTakerLatitude(address.getLat());
             order.setTakerLongitude(address.getLng());
         }
-        if (ObjectUtil.isNotEmpty(vo.getDelivery().getTakeStore())) {
-            order.setTakeStoreId(vo.getDelivery().getTakeStore().getStoreId());
+        if (ObjectUtil.isNotEmpty(vo.getDelivery().getTakeStore()) && !vo.getDelivery().getTakeStore().toString().equals("[]")) {
+            OrderCreateDataVo.TakeStore takeStore = JSONUtil.toBean(JSONUtil.parseObj(vo.getDelivery().getTakeStore()), OrderCreateDataVo.TakeStore.class);
+            order.setTakeStoreId(takeStore.getStoreId());
         }
         order.setCreateTime(System.currentTimeMillis() / 1000);
 
@@ -276,7 +288,10 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
      */
     private OrderCreateDataVo confirm(OrderCalculateParam param) {
         OrderCreateDataVo vo = new OrderCreateDataVo();
-        BeanUtil.copyProperties(param, vo, "discount");
+        vo.setSiteId(param.getSiteId());
+        vo.setMemberId(param.getMemberId());
+        //查询配送配置
+        this.getConfig(vo,"delivery_type",null,param);
         initSite(vo);
         // 查询会员信息
         OrderCreateDataVo.Buyer buyer = new OrderCreateDataVo.Buyer();
@@ -301,7 +316,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
         this.getConfig(vo,"invoice",null,param);
 
         // 查询配送方式
-        this.selectTakeAddress(vo, param);
+        //this.selectTakeAddress(vo, param);
         return vo;
     }
 
@@ -315,6 +330,20 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
             BeanUtil.copyProperties(shop, vo.getSiteInfo().getShop());
         }
 
+    }
+
+    /**
+     * 校验店铺
+     */
+    private void checkSite(OrderCreateDataVo vo) {
+        Site site = siteMapper.selectById(vo.getSiteId());
+        BeanUtil.copyProperties(site, vo.getSiteInfo());
+        SiteShop shop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", vo.getSiteId()));
+        if(ObjectUtil.isNotEmpty(shop) && ObjectUtil.isNotEmpty(site) && ShopStatusEnum.CLOSE.getCode().equals(shop.getBusinessStatus()))
+        {
+            BeanUtil.copyProperties(shop, vo.getSiteInfo().getShop());
+            throw new CommonException("店铺"+site.getSiteName()+ShopStatusEnum.CLOSE.getName());
+        }
     }
 
     /**

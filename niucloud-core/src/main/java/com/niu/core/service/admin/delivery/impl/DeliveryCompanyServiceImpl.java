@@ -91,8 +91,7 @@ public class DeliveryCompanyServiceImpl extends ServiceImpl<DeliveryCompanyMappe
     public DeliveryCompanyInfoVo info(Integer id) {
         DeliveryCompany model = deliveryCompanyMapper.selectOne(
                 new QueryWrapper<DeliveryCompany>()
-                    .eq("company_id", id)
-                    .eq("site_id", RequestUtils.siteId()));
+                    .eq("company_id", id).last("limit 1"));
 
         Assert.notNull(model, "物流公司不存在");
 

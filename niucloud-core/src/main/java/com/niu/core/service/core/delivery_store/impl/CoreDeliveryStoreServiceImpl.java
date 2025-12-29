@@ -1,5 +1,6 @@
 package com.niu.core.service.core.delivery_store.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson2.JSON;
@@ -8,40 +9,56 @@ import com.niu.core.common.loader.local_delivery.BaseLocalDelivery;
 import com.niu.core.common.loader.local_delivery.LocalDeliveryLoader;
 import com.niu.core.common.utils.CommonUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryService;
+import com.niu.core.entity.delivery.DeliveryStore;
+import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteAddress;
 import com.niu.core.enums.delivery.DeliveryStoreStatusEnum;
+import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryServiceMapper;
+import com.niu.core.mapper.delivery.DeliveryStoreMapper;
 import com.niu.core.mapper.site.SiteAddressMapper;
+import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.core.delivery_store.ICoreDeliveryStoreService;
 import com.niu.core.service.core.delivery_store.param.DeliveryShopOpenParam;
 import com.niu.core.service.core.delivery_store.param.DeliveryStoreShopEditParam;
+import com.niu.core.service.core.delivery_store.param.DeliverySysStoreAddParam;
 import com.niu.core.service.core.delivery_store.vo.DeliveryStoreListVo;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryService;
 import jakarta.annotation.Resource;
+import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.niu.core.common.utils.CommonUtils.createNo;
+
 /**
  * 物流查询服务层
  */
+@Log4j2
 @Service
 public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
 
     @Resource
-    private SiteAddressMapper siteAddressMapper;
+    private DeliveryStoreMapper deliveryStoreMapper;
     @Resource
     private DeliveryLocalDeliveryServiceMapper deliveryLocalDeliveryServiceMapper;
     @Resource
     private ICoreLocalDeliveryService coreLocalDeliveryService;
+    @Autowired
+    private SiteMapper siteMapper;
 
     @Override
     public List<DeliveryStoreListVo> deliveryServiceList(Integer id) {
-        SiteAddress info = siteAddressMapper.selectById(id);
+        DeliveryStore info = deliveryStoreMapper.selectById(id);
         if (info == null) {
-            throw new RuntimeException("地址库不存在");
+            throw new RuntimeException("提货点不存在");
         }
         Map<String, Map<String, Object>> list = jsonToNestedMap(LocalDeliveryTypeEnum.getType());
         QueryWrapper<DeliveryLocalDeliveryService> queryWrapper = new QueryWrapper<>();
@@ -52,12 +69,12 @@ public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
         Set<String> keys = enabledServices.stream()
                 .map(DeliveryLocalDeliveryService::getKey)
                 .collect(Collectors.toSet());
-        Map<String, Object> supportDeliveryArray = new HashMap<>();
+        JSONObject supportDeliveryArray = new JSONObject();
         if (info.getSupportDelivery() != null && !info.getSupportDelivery().trim().isEmpty()) {
             try {
-                supportDeliveryArray = JSONUtil.toBean(info.getSupportDelivery(), Map.class);
+                supportDeliveryArray = JSONUtil.parseObj(info.getSupportDelivery());
             } catch (Exception e) {
-                supportDeliveryArray = new HashMap<>();
+                supportDeliveryArray = new JSONObject();
             }
         }
         List<DeliveryStoreListVo> result = new ArrayList<>();
@@ -68,6 +85,8 @@ public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
             vo.setKey(k);
             vo.setName((String) v.get("name"));
             vo.setIsMerchant((Integer) v.get("is_merchant") == 1);
+            vo.setComponent(ObjectUtil.isNotEmpty(v.get("component")) ? v.get("component").toString() : "");
+            vo.setBusinessList(ObjectUtil.isNotEmpty(v.get("business_list")) ? v.get("business_list").toString() : "");
             if ((Integer) v.get("is_merchant") == 1) {
                 vo.setOpenStatus(DeliveryStoreStatusEnum.OPEN_PASS.getStatus());
                 vo.setBusiness("");
@@ -75,15 +94,11 @@ public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
                 vo.setReason("");
             } else {
                 if (keys.contains(k)) {
-                    Object supportInfoObj = supportDeliveryArray.get(k);
-                    Map<String, Object> supportInfo = new HashMap<>();
-                    if (supportInfoObj instanceof Map) {
-                        supportInfo = (Map<String, Object>) supportInfoObj;
-                    }
-                    vo.setOpenStatus(supportInfo.get("open_status") != null ? (Integer) supportInfo.get("open_status") : null);
-                    vo.setBusiness(supportInfo.get("business") != null ? (String) supportInfo.get("business") : "");
-                    vo.setEditStatus(supportInfo.get("edit_status") != null ? (String) supportInfo.get("edit_status") : "");
-                    vo.setReason(supportInfo.get("reason") != null ? (String) supportInfo.get("reason") : "");
+                    JSONObject supportInfoObj = JSONUtil.parseObj(supportDeliveryArray.get(k));
+                    vo.setOpenStatus(supportInfoObj.get("open_status") != null ? supportInfoObj.getInt("open_status") : null);
+                    vo.setBusiness(supportInfoObj.get("business") != null ? (String) supportInfoObj.getStr("business") : "");
+                    vo.setEditStatus(StringUtils.isNotEmpty(supportInfoObj.getStr("edit_status")) ? supportInfoObj.getInt("edit_status").toString() : "");
+                    vo.setReason(supportInfoObj.get("reason") != null ? supportInfoObj.getStr("reason") : "");
                 } else {
                     continue;
                 }
@@ -95,99 +110,173 @@ public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
 
     @Override
     public void deliveryShopOpen(Integer id,DeliveryShopOpenParam param) {
-        SiteAddress info = siteAddressMapper.selectById(id);
+        DeliveryStore info = deliveryStoreMapper.selectById(id);
         if (info == null) {
-            throw new RuntimeException("地址库不存在");
+            throw new RuntimeException("提货点不存在");
         }
         String deliveryType = param.getDeliveryType();
-        Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryType);
+        Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryType,info.getSiteId());
         if (localDeliveryConfig.isEmpty()) {
             String typeName = LocalDeliveryTypeEnum.getName(deliveryType) != null ? LocalDeliveryTypeEnum.getName(deliveryType) : deliveryType;
             throw new RuntimeException(typeName + "未配置");
         }
+        try {
+            Map<String, Object> requestData = new HashMap<>();
+            requestData.put("delivery_type", deliveryType);
+            requestData.put("business", param.getBusiness());
+            requestData.put("delivery_store", info);
+            Map<String, Object>  config = JSONUtil.parseObj(localDeliveryConfig.get("config"));
+            //第三方配送下单 驱动
+            BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(deliveryType).init(JSONUtil.parseObj(config));
+            Map<String, Object> responseData = driver.addShop(requestData);
 
-        String shopNo = CommonUtils.createNo();
-        Map<String, Object> requestData = new HashMap<>();
-        requestData.put("delivery_type", deliveryType);
-        requestData.put("business", param.getBusiness());
-        requestData.put("site_address", info);
-        requestData.put("shop_no", shopNo);
-        Map<String, Object> config = new HashMap<>();
-        config.put("siteId", info.getSiteId());
-        //第三方配送下单 驱动
-        BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(deliveryType).init(JSONUtil.parseObj(config));
-        Map<String, Object> responseData = driver.addShop(requestData);
-
-        if (!responseData.isEmpty()) {
-            Map<String, Object> supportDelivery = (Map<String, Object>) responseData.get("support_delivery");
-            if (supportDelivery != null) {
-                Map<String, Object> currentSupportDelivery = new HashMap<>();
-                if (info.getSupportDelivery() != null && !info.getSupportDelivery().isEmpty()) {
-                    try {
-                        currentSupportDelivery = JSON.parseObject(info.getSupportDelivery(), Map.class);
-                    } catch (Exception e) {
-
-                        currentSupportDelivery = new HashMap<>();
+            if (!responseData.isEmpty()) {
+                JSONObject supportDelivery = JSONUtil.parseObj(responseData.get("support_delivery"));
+                if (!supportDelivery.isEmpty()) {
+                    Map<String, Object> currentSupportDelivery = new HashMap<>();
+                    if (StringUtils.isNotEmpty(info.getSupportDelivery())) {
+                        currentSupportDelivery = JSONUtil.parseObj(info.getSupportDelivery());
                     }
+                    currentSupportDelivery.putAll(supportDelivery);
+                    info.setSupportDelivery(JSONUtil.toJsonStr(currentSupportDelivery));
                 }
-                currentSupportDelivery.putAll(supportDelivery);
 
-                info.setSupportDelivery(JSON.toJSONString(currentSupportDelivery));
-            }
-
-            if (param.getExtendData() != null) {
-                Map<String, Object> currentExtendData = new HashMap<>();
-                if (info.getExtendData() != null && !info.getExtendData().isEmpty()) {
-                    try {
-                        currentExtendData = JSON.parseObject(info.getExtendData(), Map.class);
-                    } catch (Exception e) {
-                        // 如果解析失败，使用空Map
-                        currentExtendData = new HashMap<>();
+                if (param.getExtendData() != null) {
+                    Map<String, Object> currentExtendData = new HashMap<>();
+                    if (info.getExtendData() != null && !info.getExtendData().isEmpty()) {
+                        try {
+                            currentExtendData = JSONUtil.parseObj(info.getExtendData());
+                        } catch (Exception e) {
+                            // 如果解析失败，使用空Map
+                            currentExtendData = new HashMap<>();
+                        }
                     }
+                    currentExtendData.putAll(param.getExtendData());
+                    info.setExtendData(JSON.toJSONString(currentExtendData));
                 }
-                currentExtendData.putAll(param.getExtendData());
-                info.setExtendData(JSON.toJSONString(currentExtendData));
+
+                info.setStoreId(id);
+                deliveryStoreMapper.updateById(info);
             }
-
-            info.setShopNo(shopNo);
-
-            siteAddressMapper.updateById(info);
+        }catch (Exception e){
+            throw new RuntimeException( StringUtils.isNotEmpty(e.getMessage()) ? e.getMessage() : "添加店铺失败");
         }
     }
 
     @Override
     public void deliveryShopEdit(Integer id, DeliveryStoreShopEditParam param) {
-        SiteAddress info = siteAddressMapper.selectById(id);
+        DeliveryStore info = deliveryStoreMapper.selectById(id);
         if (info == null) {
-            throw new RuntimeException("地址库不存在");
+            throw new RuntimeException("提货点不存在");
         }
-
         String deliveryType = param.getDeliveryType();
-
-        Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryType);
+        Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryType,info.getSiteId());
         if (localDeliveryConfig.isEmpty()) {
             String typeName = LocalDeliveryTypeEnum.getName(deliveryType) != null ? LocalDeliveryTypeEnum.getName(deliveryType) : deliveryType;
             throw new RuntimeException(typeName + "未配置");
         }
-
+        Map<String, Object>  config = JSONUtil.parseObj(localDeliveryConfig.get("config"));
         Map<String, Object> requestData = new HashMap<>();
         requestData.put("delivery_type", deliveryType);
         requestData.put("business", param.getBusiness());
-        requestData.put("site_address", info);
-        Map<String, Object> config = new HashMap<>();
-        config.put("siteId", info.getSiteId());
-        //第三方配送下单 驱动
-        BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(deliveryType).init(JSONUtil.parseObj(config));
-        Map<String, Object> responseData = driver.addShop(requestData);
-
-        if (!responseData.isEmpty()) {
-            Map<String, Object> supportDelivery = (Map<String, Object>) responseData.get("support_delivery");
-            if (supportDelivery != null) {
-                info.setSupportDelivery(JSON.toJSONString(supportDelivery));
+        requestData.put("delivery_store", info);
+        try {
+            //第三方配送下单 驱动
+            BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(deliveryType).init(JSONUtil.parseObj(config));
+            Map<String, Object> responseData = driver.editShop(requestData);
+            if (!responseData.isEmpty()) {
+                JSONObject supportDelivery = (JSONObject) responseData.get("support_delivery");
+                info.setSupportDelivery(supportDelivery.toString());
+                deliveryStoreMapper.updateById( info);
             }
-
-            siteAddressMapper.updateById(info);
+        }catch (Exception e){
+            throw new RuntimeException("编辑店铺失败");
         }
+    }
+
+    @Override
+    @Transactional
+    public void batchDeliveryShopEdit(DeliveryStore store) {
+        if (ObjectUtil.isEmpty( store)) {
+            throw new RuntimeException("提货点不存在");
+        }
+        try {
+            JSONObject supportDelivery = StringUtils.isNotEmpty(store.getSupportDelivery()) ? JSONUtil.parseObj(store.getSupportDelivery()) : new JSONObject();
+            JSONObject deliveryTypeObj = LocalDeliveryTypeEnum.getType();
+
+            for (String deliveryType : deliveryTypeObj.keySet()) {
+                if (!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryType) && ObjectUtil.isNotEmpty(supportDelivery.getStr(deliveryType)) && supportDelivery.getStr(deliveryType).contains("open_status")){
+                    JSONObject supportDeliveryArray = JSONUtil.parseObj(supportDelivery.getStr(deliveryType));
+                    if(DeliveryStoreStatusEnum.OPEN_PASS.getStatus().equals(supportDeliveryArray.getInt("open_status"))){
+                        Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryType,store.getSiteId());
+                        if (localDeliveryConfig.isEmpty()) {
+                            String typeName = LocalDeliveryTypeEnum.getName(deliveryType) != null ? LocalDeliveryTypeEnum.getName(deliveryType) : deliveryType;
+                            throw new RuntimeException(typeName + "未配置");
+                        }
+                        Map<String, Object>  config = JSONUtil.parseObj(localDeliveryConfig.get("config"));
+                        Map<String, Object> requestData = new HashMap<>();
+                        requestData.put("delivery_type", deliveryType);
+                        requestData.put("business", supportDeliveryArray.getStr("business"));
+                        requestData.put("delivery_store", store);
+
+                        //第三方配送下单 驱动
+                        BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(deliveryType).init(JSONUtil.parseObj(config));
+                        Map<String, Object> responseData = driver.editShop(requestData);
+                        if (!responseData.isEmpty()) {
+                            JSONObject supportDeliveryResponse = JSONUtil.parseObj(responseData.get("support_delivery"));
+                            supportDeliveryArray.set("edit_status", supportDeliveryResponse.get("edit_status"));
+                            supportDeliveryArray.set("reason", supportDeliveryResponse.get("reason"));
+                            supportDelivery.set(deliveryType, supportDeliveryArray);
+
+                        }
+                    }
+                }
+            }
+            store.setSupportDelivery(supportDelivery.toString());
+            deliveryStoreMapper.updateById(store);
+        }catch (Exception e){
+            log.error("配送门店信息批量修改:{}", e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public Integer createSysStore(DeliverySysStoreAddParam param) {
+        DeliveryStore data = new DeliveryStore();
+        BeanUtils.copyProperties(param,data);
+        data.setStoreNo(createNo());
+        data.setSupportLocalDelivery(0);
+        data.setSupportStore(0);
+        data.setStatus(0);
+        data.setArea("");
+        data.setIsSystem(1);
+        deliveryStoreMapper.insert(data);
+        return data.getStoreId();
+    }
+
+    @Override
+    public Integer editSysStore(Integer id) {
+        Site site = siteMapper.selectById(id);
+        DeliveryStore data = new DeliveryStore();
+        data.setStoreName(site.getSiteName());
+        data.setMobile(site.getPhone());
+        data.setTradeTime(site.getBusinessHours());
+        data.setProvinceId(site.getProvinceId());
+        data.setCityId(site.getCityId());
+        data.setDistrictId(site.getDistrictId());
+        data.setAddress(site.getAddress());
+        data.setFullAddress(site.getFullAddress());
+        data.setLatitude(site.getLatitude());
+        data.setLongitude(site.getLongitude());
+        DeliveryStore store = deliveryStoreMapper.selectOne(new QueryWrapper<DeliveryStore>().eq("site_id",id)
+                .eq("is_system",1));
+        if(ObjectUtil.isNotEmpty(store)){
+            Integer storeId = store.getStoreId();
+            BeanUtils.copyProperties(data,store);
+            store.setStoreId(storeId);
+            deliveryStoreMapper.updateById(store);
+        }
+        return 0;
     }
 
     public static Map<String, Map<String, Object>> jsonToNestedMap(JSONObject json) {

@@ -15,6 +15,7 @@ public enum OrderDeliveryTypeEnum {
     
     EXPRESS("express", "快递"),
     LOCAL_DELIVERY("local_delivery", "同城配送"),
+    STORE("store", "门店自提"),
     NONE_EXPRESS("none_express", "无需快递"),
     VIRTUAL("virtual", "虚拟发货");
 
@@ -63,6 +64,9 @@ public enum OrderDeliveryTypeEnum {
             case "local_delivery":
                 childMap.put(LOCAL_DELIVERY.getType(), LOCAL_DELIVERY.getName());
                 break;
+            case "store":
+                childMap.put(STORE.getType(), STORE.getName());
+                break;
             case "virtual":
                 childMap.put(VIRTUAL.getType(), VIRTUAL.getName());
                 break;
@@ -91,6 +95,11 @@ public enum OrderDeliveryTypeEnum {
         localDeliveryChild.put(LOCAL_DELIVERY.getType(), LOCAL_DELIVERY.getName());
         allChildMap.put("local_delivery", localDeliveryChild);
         
+        // 自提
+        Map<String, String> storeChild = new HashMap<>();
+        storeChild.put(STORE.getType(), STORE.getName());
+        allChildMap.put("store", storeChild);
+
         // 虚拟发货
         Map<String, String> virtualChild = new HashMap<>();
         virtualChild.put(VIRTUAL.getType(), VIRTUAL.getName());

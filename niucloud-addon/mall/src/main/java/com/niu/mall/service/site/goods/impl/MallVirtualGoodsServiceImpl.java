@@ -524,7 +524,6 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
             MallGoods model = mallGoodsMapper.selectOne(
                     new QueryWrapper<MallGoods>()
                             .eq("goods_id", goodsId)
-                            .eq("site_id", RequestUtils.siteId())
                             .eq("delete_time", 0));
             if (model == null) return null;
 

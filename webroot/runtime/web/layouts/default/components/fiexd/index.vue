@@ -12,7 +12,7 @@
 						</div>
 					</template>
 					<div class="flex flex-wrap items-center justify-center">
-						<div class="mb-[10px]" v-if="configStore.weappOpen">
+						<div class="mb-[10px]" v-if="weappImage">
 							<div class="promote-img flex justify-center items-center w-[100px] h-[100px] rounded-[4px] mb-[10px] border-solid border-[1px] border-[#eee]">
 								<el-image :src="img(weappImage)" class=" w-[92px] h-[92px]" />
 							</div>
@@ -91,20 +91,16 @@ loadQrcode()
 
 const weappImage = ref('')
 const loadWeapp = () => {
-	getQrcode().then((res:any) =>{
+	getQrcode({
+        scene: 'wap_index',
+        type: 'image',
+        channel: 'weapp'
+    }).then((res:any) =>{
 		weappImage.value = res.data
 	})
 }
+loadWeapp()
 
-watch(() => configStore.weappOpen, (nval, oval) => {
-    if(nval){
-        loadWeapp()
-    }
-})
-
-if(configStore.weappOpen){
-    loadWeapp()
-}
 // // 未登录
 const toLogin = () =>{
 	if(!getToken() && !configStore.login.is_username && !configStore.login.is_mobile && !configStore.login.is_bind_mobile){

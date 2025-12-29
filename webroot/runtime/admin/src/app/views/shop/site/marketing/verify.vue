@@ -29,7 +29,7 @@
                             <el-option :label="item.member.nickname" :value="item.member_id" v-for="(item, key) in verifierList" :key="key" />
                         </el-select>
                     </el-form-item>
-                    <el-form-item :label="t('verifyer')" prop="verifier_member_id" v-else>
+                    <el-form-item :label="t('verifyer')" prop="verifier_member_id" v-if="recordTable.searchParam.verifier_type == 'site'">
                         <el-select v-model="recordTable.searchParam.verifier_member_id" clearable :placeholder="t('verifierPlaceholder')" class="input-width">
                             <el-option :label="t('selectPlaceholder')" value="" />
                             <el-option :label="item.username" :value="item.uid" v-for="(item, key) in userList" :key="key" />
@@ -104,7 +104,7 @@ const recordTable = reactive({
     searchParam: {
         code: '',
         type: '',
-        verifier_type: 'member',
+        verifier_type: '',
         verifier_member_id: '',
         create_time: []
     }

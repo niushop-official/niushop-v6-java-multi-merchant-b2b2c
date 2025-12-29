@@ -89,7 +89,7 @@ public class SiteShopInfoVo implements Serializable {
 
     /** 站点id */
     private Integer siteId;
-
+    private Integer businessStatus;//    /** 营业状态（1营业中，2休息中） */
     /** 微信账号 */
     private String wechatAccountNo;
 

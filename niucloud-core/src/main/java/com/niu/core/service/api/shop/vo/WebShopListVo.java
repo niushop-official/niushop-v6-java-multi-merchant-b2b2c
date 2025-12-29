@@ -18,15 +18,15 @@ public class WebShopListVo implements Serializable {
     private WebConfigVo webConfigVo;
 
     private List<SiteWithShopInfo> list;
-    
+
     @Data
     public static class SiteWithShopInfo extends Site {
-        
+
         @JsonProperty("goods_list")
         private List<MallGoodsListVo> goodsList;
-        
+
         private ShopInfo shop;
-        
+
         @Data
         public static class ShopInfo {
             @JsonProperty("is_self")

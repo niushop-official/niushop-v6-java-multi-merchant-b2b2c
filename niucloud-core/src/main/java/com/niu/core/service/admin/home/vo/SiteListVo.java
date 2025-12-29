@@ -2,6 +2,7 @@ package com.niu.core.service.admin.home.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
+import com.niu.core.enums.site.SiteStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -23,6 +24,7 @@ public class SiteListVo implements Serializable {
     private String logo;  // 站点logo
     private String desc;  // 简介
     private Integer status;  // 状态 1-正常 0-体验期 2-已到期
+    private String statusName;  // 状态 1-正常 0-体验期 2-已到期
     private String latitude;  // 纬度
     private String longitude;  // 经度
     private Integer provinceId;  // 省
@@ -45,9 +47,8 @@ public class SiteListVo implements Serializable {
     private String addons;  // 站点包含的插件
     private String initalledAddon;  // 站点已执行初始化方法的插件
     private String siteDomain;  // 站点域名
-
-    public String getGroupName() {
-        return "测试";
+    private Integer businessStatus;
+    private String getStatusName(){
+        return SiteStatusEnum.getNameByCode(this.status);
     }
-
 }

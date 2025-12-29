@@ -267,6 +267,7 @@ public class CoreRefundActionServiceImpl implements ICoreRefundActionService {
         if(order != null && order.getStatus().equals(OrderStatusEnum.WAIT_DELIVERY.getStatus().toString())){
             OrderDeliveryParam orderDeliveryParam = new OrderDeliveryParam();
             orderDeliveryParam.setOrderId(order.getOrderId());
+            orderDeliveryParam.setDeliveryType(order.getDeliveryType());
             orderDeliveryService.checkFinish(orderDeliveryParam);
         }
 
@@ -314,7 +315,7 @@ public class CoreRefundActionServiceImpl implements ICoreRefundActionService {
         if (order == null) throw new CommonException("订单已失效");
         String orderRefundNo = createRefundNo();
 
-        if (OrderRefundTypeEnum.RETURN_AND_REFUND_GOODS.getType().toString().equals(param.getRefundType()) && OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus().equals(orderGoods.getDeliveryStatus()))
+            if (OrderRefundTypeEnum.RETURN_AND_REFUND_GOODS.getType().toString().equals(param.getRefundType()) && OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus().equals(orderGoods.getDeliveryStatus()))
             throw new CommonException("只有已发货的商品才能申请退货退款");
 
         Integer isRefundDelivery = 0;

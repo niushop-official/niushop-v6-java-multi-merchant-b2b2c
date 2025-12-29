@@ -157,7 +157,7 @@ public class CoreShopSettlementServiceImpl implements ICoreShopSettlementService
         // 设置结算状态为已结算
         order.setSettlementStatus("settled");
         // 记录结算时间
-        order.setSettlementTime((int)(System.currentTimeMillis() / 1000));
+        order.setSettlementTime(System.currentTimeMillis() / 1000);
         // 保存订单更新
         mallOrderMapper.updateById(order);
         Map<String, BigDecimal> commissionMap = getSettlement(order);
