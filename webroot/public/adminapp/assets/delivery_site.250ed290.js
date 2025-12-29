@@ -1,0 +1,1 @@
+import{B as e}from"./index-96ac6a23.js";function r(){return e.get("delivery/site/delivery/deliveryList")}function t(r){return e.get("delivery/site/shipping/template/list",r)}function i(r){return e.get("delivery/site/delivery/company",r)}function n(){return e.get("delivery/site/order/refund/address")}export{t as a,i as b,n as c,r as g};

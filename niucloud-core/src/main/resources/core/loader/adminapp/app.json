@@ -1,0 +1,47 @@
+[
+  {
+    "name": "商家管理",
+    "key": "site_manage",
+    "group": "site",
+    "menu_key": "setting_system_basic_info",
+    "sort": 1,
+    "page": "/app/pages/site/setting",
+    "icon": "/addon/mall/site/menu/site_manage.png"
+  },
+  {
+    "name": "商家信息",
+    "key": "site_detail",
+    "group": "site",
+    "menu_key": "shop_setting_index",
+    "sort": 2,
+    "page": "/app/pages/site/info",
+    "icon": "/addon/mall/site/menu/site_detail.png"
+  },
+  {
+    "name": "客户管理",
+    "key": "member_manage",
+    "group": "member",
+    "menu_key": "shop_member_list",
+    "sort": 1,
+    "page": "/app/pages/member/index",
+    "icon": "/addon/mall/site/menu/member.png"
+  },
+  {
+    "name": "核销",
+    "key": "verify",
+    "group": "site",
+    "menu_key": "",
+    "sort": 3,
+    "page": "/app/pages/verify/index",
+    "icon": "/addon/mall/site/menu/verify.png"
+  },
+  {
+    "name": "核销记录",
+    "key": "verify_record",
+    "group": "site",
+    "menu_key": "",
+    "sort": 4,
+    "page": "/app/pages/verify/record",
+    "icon": "/addon/mall/site/menu/verify_record.png"
+  }
+]

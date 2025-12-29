@@ -1,0 +1,17 @@
+[
+  {
+    "name": "客户",
+    "key": "member",
+    "sort": 2
+  },
+  {
+    "name": "配送",
+    "key": "delivery",
+    "sort": 4
+  },
+  {
+    "name": "商家",
+    "key": "site",
+    "sort": 5
+  }
+]

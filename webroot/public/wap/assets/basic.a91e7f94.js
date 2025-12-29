@@ -1,0 +1,1 @@
+import{B as e}from"./index-a206b603.js";function t(){return e.get("basic/goods/category/config")}function r(t){return e.get("basic/goods/category/tree",t)}function o(t){return e.get("basic/goods/category/list",t)}function i(){return e.get("basic/delivery/delivery_type")}function n(){return e.get("basic/delivery/config")}export{r as a,t as b,n as c,i as d,o as g};

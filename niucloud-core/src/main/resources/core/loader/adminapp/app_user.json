@@ -1,0 +1,20 @@
+[
+  {
+    "name": "商家信息",
+    "key": "site_detail",
+    "group": "site",
+    "menu_key": "shop_setting_index",
+    "sort": 2,
+    "page": "/app/pages/site/info",
+    "icon": "/addon/mall/site/menu/site_detail.png"
+  },
+  {
+    "name": "客户管理",
+    "key": "member_manage",
+    "group": "member",
+    "menu_key": "shop_member_list",
+    "sort": 1,
+    "page": "/app/pages/member/index",
+    "icon": "/addon/mall/site/menu/member.png"
+  }
+]

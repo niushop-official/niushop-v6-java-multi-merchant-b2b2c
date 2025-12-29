@@ -1,0 +1,29 @@
+[
+  {
+    "name": "商品管理",
+    "key": "mall_goods",
+    "group": "mall",
+    "menu_key": "mall_goods_list",
+    "sort": 1,
+    "page": "/addon/mall/pages/goods/list",
+    "icon": "/addon/mall/site/menu/goods.png"
+  },
+  {
+    "name": "订单管理",
+    "key": "mall_order",
+    "group": "mall",
+    "menu_key": "mall_order_list",
+    "sort": 2,
+    "page": "/addon/mall/pages/order/list",
+    "icon": "/addon/mall/site/menu/order.png"
+  },
+  {
+    "name": "售后管理",
+    "key": "mall_order_refund",
+    "group": "mall",
+    "menu_key": "",
+    "sort": 3,
+    "page": "/addon/mall/pages/refund/list",
+    "icon": "/addon/mall/site/menu/refund.png"
+  }
+]

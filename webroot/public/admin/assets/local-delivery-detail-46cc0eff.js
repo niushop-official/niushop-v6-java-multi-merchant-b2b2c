@@ -1,0 +1,1 @@
+import{_ as o}from"./local-delivery-detail.vue_vue_type_style_index_0_lang-84ceaf65.js";import"./index-96e75b4c.js";/* empty css                   *//* empty css                  *//* empty css                   *//* empty css                */import"./el-form-item-4ed993c7.js";import"./delivery_admin-78730596.js";export{o as default};
