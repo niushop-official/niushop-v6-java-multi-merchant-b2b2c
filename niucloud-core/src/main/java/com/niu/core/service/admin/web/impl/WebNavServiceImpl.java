@@ -65,7 +65,8 @@ public class WebNavServiceImpl implements IWebNavService {
             queryWrapper.eq("nav_title", searchParam.getNavTitle());
         }
 
-        queryWrapper.orderByDesc("id");
+        queryWrapper.eq("is_show", 1);
+        queryWrapper.orderByDesc("sort");
 
         List<WebNav> list = webNavMapper.selectList(queryWrapper);
         List<WebNavListVo> listVo = new LinkedList<>();
