@@ -73,5 +73,11 @@ public interface IWechatService {
      */
     void updateOpenid(WechatAuthParam param);
 
+    /**
+     * 公众号更新用户openid
+     * @param wxOpenid
+     */
+    void updateOpenidByH5(String wxOpenid);
+
     boolean checkWechatConfig( );
 }

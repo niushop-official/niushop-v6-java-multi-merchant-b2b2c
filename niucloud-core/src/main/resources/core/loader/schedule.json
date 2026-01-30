@@ -4,5 +4,11 @@
 		"name": "站点到期自动关闭",
 		"desc": "",
 		"time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
+	},
+	{
+		"key": "rechargeOrderCloseJob",
+		"name": "充值订单未支付关闭",
+		"desc": "",
+		"time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
 	}
 ]

@@ -1,29 +1,20 @@
 package com.niu.mall.service.core.order.impl;
 
-import cn.binarywang.wx.miniapp.api.WxMaService;
-import cn.binarywang.wx.miniapp.bean.express.WxMaExpressDelivery;
-import cn.binarywang.wx.miniapp.bean.shop.request.shipping.*;
-import cn.binarywang.wx.miniapp.bean.shop.response.WxMaOrderShippingInfoBaseResponse;
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.exception.CommonException;
-import com.niu.core.common.utils.WechatUtils;
-import com.niu.core.entity.pay.Pay;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.delivery.DeliveryTypeEnum;
-import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
 import com.niu.core.mapper.pay.PayMapper;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderCreateService;
+import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderService;
 import com.niu.core.service.core.local_delivery.param.LocalDeliveryOrderCreateParam;
 import com.niu.core.service.core.weapp.ICoreWeappDeliveryService;
-import com.niu.core.service.core.weapp.vo.IsTradeManagedVo;
 import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderDelivery;
@@ -94,6 +85,8 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
     ICoreLocalDeliveryOrderCreateService coreLocalDeliveryOrderCreateService;
     @Resource
     ICoreWeappDeliveryService coreWeappDeliveryService;
+    @Resource
+    ICoreLocalDeliveryOrderService coreLocalDeliveryOrderService;
 
     @Resource
     public void setOrderFinishService(@Lazy ICoreOrderFinishService orderFinishService) {
@@ -268,7 +261,7 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         List<MallOrderGoodsDeliveryVo> orderGoodsData = orderDeliveryDataParam.getOrderGoodsData();
         OrderDeliveryParam orderDeliveryParam = orderDeliveryDataParam.getParam();
         String deliveryType = orderDeliveryParam.getDeliveryType();
-
+        String deliveryWay = ObjectUtil.defaultIfEmpty(orderDeliveryParam.getDeliveryWay(), "manual_write");
         //添加包裹
         MallOrderDelivery mallOrderDelivery = new MallOrderDelivery();
         mallOrderDelivery.setSiteId(orderData.getSiteId());
@@ -279,7 +272,7 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         mallOrderDelivery.setExpressCompanyId(orderDeliveryParam.getExpressCompanyId());
         mallOrderDelivery.setExpressNumber(orderDeliveryParam.getExpressNumber());
 
-        switch (orderDeliveryDataParam.getParam().getDeliveryWay()) {
+        switch (deliveryWay) {
             case "manual_write" -> {
                 if (ObjectUtil.isNotEmpty(orderDeliveryDataParam.getParam().getExpressNumber())) {
                     QueryWrapper<MallOrderDelivery> queryWrapper = new QueryWrapper<>();
@@ -320,6 +313,11 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
     @Override
     public void localDelivery(OrderDeliveryDataParam orderDeliveryDataParam) {
 
+        //检查当前交易下是否有存在同城配送订单
+        Boolean erUnderwayDeliveryOrder = coreLocalDeliveryOrderService.getUnderwayDeliveryOrder("mall",orderDeliveryDataParam.getOrderData().getOrderNo());
+        if (!erUnderwayDeliveryOrder){
+            throw new CommonException("该订单已存在正在进行中的配送订单");
+        }
         MallOrder orderData = orderDeliveryDataParam.getOrderData();
         List<MallOrderGoodsDeliveryVo> orderGoodsData = orderDeliveryDataParam.getOrderGoodsData();
         OrderDeliveryParam orderDeliveryParam = orderDeliveryDataParam.getParam();
@@ -366,6 +364,8 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         param.setOrderData(orderInfo);
         param.setGoodsWeight(orderDeliveryParam.getGoodsWeight());
         param.setOrderGoodsData(orderGoodsList);
+        param.setTradeNo(orderData.getOrderNo());
+        param.setTradeType("mall");
         coreLocalDeliveryOrderCreateService.create(param);
     }
 
@@ -488,114 +488,4 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         return true;
 
     }
-
-    /**
-     * 微信小程序发货入口
-     * @param order
-     */
-    @Override
-    public void orderShippingUploadShippingInfo(MallOrder order) {
-        try {
-            Pay pay = payMapper.selectOne(new QueryWrapper<Pay>().eq("out_trade_no", order.getOutTradeNo()));
-            if (pay == null || !pay.getType().equals("wechatpay")) return;
-
-            WxMaService miniapp = WechatUtils.miniapp(order.getSiteId());
-
-            WxMaOrderShippingInfoUploadRequest request = new WxMaOrderShippingInfoUploadRequest();
-
-            // 需要上传物流信息的订单
-            OrderKeyBean orderKey = new OrderKeyBean();
-            orderKey.setOrderNumberType(1);
-            orderKey.setOutTradeNo(order.getOutTradeNo());
-            request.setOrderKey(orderKey);
-
-            request.setUploadTime(Instant.now().plusMillis(TimeUnit.HOURS.toMillis(8)).toString());
-
-            // 物流模式，发货方式枚举值：1、实体物流配送采用快递公司进行实体物流配送形式 2、同城配送 3、虚拟商品，虚拟商品，例如话费充值，点卡等，无实体配送形式 4、用户自提
-            if (order.getDeliveryType().equals(OrderDeliveryTypeEnum.EXPRESS.getType())) {
-                request.setLogisticsType(1);
-            } else if (order.getDeliveryType().equals(OrderDeliveryTypeEnum.VIRTUAL.getType())) {
-                request.setLogisticsType(3);
-            }
-
-            // 发货模式，发货模式枚举值：1、UNIFIED_DELIVERY（统一发货）2、SPLIT_DELIVERY（分拆发货）
-            request.setDeliveryMode(1);
-            request.setIsAllDelivered(true);
-
-            // 物流信息列表
-            List<MallOrderDelivery> packageList = mallOrderDeliveryMapper.selectJoinList(MallOrderDelivery.class, new MPJQueryWrapper<MallOrderDelivery>()
-                    .setAlias("d").innerJoin("?_mall_delivery_company c ON d.express_company_id = c.company_id".replace("?_", GlobalConfig.tablePrefix))
-                    .select("express_number,id,express_company_id,c.company_name AS name")
-                   .eq("order_id", order.getOrderId())
-                   .eq("d.site_id", order.getSiteId())
-            );
-
-            List<WxMaExpressDelivery> expressDelivery = miniapp.getExpressService().getAllDelivery();
-
-            if (packageList.size() > 0) {
-                List<ShippingListBean> shippingList = new LinkedList<>();
-
-                for (MallOrderDelivery mallOrderDelivery : packageList) {
-                    ShippingListBean shippingListBean = new ShippingListBean();
-                    if (order.getDeliveryType().equals(OrderDeliveryTypeEnum.EXPRESS.getType())) {
-                        shippingListBean.setTrackingNo(mallOrderDelivery.getExpressNumber());
-                        shippingListBean.setExpressCompany("");
-                        expressDelivery.forEach(i -> {
-                            if (i.getDeliveryName().equals(mallOrderDelivery.getName())) {
-                                shippingListBean.setExpressCompany(i.getDeliveryId());
-                            }
-                        });
-                    }
-                    ContactBean contact = new ContactBean();
-                    contact.setReceiverContact(order.getTakerMobile().substring(0, 3) + "****" + order.getTakerMobile().substring(7));
-                    MallOrderGoods orderGoods = mallOrderGoodsMapper.selectOne(new QueryWrapper<MallOrderGoods>().select("goods_name GROUP_CONCAT(SEPARATOR ';') AS goods_name").eq("delivery_id", mallOrderDelivery.getId()).groupBy("delivery_id"));
-                    shippingListBean.setItemDesc(orderGoods.getGoodsName());
-                    shippingListBean.setContact(contact);
-
-                    shippingList.add(shippingListBean);
-                }
-
-                request.setDeliveryMode(2);
-                request.setShippingList(shippingList);
-            }
-
-            JSONObject json = JSONUtil.parseObj(pay.getJson());
-
-            PayerBean payer = new PayerBean();
-            payer.setOpenid(json.getStr("openid", ""));
-            request.setPayer(payer);
-
-            WxMaOrderShippingInfoBaseResponse response = miniapp.getWxMaOrderShippingService().upload(request);
-            System.out.println("uploadShippingInfo response " + response.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("uploadShippingInfo error");
-        }
-    }
-
-    @Override
-    public void orderShippingNotifyConfirmReceive(MallOrder order) {
-        try {
-            Pay pay = payMapper.selectOne(new QueryWrapper<Pay>().eq("out_trade_no", order.getOutTradeNo()));
-            if (pay == null || !pay.getType().equals("wechatpay")) return;
-            if (!order.getDeliveryType().equals(OrderDeliveryTypeEnum.EXPRESS.getType())) return;
-            WxMaService miniapp = WechatUtils.miniapp(order.getSiteId());
-
-            // 检测微信小程序是否已开通发货信息管理服务
-            IsTradeManagedVo isTradeManaged = coreWeappDeliveryService.getIsTradeManaged(order.getSiteId());
-            if(ObjectUtil.isNotEmpty(isTradeManaged.getIsTradeManaged())){
-                throw new CommonException("发货信息录入接口，报错：");
-            }
-
-            WxMaOrderShippingInfoBaseResponse resultJumpPath = coreWeappDeliveryService.setMsgJumpPath(order.getSiteId(), "mall_order");
-            if(resultJumpPath.getErrCode() != 0){
-                throw new CommonException("设置消息跳转路径设置接口，报错："+resultJumpPath.getErrMsg());
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("uploadShippingInfo error");
-        }
-    }
-
 }

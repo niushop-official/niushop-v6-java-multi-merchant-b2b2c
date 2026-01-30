@@ -104,15 +104,6 @@
                         <el-form-item :label="t('unit')" prop="unit">
                             <el-input v-model.trim="goodsEdit.formData.unit" clearable :placeholder="t('unitPlaceholder')" class="input-width" show-word-limit maxlength="6" :disabled="goodsEdit.isSupplyDisabled('unit')" />
                         </el-form-item>
-                        <el-form-item :label="t('virtualSaleNum')" prop="virtual_sale_num">
-                            <div>
-                                <el-input v-model.trim="goodsEdit.formData.virtual_sale_num" clearable :placeholder="t('virtualSaleNumPlaceholder')" class="input-width" show-word-limit maxlength="8" @keyup="filterNumber($event)" @blur="goodsEdit.formData.virtual_sale_num = $event.target.value" :disabled="goodsEdit.isSupplyDisabled('virtual_sale_num')">
-                                    <template #append>{{ goodsEdit.formData.unit ? goodsEdit.formData.unit : '件' }}</template>
-                                </el-input>
-                                <div class="mt-[10px] text-[12px] text-[#999] leading-[20px]">{{ t('virtualSaleNumDesc') }}
-                                </div>
-                            </div>
-                        </el-form-item>
                         <el-form-item :label="t('sort')" prop="shop_sort">
                             <el-input v-model.trim="goodsEdit.formData.shop_sort" clearable :disabled="goodsEdit.isSupplyDisabled('shop_sort')"
                                 :placeholder="t('sortPlaceholder')" class="input-width" show-word-limit maxlength="8"
@@ -389,7 +380,7 @@
                                                                             </td>
                                                                             <td class="el-table__cell">
                                                                                 <div class="cell">
-                                                                                    <el-form-item :prop="key + '.stock'" :rules="goodsEdit.skuStockRules()" class="sku-form-item-wrap">
+                                                                                    <el-form-item :prop="key + '.stock'" :rules="goodsEdit.skuStockRules(item)" class="sku-form-item-wrap">
                                                                                         <!-- :disabled="goodsEdit.isDisabledPrice()" -->
                                                                                         <el-input v-model.trim="item.stock" clearable placeholder="0" @input="goodsEdit.specStockSum" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('stock')" />
                                                                                     </el-form-item>

@@ -19,6 +19,7 @@ import com.niu.core.service.core.diy_form.param.DiyFormWriteConfigParam;
 import com.niu.core.service.core.diy_form.vo.DiyFormRecordsInfoVo;
 import com.niu.core.service.core.diy_form.vo.DiyFormRecordsListVo;
 import jakarta.annotation.Resource;
+import jdk.jfr.Description;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -289,5 +290,12 @@ public class DiyFormController {
     public Result<Object> getQrcode(@RequestParam("form_id") Integer formId) {
         //Map<String, Object> qrcode = diyFormService.getQrcode(formId);
         return Result.success();
+    }
+
+    @GetMapping("/form/select")
+    @Description("万能表单分页列表（用于弹框选择）")
+    public Result<?> selectPage(@Validated PageParam pageParam, @Validated DiyFormSelectParam searchParam) {
+        PageResult<DiyFormInfoVo> list = diyFormService.getSelectPage(pageParam, searchParam);
+        return Result.success(list);
     }
 }

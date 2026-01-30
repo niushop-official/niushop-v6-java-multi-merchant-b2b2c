@@ -23,8 +23,9 @@ public class OrderConfigParam implements Serializable {
     private Integer isEvaluate = 0; // 评价开关
 
     private Integer evaluateIsToExamine = 0; // 评价审核
-    private Integer evaluateIsShow = 0; // 是否显示评价
-    private Integer isSelfEvaluate =0; // 是否允许自己评价
+    private Integer isSelfEvaluate = 0; // 是否允许自己评价
+    private Integer isAutoGoodEvaluate = 0; // 是否自动好评
+    private Integer goodEvaluateDays = 0; // 自动好评天数
 
     /**
      * 订单完成配置
@@ -32,6 +33,8 @@ public class OrderConfigParam implements Serializable {
     private String isFinish; // 自动确认收货 2:否 1:是
 
     private Integer finishLength = 7; // 自动确认收货时长
+    private Integer isDelaySpear = 0; // 是否延迟发货
+    private Integer delayDays = 0; // 延迟发货天数
 
     /**
      * 订单发票配置

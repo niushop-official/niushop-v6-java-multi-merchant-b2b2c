@@ -100,7 +100,7 @@ import { reactive, ref } from 'vue'
 import { t } from '@/lang'
 import { getOrderBatchDeliveryList, getOrderBatchDeliveryType, getOrderBatchDeliveryState } from '@/addon/mall/api/site/order'
 import { FormInstance } from 'element-plus'
-import { getAllUserList } from '@/app/api/user'
+import { getSiteUserList } from '@/app/api/user'
 import importData from '@/addon/mall/views/site/order/components/import-data.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { img } from '@/utils/common'
@@ -115,7 +115,7 @@ const allUserList = ref([])
 const setFormData = async () => {
     deliveryType.value = await (await getOrderBatchDeliveryType()).data
     deliveryState.value = await (await getOrderBatchDeliveryState()).data
-    allUserList.value = await (await getAllUserList({})).data
+    allUserList.value = await (await getSiteUserList()).data
 }
 setFormData()
 

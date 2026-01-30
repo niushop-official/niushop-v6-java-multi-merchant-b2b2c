@@ -1,6 +1,6 @@
 <template>
     <div @touchmove.prevent.stop>
-        <el-dialog v-model="formPrivacyPop" :before-close="closeFn" zIndex="500" :round="8">
+        <el-dialog v-model="formPrivacyPop" :before-close="closeFn">
             <div class="flex flex-col items-center w-[620px] pt-[25px]">
                 <div class="text-[16px] font-bold">{{ t('diyForm.prompt') }}</div>
                 <div class="text-center px-[20px] py-[15px] leading-[1.5] min-h-[45px]">{{ data }}</div>

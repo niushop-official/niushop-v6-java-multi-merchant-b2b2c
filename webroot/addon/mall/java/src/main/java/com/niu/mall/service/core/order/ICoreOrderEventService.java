@@ -46,4 +46,18 @@ public interface ICoreOrderEventService {
      * @param order
      */
     void orderFinishAfter(MallOrder order, OrderFinishParam orderFinishParam);
+
+    /**
+     * 订单结算
+     *
+     * @param order 订单信息
+     */
+    void orderSettlement(MallOrder order);
+
+    /**
+     * 订单结算完成
+     *
+     * @param order 订单信息
+     */
+    void orderSettlementFinish(MallOrder order);
 }

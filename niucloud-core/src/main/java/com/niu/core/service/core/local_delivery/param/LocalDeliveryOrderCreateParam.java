@@ -21,6 +21,8 @@ public class LocalDeliveryOrderCreateParam {
     private String localDeliveryType;
     private String storeNo;
     private BigDecimal goodsWeight;
+    private String tradeNo;
+    private String tradeType;
     @Data
     public static class OrderDataInfo{
         private Integer siteId;

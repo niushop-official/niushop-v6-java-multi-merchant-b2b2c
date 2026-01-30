@@ -252,7 +252,7 @@ public class AddonDevelopBuildServiceImpl implements IAddonDevelopBuildService {
         model.setSource("system");
         sysMenuMapper.update(model, new QueryWrapper<SysMenu>().ne("source", "system").eq("app_type", appType).eq("addon", this.addon));
 
-        List<SysMenu> menuList = sysMenuMapper.selectList(new QueryWrapper<SysMenu>().select("menu_name,menu_key,menu_short_name,parent_key,menu_type,icon,api_url,router_path,view_path,methods,sort,status,is_show").eq("app_type", appType).eq("addon", this.addon));
+        List<SysMenu> menuList = sysMenuMapper.selectList(new QueryWrapper<SysMenu>().select("menu_name,menu_key,menu_short_name,parent_key,menu_type,icon,api_url,router_path,view_path,methods,sort,status,is_show,support_addon,mount_key").eq("app_type", appType).eq("addon", this.addon));
         JSONArray menuTree = TreeUtils.listToTree(JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(menuList)), "menu_key", "parent_key", "children");
         menuJson.put("menu", menuTree);
 

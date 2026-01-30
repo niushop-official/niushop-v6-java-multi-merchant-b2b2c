@@ -23,12 +23,15 @@ import com.niu.core.service.api.delivery.IDeliveryPackageService;
 import com.niu.core.service.api.delivery.IOrderService;
 import com.niu.core.service.api.delivery.param.OrderNotifyParam;
 import com.niu.core.service.api.delivery.param.OrderServiceParam;
+import com.niu.core.service.api.delivery.param.TrackOfLocalServiceParam;
 import com.niu.core.service.api.delivery.param.TradePackageSearchParam;
 import com.niu.core.service.api.delivery.vo.DeliveryPackageInfoVo;
 import com.niu.core.service.api.delivery.vo.OrderServiceVo;
+import com.niu.core.service.api.delivery.vo.TrackOfLocalServiceVo;
 import com.niu.core.service.core.delivery_search.ICoreDeliverySearchService;
 import com.niu.core.service.core.delivery_search.param.DeliverySearchParam;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderNotifyService;
+import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderService;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,6 +58,8 @@ public class OrderServiceImpl implements IOrderService {
     private ICoreLocalDeliveryOrderNotifyService coreLocalDeliveryOrderNotifyService;
     @Resource
     private DeliveryLocalDeliveryOrderMapper deliveryLocalDeliveryOrderMapper;
+    @Resource
+    private ICoreLocalDeliveryOrderService coreLocalDeliveryOrderService;
 
     @Override
     public OrderServiceVo getDeliveryTrack(OrderServiceParam data) {
@@ -65,11 +70,6 @@ public class OrderServiceImpl implements IOrderService {
         if(!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(data.getDeliveryService())){
             Integer siteId = !list.isEmpty() ? list.get(0).getSiteId() : RequestUtils.defaultSiteId();
             localDeliveryConfig = coreLocalDeliveryService.getConfig(data.getDeliveryService(),siteId);
-            if (localDeliveryConfig.isEmpty()) {
-                String typeName = LocalDeliveryTypeEnum.getName(data.getDeliveryService()) != null ? LocalDeliveryTypeEnum.getName(data.getDeliveryService()) : data.getDeliveryService();
-                throw new RuntimeException(typeName + "未配置");
-            }
-            localDeliveryConfig = JSONUtil.parseObj(localDeliveryConfig.get("config"));
         }
 
         JSONObject config = JSONUtil.parseObj(localDeliveryConfig);
@@ -89,6 +89,12 @@ public class OrderServiceImpl implements IOrderService {
            log.error(e.getMessage());
         }
         return result;
+    }
+
+    @Override
+    public TrackOfLocalServiceVo getTrackOfLocalDeliveryOrder(TrackOfLocalServiceParam data) {
+        data.setMemberId(RequestUtils.memberId());
+        return coreLocalDeliveryOrderService.getTrackInfo(data);
     }
 
     @Override

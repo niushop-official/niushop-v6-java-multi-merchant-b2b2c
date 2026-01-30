@@ -71,6 +71,7 @@ const getListFn = (mescroll: any) => {
 }
 const selectSite = (data: any) => { 
     uni.removeStorageSync('statItemList');
+    uni.removeStorageSync('todoItemList');
     uni.setStorageSync('siteId', data.site_id);
     uni.setStorageSync('siteInfo', data);
     useUserStore().$patch((site) => {

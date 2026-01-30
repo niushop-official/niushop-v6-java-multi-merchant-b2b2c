@@ -38,6 +38,15 @@ export function getVerifyDetailInfo(verifyCode: string) {
 export function verify(verifyCode: string, params: Record<string, any>) {
     return request.post(`verify/verify/${ verifyCode }`,params,{ showSuccessMessage: true})
 }
+
+/**
+ * 获取核销码
+ * @param params
+ * @returns
+ */
+export function getVerifyCode(params: Record<string, any>) {
+    return request.get(`verify/code`, { params })
+}
 /***************************************************** 核销员 ****************************************************/
 
 /**

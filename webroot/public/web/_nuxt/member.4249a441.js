@@ -1,1 +1,0 @@
-import{aX as a,__tla as e}from"./entry.4f7cff81.js";let r,o,l=Promise.all([(()=>{try{return e}catch{}})()]).then(async()=>{o=function(t){return a.get("mall/goods/browse",t)},r=function(t){return a.post("mall/goods/browse",t)}});export{l as __tla,r as a,o as g};

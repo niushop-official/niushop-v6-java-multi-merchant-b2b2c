@@ -121,18 +121,25 @@ public class DeliveryStoreServiceImpl implements IDeliveryStoreService {
         deliveryStore.setCreateTime(System.currentTimeMillis()/1000);
         deliveryStore.setUpdateTime(System.currentTimeMillis()/1000);
         deliveryStore.setStoreNo(CommonUtils.createNo("store",""));
-        if(StringUtils.isNotEmpty(param.getPickUpType())){
-            if(param.getPickUpType().contains(LocalDeliveryStoreTypeEnum.LOCAL_DELIVERY.getType())){
-                deliveryStore.setSupportLocalDelivery(1);
-            }else{
-                deliveryStore.setSupportLocalDelivery(0);
+        // 与PHP逻辑一致：!empty($data['pick_up_type'])
+        if (param.getPickUpType() != null && !param.getPickUpType().isEmpty()) {
+            // 与PHP逻辑一致：in_array(DeliveryDict::LOCAL_DELIVERY, $data['pick_up_type'])
+            boolean hasLocalDelivery = false;
+            boolean hasStore = false;
+            for (int i = 0; i < param.getPickUpType().size(); i++) {
+                // 使用getStr方法获取字符串值，更安全可靠
+                String type = param.getPickUpType().getStr(i, "");
+                if (LocalDeliveryStoreTypeEnum.LOCAL_DELIVERY.getType().equals(type)) {
+                    hasLocalDelivery = true;
+                }
+                if (LocalDeliveryStoreTypeEnum.STORE.getType().equals(type)) {
+                    hasStore = true;
+                }
             }
-            if(param.getPickUpType().contains(LocalDeliveryStoreTypeEnum.STORE.getType())){
-                deliveryStore.setSupportStore(1);
-            }else{
-                deliveryStore.setSupportStore(0);
-            }
-        }else{
+            deliveryStore.setSupportLocalDelivery(hasLocalDelivery ? 1 : 0);
+            deliveryStore.setSupportStore(hasStore ? 1 : 0);
+        } else {
+            // 与PHP逻辑一致：$data['support_local_delivery'] = 0
             deliveryStore.setSupportLocalDelivery(0);
             deliveryStore.setSupportStore(0);
         }
@@ -151,29 +158,53 @@ public class DeliveryStoreServiceImpl implements IDeliveryStoreService {
         BeanUtil.copyProperties(param, deliveryStore);
         deliveryStore.setUpdateTime(System.currentTimeMillis()/1000);
         DeliveryStoreCheckVo deliveryStoreCheckVo = storeCheck(storeId);
+        // 检查是否包含同城配送类型（与PHP逻辑一致）
+        boolean hasLocalDeliveryInParam = false;
+        boolean hasStoreInParam = false;
+        if (param.getPickUpType() != null && !param.getPickUpType().isEmpty()) {
+            for (int i = 0; i < param.getPickUpType().size(); i++) {
+                // 使用getStr方法获取字符串值，更安全可靠
+                String type = param.getPickUpType().getStr(i, "");
+                if (LocalDeliveryStoreTypeEnum.LOCAL_DELIVERY.getType().equals(type)) {
+                    hasLocalDeliveryInParam = true;
+                }
+                if (LocalDeliveryStoreTypeEnum.STORE.getType().equals(type)) {
+                    hasStoreInParam = true;
+                }
+            }
+        }
+        // 与PHP逻辑一致：!in_array(DeliveryDict::LOCAL_DELIVERY, $data['pick_up_type'])
         if(deliveryStoreCheckVo.getLocalDeliveryStoreCount() == 1 && deliveryStoreCheckVo.getCurrentLocalDeliveryStoreCount() == 1 &&
-                !param.getPickUpType().contains(LocalDeliveryStoreTypeEnum.LOCAL_DELIVERY.getType()) && ObjectUtil.isNotEmpty(deliveryStoreCheckVo.getLocalDeliveryConfig()) &&
+                !hasLocalDeliveryInParam && ObjectUtil.isNotEmpty(deliveryStoreCheckVo.getLocalDeliveryConfig()) &&
                 1 == deliveryStoreCheckVo.getLocalDeliveryConfig().getStatus()){
             throw new AdminException("同城配送已开启，至少需保留一个同城配送门店");
         }
 
+        // 与PHP逻辑一致：!in_array(DeliveryDict::STORE, $data['pick_up_type'])
         if(deliveryStoreCheckVo.getPickUpStoreCount() == 1 && deliveryStoreCheckVo.getCurrentPickUpStoreCount() == 1 &&
-                !param.getPickUpType().contains(LocalDeliveryStoreTypeEnum.STORE.getType()) && ObjectUtil.isNotEmpty(deliveryStoreCheckVo.getPickUpConfig()) &&
+                !hasStoreInParam && ObjectUtil.isNotEmpty(deliveryStoreCheckVo.getPickUpConfig()) &&
                 1 == deliveryStoreCheckVo.getPickUpConfig().getStatus()){
             throw new AdminException("门店自提已开启，至少需保留一个自提门店");
         }
-        if(StringUtils.isNotEmpty(param.getPickUpType())){
-            if(param.getPickUpType().contains(LocalDeliveryStoreTypeEnum.LOCAL_DELIVERY.getType())){
-                deliveryStore.setSupportLocalDelivery(1);
-            }else{
-                deliveryStore.setSupportLocalDelivery(0);
+        // 与PHP逻辑一致：!empty($data['pick_up_type'])
+        if (param.getPickUpType() != null && !param.getPickUpType().isEmpty()) {
+            // 与PHP逻辑一致：in_array(DeliveryDict::LOCAL_DELIVERY, $data['pick_up_type'])
+            boolean hasLocalDelivery = false;
+            boolean hasStore = false;
+            for (int i = 0; i < param.getPickUpType().size(); i++) {
+                // 使用getStr方法获取字符串值，更安全可靠
+                String type = param.getPickUpType().getStr(i, "");
+                if (LocalDeliveryStoreTypeEnum.LOCAL_DELIVERY.getType().equals(type)) {
+                    hasLocalDelivery = true;
+                }
+                if (LocalDeliveryStoreTypeEnum.STORE.getType().equals(type)) {
+                    hasStore = true;
+                }
             }
-            if(param.getPickUpType().contains(LocalDeliveryStoreTypeEnum.STORE.getType())){
-                deliveryStore.setSupportStore(1);
-            }else{
-                deliveryStore.setSupportStore(0);
-            }
-        }else{
+            deliveryStore.setSupportLocalDelivery(hasLocalDelivery ? 1 : 0);
+            deliveryStore.setSupportStore(hasStore ? 1 : 0);
+        } else {
+            // 与PHP逻辑一致：$data['support_local_delivery'] = 0
             deliveryStore.setSupportLocalDelivery(0);
             deliveryStore.setSupportStore(0);
         }

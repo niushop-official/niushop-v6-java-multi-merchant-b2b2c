@@ -6,14 +6,12 @@
         <el-card class="box-card !border-none" shadow="never">
             <el-form :model="formData" label-width="110px" ref="formRef" :rules="formRules" class="page-form">
                 <el-form-item :label="t('groupName')" prop="group_name">
-                    <el-input v-model.trim="formData.group_name" :placeholder="t('groupNamePlaceholder')" clearable
-                        :disabled="formData.uid || formData.create_by != 'user'" class="input-width" maxlength="20" :show-word-limit="true" />
+                    <el-input v-model.trim="formData.group_name" :placeholder="t('groupNamePlaceholder')" clearable class="input-width" maxlength="20" :show-word-limit="true" />
                 </el-form-item>
                 <el-form-item :label="t('groupDesc')" prop="group_desc">
                     <el-input v-model.trim="formData.group_desc" type="textarea" rows="4" clearable
-                        :placeholder="t('groupDescPlaceholder')" class="input-width" maxlength="100" :disabled="formData.create_by != 'user'" />
+                        :placeholder="t('groupDescPlaceholder')" class="input-width" maxlength="100" />
                 </el-form-item>
-
                 <el-form-item :label="t('mainApp')" prop="app">
                     <div class="text-gray-400" v-if="!appList.length">{{ t('appListEmpty') }}</div>
                     <el-checkbox-group v-model="formData.app" class="flex flex-wrap w-full" v-else>
@@ -53,7 +51,7 @@
                     <el-checkbox-group v-model="formData.addon" class="flex flex-wrap w-full" v-else>
                         <template #default>
                             <div class="flex w-[300px]" v-for="(item, index) in addonList" :key="index">
-                                <el-checkbox :label="item.key" name="" class="w-full !h-auto border border-solid p-[10px] !mr-[10px] !mb-[10px] rounded-md">
+                                <el-checkbox :label="item.key" name="" class="w-full !h-auto border border-solid p-[10px] !mr-[10px] !mb-[10px] rounded-md" :disabled="formData.create_by != 'user'">
                                     <template #default>
                                         <div class="w-full">
                                             <div class="flex">
@@ -132,7 +130,7 @@ const getInstalledAddonListFn = async () => {
             const item = data[key]
             item.type == 'addon' ? addons.push(item) : apps.push(item)
         })
-
+        console.log(apps, addons)
         appList.value = apps
         addonList.value = addons
     }).catch()

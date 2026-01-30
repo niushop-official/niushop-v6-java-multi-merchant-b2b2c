@@ -45,6 +45,8 @@ public enum SiteFinanceLogEnum {
     SUPPLY_SEPARATE("支付分账(供货商)", "supply_separate"),
     SUPPLY_REFUND_SEPARATE("退款分账(供货商)", "supply_refund_separate"),
 
+    PLAT_SEPARATE("支付分账(平台)", "plat_separate"),
+
     /***************************************************** 供货商货款（平台） ***********************************************************/
     PLAT_SUPPLY_MONEY("平台支付供货商货款", "plat_supply_money"),
     PLAT_SUPPLY_REFUND_MONEY("平台退还供货商货款", "plat_supply_refund_money"),
@@ -69,6 +71,33 @@ public enum SiteFinanceLogEnum {
         for(SiteFinanceLogEnum item : SiteFinanceLogEnum.values()){
             map.put(item.getSource(), item.getName());
         }
+        return map;
+    }
+
+    public static Map<String, String> getType(){
+        Map<String, String> map = new HashMap<>();
+        for(SiteFinanceLogEnum item : SiteFinanceLogEnum.values()){
+            if (item.getSource().equals(SiteFinanceLogEnum.ORDER_TRADE.getSource()) ||
+                    item.getSource().equals(SiteFinanceLogEnum.ORDER_REFUND.getSource()) ||
+                    item.getSource().equals(SiteFinanceLogEnum.INCOME.getSource()) || item.getSource().equals(SiteFinanceLogEnum.OUTLAY.getSource())){
+                continue;
+            }
+            map.put(item.getSource(), item.getName());
+        }
+        return map;
+    }
+
+    public static Map<String, String> getTradeType(){
+        Map<String, String> map = new HashMap<>();
+        map.put(SiteFinanceLogEnum.ORDER_TRADE.getSource(), SiteFinanceLogEnum.ORDER_TRADE.getName());
+        map.put(SiteFinanceLogEnum.ORDER_REFUND.getSource(), SiteFinanceLogEnum.ORDER_REFUND.getName());
+        return map;
+    }
+
+    public static Map<String, String> getRaeType(){
+        Map<String, String> map = new HashMap<>();
+        map.put(SiteFinanceLogEnum.INCOME.getSource(), SiteFinanceLogEnum.INCOME.getName());
+        map.put(SiteFinanceLogEnum.OUTLAY.getSource(), SiteFinanceLogEnum.OUTLAY.getName());
         return map;
     }
 

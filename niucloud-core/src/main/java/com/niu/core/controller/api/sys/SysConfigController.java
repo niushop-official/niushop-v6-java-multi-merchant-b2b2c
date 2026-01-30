@@ -169,6 +169,7 @@ public class SysConfigController {
 
     @GetMapping("/qrcode/index")
     public Result indexQrcode() {
-        return Result.success(sysConfigService.getIndexQrcode());
+        Object qrcode = sysConfigService.getIndexQrcode();
+        return Result.success(qrcode);
     }
 }

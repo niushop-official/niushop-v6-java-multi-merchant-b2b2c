@@ -138,7 +138,7 @@
                     <el-form-item :label="t('orderInfo')" prop='search_name'>
                         <el-input class="input-item" v-model.trim="orderParams.searchParam.search_name" />
                     </el-form-item>
-                    <el-form-item :label="t('payType')" prop='status'>
+                    <el-form-item :label="t('orderStatus')" prop='status'>
                         <el-select v-model="orderParams.searchParam.status" clearable class="input-item">
                             <el-option :label="t('toBePaid')" value="1"></el-option>
                             <el-option :label="t('toBeShipped')" value="2"></el-option>

@@ -177,6 +177,7 @@ public class MallOrderListVo implements Serializable {
         private String extend;
         private Integer refundId;
         private BigDecimal applyMoney;
+        private BigDecimal refundMoney;
 
         private ICoreUploadService coreUploadService() {
             return SpringContext.bean(ICoreUploadService.class);
@@ -229,6 +230,6 @@ public class MallOrderListVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType);
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType,this.orderType);
     }
 }

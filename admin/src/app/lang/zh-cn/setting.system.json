@@ -32,5 +32,8 @@
 	"contactsTel": "联系电话",
 	"contactsTelPlaceholder": "请输入联系电话",
 	"logoPlaceholder": "建议图片尺寸：210*30像素；图片格式：jpg、png、jpeg。",
-	"iconPlaceholder": "建议图片尺寸：210*30像素；图片格式：jpg、png、jpeg。"
+	"iconPlaceholder": "建议图片尺寸：210*30像素；图片格式：jpg、png、jpeg。",
+	"siteDomain":"服务端地址",
+	"siteDomainPlaceholder":"请输入服务端地址",
+	"siteDomainTips": "请勿轻易修改，修改后会影响支付、退款、转账以及相关的业务回调能力"
 }

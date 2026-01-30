@@ -6,7 +6,6 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.StringUtils;
-import com.niu.core.entity.sys.SysAgreement;
 import com.niu.core.entity.sys.SysMenu;
 import com.niu.core.enums.adminapp.AppGroupEnum;
 import com.niu.core.enums.adminapp.AppUsersEnum;
@@ -17,15 +16,11 @@ import com.niu.core.service.admin.sys.ISysMenuService;
 import com.niu.core.service.admin.sys.ISysRoleService;
 import com.niu.core.service.admin.sys.vo.SysUserRoleInfoVo;
 import com.niu.core.service.adminapp.IAppsService;
-import com.niu.core.service.api.agreement.IAgreementService;
-import com.niu.core.service.api.agreement.param.AgreementInfoParam;
-import com.niu.core.service.api.agreement.vo.AgreementInfoVo;
-import com.niu.core.service.core.addon.ICoreAddonService;
-import com.niu.core.service.core.sys.ICoreAgreementService;
-import com.niu.core.service.core.sys.ICoreMenuService;
+import com.niu.core.service.adminapp.param.PstarEditParam;
+import com.niu.core.service.core.adminapp.ICoreAdminAppService;
+import com.niu.core.common.utils.RequestUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -43,13 +38,16 @@ public class AppsServiceImpl implements IAppsService {
     private ISysMenuService sysMenuService;
     @Resource
     private ISysRoleService sysRoleService;
+    @Resource
+    private ICoreAdminAppService coreAdminAppService;
 
     public JSONArray getApps() {
         JSONArray apps = AppsEnum.getApps();
-        Integer isAdmin = 0;
-        SysUserRoleInfoVo userRoleInfo = new SysUserRoleInfoVo();
+        Integer isAdmin;
+        SysUserRoleInfoVo userRoleInfo;
         if(authService.isSuperAdmin()){
             isAdmin = 1;
+            userRoleInfo = new SysUserRoleInfoVo();
         }else{
             userRoleInfo = authService.getAuthRole(RequestUtils.siteId());
             if(ObjectUtil.isEmpty(userRoleInfo)){
@@ -57,24 +55,27 @@ public class AppsServiceImpl implements IAppsService {
             }
             isAdmin = userRoleInfo.getIsAdmin();
         }
-        List<SysMenu> menuList = new ArrayList<>();
+        List<SysMenu> menuList;
         if (ObjectUtil.isNotEmpty(isAdmin) && isAdmin > 0){
-            menuList = sysMenuService.getSiteAllMenuList(AppTypeEnum.SITE.getName(),RequestUtils.siteId(),1,true);
+            menuList = sysMenuService.getSiteAllMenuList(AppTypeEnum.SITE.getName(),RequestUtils.siteId(),1,true,1);
         }else{
             String roleIds = userRoleInfo.getRoleIds();
             List<String> roleListIds = JSONUtil.parseArray(roleIds).stream().map(Object::toString).toList();
             List<String> menuKeys = sysRoleService.getMenuIdsByRoleIds(RequestUtils.siteId(),roleListIds);
-            menuList = sysMenuService.getSiteMenuListByMenuKeys(AppTypeEnum.SITE.getName(),RequestUtils.siteId(),1,1,menuKeys,"all");
+            menuList = sysMenuService.getSiteMenuListByMenuKeys(AppTypeEnum.SITE.getName(),RequestUtils.siteId(),1,1,menuKeys,"all",1);
         }
+        if (menuList == null) {
+            menuList = new ArrayList<>();
+        }
+        List<String> menuKeys = menuList.stream().map(SysMenu::getMenuKey).distinct().toList();
+        
+
         JSONArray appNew = new JSONArray();
-        if (!menuList.isEmpty()){
-            List<String> menuKeys = menuList.stream().map(SysMenu::getMenuKey).distinct().toList();
-            for (int i = 0; i<apps.size(); i++){
-                JSONObject app = apps.getJSONObject(i);
-                String menuKey = app.getStr("menu_key");
-                if (StringUtils.isNotEmpty(menuKey) && menuKeys.contains(menuKey)){
-                    appNew.add(app);
-                }
+        for (int i = 0; i<apps.size(); i++){
+            JSONObject app = apps.getJSONObject(i);
+            String menuKey = app.getStr("menu_key");
+            if (StringUtils.isEmpty(menuKey) || menuKeys.contains(menuKey)){
+                appNew.add(app);
             }
         }
         return appNew;
@@ -83,12 +84,40 @@ public class AppsServiceImpl implements IAppsService {
     @Override
     public JSONArray getAppsOfIndex() {
         JSONArray apps = this.getApps();
-        List<JSONObject> sortedApps = JSONUtil.toList(apps,JSONObject.class)
-                .stream()
-                .sorted(Comparator.comparingInt(app -> app.getInt("sort")))
-                .limit(9)
-                .collect(Collectors.toList());
-        return new JSONArray(sortedApps);
+        Integer uid = RequestUtils.uid();
+        Integer siteId = RequestUtils.siteId();
+        JSONArray keys = coreAdminAppService.getValue(uid, siteId, "app");
+    
+        int appLimit = 9;
+        JSONArray appsOfIndex;
+        if (keys == null || keys.isEmpty()) {
+            List<JSONObject> sortedApps = JSONUtil.toList(apps, JSONObject.class)
+                    .stream()
+                    .sorted(Comparator.comparingInt(app -> app.getInt("sort", 0)))
+                    .limit(appLimit)
+                    .collect(Collectors.toList());
+            appsOfIndex = new JSONArray(sortedApps);
+        } else {
+            appsOfIndex = new JSONArray();
+            List<String> keysList = JSONUtil.toList(keys, String.class);
+            for (int i = 0; i < apps.size(); i++) {
+                JSONObject app = apps.getJSONObject(i);
+                String appKey = app.getStr("key");
+                if (appKey != null && keysList.contains(appKey)) {
+                    int sortIndex = keysList.indexOf(appKey);
+                    app.set("sort", sortIndex);
+                    appsOfIndex.add(app);
+                }
+            }
+            
+            List<JSONObject> sortedList = JSONUtil.toList(appsOfIndex, JSONObject.class)
+                    .stream()
+                    .sorted(Comparator.comparingInt(app -> app.getInt("sort", 0)))
+                    .collect(Collectors.toList());
+            appsOfIndex = new JSONArray(sortedList);
+        }
+        
+        return appsOfIndex;
     }
 
     @Override
@@ -123,16 +152,26 @@ public class AppsServiceImpl implements IAppsService {
                 }
             }
         }
-        return new JSONArray(sortedAppGroups);
+        
+   
+        List<JSONObject> filteredGroups = sortedAppGroups.stream()
+                .filter(group -> {
+                    JSONArray childs = group.getJSONArray("childs");
+                    return childs != null && !childs.isEmpty();
+                })
+                .collect(Collectors.toList());
+        
+        return new JSONArray(filteredGroups);
     }
 
     @Override
     public JSONArray getAppOfUserCenter() {
         JSONArray apps = AppUsersEnum.getApps();
-        Integer isAdmin = 0;
-        SysUserRoleInfoVo userRoleInfo = new SysUserRoleInfoVo();
+        Integer isAdmin;
+        SysUserRoleInfoVo userRoleInfo;
         if(authService.isSuperAdmin()){
             isAdmin = 1;
+            userRoleInfo = new SysUserRoleInfoVo();
         }else{
             userRoleInfo = authService.getAuthRole(RequestUtils.siteId());
             if(ObjectUtil.isEmpty(userRoleInfo)){
@@ -140,26 +179,42 @@ public class AppsServiceImpl implements IAppsService {
             }
             isAdmin = userRoleInfo.getIsAdmin();
         }
-        List<SysMenu> menuList = new ArrayList<>();
+        List<SysMenu> menuList;
         if (ObjectUtil.isNotEmpty(isAdmin) && isAdmin > 0){
-            menuList = sysMenuService.getSiteAllMenuList(AppTypeEnum.SITE.getName(),RequestUtils.siteId(),1,true);
+            menuList = sysMenuService.getSiteAllMenuList(AppTypeEnum.SITE.getName(),RequestUtils.siteId(),1,true,1);
         }else{
             String roleIds = userRoleInfo.getRoleIds();
             List<String> roleListIds = JSONUtil.parseArray(roleIds).stream().map(Object::toString).toList();
             List<String> menuKeys = sysRoleService.getMenuIdsByRoleIds(RequestUtils.siteId(),roleListIds);
-            menuList = sysMenuService.getSiteMenuListByMenuKeys(AppTypeEnum.SITE.getName(),RequestUtils.siteId(),1,1,menuKeys,"all");
+            menuList = sysMenuService.getSiteMenuListByMenuKeys(AppTypeEnum.SITE.getName(),RequestUtils.siteId(),1,1,menuKeys,"all",1);
         }
+        if (menuList == null) {
+            menuList = new ArrayList<>();
+        }
+        List<String> menuKeys = menuList.stream().map(SysMenu::getMenuKey).distinct().toList();
+        
         JSONArray appNew = new JSONArray();
-        if (!menuList.isEmpty()){
-            List<String> menuKeys = menuList.stream().map(SysMenu::getMenuKey).distinct().toList();
-            for (int i = 0; i<apps.size(); i++){
-                JSONObject app = apps.getJSONObject(i);
-                String menuKey = app.getStr("menu_key");
-                if (StringUtils.isNotEmpty(menuKey) && menuKeys.contains(menuKey)){
-                    appNew.add(app);
-                }
+        for (int i = 0; i<apps.size(); i++){
+            JSONObject app = apps.getJSONObject(i);
+            String menuKey = app.getStr("menu_key");
+
+            if (StringUtils.isEmpty(menuKey) || menuKeys.contains(menuKey)){
+                appNew.add(app);
             }
         }
         return appNew;
+    }
+
+    @Override
+    public Boolean setAppsOfIndex(PstarEditParam param) {
+        Integer uid = RequestUtils.uid();
+        Integer siteId = RequestUtils.siteId();
+        JSONArray valueArray = new JSONArray();
+        
+        if (param != null && param.getValue() != null) {
+            valueArray = new JSONArray(param.getValue());
+        }
+        
+        return coreAdminAppService.setValue(uid, siteId, "app", valueArray);
     }
 }

@@ -1,1 +1,0 @@
-import{B as t}from"./index-96ac6a23.js";function n(){return t.get("adminapp/site/stat")}function a(){return t.get("adminapp/site/todo")}function e(n){return t.get(`${n.url}`)}function i(){return t.get("adminapp/site/apps_of_index")}function p(){return t.get("adminapp/site/apps")}export{i as a,n as b,a as c,p as d,e as g};

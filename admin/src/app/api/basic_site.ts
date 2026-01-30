@@ -130,6 +130,15 @@ export function editBrand(params: Record<string, any>) {
 }
 
 /**
+ * 修改显示状态
+ * @param params
+ * @returns
+ */
+export function updateBrandStatus(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/brand/status`, params, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
  * 删除商品品牌
  * @param brand_id
  * @returns

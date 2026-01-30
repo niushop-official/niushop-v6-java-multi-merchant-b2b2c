@@ -17,11 +17,14 @@ import com.niu.core.service.core.pay.ICorePayService;
 import com.niu.core.service.core.pay.ICoreRefundService;
 import com.niu.core.service.core.pay.vo.PayTypeVo;
 import com.niu.core.service.core.pay.vo.TransferQueryVo;
+import com.niu.core.service.core.sys.ICoreSysStatService;
+import com.niu.core.service.core.sys.param.SysDataAddParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 
 @Component
 @Slf4j
@@ -39,6 +42,10 @@ public class Balancepay extends BasePay {
         return SpringContext.bean(ICoreMemberAccountService.class);
     }
 
+    public ICoreSysStatService coreSysStatService() {
+        return SpringContext.bean(ICoreSysStatService.class);
+    }
+
     public BasePay init(JSONObject config) {
         return this;
     }
@@ -48,14 +55,43 @@ public class Balancepay extends BasePay {
      * @param param
      */
     public Object pay(PayParam param) {
-        // 扣除账户余额
         Pay pay = param.getPay();
-        String memo = MemberAccountChangeTypeEnum.getType(AccountTypeEnum.BALANCE.getType()).getByPath("order.name", String.class);
-        coreMemberAccountService().addLog(param.getSiteId(), param.getPay().getMainId(), AccountTypeEnum.BALANCE.getType(), pay.getMoney().negate().doubleValue(), "order", memo, pay.getOutTradeNo());
+        Integer siteId = param.getSiteId();
+        String mainType = pay.getMainType();
+        BigDecimal money = pay.getMoney();
+        String outTradeNo = pay.getOutTradeNo();
+        
+        switch (mainType) {
+            case "member":
+                // 扣除账户余额
+                String memo = MemberAccountChangeTypeEnum.getType(AccountTypeEnum.BALANCE.getType())
+                    .getByPath("order.name", String.class);
+                coreMemberAccountService().addLog(
+                    siteId, 
+                    pay.getMainId(), 
+                    AccountTypeEnum.BALANCE.getType(), 
+                    money.negate().doubleValue(), 
+                    "order", 
+                    memo, 
+                    outTradeNo
+                );
+                
+                // 充值消费金额统计
+                SysDataAddParam statParam = new SysDataAddParam();
+                statParam.setSiteId(siteId);
+                statParam.setRechargePayMoney(money);
+                coreSysStatService().addStat(statParam);
+                break;
+                
+            case "user":
+                // 用户支付逻辑（预留）
+                break;
+        }
 
+        // 支付成功回调
         PayNotifyParam notifyParam = new PayNotifyParam();
-        notifyParam.setSiteId(param.getSiteId());
-        notifyParam.setOutTradeNo(pay.getOutTradeNo());
+        notifyParam.setSiteId(siteId);
+        notifyParam.setOutTradeNo(outTradeNo);
         notifyParam.setType("balancepay");
         notifyParam.setPayStatus(OnliepayStatusEnum.SUCCESS);
         corePayService().payNotify(notifyParam);
@@ -115,17 +151,47 @@ public class Balancepay extends BasePay {
      * 退款
      */
     public void refund(RefundParam param) {
-        Pay pay = corePayService().findPayInfoByOutTradeNo(param.getOutTradeNo());
+        String outTradeNo = param.getOutTradeNo();
+        BigDecimal money = param.getMoney();
+        String refundNo = param.getRefundNo();
+        Integer siteId = param.getSiteId();
+        
+        Pay pay = corePayService().findPayInfoByOutTradeNo(outTradeNo);
+        String mainType = pay.getMainType();
+        Integer mainId = pay.getMainId();
 
-        String memo = MemberAccountChangeTypeEnum.getType(AccountTypeEnum.BALANCE.getType()).getByPath("order_refund.name", String.class);
-
-        if (pay.getMainType().equals("member")) {
-            coreMemberAccountService().addLog(param.getSiteId(), pay.getMainId(), AccountTypeEnum.BALANCE.getType(), param.getMoney().doubleValue(), "order_refund", memo, param.getRefundNo());
-            RefundNotifyParam notifyParam = new RefundNotifyParam();
-            BeanUtil.copyProperties(param, notifyParam);
-            notifyParam.setType("balance");
-            notifyParam.setRefundStatus(RefundTransferStatusEnum.SUCCESS);
-            coreRefundService().refundNotify(notifyParam);
+        switch (mainType) {
+            case "member":
+                // 返还余额
+                String memo = MemberAccountChangeTypeEnum.getType(AccountTypeEnum.BALANCE.getType())
+                    .getByPath("order_refund.name", String.class);
+                coreMemberAccountService().addLog(
+                    siteId, 
+                    mainId, 
+                    AccountTypeEnum.BALANCE.getType(), 
+                    money.doubleValue(), 
+                    "order_refund", 
+                    memo, 
+                    refundNo
+                );
+                
+                // 充值消费金额统计（退款为负数）
+                SysDataAddParam statParam = new SysDataAddParam();
+                statParam.setSiteId(siteId);
+                statParam.setRechargePayMoney(money.negate());
+                coreSysStatService().addStat(statParam);
+                
+                // 退款成功回调
+                RefundNotifyParam notifyParam = new RefundNotifyParam();
+                BeanUtil.copyProperties(param, notifyParam);
+                notifyParam.setType("balance");
+                notifyParam.setRefundStatus(RefundTransferStatusEnum.SUCCESS);
+                coreRefundService().refundNotify(notifyParam);
+                break;
+                
+            case "user":
+                // 用户退款逻辑（预留）
+                break;
         }
     }
 

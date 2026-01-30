@@ -62,11 +62,11 @@ public class LocalDeliveryServiceImpl implements ILocalDeliveryService {
         deliveryLocalDeliveryMapper.insert(local);
 
         if(ObjectUtil.isNotEmpty(param.getAreaData())){
-            JSONArray areaData = param.getAreaData();
-            for (int i = 0; i < areaData.size(); i++){
-                JSONObject area = areaData.getJSONObject(i);
+            JSONObject areaData = param.getAreaData();
+            for (String key : areaData.keySet()){
+                JSONArray area = areaData.getJSONArray(key);
                 deliveryStoreMapper.update(new DeliveryStore(), new UpdateWrapper<DeliveryStore>()
-                        .eq("store_id", area.getInt("storeId")).set("area", area));
+                        .eq("store_id",key).set("area", JSONUtil.toJsonStr(area)));
             }
         }
         return local.getLocalId();

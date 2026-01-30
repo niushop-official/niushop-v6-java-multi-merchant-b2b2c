@@ -1,1 +1,0 @@
-import{bU as a,__tla as e}from"./entry.4f7cff81.js";let r,n=Promise.all([(()=>{try{return e}catch{}})()]).then(async()=>{r=function(){if(!arguments.length)return[];var t=arguments[0];return a(t)?t:[t]}});export{n as __tla,r as c};

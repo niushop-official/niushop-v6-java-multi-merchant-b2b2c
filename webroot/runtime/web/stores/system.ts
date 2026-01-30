@@ -17,10 +17,11 @@ const useSystemStore = defineStore('system', {
         }
     },
     actions: {
-        async getSiteInfoFn() {
+        async getSiteInfoFn(callback?: () => void) {
             await getSiteInfo().then((res: any) => {
                 this.site = res.data
                 if (this.site.status == 3) navigateTo('/site/close', { replace: true })
+                if (callback) callback()
             }).catch((err) => {
                 navigateTo('/site/nosite', { replace: true })
             })

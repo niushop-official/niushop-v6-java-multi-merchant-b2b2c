@@ -279,7 +279,9 @@ const confirm = async (formEl: FormInstance | undefined) => {
             setLocalDeliveryCancel(formData).then(res => {
                 loading.value = false
                 showDialog.value = false
-                loadLocalDeliveryList()
+                setTimeout(() => {
+                    loadLocalDeliveryList()
+                }, 1500)
             }).catch(() => {
                 loading.value = false
             })

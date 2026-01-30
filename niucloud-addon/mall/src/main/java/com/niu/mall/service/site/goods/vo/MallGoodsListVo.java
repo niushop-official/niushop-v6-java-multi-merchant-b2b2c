@@ -3,6 +3,7 @@ package com.niu.mall.service.site.goods.vo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
+import com.niu.mall.enums.goods.GoodsStatusEnum;
 import com.niu.mall.enums.goods.GoodsTypeEnum;
 import lombok.Data;
 
@@ -46,7 +47,9 @@ public class MallGoodsListVo implements Serializable {
     private String supplyName;
     @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
     private String active;
-
+    private String goodsCategory;
+    private String unit;
+    private String statusName;
     @Data
     public static class GoodsSku {
         private Integer goodsId;
@@ -54,7 +57,9 @@ public class MallGoodsListVo implements Serializable {
         private BigDecimal price;
         private String memberPrice;
     }
-
+    public String getStatusName() {
+        return GoodsStatusEnum.getNameByStatus(this.status);
+    }
     public String getGoodsTypeName() {
         return GoodsTypeEnum.getNameByType(this.goodsType);
     }

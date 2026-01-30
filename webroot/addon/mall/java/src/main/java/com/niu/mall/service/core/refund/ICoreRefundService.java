@@ -2,6 +2,7 @@ package com.niu.mall.service.core.refund;
 
 import com.niu.core.entity.pay.PayRefund;
 import com.niu.mall.entity.order.MallOrderRefund;
+import com.niu.mall.service.api.refund.param.CloseRefundParam;
 import com.niu.mall.service.core.refund.param.AddRefundLogParam;
 import com.niu.mall.service.core.refund.param.RefundFinishParam;
 import com.niu.mall.service.core.refund.vo.OrderRefundMoneyVo;
@@ -24,6 +25,8 @@ public interface ICoreRefundService {
     void finish(RefundFinishParam param);
 
     void refundFinishAfter(MallOrderRefund refund);
+
+    void AfterMallOrderRefundClose(MallOrderRefund refund,CloseRefundParam param);
 
     /**
      * 转账

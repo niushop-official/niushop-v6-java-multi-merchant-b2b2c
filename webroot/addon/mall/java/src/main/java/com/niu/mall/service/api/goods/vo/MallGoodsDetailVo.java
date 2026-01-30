@@ -88,7 +88,7 @@ public class MallGoodsDetailVo implements Serializable {
 
     private String newcomerDesc;
 
-    private SnowShowDataResult sowShowList;
+    private Object sowShowList;
 
 
     private Object diyDetailInfo;
@@ -224,9 +224,29 @@ public class MallGoodsDetailVo implements Serializable {
             }
             return list;
         }
+        public String getDeliveryType() {
+            if (ObjectUtil.isNotEmpty(this.deliveryType) && !"[]".equals(this.deliveryType)){
+                List<DeliveryConfigVo> list = SpringContext.bean(ICoreDeliveryConfigService.class).getDeliveryConfig(this.siteId);
+                JSONArray jsonArray = JSONUtil.parseArray(this.deliveryType);
+                //排序
+                JSONArray jsonArrayNew =  new JSONArray();
+                Map<String, DeliveryConfigVo> orderedMap = list.stream()
+                        .collect(Collectors.toMap(DeliveryConfigVo::getKey,
+                                vo -> vo,
+                                (existing, replacement) -> existing,
+                                LinkedHashMap::new));
+                for (String key : orderedMap.keySet()){
+                    if (jsonArray.contains(key)){
+                        jsonArrayNew.add( key);
+                    }
+                }
+                return JSONUtil.toJsonStr(jsonArrayNew);
+            }
+            return "";
 
+        }
         public String getDeliveryTypeList() {
-            Map<String, DeliveryConfigVo> listMap = new HashMap<>();
+            Map<String, DeliveryConfigVo> listMap = new LinkedHashMap<>();
             if(StringUtils.isNotEmpty(this.deliveryType)){
                 List<DeliveryConfigVo> deliveryTypeList = new ArrayList<>();
                 List<DeliveryConfigVo> list = SpringContext.bean(ICoreDeliveryConfigService.class).getDeliveryConfig(this.siteId);
@@ -238,9 +258,20 @@ public class MallGoodsDetailVo implements Serializable {
                         deliveryTypeList.add(deliveryConfigVo);
                     }
                 }
-                // 排序
-                deliveryTypeList.sort(Comparator.comparing(DeliveryConfigVo::getKey));
-                for (DeliveryConfigVo deliveryConfigVo : deliveryTypeList){
+                Map<String, DeliveryConfigVo> orderedMap = list.stream()
+                        .collect(Collectors.toMap(DeliveryConfigVo::getKey,
+                                vo -> vo,
+                                (existing, replacement) -> existing,
+                                LinkedHashMap::new));
+                List<DeliveryConfigVo> deliveryTypeListAll = new ArrayList<>();
+                for (String key : orderedMap.keySet()){
+                    List<DeliveryConfigVo> listThis = deliveryTypeList.stream().filter(item -> item.getKey().equals(key)).toList();
+                    if (!listThis.isEmpty()){
+                        deliveryTypeListAll.addAll(listThis);
+                    }
+                }
+
+                for (DeliveryConfigVo deliveryConfigVo : deliveryTypeListAll){
                     listMap.put(deliveryConfigVo.getKey(), deliveryConfigVo);
                 }
             }

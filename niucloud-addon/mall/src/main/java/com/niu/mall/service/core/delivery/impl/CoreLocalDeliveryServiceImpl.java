@@ -308,7 +308,10 @@ public class CoreLocalDeliveryServiceImpl implements ICoreLocalDeliveryService {
 
         LocalInfoVo.Area locatedInArea =null;
         for (LocalInfoVo.Area item : inArea) {
-            if (item.getAreaType().equals("radius")) {
+            if (item.getAreaJson() == null) {
+                continue;
+            }
+            if (item.getAreaType() != null && item.getAreaType().equals("radius")) {
                 double distance = DistanceCalculateUtils.calculateDistance(
                         Double.parseDouble(address.getLat()),
                         Double.parseDouble(address.getLng()),
@@ -320,7 +323,6 @@ public class CoreLocalDeliveryServiceImpl implements ICoreLocalDeliveryService {
                     break;
                 }
             } else {
-                // 创建电子围栏
                 List<Coordinate> polygonCoordinates = new LinkedList<>();
                 for (LocalInfoVo.LatLnt latLng: item.getAreaJson().getPaths()) {
                     polygonCoordinates.add(new Coordinate(latLng.getLat().doubleValue(), latLng.getLng().doubleValue()));

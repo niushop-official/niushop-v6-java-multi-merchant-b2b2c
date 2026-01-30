@@ -22,6 +22,7 @@ import com.niu.mall.event.goods.AfterGoodsEditEvent;
 import com.niu.mall.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
 import com.niu.mall.mapper.order.MallOrderRefundMapper;
+import com.niu.mall.service.core.order.ICoreOrderSettlementService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -39,6 +40,8 @@ public class MallOrderSeparListener extends AbstractListener {
 
     @Resource
     MallOrderMapper mallOrderMapper;
+    @Resource
+    ICoreOrderSettlementService coreOrderSettlementService;
 
     public void handleEvent(AfterSeparEvent event) {
         log.info("AfterMallOrderSepar: {}", event);
@@ -49,9 +52,10 @@ public class MallOrderSeparListener extends AbstractListener {
             }
             MallOrder mallOrder = mallOrderMapper.selectById(event.getAccount().getTradeId());
             if(ObjectUtil.isNotEmpty(mallOrder)){
-                mallOrder.setSettlementStatus(SettlementEnum.SETTLED.getStatus());
-                mallOrder.setSettlementTime(System.currentTimeMillis()/1000);
-                mallOrderMapper.updateById(mallOrder);
+//                mallOrder.setSettlementStatus(SettlementEnum.SETTLED.getStatus());
+//                mallOrder.setSettlementTime(System.currentTimeMillis()/1000);
+//                mallOrderMapper.updateById(mallOrder);
+                coreOrderSettlementService.success(mallOrder);
             }
         }catch (Exception e){
             log.error("AfterMallOrderSepar error: {}", e.getMessage());

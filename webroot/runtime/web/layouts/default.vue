@@ -1,6 +1,7 @@
 <template>
     <el-container class="w-screen h-screen">
         <el-main class="p-0 min-w-[1200px]" id="main">
+            <layout-adv />
             <el-header class="z-10 sticky top-0">
                 <layout-header />
                 <layout-nav />
@@ -17,6 +18,7 @@ import layoutHeader from './default/components/header/index.vue'
 import layoutFooter from './default/components/footer/index.vue'
 import layoutNav from './default/components/nav/index.vue'
 import layoutFixed from './default/components/fiexd/index.vue'
+import layoutAdv from './default/components/adv/index.vue'
 import {watch, nextTick} from 'vue'
 import {useRouter} from 'vue-router';
 

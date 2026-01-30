@@ -6,16 +6,18 @@
 				<top-tabbar :data="param" class="top-header" />
 				<!-- #endif -->
 				<view class="text-[#fff] w-[710rpx] h-[354rpx] mx-auto mt-[20rpx] rounded-[24rpx] flex flex-col" :style="headerStyle">
-					<view class="pl-[30rpx] pt-[30rpx]">
-						<view class="leading-[38rpx] text-[26rpx]">账户余额（元）</view>
+					<view class="pl-[30rpx] pr-[20rpx] pt-[30rpx]">
+						<view class="flex items-center justify-between">
+							<view class="leading-[38rpx] text-[26rpx]">账户余额（元）</view>
+							<view v-if="rechargeConfigObj.is_use == 1" class="flex-center bg-[#fff] text-[#EF000C] w-[110rpx] h-[50rpx] box-border rounded-full text-[24rpx]" @click="redirect({ url: '/app/pages/recharge/recharge' })">充值</view>
+						</view>
 						<view class="flex items-baseline mt-[20rpx]">
 							<view class="flex items-baseline">
-								<!-- <text class="text-[36rpx] leading-[52rpx] mr-[6rpx] price-font">￥</text> -->
 								<text class="text-[60rpx] leading-[72rpx] price-font">{{ memberStore.info ? moneyFormat((parseFloat(memberStore.info.balance) + parseFloat(memberStore.info.money)).toString()).split('.')[0] : '0' }}.</text>
 								<text class="text-[60rpx] leading-[56rpx] price-font">{{ memberStore.info ? moneyFormat((parseFloat(memberStore.info.balance) + parseFloat(memberStore.info.money)).toString()).split('.')[1] : '00' }}</text>
 							</view>
 							<view class="flex justify-between ml-[8rpx] pb-[12rpx] self-end" v-if="Object.keys(cashOutConfigObj).length && cashOutConfigObj.is_open == 1">
-								<view  class="text-center w-[70rpx] h-[34rpx] rounded-[40rpx] text-[22rpx] bg-[#fff] text-[#EF000C] flex-center font-500 !m-0" shape="circle" @click="applyCashOut">提现</view>
+								<view  class="w-[80rpx] h-[38rpx] rounded-[40rpx] text-[22rpx] text-[#fff] flex-center border-[1rpx] border-solid border-[#fff] box-border"  @click="applyCashOut">提现</view>
 							</view>
 						</view>
 					</view>
@@ -76,6 +78,7 @@ import { ref, reactive, computed } from 'vue'
 import { t } from '@/locale'
 import { moneyFormat, redirect, img, pxToRpx } from '@/utils/common';
 import { cashOutConfig,getBalanceListAll } from '@/app/api/member';
+import { rechargeConfig } from '@/app/api/recharge'
 import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue';
 import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.vue';
 import useMescroll from '@/components/mescroll/hooks/useMescroll.js';
@@ -95,12 +98,17 @@ let param = topTabarObj.setTopTabbarParam({title:'我的余额', topStatusBar: {
 /********* 自定义头部 - end ***********/
 
 const cashOutConfigObj: any = reactive({})
+const rechargeConfigObj: any = reactive({})
 onShow(() => {
 	cashOutConfig().then((res: any) => {
 		for (let key in res.data) {
 			cashOutConfigObj[key] = res.data[key];
 		}
-
+	})
+	rechargeConfig().then((res: any) => {
+		for (let key in res.data) {
+			rechargeConfigObj[key] = res.data[key];
+		}
 	})
 })
 
@@ -216,5 +224,8 @@ const confirmFn = (data: any) =>{
 }
 .balance-head{
 	background: linear-gradient( 180deg, #FFE5E5 90%, #F6F6F6 100%);
+}
+.bg-color{
+	background: rgba(255,255,255,0.2);
 }
 </style>

@@ -154,7 +154,7 @@
 					<el-table-column v-if="formData.is_refund_status_show" :label="t('refundState')" min-width="50" align="left">
 						<template #default="{ row }">
 							<div class="cursor-pointer flex items-center flex-wrap"  v-if="row.status != 1" @click.stop="refundEventLink(row)" >
-								<span class="mr-[3px] text-[13px]">退款金额￥{{ row.apply_money }}</span>
+								<span class="mr-[3px] text-[13px]">退款金额￥{{ Number(row.refund_money) ? row.refund_money : row.apply_money }}</span>
 								<div class="text-[var(--el-color-primary)] text-[13px]">{{ row.status_name || '--' }}
 									<span class="iconfont iconxiangyoujiantou !text-[10px] text-[#888]"></span>
 								</div>

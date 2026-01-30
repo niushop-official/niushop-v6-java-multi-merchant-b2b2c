@@ -98,7 +98,7 @@ public class VerifyCreateListener extends VerifyCreateEventDefiner {
         else if (event.getType().equals("shopPickUpOrder")) {
             Integer memberId = event.getMemberId();
             Integer siteId = event.getSiteId();
-            Integer orderId = Integer.valueOf((String) ObjectUtil.defaultIfNull(event.getData().get("order_id"), 0));
+            Integer orderId = Integer.valueOf(ObjectUtil.defaultIfNull(event.getData().get("order_id"), 0).toString());
 
             MallOrder order = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>()
                     .eq("site_id", siteId)

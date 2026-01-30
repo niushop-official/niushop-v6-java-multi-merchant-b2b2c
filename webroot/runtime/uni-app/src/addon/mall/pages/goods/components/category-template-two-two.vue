@@ -2,8 +2,8 @@
 	<view class="min-h-screen bg-[var(--page-bg-color)] overflow-hidden">
 		<view class="mescroll-box bg-[#f6f6f6]" :class="{ 'cart': config.cart.control && config.cart.event === 'cart', 'detail': !(config.cart.control && config.cart.event === 'cart') }" v-if="tabsData.length">
 			<mescroll-body ref="mescrollRef" :down="{ use: false }" @init="mescrollInit" @up="getListFn">
-				<view v-if="config.search.control" class="box-border search-box z-10 bg-[#fff] fixed top-0 left-0 right-0 h-[96rpx]" :style="{'top': systemStore.topTabbarInfo.fullHeight || 0}">
-					<view class="flex-1 search-input">
+				<view v-if="config.search.control" class="box-border search-box z-10 bg-[var(--page-bg-color)] fixed top-0 left-0 right-0 h-[96rpx]" :style="{'top': systemStore.topTabbarInfo.fullHeight || 0}">
+					<view class="flex-1 search-input bg-[#fff]">
 						<text @click.stop="searchNameFn" class="nc-iconfont nc-icon-sousuo-duanV6xx1 btn"></text>
 						<input class="input" type="text" v-model="searchName" :placeholder="config.search.title" placeholderClass="text-[var(--text-color-light9)]" @confirm="searchNameFn">
 						<text v-if="searchName" class="nc-iconfont nc-icon-cuohaoV6xx clear" @click="searchName=''"></text>
@@ -35,17 +35,17 @@
 					</scroll-view>
 				</view>
 				<!--  #endif -->
-				<view class="flex items-center h-[98rpx] pl-[24rpx] pr-[48rpx] py-[20rpx] z-10 bg-white fixed left-[168rpx] right-0 box-border top-0" :style="twoTabCss"
+				<view class="flex items-center h-[98rpx] pl-[24rpx] pr-[48rpx] py-[20rpx] z-10 bg-[var(--page-bg-color)] fixed left-[168rpx] right-0 box-border top-0" :style="twoTabCss"
 					:class="{ '!top-[94rpx]': config.search.control }"
 					v-if="tabsData[tabActive]?.child_list && tabsData[tabActive]?.child_list.length">
 					<template v-if="!labelPopup">
 						<scroll-view :scroll-x="true" scroll-with-animation
 							:scroll-into-view="'id' + (subActive ? subActive - 1 : 0)"
-							class="flex-1 h-[54rpx] scroll-Y box-border pr-[24rpx] bg-white">
+							class="flex-1 h-[54rpx] scroll-Y box-border pr-[24rpx] bg-[var(--page-bg-color)]">
 							<view class="flex items-center h-[54rpx] box-border">
 								<text
 									class="w-[150rpx] flex-shrink-0 px-[14rpx] h-[54rpx] truncate  text-center !leading-[50rpx] !text-[22rpx] border-[2rpx] border-solid !rounded-[100rpx] box-border text-[#333] box-border"
-									:class="{ 'bg-[var(--primary-color-light)] font-500 !text-[var(--primary-color)] border-[var(--primary-color)]': index === subActive, 'border-[var(--temp-bg)]  bg-[var(--temp-bg)]': index != subActive, ' ml-[24rpx]': index != 0 }"
+									:class="{ 'bg-[var(--primary-color-light)] font-500 !text-[var(--primary-color)] border-[var(--primary-color)]': index === subActive, 'border-[#fff]  bg-[#fff]': index != subActive, ' ml-[24rpx]': index != 0 }"
 									v-for="(item, index) in tabsData[tabActive]?.child_list"
 									:key="tabsData[tabActive].category_id" :id="'id' + index"
 									@click="subMenuClick(index, item)">{{ item.category_name }}</text>
@@ -70,7 +70,7 @@
 					</u-popup>
 				</view>
 				<view class="flex justify-center flex-wrap pl-[168rpx] pt-[20rpx] pb-[20rpx]"
-					:class="{ '!pt-[214rpx]': config.search.control && tabsData[tabActive]?.child_list && tabsData[tabActive]?.child_list.length, 'pt-[120rpx]': config.search.control && (!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length), 'pt-[118rpx]': tabsData[tabActive]?.child_list && tabsData[tabActive]?.child_list.length && !config.search.control }">
+					:class="{ '!pt-[194rpx]': config.search.control && tabsData[tabActive]?.child_list && tabsData[tabActive]?.child_list.length, 'pt-[100rpx]': config.search.control && (!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length), 'pt-[98rpx]': tabsData[tabActive]?.child_list && tabsData[tabActive]?.child_list.length && !config.search.control }">
 					<template v-for="(item, index) in list" :key="item.goods_id">
 						<view
 							class="w-[536rpx] box-border bg-white w-full flex mx-[20rpx] py-[24rpx] px-[20rpx] rounded-[var(--rounded-small)]"
@@ -670,7 +670,8 @@ const settlement = () => {
 	const body:any = {}
 	Object.values(cartList.value).forEach(item => {
 		body[item.site_id] = {
-			cart_ids: []
+			cart_ids: [],
+			order_type: 'mall'
 		}
 	})
 	for(let key in body){
@@ -801,7 +802,7 @@ const goodsPrice = (data:any) => {
 .tabs-box .tab-item-active {
     position: relative;
     color: var(--primary-color);
-    background-color: #f6f6f6;
+    // background-color: #f6f6f6;
 
 	&::before {
 		display: inline-block;

@@ -145,6 +145,15 @@ export function getBrandPageList(params: Record<string, any>) {
 }
 
 /**
+ * 获取商品品牌审核分页列表
+ * @param params
+ * @returns
+ */
+export function getBrandPageAuditList(params: Record<string, any>) {
+    return request.get(`basic/admin/goods/brand/audit`, { params })
+}
+
+/**
  * 获取商品品牌列表
  * @param params
  * @returns
@@ -192,6 +201,24 @@ export function modifyBrandSort(params: Record<string, any>) {
 }
 
 /**
+ * 修改显示状态
+ * @param params
+ * @returns
+ */
+export function updateBrandStatus(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/brand/status`, params, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
+ * 修改显示状态
+ * @param params
+ * @returns
+ */
+export function updateBrandHot(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/brand/hot`, params, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
  * 删除商品品牌
  * @param brand_id
  * @returns
@@ -201,11 +228,42 @@ export function deleteBrand(brand_id: number) {
 }
 
 /**
+ * 审核商品品牌
+ * @param params
+ */
+export function editBrandAudit(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/brand/audit`, params, { showSuccessMessage: true })
+}
+/**
  * 店铺商品品牌转入平台
  * @param params
  */
 export function moveBrand(params: Record<string, any>) {
     return request.put(`basic/admin/goods/brand/move`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 获取商品品牌筛选项
+ * @returns
+ */
+export function getBrandInit() {
+    return request.get('basic/admin/goods/brand/init')
+}
+
+/**
+ * 获取商品配置
+ * @returns
+ */
+export function getGoodsConfig() {
+    return request.get('basic/admin/goods/config')
+}
+
+/**
+ * 编辑商品配置
+ * @returns
+ */
+export function setGoodsConfig(param: any) {
+    return request.post('basic/admin/goods/config', param, { showSuccessMessage: true })
 }
 
 /**

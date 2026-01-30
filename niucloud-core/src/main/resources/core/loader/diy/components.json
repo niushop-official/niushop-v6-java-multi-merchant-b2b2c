@@ -210,6 +210,19 @@
 					]
 				}
 			},
+			"Article": {
+				"title": "文章",
+				"icon": "iconfont iconwenzhangpc",
+				"path": "edit-article",
+				"support_page": [],
+				"uses": 0,
+				"sort": 10006,
+				"value": {
+					"sources": "initial",
+					"count": 8,
+					"articleIds": []
+				}
+			},
 			"HotArea": {
 				"title": "热区",
 				"icon": "iconfont iconrequpc",

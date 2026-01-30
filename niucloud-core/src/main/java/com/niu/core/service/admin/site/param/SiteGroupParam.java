@@ -27,4 +27,5 @@ public class SiteGroupParam implements Serializable {
     @NotNull(message = "addon参数缺失")
     private JSONArray addon;
 
+    private Integer syncSite;
 }

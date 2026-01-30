@@ -6,15 +6,23 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.exception.AdminException;
+import com.niu.core.common.exception.CommonException;
+import com.niu.core.common.utils.QrcodeUtils;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.verify.Verify;
 import com.niu.core.enums.sys.VerifierTypeEnum;
+import com.niu.core.event.verify.GetVerifyInfoByTradeEventDefiner;
+import com.niu.core.event.verify.VerifierCheckEventDefiner;
 import com.niu.core.mapper.verify.VerifyMapper;
 import com.niu.core.service.admin.verify.IVerifyService;
+import com.niu.core.service.admin.verify.param.VerifyCodeParam;
 import com.niu.core.service.admin.verify.param.VerifySearchParam;
+import com.niu.core.service.admin.verify.vo.VerifyCodeVo;
 import com.niu.core.service.admin.verify.vo.VerifyInfoVo;
 import com.niu.core.service.admin.verify.vo.VerifyListVo;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.verify.ICoreVerifyService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
@@ -99,6 +107,50 @@ public class VerifyServiceImpl implements IVerifyService {
     @Override
     public Map<String, String> getVerifierTypeList() {
         return VerifierTypeEnum.getMap();
+    }
+
+    @Override
+    public List<VerifyCodeVo> getVerifyCode(VerifyCodeParam param) {
+        List<VerifyCodeVo> verifyCodeVoList = new LinkedList<>();
+        // 触发核销员检查事件
+        GetVerifyInfoByTradeEventDefiner.GetVerifyInfoByTradeEvent verifierEvent = new GetVerifyInfoByTradeEventDefiner.GetVerifyInfoByTradeEvent();
+        verifierEvent.setTradeId(param.getTradeId());
+        verifierEvent.setTradeType(param.getTradeType());
+        verifierEvent.setSiteId(RequestUtils.siteId());
+        List<GetVerifyInfoByTradeEventDefiner.GetVerifyInfoByTradeResult> verifierResults = EventAndSubscribeOfPublisher.publishAndCallback(verifierEvent);
+        Integer memberId = null;
+        String type = "";
+        Map<String, Object> data = null;
+        if (!verifierResults.isEmpty()) {
+            for( GetVerifyInfoByTradeEventDefiner.GetVerifyInfoByTradeResult result : verifierResults){
+                if (ObjectUtil.isNotEmpty(result)){
+                    if (result.getMemberId() != null){
+                        memberId = result.getMemberId();
+                    }
+                    if (ObjectUtil.isNotEmpty(result.getType())){
+                        type = result.getType();
+                    }
+                    if (ObjectUtil.isNotEmpty(result.getData())){
+                        data = result.getData();
+                    }
+                }
+
+            }
+        }
+        if(ObjectUtil.isNotEmpty(data) && ObjectUtil.isNotEmpty(memberId) && ObjectUtil.isNotEmpty(type)){
+            List<String> verifyCodeList = coreVerifyService.create(RequestUtils.siteId(), memberId, type, data);
+            if (ObjectUtil.isNotEmpty(verifyCodeList)){
+                for (String code : verifyCodeList){
+                    VerifyCodeVo verifyCodeVo = new VerifyCodeVo();
+                    verifyCodeVo.setCode(code);
+                    verifyCodeVo.setQrcode(QrcodeUtils.qrcode(RequestUtils.siteId(), "h5", code, "", null));
+                    verifyCodeVoList.add(verifyCodeVo);
+                }
+            }
+        }else{
+            throw new CommonException("核销信息不存在");
+        }
+        return verifyCodeVoList;
     }
 
 

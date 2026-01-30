@@ -27,6 +27,7 @@ import com.niu.core.service.admin.shop.IShopConfigService;
 import com.niu.core.service.admin.shop.vo.SiteShopCashOutInfoVo;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import com.niu.core.service.core.sys.vo.SceneDomainVo;
+import com.niu.core.service.core.weapp.ICoreWeappService;
 import com.niu.core.service.site.shop.ISiteShopCashOutService;
 import com.niu.core.service.admin.shop.param.SiteShopCashOutSearchParam;
 import com.niu.core.service.admin.shop.vo.SiteShopCashOutListVo;
@@ -62,6 +63,8 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
     IShopConfigService shopConfigService;
     @Resource
     ICoreSysConfigService coreSysConfigService;
+    @Resource
+    ICoreWeappService coreWeappService;
 
     @Override
     public PageResult<SiteShopCashOutListVo> page(PageParam pageParam, SiteShopCashOutSearchParam searchParam) {
@@ -372,10 +375,22 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
         }
         SiteShopCashOutCodeVo updateData = new SiteShopCashOutCodeVo();
         String checkCode = generateCheckCode();
-        cached.tag("transfer_"+siteShopCashOut.getTransferType()+"_"+id).put(checkCode, id, 900);
+        cached.put(checkCode, id, 900);
 
         updateData.setPage("app/pages/site/transfer?cod="+checkCode);
-        updateData.setQrcode(getQrcode(RequestUtils.siteId(), checkCode));
+
+        try {
+            updateData.setQrcode(getQrcode(RequestUtils.siteId(), checkCode));
+        }catch ( Exception e){
+
+        }
+
+        try {
+            updateData.setUrlLink(getUrlLink(checkCode));
+        }catch ( Exception e){
+
+        }
+
         return updateData;
     }
 
@@ -394,6 +409,19 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
         String dir = "upload/qrcode/" + siteId + "/transfer";
         String channel = "weapp";
         return QrcodeUtils.qrcodeToFile(siteId, channel, sceneDomain.getWapUrl(), page, data, dir);
+    }
+
+    /**
+     * 生成转账小程序短链
+     * @param checkCode $check_code
+     * @return string
+     */
+    public String getUrlLink(String checkCode) {
+        String page = "app/pages/site/transfer";
+        Map<String, Object> data = new HashMap<>();
+        data.put("key", "cod");
+        data.put("value", checkCode);
+        return coreWeappService.getUrlLink(page,data);
     }
 
     public static String generateCheckCode() {

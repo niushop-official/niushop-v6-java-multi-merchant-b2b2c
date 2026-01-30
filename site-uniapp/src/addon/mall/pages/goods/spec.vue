@@ -43,7 +43,7 @@
                                         <image class="w-[60rpx] h-[60rpx] rounded-[10rpx] overflow-hidden" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill"></image>
                                     </template>
                                 </up-image>
-                                <view class="flex-1 ml-[20rpx] text-[28rpx]">{{ item.spec_name }}</view>
+                                <view class="flex-1 ml-[20rpx] text-[28rpx]">{{ item.spec_name_show }}</view>
                                 <view class="flex flex-col justify-between items-center mr-[16rpx]">
                                     <text class="price-font text-[28rpx]" v-if="item.price">￥{{ moneyFormat(item.price) }}</text>
                                     <text class="text-[24rpx] text-[#999]" v-if="item.stock">库存 {{ item.stock }}</text>
@@ -376,7 +376,8 @@ const refreshGoodsSkuData = () => {
                     if(ele_3.spec_value_name){
                         sku_spec.push(ele_3)
                         item_prop_arr['sku_' + tempIndex] = {
-                            spec_name: `${skuData[ele_2].spec_name}/${ele_3.spec_value_name}`,
+                            spec_name: `${skuData[ele_2].spec_name} ${ele_3.spec_value_name}`,
+                            spec_name_show: `${skuData[ele_2].spec_name}/${ele_3.spec_value_name}`,
                             sku_spec,
                             sku_image: '',
                             price: '',
@@ -405,6 +406,7 @@ const refreshGoodsSkuData = () => {
                 if(spec_name){
                     item_prop_arr['sku_' + tempIndex] = {
                         spec_name: spec_name,
+                        spec_name_show: spec_name,
                         sku_spec: [ele_1],
                         sku_image: '',
                         price: '',

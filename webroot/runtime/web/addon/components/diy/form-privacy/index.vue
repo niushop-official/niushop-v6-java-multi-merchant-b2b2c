@@ -1,6 +1,6 @@
 <template>
     <div @touchmove.prevent.stop>
-        <el-dialog v-model="formDetailPrivacyPop" :before-close="closeFn" :round="8">
+        <el-dialog v-model="formDetailPrivacyPop" :before-close="closeFn">
             <div class="w-[285px]  popup-common center">
                 <div class="text-center my-5">{{ t('diyForm.tips') }}<br />{{ data }}</div>
                 <div class="flex justify-between">

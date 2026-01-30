@@ -59,6 +59,9 @@
 					<el-form-item :label="t('refundReason')">
 						<div class="input-width">{{ formData.reason }}</div>
 					</el-form-item>
+					<el-form-item :label="t('realRefundMoney')">
+						<div class="input-width">￥{{ formData.money }}</div>
+					</el-form-item>
 					<el-form-item :label="t('refundVoucher')" v-if="formData.voucher && formData.voucher.length">
 						<div class="input-width flex">
 							<div class="mr-3" v-for="(voucherItem, voucherIndex) in formData.voucher" :key="voucherIndex">

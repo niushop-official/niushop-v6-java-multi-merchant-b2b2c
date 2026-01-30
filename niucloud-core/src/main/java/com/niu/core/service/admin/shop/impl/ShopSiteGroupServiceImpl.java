@@ -2,6 +2,7 @@ package com.niu.core.service.admin.shop.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,6 +12,7 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.AdminException;
 import com.niu.core.common.exception.CommonException;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.site.Site;
@@ -27,6 +29,7 @@ import com.niu.core.service.admin.site.param.SiteGroupAddParam;
 import com.niu.core.service.admin.site.param.SiteGroupParam;
 import com.niu.core.service.admin.site.param.SiteGroupSearchParam;
 import com.niu.core.service.admin.site.vo.SiteGroupListVo;
+import com.niu.core.service.admin.sys.ISysMenuService;
 import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.addon.vo.InstallAddonListVo;
 import com.niu.core.service.core.site.ICoreSiteService;
@@ -82,6 +85,8 @@ public class ShopSiteGroupServiceImpl implements IShopSiteGroupService {
 
     @Resource
     ICoreSiteService coreSiteService;
+    @Resource
+    ISysMenuService sysMenuService;
 
     @Resource
     private void setSiteService(@Lazy ISiteService siteService) {
@@ -237,21 +242,20 @@ public class ShopSiteGroupServiceImpl implements IShopSiteGroupService {
         group.setUpdateTime(DateUtils.currTime());
         siteGroupMapper.updateById(group);
         this.cached.remove("site_group_menu_ids" + id);
-        if (!model.getApp().equals(group.getApp())) {
-            // 修改站点应用
-            Site siteModel = new Site();
-            siteModel.setApp(model.getApp());
-            siteMapper.update(siteModel, new QueryWrapper<Site>().eq("group_id", id));
-        }
 
-        if (!model.getApp().equals(group.getApp()) || !model.getAddon().equals(group.getAddon())) {
-            List<Site> siteList = siteMapper.selectList(new QueryWrapper<Site>().eq("group_id", id));
-            if (ObjectUtil.isNotEmpty(siteList)) {
-                for (Site site : siteList) {
-                    siteService.siteAddonChange(site, model);
-                    coreSiteService.clearSiteCache(site.getSiteId());
+        List<Site> siteList = siteMapper.selectList(new QueryWrapper<Site>().eq("group_id", id));
+        if(!siteList.isEmpty()) {
+            for (Site site : siteList) {
+                // 修改站点应用
+                if (ObjectUtil.isNotEmpty(editParam.getSyncSite()) && editParam.getSyncSite()==1) {
+                    Site siteModel = new Site();
+                    siteModel.setApp(JSONUtil.toJsonStr(ObjectUtil.defaultIfNull(editParam.getApp(),new JSONArray())));
+                    siteModel.setAddons(JSONUtil.toJsonStr(ObjectUtil.defaultIfNull(editParam.getAddon(),new JSONArray())));
+                    siteMapper.update(siteModel, new QueryWrapper<Site>().eq("group_id", id));
                 }
-
+                //清除全部缓存
+                sysMenuService.clear();
+                coreSiteService.clearSiteCache(site.getSiteId());
             }
         }
     }

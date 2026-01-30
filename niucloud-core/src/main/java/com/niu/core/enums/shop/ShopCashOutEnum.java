@@ -33,4 +33,13 @@ public enum ShopCashOutEnum {
         }
         return map;
     }
+
+    public  static  String getStatusByName(Integer state) {
+        for (ShopCashOutEnum value : ShopCashOutEnum.values()) {
+            if (value.state.equals(state)) {
+                return value.name;
+            }
+        }
+        return null;
+    }
 }

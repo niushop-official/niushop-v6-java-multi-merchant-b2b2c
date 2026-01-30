@@ -19,7 +19,7 @@ public enum ShopApplyEnum {
     WAIT_OPEN(1, "待开店"),
     OPENED(2, "已开店");
 
-    private final Integer status;
+    private final Integer value;
 
     private final String name;
 
@@ -30,16 +30,16 @@ public enum ShopApplyEnum {
      */
     public static Map<Integer, String> getStatus() {
         Map<Integer, String> map = new HashMap<>();
-        map.put(ShopApplyEnum.WAIT_AUDIT.status, ShopApplyEnum.WAIT_AUDIT.name);
-        map.put(ShopApplyEnum.PASS.status, ShopApplyEnum.PASS.name);
-        map.put(ShopApplyEnum.REFUSE.status, ShopApplyEnum.REFUSE.name);
+        map.put(ShopApplyEnum.WAIT_AUDIT.value, ShopApplyEnum.WAIT_AUDIT.name);
+        map.put(ShopApplyEnum.PASS.value, ShopApplyEnum.PASS.name);
+        map.put(ShopApplyEnum.REFUSE.value, ShopApplyEnum.REFUSE.name);
         return map;
     }
     //获取单个状态status
     public  static  Integer getStatusByName(String name) {
         for (ShopApplyEnum value : ShopApplyEnum.values()) {
             if (value.name.equals(name)) {
-                return value.status;
+                return value.value;
             }
         }
         return null;
@@ -78,8 +78,8 @@ public enum ShopApplyEnum {
      */
     public static Map<Integer, String> getOpenStatus(){
         Map<Integer, String> map = new HashMap<>();
-        map.put(ShopApplyEnum.WAIT_OPEN.status, ShopApplyEnum.WAIT_OPEN.name);
-        map.put(ShopApplyEnum.OPENED.status, ShopApplyEnum.OPENED.name);
+        map.put(ShopApplyEnum.WAIT_OPEN.value, ShopApplyEnum.WAIT_OPEN.name);
+        map.put(ShopApplyEnum.OPENED.value, ShopApplyEnum.OPENED.name);
         return map;
     }
 

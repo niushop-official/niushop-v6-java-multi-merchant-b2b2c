@@ -6,6 +6,7 @@ import com.anji.captcha.model.vo.CaptchaVO;
 import com.anji.captcha.service.CaptchaService;
 import com.niu.core.common.domain.Result;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.enums.captcha.CaptchaImgEnum;
 import com.niu.core.service.admin.auth.IAuthService;
 import com.niu.core.service.admin.captcha.ICaptchaService;
 import com.niu.core.service.admin.site.ISiteService;
@@ -37,7 +38,7 @@ public class CaptchaController {
      * @return
      */
     @GetMapping("/create")
-    public Result create(@Validated @RequestParam("captchaType") String captchaType){
+    public Result create(@Validated @RequestParam("captcha_type") String captchaType){
         return Result.success(coreCaptchaImgService.create(captchaType));
     }
 
@@ -53,6 +54,12 @@ public class CaptchaController {
 
         return Result.success(coreCaptchaImgService.check(coreCaptchaValiDateParam));
     }
+
+    /**
+     * 验证类型
+     */
+    @GetMapping("/type")
+    public Result type(){ return Result.success(CaptchaImgEnum.getMap());  }
 
 
 }

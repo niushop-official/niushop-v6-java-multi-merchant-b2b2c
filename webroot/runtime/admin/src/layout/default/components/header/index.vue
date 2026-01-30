@@ -38,7 +38,21 @@
                 <span class="text-[#2878FF]" v-else>暂停营业</span>
             </div>
             <!-- 商家手机管理端 -->
-            <i class="nc-iconfont nc-icon-shoujiV6xx cursor-pointer px-[8px]" :title="t('商家助手')" @click="toSiteApp"></i>
+             <el-popover placement="bottom" width="130px" trigger="hover" opper-class="!min-w-[130px]">
+                <template #reference>
+                    <i class="nc-iconfont nc-icon-shoujiV6xxmm cursor-pointer px-[8px]" :title="t('商家助手')"></i>
+                </template>
+                <div class="flex justify-center">
+                    <div>
+                        <div class="flex justify-center items-center w-[110px] h-[110px] rounded-[4px] border-solid border-[1px] border-[#eee] mb-[10px]">
+                            <el-image :src="wapImage" class=" w-[100px] h-[100px]" />
+                        </div>
+                        <div class="text-center  flex items-center justify-center">
+                            <span class="text-[12px] text-primary cursor-pointer" @click="copy(wapPreview)">复制链接</span>
+                        </div>
+                    </div>
+                </div>
+            </el-popover>
             <!-- 切换语言 -->
             <!-- <div class="navbar-item flex items-center h-full cursor-pointer">
                 <switch-lang />
@@ -87,8 +101,9 @@ import useUserStore from '@/stores/modules/user'
 import { useRoute, useRouter } from 'vue-router'
 import { updateBusinessStatus } from '@/app/api/shop_site'
 import { t } from '@/lang'
-import { img } from '@/utils/common'
+import { img, copy } from '@/utils/common'
 import storage from '@/utils/storage'
+import QRCode from 'qrcode'
 
 const appType = storage.get('app_type')
 const { toggle: toggleFullscreen } = useFullscreen()
@@ -187,9 +202,17 @@ const toPreview = () => {
 }
 
 // 商家手机管理端
-const toSiteApp = () => {
-    window.open(location.origin + '/adminapp')
+
+const wapPreview = ref('')
+const wapImage = ref('')
+const loadQrcode = () => {
+    wapPreview.value = `${location.origin}/adminapp/`
+    // errorCorrectionLevel：密度容错率L（低）H(高)
+    QRCode.toDataURL(wapPreview.value, { errorCorrectionLevel: 'L', margin: 0, width: 120 }).then(url => {
+        wapImage.value = url
+    })
 }
+loadQrcode()
 const changeBusinessStatus = () => {
     const data = {
         business_status: siteInfo.value.business_status ? 0 : 1

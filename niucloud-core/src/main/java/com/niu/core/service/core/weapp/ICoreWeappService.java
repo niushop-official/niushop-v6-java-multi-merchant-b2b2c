@@ -8,4 +8,6 @@ public interface ICoreWeappService {
     byte[] qrcodeBytes(Integer siteId, String page, Map<String, Object> data, Integer width);
 
     File qrcodeFile(Integer siteId, String filePath, String page, Map<String, Object> data, Integer width);
+
+    String getUrlLink(String pageUrl, Map<String, Object> data);
 }

@@ -1,16 +1,10 @@
 package com.niu.core.service.api.weapp;
 
 import com.niu.core.service.api.login.vo.LoginVo;
+import com.niu.core.service.api.weapp.parma.TradeManagedScanParam;
 import com.niu.core.service.api.wechat.param.AuthRegisterParam;
-import com.niu.core.service.api.wechat.param.WechatAuthDataLoginParam;
 import com.niu.core.service.api.wechat.param.WechatAuthParam;
-import com.niu.core.service.api.wechat.param.WechatSyncParam;
-import com.niu.core.service.api.wechat.vo.WechatCodeUrlVo;
-import com.niu.core.service.api.wechat.vo.WechatScanLoginVo;
-import com.niu.core.service.core.weapp.vo.IsTradeManagedVo;
-import me.chanjar.weixin.common.bean.WxJsapiSignature;
-import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
-import org.springframework.web.bind.annotation.RequestParam;
+import com.niu.core.service.core.delivery_weapp.vo.IsTradeManagedVo;
 
 import java.util.List;
 import java.util.Map;
@@ -45,4 +39,16 @@ public interface IWeappService {
      */
     IsTradeManagedVo getIsTradeManaged();
 
+    /**
+     * 通过外部交易号获取消息跳转路径
+     * @return
+     */
+    String getMsgJumpPath(TradeManagedScanParam  param);
+
+
+    /**
+     * 检查微信小程序是否配置
+     * @return
+     */
+    Boolean checkWeappConfig();
 }

@@ -18,8 +18,6 @@
                 </div>
                 <div class="layout-two-content">
                     <el-input type="number" v-model="diyComponent.field.value" class="!w-[450px]" :placeholder="inputPlaceholder"/>
-                    <!-- <input type="number" :placeholder="inputPlaceholder" placeholderClass="layout-two-input-placeholder"
-                           v-model="diyComponent.field.value" /> -->
                     <span class="text-[#999] ml-[5px] pt-[1px] text-[14px]" v-if="diyComponent.unit">{{ diyComponent.unit }}</span>
                 </div>
             </div>

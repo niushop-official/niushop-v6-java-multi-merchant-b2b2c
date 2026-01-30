@@ -311,7 +311,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         QueryWrapper<MallGoods> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("goods_id", "site_id", "goods_name", "sub_title", "goods_type",
                         "goods_cover", "goods_image", "goods_desc", "brand_id", "goods_category", "goods_mall_category",
-                        "label_ids", "service_ids", "unit", "stock", "sale_num", "virtual_sale_num", "status",
+                        "label_ids", "service_ids", "unit", "stock", "sale_num",  "status",
                         "audit_status", "sort", "delivery_type", "is_free_shipping", "fee_type", "delivery_money",
                         "delivery_template_id", "supplier_id", "create_time", "update_time", "is_supply_update")
                 .eq("goods_id", id);

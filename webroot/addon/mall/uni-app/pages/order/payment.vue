@@ -19,6 +19,10 @@
                                             <text class="mr-[16rpx]">{{ orderData.delivery.take_address.name }}</text>
                                             <text>{{ mobileHide(orderData.delivery.take_address.mobile) }}</text>
                                         </view>
+                                        <view v-if="orderData.delivery.error" class="text-[24rpx] text-primary mt-[16rpx]">
+                                            <text class="nc-iconfont nc-icon-tanhaoV6xx text-primary text-[24rpx]"></text>
+                                            {{ orderData.delivery.error }}
+                                        </view>
                                     </view>
                                     <text class="ml-auto nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light9)]"></text>
                                 </view>
@@ -53,7 +57,10 @@
                                         </up-image>
                                         <view class="flex flex-1 w-0 flex-col justify-between ml-[20rpx] py-[6rpx]">
                                             <view class="line-normal">
-                                                <view class="truncate text-[#303133] text-[28rpx] leading-[32rpx]">{{ subItem.goods.goods_name }}</view>
+                                                <view class="truncate text-[#303133] text-[28rpx] leading-[32rpx]">
+                                                    <text v-if="subItem.order_type_name" class="relative top-[-4rpx] inline-block mr-[4rpx] bg-primary text-[#fff] text-[18rpx] rounded-[4rpx] leading-[30rpx] px-[6rpx]">{{ subItem.order_type_name }}</text>
+                                                    {{ subItem.goods.goods_name }}
+                                                </view>
                                                 <view v-if="subItem.sku_name" class="mt-[14rpx] flex">
                                                     <text class="truncate text-[24rpx] text-[var(--text-color-light9)] leading-[28rpx]">{{ subItem.sku_name }}</text>
                                                 </view>
@@ -103,7 +110,7 @@
                                 <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light9)]" :style="iconfontStyle"></text>
                             </view>
                             <!-- 门店自提 -->
-                            <view  v-if="createData.body[key].delivery.delivery_type == 'store' || createData.body[key].delivery.delivery_type == 'local_delivery'"  @click="openSelectStore(item)">
+                            <view  v-if="createData.body[key].delivery.delivery_type == 'store' || (createData.body[key].delivery.delivery_type == 'local_delivery' && orderData.config.delivery.is_local_delivery_store_select)"  @click="openSelectStore(item)">
                                 <view v-if="!$u.test.isEmpty(item.delivery.take_store)" class="flex items-center box-border px-[20rpx] py-[30rpx] bg-[#f6f6f6] rounded-[16rpx] mt-[30rpx]">
                                     <view class="flex flex-col flex-1">
                                         <view class="leading-[1] mb-[14rpx]">
@@ -111,7 +118,7 @@
                                             <text class="nc-iconfont nc-icon-youV6xx text-[24rpx] text-[var(--text-color-light9)]"></text>
                                         </view>
                                         <view class="text-[22rpx] text-[var(--text-color-light6)] leading-[1.4] multi-hidden">
-                                            <template v-if="item.delivery.take_store.distance">
+                                            <template v-if="item.delivery.take_store.hasOwnProperty('distance')">
                                                 <text class="flex-shrink-0">距您{{ distance(item.delivery.take_store.distance) }}</text>
                                                 <text class="w-[1rpx] h-[16rpx] bg-[#ddd] mx-[10rpx] inline-block"></text>
                                             </template>
@@ -166,7 +173,7 @@
                                     -￥{{ parseFloat(item.basic.discount_money).toFixed(2)}}
                                 </view>
                             </view>
-                            <view class="mt-[36rpx]" v-if="couponData[key] && couponData[key].couponList.length">
+                            <view class="mt-[36rpx]" v-if="couponData[key] && couponData[key].couponList.length && item.is_shop_coupon">
                                 <!-- 优惠券 -->
                                 <view class="flex items-center h-[40rpx] leading-[40rpx]" @click="couponRef.open(createData.body[key])">
                                     <view class="text-[28rpx] w-[150rpx] text-[#303133] flex-shrink-0">优惠券</view>
@@ -188,7 +195,7 @@
                     </template>
                 </view>
                 <!-- 平台优惠券 -->
-                <view class="mb-[var(--top-m)] card-template" v-if="platformCouponData && platformCouponData.length" >
+                <view class="mb-[var(--top-m)] card-template" v-if="platformCouponData && platformCouponData.length && orderData.is_plat_coupon">
                     <view class="flex items-center h-[40rpx] leading-[40rpx]" @click="platformCouponRef.open(createData.mall_discount.platform_coupon_id)">
                         <view class="text-[28rpx] w-[150rpx] text-[#303133] flex-shrink-0">平台优惠券</view>
                         <view class="flex-1 flex justify-end truncate">
@@ -286,7 +293,7 @@ import selectStore from './components/select-store/select-store'
 import selectCoupon from './components/select-coupon/select-coupon'
 import platformCoupon from './components/platform-coupon/platform-coupon'
 import addressList from './components/address-list/address-list'
-import invoice from './components/invoice/invoice'
+import invoice from '@/components/invoice/invoice.vue'
 import nsSelectTime from '@/addon/mall/components/ns-select-time'
 import { topTabar } from '@/utils/topTabbar'
 import diyForm from '@/addon/components/diy-form/index.vue'
@@ -643,7 +650,6 @@ const confirmSelectCoupon =  async (data:any) => {
  */
 const confirmDelivery = (data:any) =>{
     createData.value.body[data.site_id].delivery.delivery_type = data.delivery_type
-    console.log(createData.value.body[data.site_id].delivery)
     createData.value.order_key = ''
     for(let i in createData.value.body){
         createData.value.body[i].order_key = ''
@@ -654,10 +660,7 @@ const confirmDelivery = (data:any) =>{
  * 选择自提点
  */
 const confirmSelectStore = (store: any) => {
-    console.log(store.site_id)
-    console.log(createData.value.body, 1111)
     createData.value.body[store.site_id].delivery.take_store_id = ((store && store.store_id) ? store.store_id : 0)
-    console.log(createData.value.body)
     calculate()
 }
 

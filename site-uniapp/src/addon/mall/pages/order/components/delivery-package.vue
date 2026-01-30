@@ -5,8 +5,8 @@
                 <view class="title">查看物流</view>
                 <scroll-view :scroll-y="true" class="h-[60vh]">
                     <scroll-view :scroll-x="true" scroll-with-animation :scroll-into-view="'id' + (actvie > 3 ? actvie - 2 : 0)">
-                        <view class="flex p-[20rpx] whitespace-nowrap" v-if="packageList > 1">
-                            <view :id="'id' + index" class="w-[120rpx] h-[50rpx] flex-center bg-[var(--page-bg-color)] rounded-[12rpx] text-[26rpx] border-solid border-[1rpx] mr-[30rpx]" :class="{'!text-primary border-primary': item.id ==  curData.id}" v-for="(item,index) in packageList" :key="index" @click="handleClick(item,index)">{{ item.name }}</view>
+                        <view class="flex p-[20rpx] whitespace-nowrap" v-if="packageList.length > 1">
+                            <view :id="'id' + index" class="w-[120rpx] h-[50rpx] flex-center bg-[var(--page-bg-color)] rounded-[12rpx] text-[26rpx] border-solid border-[1rpx] border-[#999] text-[#999] mr-[30rpx]" :class="{'!text-primary !border-primary': item.id ==  curData.id}" v-for="(item,index) in packageList" :key="index" @click="handleClick(item,index)">{{ item.name }}</view>
                         </view>
                     </scroll-view>
                     <view class="sidebar-margin p-[20rpx] bg-[#E0EEFF] rounded-[var(--rounded-big)] box-border mb-[30rpx]" v-if="packageData">

@@ -1,36 +1,68 @@
 <template>
     <view :style="themeColor()">   
-        <view class="bg-[var(--page-bg-color)] min-h-screen overflow-hidden" v-if="!loading">
+        <view class="bg-[var(--page-bg-color)]" v-if="!loading">
             <view v-if="!loading" class="pb-20rpx">
-                <view v-if="detail.status_name" class="pl-[40rpx] pr-[50rpx] bg-linear pb-[100rpx]">
+                <view style="min-height: calc(50vh  + 150rpx);" v-if="isShowLocalDelivery">
+                    <!-- #ifdef MP-WEIXIN -->
+                    <top-tabbar :data="topTabbarData" :scrollBool="topTabarObj.getScrollBool()" />
+                    <!-- #endif -->
+                    <map-show ref="mapShowRef" tradeType="mall" :tradeNo="detail.order_no" @comfirm="handleComfirm"  v-if="detail.order_no" />
+                </view>
+                
+                <view v-if="detail.status_name && !isShowLocalDelivery" class="pl-[40rpx] pr-[50rpx] bg-linear pb-[100rpx]">
                     <!-- #ifdef MP-WEIXIN -->
                     <top-tabbar :data="topTabbarData" :scrollBool="topTabarObj.getScrollBool()" />
                     <!-- #endif -->
                     <view class="flex justify-between items-center pt-[40rpx]">
-                        <view class="text-[#fff] text-[36rpx] font-500 leading-[42rpx]" @click="localeDeliveryFn">
+                        <view class="text-[#fff] text-[36rpx] font-500 leading-[42rpx]">
                             <text>{{ detail.status_name.name }}</text>
-                            <text class="nc-iconfont nc-icon-youV6xx" v-if="detail.delivery_type == 'local_delivery' && ['3','5'].indexOf(detail.status) != -1"></text>
                         </view>
                         <image v-if="detail.status == 1" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/payment.png')"  mode="aspectFit"/>
                         <image v-if="detail.status == 2" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/deliver_goods.png')" mode="aspectFit"/>
                         <image v-if="detail.status == 3" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/receive.png')" mode="aspectFit"  />
                         <image v-if="detail.status == 5" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/complete.png')" mode="aspectFit" />
                         <image v-if="detail.status == -1" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/close.png')"  mode="aspectFit" />
+                         <image v-if="detail.status == 6" class="w-[180rpx] h-[140rpx]" :src="img('addon/pintuan/detail/pintuaning.png')"  mode="aspectFit" />
                     </view>
                 </view>
-                <view class="sidebar-margin mt-[-86rpx] card-template" v-if="detail.delivery_type != 'virtual'">
+               <view class="sidebar-margin card-template mt-[-86rpx] relative" v-if="detail.delivery_type == 'local_delivery' && isShowLocalDelivery">
+                    <view class="flex items-center" @click="localeDeliveryFn">
+                        <view class="flex-1">
+                            <view class="mb-[20rpx] flex items-baseline leading-[40rpx] min-h-[46rpx]">
+                                <text class="text-[26rpx] font-500 mr-[10rpx]">预计</text>
+                                <text class="text-[46rpx] font-600">{{ expectedFinishTime }}</text>
+                            </view>
+                            <!-- <view class="mb-[20rpx] leading-[40rpx] text-[30rpx] font-500">{{ detail.local_delivery_status_name }}</view> -->
+                            
+                            
+                            <view class="flex">
+                                <text class="text-[26rpx] font-500 mr-[10rpx]">送至</text>
+                                <view class="flex flex-col">
+                                    <text class="text-[26rpx] mb-[12rpx] leading-[26rpx]">{{ detail.taker_full_address }}</text>
+                                    <view class="flex leading-[38rpx] overflow-hidden">
+                                        <text class="text-[26rpx]">{{ detail.taker_name }}</text>
+                                        <text class="text-[26rpx] ml-[15rpx]">{{ detail.taker_mobile }}</text>
+                                    </view>
+                                </view>
+                            </view>
+                        </view>
+                        <text class="nc-iconfont nc-icon-youV6xx ml-[10rpx]" v-if="detail.delivery_type == 'local_delivery' && ['3','5'].indexOf(detail.status) != -1"></text>
+                    </view>
+                    
+                </view>
+                <view class="sidebar-margin mt-[-86rpx] card-template" v-if="detail.delivery_type != 'virtual' && !isShowLocalDelivery">
                     <view v-if="detail.delivery_type == 'express'">
                         <view class="text-[#303133] flex">
                             <text class="nc-iconfont nc-icon-dizhiguanliV6xx text-[40rpx] pt-[12rpx] mr-[20rpx]"></text>
                             <view class="flex flex-col">
-								<view class="text-[30rpx] leading-[38rpx] overflow-hidden">
-									<text>{{ detail.taker_name }}</text>
-									<text class="ml-[15rpx]">{{ detail.taker_mobile }}</text>
-								</view>
-								<view class="mt-[12rpx] text-[24rpx] text-[var(--text-color-light6)] leading-[26rpx]">
-									{{detail.taker_full_address.split(detail.taker_address)[0]}}{{detail.taker_address}}
-								</view>
-							</view>
+                                <view class="text-[30rpx] leading-[38rpx] overflow-hidden">
+                                    <text>{{ detail.taker_name }}</text>
+                                    <text class="ml-[15rpx]">{{ detail.taker_mobile }}</text>
+                                </view>
+                                <view class="mt-[12rpx] text-[24rpx] text-[var(--text-color-light6)] leading-[26rpx]">
+                                    {{detail.taker_full_address.split(detail.taker_address)[0]}}{{detail.taker_address}}
+                                </view>
+                            </view>
                         </view>
                         
                     </view>
@@ -83,31 +115,31 @@
                     </view>
                 </view>
                 <!-- 自提核销-->
-				<template v-if="isShowSelfPickup">
-				    <view class="sidebar-margin  mt-[var(--top-m)] card-template" v-if="selfPickupInfo && selfPickupInfo.length">
-				        <swiper class="h-[450rpx]" circular indicator-dots="true" v-if="selfPickupInfo.length > 1">
-				            <swiper-item v-for="(item,index) in selfPickupInfo" :key="index">
-				                <view class="flex flex-col items-center justify-center">
-				                    <image :src="item.qrcode" class="w-[300rpx] h-[auto]" mode="widthFix" />
-				                </view>
-				                <view class="flex items-center justify-center mt-[30rpx]">
-				                    <text class="text-[28rpx] font-500">{{ item.code }}</text>
-				                    <text class="text-[var(--text-color-light6)] text-[24rpx] ml-[10rpx] border-[2rpx] border-solid border-[#666] bg-[#f7f7f7] px-[12rpx] py-[6rpx] rounded" @click="copy(item.code)">复制</text>
-				                </view>
-				            </swiper-item>
-				        </swiper>
-				        <template v-else>
-				            <view class="flex flex-col items-center justify-center">
-				                <image :src="selfPickupInfo[0].qrcode" class="w-[300rpx] h-[auto]" mode="widthFix" />
-				            </view>
-				            <view class="flex items-center justify-center mt-[30rpx]">
-				                <text class="text-[28rpx] font-500">{{ selfPickupInfo[0].code }}</text>
-				                <text class="text-[var(--text-color-light6)] text-[24rpx] ml-[10rpx] border-[2rpx] border-solid border-[#666] bg-[#f7f7f7] px-[12rpx] py-[6rpx] rounded" @click="copy(selfPickupInfo[0].code)">复制</text>
-				            </view>
-				        </template>
+                <template v-if="isShowSelfPickup">
+                    <view class="sidebar-margin  mt-[var(--top-m)] card-template" v-if="selfPickupInfo && selfPickupInfo.length">
+                        <swiper class="h-[450rpx]" circular indicator-dots="true" v-if="selfPickupInfo.length > 1">
+                            <swiper-item v-for="(item,index) in selfPickupInfo" :key="index">
+                                <view class="flex flex-col items-center justify-center">
+                                    <image :src="item.qrcode" class="w-[300rpx] h-[auto]" mode="widthFix" />
+                                </view>
+                                <view class="flex items-center justify-center mt-[30rpx]">
+                                    <text class="text-[28rpx] font-500">{{ item.code }}</text>
+                                    <text class="text-[var(--text-color-light6)] text-[24rpx] ml-[10rpx] border-[2rpx] border-solid border-[#666] bg-[#f7f7f7] px-[12rpx] py-[6rpx] rounded" @click="copy(item.code)">复制</text>
+                                </view>
+                            </swiper-item>
+                        </swiper>
+                        <template v-else>
+                            <view class="flex flex-col items-center justify-center">
+                                <image :src="selfPickupInfo[0].qrcode" class="w-[300rpx] h-[auto]" mode="widthFix" />
+                            </view>
+                            <view class="flex items-center justify-center mt-[30rpx]">
+                                <text class="text-[28rpx] font-500">{{ selfPickupInfo[0].code }}</text>
+                                <text class="text-[var(--text-color-light6)] text-[24rpx] ml-[10rpx] border-[2rpx] border-solid border-[#666] bg-[#f7f7f7] px-[12rpx] py-[6rpx] rounded" @click="copy(selfPickupInfo[0].code)">复制</text>
+                            </view>
+                        </template>
 
-				    </view>
-				</template>
+                    </view>
+                </template>
                 <view v-if="detail.delivery_type == 'virtual' && detail.taker_mobile" class="flex items-center mb-[var(--top-m)] rounded-[var(--rounded-big)] bg-white p-[30rpx] mb-[20rpx] -mt-[86rpx] mx-[20rpx]">
                     <text class="nc-iconfont nc-icon-dianhuaV6xx mr-[20rpx]"></text>
                     <text>{{ detail.taker_mobile }}</text>
@@ -132,7 +164,10 @@
                             </view>
                             <view class="ml-[20rpx] flex flex-1 flex-col justify-between">
                                 <view>
-                                    <view class="text-[28rpx] max-w-[490rpx] truncate leading-[40rpx] text-[#333]">{{ goodsItem.goods_name }}</view>
+                                    <view class="text-[28rpx] max-w-[490rpx] truncate leading-[40rpx] text-[#333]">
+                                        <text v-if="detail.order_type_name" class="relative top-[-4rpx] inline-block mr-[4rpx] bg-primary text-[#fff] text-[18rpx] rounded-[4rpx] leading-[30rpx] px-[6rpx]">{{ detail.order_type_name }}</text>
+                                        {{ goodsItem.goods_name }}
+                                    </view>
                                     <view v-if="goodsItem.sku_name">
                                         <view class="text-[22rpx] mt-[14rpx] text-[var(--text-color-light9)] truncate max-w-[490rpx] leading-[28rpx]">{{ goodsItem.sku_name }}</view>
                                     </view>
@@ -146,11 +181,11 @@
                                     <text class="text-right text-[26rpx]">x{{ goodsItem.num }}</text>
                                 </view>
                             </view>
-                            <view class="flex justify-end  self-end w-[100%] mt-[30rpx]" v-if="(goodsItem.status != '1') || (goodsItem.is_enable_refund == 1)">	
+                            <view class="flex justify-end  self-end w-[100%] mt-[30rpx]" v-if="(goodsItem.status != '1') || (goodsItem.is_enable_refund == 1 && detail.status != '6')">	
                                 <view v-if="goodsItem.status != '1'"
                                     class="order-grey-hollow-btn"
                                     @click="redirect({ url: '/addon/mall/pages/refund/detail', param: { order_refund_no : goodsItem.order_refund_no } })">查看退款</view>
-                                <view v-else-if="goodsItem.is_enable_refund == 1"
+                                <view v-else-if="goodsItem.is_enable_refund == 1 && detail.status != '6'"
                                     class="order-grey-hollow-btn ml-[20rpx]"
                                     @click="applyRefund(goodsItem.order_goods_id)">申请退款</view>
                             </view>
@@ -163,7 +198,7 @@
                 </view>
                 <!-- 待付款订单的万能表单信息 -->
                 <view class="order-form" :class="{'sidebar-margin mt-[var(--top-m)] card-template' : orderDiyFormData.length }"
-                      v-if="detail.form_record_id">
+                    v-if="detail.form_record_id">
                     <diy-form-detail :record_id="detail.form_record_id" completeLayout="style-2" @callback="getOrderDiyFormDetailCallback" />
                 </view>
                 <view class="sidebar-margin mt-[var(--top-m)] card-template">
@@ -188,7 +223,7 @@
                         <view  class="text-[28rpx]">{{ detail.pay.type_name }}</view>
                     </view>
                     <view v-if="detail.pay && detail.member_id !== detail.pay.main_id && detail.pay.status == 2 "
-                          class="card-template-item justify-end">
+                        class="card-template-item justify-end">
                         <view class="friend-pay relative px-[20rpx] py-[12rpx] bg-[#F2F2F2] rounded-[10rpx] flex items-center">
                             <u-avatar :src="img(detail.pay.pay_member_headimg)" size="20" leftIcon="none" :default-url="img('static/resource/images/default_headimg.png')" />
                             <text class="ml-[14rpx] text-[24rpx] using-hidden">{{ detail.pay.pay_member }}{{ t('helpPay') }}</text>
@@ -235,46 +270,46 @@
                     </template>
                 </view>
                 <!-- 核销码 -->
-				<block v-if="isShowVerify">
-					<view class="sidebar-margin  mt-[var(--top-m)] card-template" v-if="verifyInfo && verifyInfo.length">
-						<swiper class="h-[450rpx]" circular indicator-dots="true" v-if="verifyInfo.length > 1">
-							<swiper-item v-for="(item,index) in verifyInfo" :key="index">
-								<view class="flex flex-col items-center justify-center">
-									<image :src="item.qrcode" class="w-[300rpx]" mode="widthFix"></image>
-								</view>
-								<view class="flex items-center justify-center mt-[30rpx]">
-									<text class="text-[28rpx] font-500">{{item.code}}</text>
-									<text class="text-[var(--text-color-light6)] text-[24rpx] ml-[10rpx] border-[2rpx] border-solid border-[#666] bg-[#f7f7f7] px-[12rpx] py-[6rpx] rounded" @click="copy(item.code)">复制</text>
-								</view>
-							</swiper-item>
-						</swiper>
-						<block v-else>
-							<view class="flex flex-col items-center justify-center">
-								<image :src="verifyInfo[0].qrcode" class="w-[300rpx]" mode="widthFix"></image>
-							</view>
-							<view class="flex items-center justify-center mt-[30rpx]">
-								<text class="text-[28rpx] font-500">{{verifyInfo[0].code}}</text>
-								<text class="text-[var(--text-color-light6)] text-[24rpx] ml-[10rpx] border-[2rpx] border-solid border-[#666] bg-[#f7f7f7] px-[12rpx] py-[6rpx] rounded" @click="copy(verifyInfo[0].code)">复制</text>
-							</view>
-						</block>
-						
-					</view>
-					<view class="sidebar-margin mt-[var(--top-m)] card-template">
-						<view class="title">核销信息</view>
-						<view class="card-template-item justify-between">
-							<view class="text-[28rpx]">核销次数</view>
-							<view class="price-font font-500 text-[28rpx]">
-								{{'剩余'+(verifyGoodsData.num - verifyGoodsData.verify_count)+'次'}}/{{'共'+verifyGoodsData.num+'次'}}
-							</view>
-						</view>
-						<view class="card-template-item justify-between">
-							<view class="text-[28rpx]">有效期</view>
-							<view class="price-font font-500 text-[28rpx]">
-								{{verifyGoodsData.verify_expire_time ? verifyGoodsData.verify_expire_time : '永久'}}
-							</view>
-						</view>
-					</view>
-				</block>
+                <block v-if="isShowVerify">
+                    <view class="sidebar-margin  mt-[var(--top-m)] card-template" v-if="verifyInfo && verifyInfo.length">
+                        <swiper class="h-[450rpx]" circular indicator-dots="true" v-if="verifyInfo.length > 1">
+                            <swiper-item v-for="(item,index) in verifyInfo" :key="index">
+                                <view class="flex flex-col items-center justify-center">
+                                    <image :src="item.qrcode" class="w-[300rpx]" mode="widthFix"></image>
+                                </view>
+                                <view class="flex items-center justify-center mt-[30rpx]">
+                                    <text class="text-[28rpx] font-500">{{item.code}}</text>
+                                    <text class="text-[var(--text-color-light6)] text-[24rpx] ml-[10rpx] border-[2rpx] border-solid border-[#666] bg-[#f7f7f7] px-[12rpx] py-[6rpx] rounded" @click="copy(item.code)">复制</text>
+                                </view>
+                            </swiper-item>
+                        </swiper>
+                        <block v-else>
+                            <view class="flex flex-col items-center justify-center">
+                                <image :src="verifyInfo[0].qrcode" class="w-[300rpx]" mode="widthFix"></image>
+                            </view>
+                            <view class="flex items-center justify-center mt-[30rpx]">
+                                <text class="text-[28rpx] font-500">{{verifyInfo[0].code}}</text>
+                                <text class="text-[var(--text-color-light6)] text-[24rpx] ml-[10rpx] border-[2rpx] border-solid border-[#666] bg-[#f7f7f7] px-[12rpx] py-[6rpx] rounded" @click="copy(verifyInfo[0].code)">复制</text>
+                            </view>
+                        </block>
+                        
+                    </view>
+                    <view class="sidebar-margin mt-[var(--top-m)] card-template">
+                        <view class="title">核销信息</view>
+                        <view class="card-template-item justify-between">
+                            <view class="text-[28rpx]">核销次数</view>
+                            <view class="price-font font-500 text-[28rpx]">
+                                {{'剩余'+(verifyGoodsData.num - verifyGoodsData.verify_count)+'次'}}/{{'共'+verifyGoodsData.num+'次'}}
+                            </view>
+                        </view>
+                        <view class="card-template-item justify-between">
+                            <view class="text-[28rpx]">有效期</view>
+                            <view class="price-font font-500 text-[28rpx]">
+                                {{verifyGoodsData.verify_expire_time ? verifyGoodsData.verify_expire_time : '永久'}}
+                            </view>
+                        </view>
+                    </view>
+                </block>
                 <view class="sidebar-margin mt-[var(--top-m)] card-template">
                     <view class="card-template-item justify-between">
                         <view class="text-[28rpx]">{{ t('goodsMoney') }}</view>
@@ -322,19 +357,20 @@
                     <view class="flex"></view>
                     <view class="flex justify-end">
                         <view @click="orderBtnFn('index')" class="order-grey-hollow-btn ml-[20rpx]">{{ t('index') }}</view>
-                        <view class="px-[35rpx] box-border text-[24rpx] h-[60rpx] flex-center border-[2rpx] border-solid border-[#ccc] rounded-full ml-[20rpx] text-[var(--text-color-light3)]" v-if="showLogistics(detail)" @click="orderBtnFn('logistics')">
+                        <view class="order-grey-hollow-btn ml-[20rpx]" v-if="detail.order_type == 'pintuan' && detail.extend_field_2 > 0" @click="handlePintuan">查看拼团</view>
+                        <view class="order-grey-hollow-btn ml-[20rpx]" v-if="showLogistics(detail)" @click="orderBtnFn('logistics')">
                             {{ t('logisticsTracking') }}
                         </view>
                         <view class="order-grey-hollow-btn ml-[20rpx]" v-if="detail.status == 1" @click="orderBtnFn('close')">{{ t('orderClose') }}</view>
-                        <view class="px-[35rpx] box-border text-[24rpx] h-[60rpx] flex-center text-center text-[#fff] primary-btn-bg rounded-full ml-[20rpx]" @click="orderBtnFn('pay')" v-if="detail.status == 1">{{ t('topay') }}</view>
-                        <view class="px-[35rpx] box-border text-[24rpx] h-[60rpx] flex-center text-center  text-[#fff]  primary-btn-bg rounded-full ml-[20rpx]" v-if="detail.status == 3" @click="orderBtnFn('finish')" >{{ t('orderFinish') }}</view>
+                        <view class="order-primary-solid-btn primary-btn-bg  ml-[20rpx]" @click="orderBtnFn('pay')" v-if="detail.status == 1">{{ t('topay') }}</view>
+                        <view class="order-primary-solid-btn primary-btn-bg  ml-[20rpx]" v-if="detail.status == 3" @click="orderBtnFn('finish')" >{{ t('orderFinish') }}</view>
                         <template v-if="detail.status == 5">
-                            <view v-if="detail.is_evaluate == 1 || (detail.is_evaluate != 1 && evaluateConfig.is_evaluate == 1)"
-                                class="px-[35rpx] box-border text-[26rpx]  h-[60rpx] flex-center border-[2rpx] border-solid border-[#ccc] rounded-full ml-[20rpx] !text-[var(--text-color-light3)]"
+                            <view v-if="detail.is_evaluate == 1 || (detail.is_evaluate != 1 && evaluateConfig.is_evaluate == 1)" class="order-grey-hollow-btn ml-[20rpx] "
                                 @click="orderBtnFn('evaluate')">{{ detail.is_evaluate == 1 ? t('selectedEvaluate') : t('evaluate') }}</view>
                         </template>
                     </view>
                 </view>
+            
             </view>
             <view class="tab-bar-placeholder"></view>
             <pay ref="payRef" @close="payClose"></pay>
@@ -358,12 +394,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed,nextTick } from 'vue';
-import { onLoad, onShow } from '@dcloudio/uni-app'
+import { onLoad, onShow, onPageScroll } from '@dcloudio/uni-app'
 import { t } from '@/locale'
 import { img, redirect, copy, goback, distance } from '@/utils/common';
 import { getMallOrderDetail, orderClose, orderFinish, getMallOrderPay,getMallOrderClose } from '@/addon/mall/api/order';
 import { getEvaluateConfig } from '@/addon/mall/api/shop';
 import { getVerifyCode } from '@/app/api/verify';
+
 import logisticsTracking from '@/addon/mall/pages/order/components/logistics-tracking/logistics-tracking.vue'
 import deliveryRecord from '@/addon/mall/pages/order/components/delivery-record/delivery-record.vue'
 import useConfigStore from "@/stores/config";
@@ -379,9 +416,9 @@ const topTabarObj = topTabar()
 let topTabbarData = topTabarObj.setTopTabbarParam({ title: '订单详情' })
 /********* 自定义头部 - end ***********/
 
-
 const systemStore = useSystemStore();
 
+const isShowLocalDelivery = ref(false)
 const detail = ref<any>({});
 const loading = ref<boolean>(true);
 const type = ref('')
@@ -424,6 +461,9 @@ onShow(() => {
     orderDetailFn(orderId.value);
 })
 
+
+
+
 getEvaluateConfig().then(({ data }) => {
     evaluateConfig.value = data
 })
@@ -435,6 +475,10 @@ const orderDetailFn = (id: any) => {
         position: systemStore.diyAddressInfo
     }).then((res: any) => {
 		detail.value = res.data;
+        isShowLocalDelivery.value = detail.value.show_local_delivery_info
+        if(isShowLocalDelivery.value){
+           topTabbarData = topTabarObj.setTopTabbarParam({ title: '订单详情', topStatusBar: { textColor: '#333' }})
+        }
         if(res.data.order_goods && res.data.order_goods.length && isShowVerify.value){
 			let obj: any = {};
 			obj.order_goods_id = res.data.order_goods[0].order_goods_id
@@ -458,17 +502,29 @@ const orderDetailFn = (id: any) => {
 	})
 }
 
+// 是否展示地图
+let expectedFinishTime = ref()
+const handleComfirm = (val: any) => {
+    if(val){
+        isShowLocalDelivery.value = true
+    } else {
+        isShowLocalDelivery.value = false
+    }
+    expectedFinishTime.value = val?.expected_finish_time
+
+}
+
 // 支付
 let groupPayRef = ref(null)
 const payFn = (item:any) => {
 	getMallOrderPay(item.order_id).then((res: any) => {
         if(res.data.is_allow_pay){
-		    payRef.value?.open(item.order_type, res.data.group_id, `/addon/mall/pages/order/detail?order_id=${item.order_id}`);
+		    payRef.value?.open('mall', res.data.group_id, `/addon/mall/pages/order/detail?order_id=${item.order_id}`);
         }else{
             if(res.data.order_list.length){
                 groupPayRef.value.open(res.data,item)
             }else{
-                payRef.value?.open(item.order_type, res.data.group_id, `/addon/mall/pages/order/detail?order_id=${item.order_id}`);
+                payRef.value?.open('mall', res.data.group_id, `/addon/mall/pages/order/detail?order_id=${item.order_id}`);
             }
 			
 		}
@@ -560,13 +616,32 @@ const finish = (item: any) => {
 }
 
 const goodsEvent = (id: number) => {
-	redirect({
-		url: '/addon/mall/pages/goods/detail',
-		param: {
-			goods_id: id
-		}
-	})
+    if(detail.value.order_type == 'pintuan') {
+        redirect({
+            url: '/addon/pintuan/pages/goods/detail',
+            param: {
+                pintuan_id: detail.value.extend_field_1
+            }
+        })
+    } else {
+        redirect({
+            url: '/addon/mall/pages/goods/detail',
+            param: {
+                goods_id: id
+            }
+        })
+    }
 }
+const handlePintuan = () => {
+    redirect({
+        url: '/addon/pintuan/pages/order/detail',
+        param: {
+            order_id: detail.value.order_id
+        }
+    })
+}
+
+
 
 const payRef = ref(null)
 const materialRef: any = ref(null)

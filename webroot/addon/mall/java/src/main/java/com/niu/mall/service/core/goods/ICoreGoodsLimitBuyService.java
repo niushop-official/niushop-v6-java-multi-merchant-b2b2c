@@ -8,10 +8,10 @@ public interface ICoreGoodsLimitBuyService {
 
     /**
      * 检测商品限购
-     * @param goodsList
+     * @param vo
      * @return
      */
-    String checkGoodsLimitBuy(Integer memberId, Map<String, OrderCreateDataVo.LimitBuy> goodsList);
+    String checkGoodsLimitBuy(Integer memberId, OrderCreateDataVo vo);
 
     /**
      * 获取会员购买商品数量

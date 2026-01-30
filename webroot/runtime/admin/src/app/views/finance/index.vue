@@ -57,24 +57,6 @@
 			<el-row :gutter="24" class="mb-[20px]">
 				<el-col :span="6">
 					<div class="bg-[#F6F8FF] rounded-[8px] border-[#ECF1FD] border-solid border-[1px] p-[20px]">
-						<div class="text-[16px] text-[#000] font-500 pb-[8px] leading-[22px] border-b-[1px] border-solid border-[#ECF1FD] mb-[20px]">{{ t('充值金额') }}</div>
-						<div class="flex justify-between items-center">
-							<div class="text-[24px] font-bold text-[#000] leading-[28px]">{{ parseFloat(totalStat.recharge_money).toFixed(2) }}</div>
-							<img class="w-[40px] h-[40px]" src="@/app/assets/images/finance/icon-05.png" />
-						</div>
-					</div>
-				</el-col>
-				<el-col :span="6">
-					<div class="bg-[#F6F8FF] rounded-[8px] border-[#ECF1FD] border-solid border-[1px] p-[20px]">
-					<div class="text-[16px] text-[#000] font-500 pb-[8px] leading-[22px] border-b-[1px] border-solid border-[#ECF1FD] mb-[20px]">{{ t('充值消费金额') }}</div>
-						<div class="flex justify-between items-center">
-							<div class="text-[20px] font-bold text-[#111] mb-[11px] leading-[18px] text-left">{{ parseFloat(totalStat.recharge_pay_money).toFixed(2) }}</div>
-							<img class="w-[40px] h-[40px]" src="@/app/assets/images/finance/icon-06.png" />
-						</div>
-					</div>
-				</el-col>
-				<el-col :span="6">
-					<div class="bg-[#F6F8FF] rounded-[8px] border-[#ECF1FD] border-solid border-[1px] p-[20px]">
 						<div class="text-[16px] text-[#000] font-500 pb-[8px] leading-[22px] border-b-[1px] border-solid border-[#ECF1FD] mb-[20px]">{{ t('商家支付分账金额') }}</div>
 						<div class="flex justify-between items-center">
 							<div class="text-[20px] font-bold text-[#111] mb-[11px] leading-[18px] text-left">{{ parseFloat(totalStat.shop_separate_money).toFixed(2) }}</div>
@@ -91,8 +73,6 @@
 						</div>
 					</div>
 				</el-col>
-			</el-row>
-			<el-row :gutter="24">
 				<el-col :span="6" v-if="user_store.checkAddon('supply')">
 					<div class="bg-[#F6F8FF] rounded-[8px] border-[#ECF1FD] border-solid border-[1px] p-[20px]">
 						<div class="text-[16px] text-[#000] font-500 pb-[8px] leading-[22px] border-b-[1px] border-solid border-[#ECF1FD] mb-[20px]">{{ t('供货商货款') }}</div>

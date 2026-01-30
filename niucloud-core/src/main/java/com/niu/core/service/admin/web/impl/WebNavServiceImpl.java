@@ -64,7 +64,6 @@ public class WebNavServiceImpl implements IWebNavService {
         if (ObjectUtil.isNotEmpty(searchParam.getNavTitle())) {
             queryWrapper.eq("nav_title", searchParam.getNavTitle());
         }
-
         queryWrapper.eq("is_show", 1);
         queryWrapper.orderByDesc("sort");
 

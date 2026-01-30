@@ -9,6 +9,7 @@ import com.niu.core.service.admin.article.param.ArticeSearchParam;
 import com.niu.core.service.admin.article.param.ArticleParam;
 import com.niu.core.service.admin.article.vo.ArticleInfoVo;
 import com.niu.core.service.admin.article.vo.ArticleListVo;
+import com.niu.core.service.admin.article.vo.ArticlePageVo;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -94,6 +95,19 @@ public class ArticleController {
     public Result<Object> del(@PathVariable("id") Integer id) {
         articleService.del(id);
         return Result.success();
+    }
+
+    /**
+     * 获取文章选择列表
+     *
+     * @param pageParam 分页
+     * @param searchParam 搜索条件
+     * @return Result<PageResult<WebAdvListVo>>
+     */
+    @GetMapping("/article/select")
+    public Result<PageResult<ArticlePageVo>> pageList(@Validated PageParam pageParam, @Validated ArticeSearchParam searchParam) {
+        PageResult<ArticlePageVo> list = articleService.pageList(pageParam, searchParam);
+        return Result.success(list);
     }
 
 }

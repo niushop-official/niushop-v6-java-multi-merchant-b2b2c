@@ -1,1 +1,0 @@
-import{aQ as r}from"./index-96e75b4c.js";function s(e){return r.get("user/user",{params:e})}function u(e){return r.get(`user/user/${e}`)}function n(e){return r.get("user/user_all",{params:e})}function i(e){return r.get("user/site/user_all",{params:e})}export{u as a,s as b,i as c,n as g};

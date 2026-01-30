@@ -20,6 +20,7 @@ export function useDiy(params: any = {}) {
     // 自定义页面 数据
     const diyData = reactive({
         pageMode: 'diy',
+        name: '',
         title: '',
         global: {},
         value: []
@@ -128,6 +129,8 @@ export function useDiy(params: any = {}) {
 
                         diyData.pageMode = requestData.mode;
                         diyData.title = requestData.title;
+                        diyData.name = requestData.name;
+
 
                         let sources = JSON.parse(requestData.value); // todo diy的结构应该后台处理好，前端就不需要再转换了
 

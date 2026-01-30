@@ -22,7 +22,6 @@
                     <div class="form-tip">{{ t('agreementTips') }}</div>
                 </el-form-item>
             </el-card>
-
             <el-card class="box-card mt-[15px] !border-none" shadow="never">
                 <h3 class="panel-title !text-sm">{{ t('tripartiteSetting') }}</h3>
 
@@ -50,7 +49,21 @@
                 <el-form-item :label="t('desc')">
                     <el-input v-model.trim="formData.desc" :placeholder="t('descPlaceholder')" class="input-width" clearable maxlength="20" show-word-limit />
                 </el-form-item>
-
+            </el-card>
+            <el-card class="box-card mt-[15px] !border-none" shadow="never">
+                <h3 class="panel-title !text-sm">验证方式</h3>
+                <el-form-item :label="t('验证类型')" prop="captcha_type">
+                    <el-radio-group v-model="formData.captcha_type">
+                        <el-popover placement="bottom" :width="180" trigger="hover" v-for="(item,key) in captchaType" :key="key">
+                            <template #reference>
+                                <el-radio :label="key">{{ item.name }}</el-radio>
+                            </template>
+                            <div class="flex justify-center">
+                                <img :src="img(item.example_img)" alt="" class="w-[150px] h-[150px]" />
+                            </div>
+                        </el-popover>
+                    </el-radio-group>
+                </el-form-item>
             </el-card>
         </el-form>
 
@@ -65,7 +78,9 @@
 <script lang="ts" setup>
 import { reactive, ref, computed } from 'vue'
 import { t } from '@/lang'
+import { img } from '@/utils/common'
 import { getLoginConfig, setLoginConfig } from '@/app/api/member'
+import { getCaptchaType } from '@/app/api/notice'
 import { FormInstance } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { cloneDeep } from 'lodash-es'
@@ -84,7 +99,8 @@ const formData:any = reactive({
     agreement_show: 0,
     bg_url: '',
     logo: '',
-    desc: ''
+    desc: '',
+    captcha_type: 'blockPuzzle'
 })
 
 const formRules = computed(() => {
@@ -114,6 +130,13 @@ const setFormData = async () => {
 }
 setFormData()
 
+const captchaType = ref()
+const getCaptchaTypeFn = () => {
+    getCaptchaType().then((res: any) => {
+        captchaType.value = res.data
+    })
+}
+getCaptchaTypeFn()
 const onSave = async (formEl: FormInstance | undefined) => {
     if (loading.value || !formEl) return
     await formEl.validate((valid) => {

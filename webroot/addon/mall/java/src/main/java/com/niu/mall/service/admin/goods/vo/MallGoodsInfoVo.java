@@ -51,7 +51,6 @@ public class MallGoodsInfoVo implements Serializable {
     private Integer supplierId;
     private String unit;
     private String updateTime;
-    private Integer virtualSaleNum;
 
     @Data
     public static class CategoryName {

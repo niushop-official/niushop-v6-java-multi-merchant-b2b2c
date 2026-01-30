@@ -251,12 +251,12 @@ let groupPayRef = ref(null)
 const payFn = (item:any) => {
 	getMallOrderPay(item.order_id).then((res:any) =>{
 		if(res.data.is_allow_pay){
-            router.push({ path: '/pay/pay', query: {trade_type: item.order_type,trade_id: res.data.group_id } })
+            router.push({ path: '/pay/pay', query: {trade_type: 'mall',trade_id: res.data.group_id } })
 		}else{
             if(res.data.order_list.length){
 			    groupPayRef.value.open(res.data,item)
             }else{
-                router.push({ path: '/pay/pay', query: {trade_type: item.order_type,trade_id: res.data.group_id } })
+                router.push({ path: '/pay/pay', query: {trade_type: 'mall',trade_id: res.data.group_id } })
             }
 		}
 	})

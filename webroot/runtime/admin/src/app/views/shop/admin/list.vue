@@ -141,27 +141,27 @@
             </div>
         </el-card>
 		<el-dialog v-model="resetPasswordDialog" :title=" t('resetPassword')" width="500">
-		    <el-form ref="passwordFormRef" :model="formPassword" :rules="formPasswordRules" label-width="100px" v-loading="formLoading">
+            <el-form ref="passwordFormRef" :model="formPassword" :rules="formPasswordRules" label-width="100px" v-loading="formLoading">
 				<el-form-item :label="t('password')" prop="password">
-				    <el-input v-model="formPassword.password" clearable :placeholder="t('passwordPlaceholder')" class="input-width" :show-password="true" type="password" :readonly="password_input" @click="password_input = false" @blur="password_input = true" />
+                    <el-input v-model="formPassword.password" clearable :placeholder="t('passwordResetPlaceholder')" class="input-width" :show-password="true" type="password" :readonly="password_input" @click="password_input = false" @blur="password_input = true" />
 				</el-form-item>
 				<el-form-item :label="t('confirmPassword')" prop="confirm_password">
-				    <el-input v-model="formPassword.confirm_password" :placeholder="t('confirmPasswordPlaceholder')" type="password" :show-password="true" clearable class="input-width" :readonly="confirm_password_input" @click="confirm_password_input = false" @blur="confirm_password_input = true" />
+                    <el-input v-model="formPassword.confirm_password" :placeholder="t('confirmPasswordPlaceholder')" type="password" :show-password="true" clearable class="input-width" :readonly="confirm_password_input" @click="confirm_password_input = false" @blur="confirm_password_input = true" />
 				</el-form-item>
-		    </el-form>
-		    <template #footer>
+            </el-form>
+            <template #footer>
 				<div class="dialog-footer">
 					<el-button @click="closeDialog">{{t('cancel')}}</el-button>
 					<el-button type="primary" :loading="formLoading" @click="confrimPassword()">{{t('confrim')}}</el-button>
 				</div>
-		    </template>
-		  </el-dialog>
+            </template>
+		</el-dialog>
         <edit-shop ref="addSiteDialog" @complete="loadShopList()" />
     </div>
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref ,computed} from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { img } from '@/utils/common'
 import { t } from '@/lang'
 import { getShopPageList, getShopGroupAll, getStatusList, getAppList, closeShop, openShop, deleteShop,resetPassword } from '@/app/api/shop_admin'
@@ -177,15 +177,15 @@ const user_store = userStore()
 const groupList = ref({
     all: []
 })
-const passwordFormRef = ref<FormInstance>() 
+const passwordFormRef = ref<FormInstance>()
 const password_input = ref(true)
 const confirm_password_input = ref(true)
 const resetPasswordDialog= ref(false)
 const statusList = ref([])
 const formPassword = reactive({
-	password:'',
-	confirm_password:'',
-	id:''
+    password: '',
+    confirm_password: '',
+    id: ''
 })
 const shopTableData = reactive({
     page: 1,
@@ -356,27 +356,27 @@ const deleteEvent = (data: any) => {
     })
 }
 const reserPassword = (data: any) =>{
-	formPassword.id = data.site_id
-	resetPasswordDialog.value = true
+    formPassword.id = data.site_id
+    resetPasswordDialog.value = true
 }
 const closeDialog = () =>{
-	formPassword.password = ''
-	formPassword.confirm_password = ''
-	resetPasswordDialog.value = false // 关闭对话框
+    formPassword.password = ''
+    formPassword.confirm_password = ''
+    resetPasswordDialog.value = false // 关闭对话框
 }
 /**
  * 确认
  * @param formEl
  */
 const confrimPassword = async () => {
-     if (formLoading.value || !passwordFormRef.value) return
+    if (formLoading.value || !passwordFormRef.value) return
 	
     await passwordFormRef.value.validate(async (valid) => {
         if (valid) {
             formLoading.value = true
             resetPassword(formPassword).then(res => {
                 formLoading.value = false
-				closeDialog() // 关闭对话框
+                closeDialog() // 关闭对话框
             }).catch(() => {
                 formLoading.value = false
             })

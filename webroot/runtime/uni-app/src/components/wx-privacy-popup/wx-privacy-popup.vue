@@ -57,8 +57,6 @@ onMounted(() => {
     try {
         wx.getPrivacySetting({
             success(res: any) {
-                // console.log('隐私政策信息', res);
-                // console.log(res.privacyContractName);
                 privacyContractName.value = res.privacyContractName
             }
         });

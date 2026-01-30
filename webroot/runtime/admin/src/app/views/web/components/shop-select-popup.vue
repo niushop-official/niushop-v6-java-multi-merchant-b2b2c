@@ -70,8 +70,8 @@ import { getShopSelect, getShopCategoryAll } from '@/app/api/shop_admin'
 
 const prop = defineProps({
     modelValue: {
-        type: [String, Array],
-        default: () => []
+        type: String,
+        default: ''
     },
     max: {
         type: Number,
@@ -139,7 +139,6 @@ const loadShopsList = (page: number = 1, callback: any = null) => {
     shopTable.page = page
 
     const searchData = cloneDeep(shopTable.searchParam);
-    
 
     if (searchData.select_type == 'selected') {
         const site_ids = <any>[]
@@ -205,9 +204,7 @@ const handleSelectAllChange = (selection: any) => {
 // 表格设置选中状态
 const setShopSelected = () => {
     nextTick(() => {
-        if (!shopTableRef.value) {
-            return
-        }
+        if (!shopTableRef.value) return
         for (let i = 0; i < shopTable.data.length; i++) {
             shopTableRef.value.toggleRowSelection(shopTable.data[i], false)
             if (selectShop['site_' + shopTable.data[i].site_id]) {
@@ -218,38 +215,30 @@ const setShopSelected = () => {
 }
 const show = () => {
     // 检测店铺id集合是否存在，移除不存在的店铺id，纠正数据准确性
-    
     shopTable.searchParam.verify_site_ids = shopIds.value
     loadShopsList(1, (verify_site_ids: any) => {
         // 第一次打开弹出框时，纠正数据，并且赋值已选店铺
-        if (verify_site_ids && verify_site_ids.length > 0) {
-            // 更新shopIds为验证后的有效ID
-            if (!Array.isArray(shopIds.value)) {
-                shopIds.value = []
-            }
+        if (shopIds.value) {
             shopIds.value.splice(0, shopIds.value.length, ...verify_site_ids)
-            
-            // 先清空selectShop
+            // 先删除 selectShop 中已经不再存在于 shopIds 中的店铺
             for (const key in selectShop) {
-                delete selectShop[key]
+                const shopId = key.replace('site_', '')
+                if (!shopIds.value.includes(Number(shopId))) {
+                    delete selectShop[key] // 删除不存在的店铺
+                }
             }
-            
-            // 根据verify_site_ids设置选中状态
-            verify_site_ids.forEach((siteId: any) => {
-                selectShop['site_' + siteId] = {}
+            shopIds.value.forEach((item: any) => {
+                if (!selectShop['site_' + item]) {
+                    selectShop['site_' + item] = {}
+                }
             })
 
-            // 赋值已选择的店铺详细信息
+            // 赋值已选择的店铺
             for (let i = 0; i < shopTable.data.length; i++) {
-                if (verify_site_ids.includes(shopTable.data[i].site_id)) {
+                if (shopIds.value.indexOf(shopTable.data[i].site_id) != -1) {
                     selectShop['site_' + shopTable.data[i].site_id] = shopTable.data[i]
                 }
             }
-            
-            // 确保在下一个tick中调用setShopSelected
-            nextTick(() => {
-                setShopSelected()
-            })
         }
     })
     showDialog.value = true

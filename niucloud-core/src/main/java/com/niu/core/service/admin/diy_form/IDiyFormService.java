@@ -154,4 +154,12 @@ public interface IDiyFormService {
      */
     Map<String, Object> getQrcode(int formId);
 
+    /**
+     * 万能表单分页列表（用于弹框选择）
+     * @param pageParam
+     * @param searchParam
+     * @return
+     */
+    PageResult<DiyFormInfoVo> getSelectPage(PageParam pageParam, DiyFormSelectParam searchParam);
+
 }

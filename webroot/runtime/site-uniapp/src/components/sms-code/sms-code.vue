@@ -37,6 +37,7 @@ const sendSms = useSendSms(smsRef)
 const formData: any = reactive({
     mobile: '',
     captcha_code: '',
+    captcha_type: '',
     type: prop.type
 })
 
@@ -60,6 +61,7 @@ const handleSend = async() => {
 }
 const handleConfirm = async(data: any, callback: any = null ) => {
     formData.captcha_code = data.captcha_code
+    formData.captcha_type = data.captcha_type
     const sendRes = await sendSms.send(formData)
 
     if (sendRes) {

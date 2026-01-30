@@ -145,8 +145,8 @@ public class ShopController {
      * @return 获取店铺扩展信息
      */
     @GetMapping("/web/shop/{siteId}")
-    public Result<SiteShopInfoVo> getSiteBySiteId(@PathVariable("siteId") Integer siteId) {
-        return Result.success(siteShopService.info(siteId));
+    public Result<SiteShopInfoVo> getSiteBySiteId(@PathVariable("siteId") Object siteId, @RequestParam Map<String, String> allParams) {
+        return Result.success(siteShopService.info(siteId,allParams));
     }
 
     /**

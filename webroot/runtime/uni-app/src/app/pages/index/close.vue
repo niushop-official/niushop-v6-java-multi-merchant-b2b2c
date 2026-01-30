@@ -11,6 +11,15 @@
 <script setup lang="ts">
 import { img } from '@/utils/common'
 import { t } from '@/locale'
+import { redirect } from '@/utils/common';
+import { getSiteInfo } from '@/app/api/system';
+import { onLoad } from '@dcloudio/uni-app';
+
+onLoad(()=> {
+    getSiteInfo().then(()=>{
+        redirect({ url: '/app/pages/index/index' })
+    })
+})
 </script>
 
 <style lang="scss" scoped></style>

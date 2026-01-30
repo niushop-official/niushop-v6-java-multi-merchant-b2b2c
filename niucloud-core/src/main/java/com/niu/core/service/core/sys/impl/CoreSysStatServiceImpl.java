@@ -23,12 +23,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -67,6 +71,9 @@ public class CoreSysStatServiceImpl implements ICoreSysStatService {
                     if (ObjectUtil.isNotEmpty(sysDataAddParam.getAccessSum()) && sysDataAddParam.getAccessSum() > 0){
                         stat.setAccessSum(stat.getAccessSum() + sysDataAddParam.getAccessSum());
                     }
+                    if (ObjectUtil.isNotEmpty(sysDataAddParam.getVisitNum()) && sysDataAddParam.getVisitNum() > 0){
+                        stat.setVisitNum(stat.getVisitNum() + sysDataAddParam.getVisitNum());
+                    }
                     if (ObjectUtil.isNotEmpty(sysDataAddParam.getDeliveryMoney()) && sysDataAddParam.getDeliveryMoney().compareTo(BigDecimal.ZERO) > 0){
                         stat.setDeliveryMoney(stat.getDeliveryMoney().add(sysDataAddParam.getDeliveryMoney()));
                     }
@@ -89,7 +96,9 @@ public class CoreSysStatServiceImpl implements ICoreSysStatService {
                         stat.setOrderActualRefundMoney(stat.getOrderActualRefundMoney().add(sysDataAddParam.getOrderActualRefundMoney()));
                     }
                     if (ObjectUtil.isNotEmpty(sysDataAddParam.getOrderNum()) && sysDataAddParam.getOrderNum() > 0){
-                        stat.setOrderNum(stat.getOrderNum() + sysDataAddParam.getOrderNum());
+                        Integer oldOrderNum = stat.getOrderNum();
+                        Integer newOrderNum = (oldOrderNum == null ? 0 : oldOrderNum) + sysDataAddParam.getOrderNum();
+                        stat.setOrderNum(newOrderNum);
                     }
                     if (ObjectUtil.isNotEmpty(sysDataAddParam.getOrderReceivableMoney()) && sysDataAddParam.getOrderReceivableMoney().compareTo(BigDecimal.ZERO) > 0){
                         stat.setOrderReceivableMoney(stat.getOrderReceivableMoney().add(sysDataAddParam.getOrderReceivableMoney()));
@@ -102,6 +111,12 @@ public class CoreSysStatServiceImpl implements ICoreSysStatService {
                     }
                     if (ObjectUtil.isNotEmpty(sysDataAddParam.getRechargePayMoney()) && sysDataAddParam.getRechargePayMoney().compareTo(BigDecimal.ZERO) > 0){
                         stat.setRechargePayMoney(stat.getRechargePayMoney().add(sysDataAddParam.getRechargePayMoney()));
+                    }
+                    if (ObjectUtil.isNotEmpty(sysDataAddParam.getRechargeOrderMoney()) && sysDataAddParam.getRechargeOrderMoney().compareTo(BigDecimal.ZERO) > 0){
+                        stat.setRechargeOrderMoney(stat.getRechargeOrderMoney().add(sysDataAddParam.getRechargeOrderMoney()));
+                    }
+                    if (ObjectUtil.isNotEmpty(sysDataAddParam.getRechargeGiveMoney()) && sysDataAddParam.getRechargeGiveMoney().compareTo(BigDecimal.ZERO) > 0){
+                        stat.setRechargeGiveMoney(stat.getRechargeGiveMoney().add(sysDataAddParam.getRechargeGiveMoney()));
                     }
                     if (ObjectUtil.isNotEmpty(sysDataAddParam.getRefundDeliveryMoney()) && sysDataAddParam.getRefundDeliveryMoney().compareTo(BigDecimal.ZERO) > 0){
                         stat.setRefundDeliveryMoney(stat.getRefundDeliveryMoney().add(sysDataAddParam.getRefundDeliveryMoney()));
@@ -316,5 +331,91 @@ public class CoreSysStatServiceImpl implements ICoreSysStatService {
             list.add(vo);
         }
         return PageResult.build(page, limit, iPage.getTotal()).setData(list);
+    }
+
+    @Override
+    public SysStatListVo getStatDetail(Integer siteId, String date, String type) {
+        QueryWrapper<SysStat> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("site_id", siteId);
+        SysStat stat = null;
+
+        if ("day".equals(type)) {
+            // 日账单：查询指定日期的记录（直接查询实体对象）
+            queryWrapper.eq("date", date);
+            queryWrapper.orderByDesc("date");
+            stat = sysStatMapper.selectOne(queryWrapper);
+        } else {
+            // 月账单：按月份分组汇总
+            queryWrapper.eq("month", date);
+            queryWrapper.select("site_id",
+                    "month",
+                    "IFNULL(sum(order_num), 0) as order_num",
+                    "IFNULL(sum(sale_money), 0) as sale_money",
+                    "IFNULL(sum(refund_money), 0) as refund_money",
+                    "IFNULL(sum(access_sum), 0) as access_sum",
+                    "IFNULL(sum(order_receivable_money), 0) as order_receivable_money",
+                    "IFNULL(sum(order_actual_money), 0) as order_actual_money",
+                    "IFNULL(sum(mall_coupon_money), 0) as mall_coupon_money",
+                    "IFNULL(sum(mall_refund_coupon_money), 0) as mall_refund_coupon_money",
+                    "IFNULL(sum(order_refund_money), 0) as order_refund_money",
+                    "IFNULL(sum(order_actual_refund_money), 0) as order_actual_refund_money",
+                    "IFNULL(sum(shop_separate_money), 0) as shop_separate_money",
+                    "IFNULL(sum(shop_refund_separate_money), 0) as shop_refund_separate_money",
+                    "IFNULL(sum(shop_commission), 0) as shop_commission",
+                    "IFNULL(sum(shop_refund_commission), 0) as shop_refund_commission",
+                    "IFNULL(sum(delivery_money), 0) as delivery_money",
+                    "IFNULL(sum(refund_delivery_money), 0) as refund_delivery_money",
+                    "IFNULL(sum(mall_service_money), 0) as mall_service_money",
+                    "IFNULL(sum(mall_refund_service_money), 0) as mall_refund_service_money",
+                    "IFNULL(sum(recharge_money), 0) as recharge_money",
+                    "IFNULL(sum(recharge_order_money), 0) as recharge_order_money",
+                    "IFNULL(sum(recharge_pay_money), 0) as recharge_pay_money",
+                    "IFNULL(sum(recharge_give_money), 0) as recharge_give_money",
+                    "IFNULL(sum(supply_money), 0) as supply_money",
+                    "IFNULL(sum(supply_refund_money), 0) as supply_refund_money",
+                    "IFNULL(sum(supply_separate_money), 0) as supply_separate_money",
+                    "IFNULL(sum(supply_refund_separate_money), 0) as supply_refund_separate_money");
+            queryWrapper.groupBy("month");
+            queryWrapper.orderByDesc("month");
+            stat = sysStatMapper.selectOne(queryWrapper);
+        }
+
+        if (stat == null) {
+            return new SysStatListVo();
+        }
+
+        // 构建VO对象（与项目其他方法保持一致）
+        SysStatListVo vo = new SysStatListVo();
+        BeanUtils.copyProperties(stat, vo);
+        vo.setSiteId(stat.getSiteId());
+        vo.setTime("day".equals(type) ? stat.getDate() : stat.getMonth());
+        vo.setOrderNum(Optional.ofNullable(stat.getOrderNum()).orElse(0));
+        vo.setSaleMoney(Optional.ofNullable(stat.getSaleMoney()).orElse(BigDecimal.ZERO));
+        vo.setRefundMoney(Optional.ofNullable(stat.getRefundMoney()).orElse(BigDecimal.ZERO));
+        vo.setAccessNum(Optional.ofNullable(stat.getAccessSum()).orElse(0));
+        vo.setOrderReceivableMoney(Optional.ofNullable(stat.getOrderReceivableMoney()).orElse(BigDecimal.ZERO));
+        vo.setOrderActualMoney(Optional.ofNullable(stat.getOrderActualMoney()).orElse(BigDecimal.ZERO));
+        vo.setMallCouponMoney(Optional.ofNullable(stat.getMallCouponMoney()).orElse(BigDecimal.ZERO));
+        vo.setMallRefundCouponMoney(Optional.ofNullable(stat.getMallRefundCouponMoney()).orElse(BigDecimal.ZERO));
+        vo.setOrderRefundMoney(Optional.ofNullable(stat.getOrderRefundMoney()).orElse(BigDecimal.ZERO));
+        vo.setOrderActualRefundMoney(Optional.ofNullable(stat.getOrderActualRefundMoney()).orElse(BigDecimal.ZERO));
+        vo.setShopSeparateMoney(Optional.ofNullable(stat.getShopSeparateMoney()).orElse(BigDecimal.ZERO));
+        vo.setShopRefundSeparateMoney(Optional.ofNullable(stat.getShopRefundSeparateMoney()).orElse(BigDecimal.ZERO));
+        vo.setShopCommission(Optional.ofNullable(stat.getShopCommission()).orElse(BigDecimal.ZERO));
+        vo.setShopRefundCommission(Optional.ofNullable(stat.getShopRefundCommission()).orElse(BigDecimal.ZERO));
+        vo.setDeliveryMoney(Optional.ofNullable(stat.getDeliveryMoney()).orElse(BigDecimal.ZERO));
+        vo.setRefundDeliveryMoney(Optional.ofNullable(stat.getRefundDeliveryMoney()).orElse(BigDecimal.ZERO));
+        vo.setMallServiceMoney(Optional.ofNullable(stat.getMallServiceMoney()).orElse(BigDecimal.ZERO));
+        vo.setMallRefundServiceMoney(Optional.ofNullable(stat.getMallRefundServiceMoney()).orElse(BigDecimal.ZERO));
+        vo.setRechargeMoney(Optional.ofNullable(stat.getRechargeMoney()).orElse(BigDecimal.ZERO));
+        vo.setRechargeOrderMoney(Optional.ofNullable(stat.getRechargeOrderMoney()).orElse(BigDecimal.ZERO));
+        vo.setRechargePayMoney(Optional.ofNullable(stat.getRechargePayMoney()).orElse(BigDecimal.ZERO));
+        vo.setRechargeGiveMoney(Optional.ofNullable(stat.getRechargeGiveMoney()).orElse(BigDecimal.ZERO));
+        vo.setSupplyMoney(Optional.ofNullable(stat.getSupplyMoney()).orElse(BigDecimal.ZERO));
+        vo.setSupplyRefundMoney(Optional.ofNullable(stat.getSupplyRefundMoney()).orElse(BigDecimal.ZERO));
+        vo.setSupplySeparateMoney(Optional.ofNullable(stat.getSupplySeparateMoney()).orElse(BigDecimal.ZERO));
+        vo.setSupplyRefundSeparateMoney(Optional.ofNullable(stat.getSupplyRefundSeparateMoney()).orElse(BigDecimal.ZERO));
+
+        return vo;
     }
 }

@@ -52,5 +52,5 @@ public class SetLocalDeliveryParam implements Serializable {
     /** 配送时间段 */
     private JSONArray deliveryTime;
 
-    private JSONArray areaData;
+    private JSONObject areaData;
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.domain.BeanJsonSerializer;
+import com.niu.core.enums.basic.InvoiceContentEnum;
 import com.niu.core.enums.basic.InvoiceHeaderTypeEnum;
 import com.niu.core.enums.basic.InvoiceTypeEnum;
 import com.niu.core.enums.basic.InvoicingEnum;
@@ -33,6 +34,7 @@ public class InvoiceListVo implements Serializable {
     private Integer headerType;  // 抬头类型
     private String headerName;  // 名称（发票抬头）
     private Integer type;  // 发票类型
+    private String typeName;  // 发票内容
     private String name;  // 发票内容
     private String taxNumber;  // 公司税号
     private String mobile;  // 开票人手机号
@@ -47,6 +49,9 @@ public class InvoiceListVo implements Serializable {
     private String invoiceNumber;  // 发票代码
     private String invoiceVoucher;  // 发票凭证
     private String remark;  // 备注
+    private String contentType;  // 备注
+    private String contentTypeName;  // 备注
+
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long createTime; // 申请时间
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
@@ -72,6 +77,13 @@ public class InvoiceListVo implements Serializable {
      */
     public String getHeaderTypeName(){
         return InvoiceHeaderTypeEnum.getNameByType(this.headerType);
+    }
+    /**
+     * 获取头名称
+     * @return
+     */
+    public String getContentTypeName(){
+        return InvoiceContentEnum.getNameByType(this.contentType);
     }
 
     /**

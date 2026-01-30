@@ -5,10 +5,13 @@
 </template>
 
 <script lang="ts" setup>
+import useSystemStore from '@/stores/system'
 definePageMeta({
     layout: "container"
 });
-
+useSystemStore().getSiteInfoFn(() =>{
+    navigateTo('/', { replace: true })
+})
 </script>
 
 <style lang="scss" scoped></style>

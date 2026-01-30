@@ -1,13 +1,18 @@
 package com.niu.core.service.core.local_delivery.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryService;
+import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
 import com.niu.core.enums.delivery.DeliveryTypeEnum;
+import com.niu.core.enums.local_delivery.LocalDeliveryStatusEnum;
+import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryServiceMapper;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryService;
 import jakarta.annotation.Resource;
@@ -28,26 +33,19 @@ public class CoreLocalDeliveryServiceImpl implements ICoreLocalDeliveryService {
     Cached cached;
     @Override
     public Map<String, Object> getConfig(String deliveryType,Integer siteId) {
-
+        if (DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryType)){
+            return new HashMap<>();
+        }
         QueryWrapper<DeliveryLocalDeliveryService> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("`key`", deliveryType);
         queryWrapper.eq("site_id", siteId);
         queryWrapper.last("limit 1");
         DeliveryLocalDeliveryService service = deliveryLocalDeliveryServiceMapper.selectOne(queryWrapper);
-        if(ObjectUtil.isEmpty(service)){
-            return new HashMap<>();
+        if(ObjectUtil.isEmpty(service) || (ObjectUtil.isNotEmpty(service) && StringUtils.isEmpty(service.getConfig()))){
+            String typeName = LocalDeliveryTypeEnum.getName(deliveryType) != null ? LocalDeliveryTypeEnum.getName(deliveryType) : deliveryType;
+            throw new RuntimeException(typeName + "未配置");
         }
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", service.getId());
-        result.put("site_id", service.getSiteId());
-        result.put("key", service.getKey());
-        result.put("name", service.getName());
-        result.put("config", service.getConfig());
-        result.put("is_merchant", service.getIsMerchant());
-        result.put("is_use", service.getIsUse());
-        result.put("is_open", service.getIsOpen());
-        
-        return result;
+        return JSONUtil.parseObj(service.getConfig());
     }
 
     @Override

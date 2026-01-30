@@ -4,23 +4,11 @@
 
             <div class="flex justify-between items-center mb-[20px]">
                 <span class="text-page-title">{{ pageName }}</span>
-                <el-button type="primary" @click="showEvent">{{ t('addCron') }}</el-button>
+                <div>
+                  <el-button type="primary" @click="showEvent">{{ t('addCron') }}</el-button>
+                  <el-button type="primary" @click="resetCronFn">{{ t('重置计划任务') }}</el-button>
+                </div>
             </div>
-
-            <el-alert type="info">
-                <template #default>
-                    <div class="flex items-center">
-                        <div>
-                            <p>
-                                {{ t('cronTipsOne') }}
-                            </p>
-                            <p class="mt-2">
-                                {{ t('cronTipsTwo') }}
-                            </p>
-                        </div>
-                    </div>
-                </template>
-            </el-alert>
 
             <el-card class="box-card !border-none mb-[10px] table-search-wrap" shadow="never">
                 <div class="flex justify-between">
@@ -146,7 +134,8 @@ import {
     addCron,
     editCron,
     deleteCron,
-    doCron
+    doCron,
+    resetCron
 } from '@/app/api/sys'
 import { ElMessageBox, FormInstance } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
@@ -319,6 +308,22 @@ const doEvent = (row: any) => {
         }).catch(() => {
         })
     })
+}
+
+// 重置任务
+const resetCronFn = (row: any) => {
+  ElMessageBox.confirm(t('确认要重置计划任务吗？'), t('warning'),
+      {
+        confirmButtonText: t('confirm'),
+        cancelButtonText: t('cancel'),
+        type: 'warning'
+      }
+  ).then(() => {
+    resetCron().then((res) => {
+      ElMessage.success(res.msg)
+    }).catch(() => {
+    })
+  })
 }
 
 const cronDialog: Record<string, any> | null = ref(null)

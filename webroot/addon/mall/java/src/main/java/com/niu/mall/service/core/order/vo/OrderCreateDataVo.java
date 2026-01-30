@@ -12,6 +12,7 @@ import com.niu.core.service.core.sys.ICoreUploadService;
 import com.niu.core.entity.delivery.DeliveryStore;
 import com.niu.core.service.core.delivery.vo.DeliveryConfigVo;
 import com.niu.mall.service.core.order.param.InvoiceCreateParam;
+import com.niu.mall.service.core.order.param.OrderHelperParam;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -44,9 +45,7 @@ public class OrderCreateDataVo implements Serializable {
     protected Map<String, Map<Integer, Discount>> discountList = new HashMap<>();
 
     //限购
-    protected Map<String, LimitBuy> limitBuy;
-
-    protected JSONObject extendData;
+    protected Map<String, LimitBuy> limitBuy = new HashMap<>();
 
     protected Basic basic = new Basic();
 
@@ -74,9 +73,15 @@ public class OrderCreateDataVo implements Serializable {
 
     protected Integer supplyId;
 
+    protected Integer isPlatCoupon = 1;
 
+    protected Integer isShopCoupon = 1;
+
+    protected String weappVersion;
     protected ConfigInfo config;
-
+    protected String buyerAskDeliveryTime;
+    protected String localDeliveryType;
+    protected JSONObject extendData;
     @Data
     public static class Basic {
         protected String body = "";
@@ -101,8 +106,9 @@ public class OrderCreateDataVo implements Serializable {
 
         protected Set<String> hasGoodsTypes = new HashSet<>();
         protected Set<String> hasDeliveryTypes = new HashSet<>();
-
         protected Integer virtualVerifyMobile;
+        protected String orderType;
+        protected JSONObject extendData;
     }
 
     @Data
@@ -125,6 +131,7 @@ public class OrderCreateDataVo implements Serializable {
         protected Integer limitType;
         protected Integer maxBuy;
         protected Integer minBuy;
+        protected List<Integer> skuIds;
     }
 
     @Data
@@ -160,7 +167,16 @@ public class OrderCreateDataVo implements Serializable {
         protected Integer isGift = 0;
         protected Integer supplyId = 0; // 供应商id
         protected Integer supplySkuId; // 关联供应商商品规格id
+        protected Integer supplyGoodsId; // 关联供应商商品规格id
         protected Long cardId = 0L;
+        protected String showType;
+        protected String orderTypeName;
+
+        protected String marketType;
+        protected Integer marketTypeId;
+        protected Integer maxBuy;
+        protected Integer minBuy;
+        protected String error;
     }
 
     @Data
@@ -455,9 +471,7 @@ public class OrderCreateDataVo implements Serializable {
         @Data
         public static class InvoiceInfo{
             @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
-            protected String invoiceContent;
-            @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
-            protected String invoiceType;
+            protected String invoiceContent;;
             protected String isInvoice;
         }
     }

@@ -1,6 +1,6 @@
 <template>
     <view class="bg-[var(--page-bg-color)] min-h-screen overflow-hidden" :style="themeColor()" v-if="memberStore.info">
-        <view class="fixed left-0 top-0 right-0 z-10">
+        <view class="fixed left-0 top-0 right-0 z-10 bg-[var(--page-bg-color)]">
             <scroll-view :scroll-x="true" class="scroll-Y box-border px-[var(--sidebar-m)]">
                 <view class="flex whitespace-nowrap justify-around items-center h-[88rpx]">
                     <view :class="['text-[28rpx] text-[#333] h-[88rpx] leading-[88rpx]', { 'class-select !text-primary': couponStatus === item.status }]" @click="statusClickFn(item.status)" v-for="(item, index) in statusList">{{ item.status_name }}({{ item.count }})</view>
@@ -8,9 +8,8 @@
             </scroll-view>
             <scroll-view :scroll-x="true" scroll-with-animation :scroll-into-view="'id' + (subActive ? subActive - 1 : 0)"  class="px-[var(--sidebar-m)] box-border">
 				<view class="items-center flex h-[88rpx]">
-					<text class="flex-shrink-0 w-[126rpx] h-[54rpx] text-[24rpx] flex-center text-center text-[#333] rounded-[30rpx] box-border mr-[20rpx] border-[2rpx] border-solid border-[#ccc]" :class="{'!text-primary !border-primary font-500 !bg-[var(--primary-color-light)]':item.value == curType}"
-						v-for="(item,index) in typeList" :key="index" :id="'id' + index"
-							@click="typeClick(index,item.value)">{{item.label}}
+					<text class="flex-shrink-0 min-w-[126rpx] px-[24rpx] h-[54rpx] text-[24rpx] flex-center text-center text-[#333] rounded-[30rpx] box-border mr-[20rpx] border-[2rpx] border-solid border-[#ccc]" :class="{'!text-primary !border-primary font-500 !bg-[var(--primary-color-light)]':item.value == curType}"
+						v-for="(item,index) in typeList" :key="index" :id="'id' + index" @click="typeClick(index,item.value)">{{item.label}}
 						</text>
 				</view>
 			</scroll-view>

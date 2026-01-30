@@ -14,6 +14,7 @@ import com.niu.core.entity.site.Site;
 import com.niu.core.entity.sys.SysConfig;
 import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.mapper.sys.SysConfigMapper;
+import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.service.admin.sys.vo.*;
 import com.niu.core.service.core.site.ICoreSiteService;
@@ -22,6 +23,7 @@ import com.niu.core.service.core.sys.ICoreSysConfigService;
 import com.niu.core.service.core.sys.vo.CoreSysConfigVo;
 import com.niu.core.service.core.sys.vo.SceneDomainVo;
 import jakarta.annotation.Resource;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -29,7 +31,7 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+@Log4j2
 @Service
 public class CoreSysConfigServiceImpl implements ICoreSysConfigService {
 
@@ -268,10 +270,14 @@ public class CoreSysConfigServiceImpl implements ICoreSysConfigService {
     public SceneDomainVo getSceneDomain() {
         String wapDomain = ObjectUtil.isNotEmpty(GlobalConfig.wapDomain) ? GlobalConfig.wapDomain.replace("#/$#", "") : RequestUtils.getRequestSecure() + "://" + RequestUtils.getRequestDomain();
 
+        SiteInfoVo siteInfoVo = coreSiteService.getSiteCache(0);
+        String siteDomain = siteInfoVo.getSiteDomain();
+
         SceneDomainVo sceneDomainVo = new SceneDomainVo();
         sceneDomainVo.setWapDomain(wapDomain);
-        sceneDomainVo.setWapUrl(wapDomain + "/wap");
-        sceneDomainVo.setWebUrl(wapDomain + "/web");
+        sceneDomainVo.setWapUrl(ObjectUtil.isNotEmpty(siteDomain) ? siteDomain + "/wap" : wapDomain + "/wap");
+        sceneDomainVo.setWebUrl(ObjectUtil.isNotEmpty(siteDomain) ? siteDomain + "/web" : wapDomain + "/web");
+        log.info("获取后端地址：{}:", JSONUtil.toJsonStr(sceneDomainVo));
         return sceneDomainVo;
     }
 

@@ -42,6 +42,7 @@ public class CoreCaptchaImgServiceImpl implements ICoreCaptchaImgService {
             coreCaptchaInfoVo.setJigsawImageBase64(jsonObject.getStr("jigsawImageBase64"));
             coreCaptchaInfoVo.setOriginalImageBase64(jsonObject.getStr("originalImageBase64"));
             coreCaptchaInfoVo.setSecretKey(jsonObject.getStr("secretKey"));
+            coreCaptchaInfoVo.setWordList(jsonObject.getJSONArray("wordList"));
         }else{
             throw new AuthException(responseModel.getRepMsg());
         }

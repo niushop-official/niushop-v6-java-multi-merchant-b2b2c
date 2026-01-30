@@ -81,35 +81,6 @@ export function useDiyForm(params: any = {}) {
                 // diyStore.id = requestData.form_id;
                 let sources = requestData.value;
                 // 匹配缓存，赋值
-                // let diyFormStorage = uni.getStorageSync('diyFormStorage_' + form_sign.value)
-                // if (diyFormStorage) {
-                //     var date = new Date();
-                //     let currentTime: any = parseInt(date.getTime() / 1000); // 定位信息 5分钟内有效，过期后将重新获取定位信息
-                //     if (diyFormStorage.validTime > currentTime) {
-                //         if (diyFormStorage.components) {
-                //             diyFormStorage.components.forEach((item: any) => {
-                //                 for (let i = 0; i < sources.value.length; i++) {
-                //                     if (sources.value[i].componentType == 'diy_form' && item.id == sources.value[i].id) {
-                //                         let comp = deepClone(item);
-                //                         let field = deepClone(comp.field);
-                //                         delete comp.field;
-                //                         // 移除不需要的数据
-                //                         delete field.required; // 是否必填
-                //                         delete field.unique; // 内容不可重复提交
-                //                         delete field.autofill; // 自动填充上次填写的内容
-                //                         delete field.privacyProtection; // 隐私保护
-                //                         Object.assign(sources.value[i], comp)
-                //                         Object.assign(sources.value[i].field, field)
-                //                         break;
-                //                     }
-                //                 }
-                //             })
-                //         }
-                //     } else {
-                //         uni.removeStorageSync('diyFormStorage_' + form_sign.value) // 清除过期的表单缓存数据
-                //     }
-                // }
-                // diyStore.value = sources.value; // 用于 万能表单 收集数据，组件之间的数据通讯
                 diyData.global = sources.global;
                 diyData.value = sources.value;
                 diyData.value.forEach((item: any, index) => {

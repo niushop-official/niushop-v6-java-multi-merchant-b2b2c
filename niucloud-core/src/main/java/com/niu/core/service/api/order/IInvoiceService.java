@@ -2,6 +2,7 @@ package com.niu.core.service.api.order;
 
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.service.api.order.param.InvoiceApplyParam;
 import com.niu.core.service.api.order.param.InvoiceSearchParam;
 import com.niu.core.service.api.order.vo.InvoiceConfigVo;
 import com.niu.core.service.api.order.vo.InvoiceInfoVo;
@@ -30,4 +31,8 @@ public interface IInvoiceService {
      */
     InvoiceConfigVo getInvoiceConfig();
 
+    /**
+     * 申请补开发票
+     */
+    void apply(InvoiceApplyParam param);
 }

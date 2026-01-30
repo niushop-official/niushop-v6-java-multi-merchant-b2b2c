@@ -64,8 +64,7 @@ public class CoreRefundActionServiceImpl implements ICoreRefundActionService {
     MallOrderMapper mallOrderMapper;
     @Resource
     SiteAddressMapper shopAddressMapper;
-    @Resource
-    ICoreOrderDeliveryService orderDeliveryService;
+
     @Resource
     ICoreAddonService coreAddonService;
 
@@ -76,6 +75,14 @@ public class CoreRefundActionServiceImpl implements ICoreRefundActionService {
     @Override
     @Transactional
     public void shopActiveRefund(ActiveRefundParam param) {
+
+        if (ObjectUtil.isNotEmpty(param.getOrderId())){
+            //查询订单商品信息
+            List<MallOrderGoods> orderGoods = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>()
+                    .eq("order_id", param.getOrderId()).eq("status",OrderGoodsRefundEnum.NORMAL.getStatus()).select("order_goods_id"));
+            param.setOrderGoodsIds(orderGoods.stream().map(MallOrderGoods::getOrderGoodsId).toArray(Integer[]::new));
+        }
+
         OrderRefundMoneyVo checkData = coreRefundService.refundCheck(param.getOrderGoodsIds(), param.getRefundMoney());
 
         List<OrderRefundMoneyVo.MallOrderGoods> orderGoodsList = checkData.getOrderGoodsList();
@@ -92,8 +99,8 @@ public class CoreRefundActionServiceImpl implements ICoreRefundActionService {
             model.setApplyMoney(orderGoods.getItemRefundMoney());
             model.setMoney(orderGoods.getItemRefundMoney());
             model.setVoucher("");
-            model.setRemark(param.getShopActiveRefundRemark());
-            model.setSource(OrderRefundSourceEnum.ACTIVE_REFUND.getType().toString());
+            model.setRemark(param.getRemark());
+            model.setSource(param.getSource());
             model.setIsRefundDelivery(orderGoods.getIsRefundDelivery());
             model.setSupplyId(ObjectUtil.isNotEmpty(param.getSupplyId()) ? param.getSupplyId() : 0);
             model.setSupplyRefundId(ObjectUtil.isNotEmpty(param.getSupplyRefundId()) ? param.getSupplyRefundId() : 0);
@@ -257,45 +264,14 @@ public class CoreRefundActionServiceImpl implements ICoreRefundActionService {
         model.setRefundId(refund.getRefundId());
         model.setStatus(OrderRefundStatusEnum.CLOSE.getStatus().toString());
         mallOrderRefundMapper.updateById(model);
-
+        //对应的要将订单项还原
         MallOrderGoods orderGoods = new MallOrderGoods();
         orderGoods.setStatus(OrderGoodsRefundEnum.NORMAL.getStatus());
         mallOrderGoodsMapper.update(orderGoods, new QueryWrapper<MallOrderGoods>().eq("order_refund_no", refund.getOrderRefundNo()));
 
-        //校验一下订单项是否全部发货
-        MallOrder order = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>().eq("order_id", refund.getOrderId()));
-        if(order != null && order.getStatus().equals(OrderStatusEnum.WAIT_DELIVERY.getStatus().toString())){
-            OrderDeliveryParam orderDeliveryParam = new OrderDeliveryParam();
-            orderDeliveryParam.setOrderId(order.getOrderId());
-            orderDeliveryParam.setDeliveryType(order.getDeliveryType());
-            orderDeliveryService.checkFinish(orderDeliveryParam);
-        }
-
-        // 添加日志
-        AddRefundLogParam logParam = new AddRefundLogParam();
-        logParam.setOrderRefundNo(refund.getOrderRefundNo());
-        logParam.setMainType(OrderLogMainTypeEnum.MEMBER.getType());
-        logParam.setMainId(RequestUtils.memberId());
-        logParam.setStatus(Integer.valueOf(model.getStatus()));
-        logParam.setType(OrderRefundActionTypeEnum.CLOSE_ACTION.getType());
-        coreRefundService.addLog(logParam);
-
-        //商城退款关闭后，同步供货商退款关闭
-        if(ObjectUtil.isNotEmpty(coreAddonService.getInfoByKey("supply")))
-        {
-            orderGoods = mallOrderGoodsMapper.selectOne(new QueryWrapper<MallOrderGoods>().eq("order_refund_no", refund.getOrderRefundNo()));
-            if(orderGoods.getSupplyGoodsId() > 0)
-            {
-                // 触发事件 退款同步供货商的退款单据号
-                SyncSupplyRefundClassEvent eventRefund = new SyncSupplyRefundClassEvent();
-                eventRefund.setRefundData(refund);
-                eventRefund.addAppSign("supply");
-                eventRefund.setMainId(param.getMainId());
-                eventRefund.setMainType(param.getMainType());
-                eventRefund.setSiteId(RequestUtils.siteId());
-                EventAndSubscribeOfPublisher.publishAll(eventRefund);
-            }
-        }
+        //查询退款信息 调用退款关闭后的事件 AfterMallOrderRefundClose
+        MallOrderRefund mode = mallOrderRefundMapper.selectById(refund.getRefundId());
+        coreRefundService.AfterMallOrderRefundClose(mode, param);
     }
 
     @Override
@@ -347,6 +323,7 @@ public class CoreRefundActionServiceImpl implements ICoreRefundActionService {
         model.setCreateTime(System.currentTimeMillis() / 1000);
         model.setVoucher(JSONUtil.parseArray(param.getVoucher()).toString());
         model.setIsRefundDelivery(isRefundDelivery);
+        model.setWeappVersion(RequestUtils.weappVersion());
         mallOrderRefundMapper.insert(model);
 
         MallOrderGoods orderGoodsUpdate = new MallOrderGoods();

@@ -27,6 +27,7 @@ const routers = userStore.routers
 const addonIndexRoute = userStore.addonIndexRoute
 const menuData = ref<Record<string, any>[]>([])
 const addonRouters: Record<string, any> = {}
+const addonOrder = ref<string[]>([])
 
 routers.forEach(item => {
     item.original_name = item.name
@@ -50,17 +51,25 @@ routers.forEach(item => {
             menuData.value.unshift(item)
         }
     } else {
-        addonRouters[item.meta.addon] = item
+        const addonKey = item.meta.addon
+        // 仅在第一次出现时记录顺序，避免重复
+        if (!addonRouters[addonKey]) {
+            addonOrder.value.push(addonKey)
+            addonRouters[addonKey] = item
+        }
     }
 })
 
 // 多应用时将应用插入菜单
 if (siteInfo?.apps.length > 1) {
     const routers:Record<string, any>[] = []
-    siteInfo?.apps.forEach((item: Record<string, any>) => {
-        if (addonRouters[item.key]) {
-            addonRouters[item.key].name = addonIndexRoute[item.key]
-            routers.push(addonRouters[item.key])
+    // 先按addonOrder的顺序遍历，保证原始顺序
+    addonOrder.value.forEach(addonKey => {
+        // 再判断是否在siteInfo.apps中存在
+        const isInApps = siteInfo?.apps.some(app => app.key === addonKey)
+        if (isInApps) {
+            addonRouters[addonKey].name = addonIndexRoute[addonKey]
+            routers.push(addonRouters[addonKey])
         }
     })
     menuData.value.unshift(...routers)

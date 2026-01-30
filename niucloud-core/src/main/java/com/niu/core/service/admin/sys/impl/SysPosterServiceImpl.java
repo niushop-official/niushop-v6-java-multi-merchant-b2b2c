@@ -82,7 +82,7 @@ public class SysPosterServiceImpl implements ISysPosterService {
     @Override
     public List<SysPosterListVo> list(SysPosterSearchParam searchParam) {
         QueryWrapper<SysPoster> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("site_id", RequestUtils.siteId());
+        queryWrapper.eq("site_id", RequestUtils.defaultSiteId());
         queryWrapper.orderByDesc("id");
 
         if (ObjectUtil.isNotEmpty(searchParam.getName())) queryWrapper.like("name", searchParam.getName());

@@ -1,12 +1,11 @@
 package com.niu.core.service.admin.goods;
 
 import com.niu.core.common.domain.PageResult;
-import com.niu.core.service.admin.goods.param.EditGoodsBrandSortParam;
-import com.niu.core.service.admin.goods.param.GoodsBrandParam;
-import com.niu.core.service.admin.goods.param.GoodsBrandSearchParam;
+import com.niu.core.service.admin.goods.param.*;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.service.admin.goods.vo.GoodsBrandInfoVo;
 import com.niu.core.service.admin.goods.vo.GoodsBrandListVo;
+import com.niu.core.service.admin.goods.vo.GoodsBrandInitVo;
 
 import java.util.List;
 
@@ -15,15 +14,29 @@ import java.util.List;
  */
 public interface IGoodsBrandService {
 
+    /**
+     * 获取字典
+     *
+     */
+    GoodsBrandInitVo init();
 
     /**
-     * 商品品牌列表
+     * 获取商品品牌审核列表
      *
      * @param pageParam 分页参数
      * @param searchParam 搜索参数
      * @return PageResult<ShopGoodsBrandListVo>
      */
     PageResult<GoodsBrandListVo> page(PageParam pageParam, GoodsBrandSearchParam searchParam);
+
+    /**
+     * 获取商品品牌审核列表
+     *
+     * @param pageParam 分页参数
+     * @param searchParam 搜索参数
+     * @return PageResult<ShopGoodsBrandListVo>
+     */
+    PageResult<GoodsBrandListVo> getAuditPage(PageParam pageParam, GoodsBrandSearchParam searchParam);
 
     /**
      * 商品品牌列表
@@ -75,4 +88,23 @@ public interface IGoodsBrandService {
      * @param brandId
      */
     void move(Integer brandId);
+
+
+    /**
+     * 商品品牌审核
+     * @param auditParam
+     */
+    void audit(GoodsBrandAuditParam auditParam);
+
+    /**
+     * 修改品牌状态
+     * @param statusParam
+     */
+    void modifyStatus(GoodsBrandStatusParam statusParam);
+
+    /**
+     * 修改品牌是否热门
+     * @param isHotParam
+     */
+    void modifyHot(GoodsBrandIsHotParam isHotParam);
 }

@@ -1,15 +1,14 @@
 package com.niu.core.controller.api.weapp;
 
-import cn.dev33.satoken.annotation.SaIgnore;
 import com.niu.core.common.domain.Result;
 import com.niu.core.service.api.login.vo.LoginVo;
 import com.niu.core.service.api.weapp.IWeappService;
+import com.niu.core.service.api.weapp.parma.TradeManagedScanParam;
 import com.niu.core.service.api.wechat.param.AuthRegisterParam;
 import com.niu.core.service.api.wechat.param.WechatAuthParam;
-import com.niu.core.service.core.weapp.vo.IsTradeManagedVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
+import com.niu.core.service.core.delivery_weapp.vo.IsTradeManagedVo;
 import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +64,24 @@ public class WeappController {
     @GetMapping("/getIsTradeManaged")
     public Result<IsTradeManagedVo> getIsTradeManaged() {
         return Result.success(weappService.getIsTradeManaged());
+    }
+
+    /**
+     * 通过外部交易号获取消息跳转路径
+     * @return
+     */
+    @GetMapping("/getMsgJumpPath")
+    public Result getMsgJumpPath(@Validated TradeManagedScanParam  param) {
+        return Result.success(weappService.getMsgJumpPath(param));
+    }
+
+    /**
+     * 通过外部交易号获取消息跳转路径
+     * @return
+     */
+    @GetMapping("/check")
+    public Result check() {
+        return Result.success(weappService.checkWeappConfig());
     }
 
 }

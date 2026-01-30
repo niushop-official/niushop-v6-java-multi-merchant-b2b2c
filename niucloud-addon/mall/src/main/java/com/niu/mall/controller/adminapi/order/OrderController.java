@@ -5,12 +5,12 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.pay.PayTypeEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
+import com.niu.mall.enums.order.OrderTypeEnum;
 import com.niu.mall.service.admin.order.param.*;
 import com.niu.mall.service.admin.order.IMallOrderService;
 import com.niu.mall.service.admin.order.vo.MallOrderInfoVo;
 import com.niu.mall.service.admin.order.vo.MallOrderListVo;
 import com.niu.core.common.domain.PageParam;
-import com.niu.mall.service.admin.order.vo.SettlementInfoListVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
@@ -84,5 +84,15 @@ public class OrderController {
     @GetMapping("/pay/type")
     public Result getPayType() {
         return Result.success(PayTypeEnum.getType());
+    }
+
+    /**
+     * 订单支付方式
+     *
+     * @return
+     */
+    @GetMapping("/type")
+    public Result getType() {
+        return Result.success(OrderTypeEnum.getOrderType(null));
     }
 }

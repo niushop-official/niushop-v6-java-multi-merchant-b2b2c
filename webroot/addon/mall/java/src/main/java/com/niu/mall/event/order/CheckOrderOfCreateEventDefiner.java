@@ -1,5 +1,6 @@
 package com.niu.mall.event.order;
 
+import cn.hutool.json.JSONObject;
 import com.niu.core.common.component.context.event.Event;
 import com.niu.core.common.component.context.event.EventResult;
 import com.niu.core.common.component.context.listener.CallbackListener;
@@ -9,26 +10,19 @@ import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 public abstract class CheckOrderOfCreateEventDefiner extends CallbackListener<CheckOrderOfCreateEventDefiner.CheckOrderOfCreateEvent> {
 
     @Data
     public static class CheckOrderOfCreateEvent extends Event {
-        private Integer supplyId;
-        private Integer supplySkuId;
-        private BigDecimal goodsMoney;
-        private BigDecimal discountMoney;
-        private BigDecimal mallDiscountMoney;
-        private Integer num;
-        private BigDecimal costPrice;
-        private String goodsName;
-        private String skuName;
+        OrderCreateDataVo vo;
     }
 
     @Data
     public static class CheckOrderOfCreateResult extends EventResult {
-        private String error;
+        private List< String> error;
     }
 
     public abstract CheckOrderOfCreateResult handleCallback(CheckOrderOfCreateEvent event);

@@ -47,7 +47,7 @@
                     <view class="flex-1 text-overflow-ellipsis flex justify-end"
                           :class="{'!text-[#999]' : !diyComponent.field.value.date && !diyComponent.defaultControl}"
                           :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx'}">{{ startDate }}</view>
-                    <text class="nc-iconfont !text-[#666] !text-[36rpx] nc-icon-youV6xx -mr-[8rpx]"></text>
+                    <text class="nc-iconfont !text-[var(--text-color-light9)] !text-[26rpx] nc-icon-youV6xx -mr-[8rpx]" :style="iconfontStyle"></text>
                 </view>
             </view>
             <view class="layout-two-error-message" v-if="errorInfo && !errorInfo.code">{{ errorInfo.message }}</view>
@@ -173,6 +173,17 @@ const warpCss = computed(() => {
     if (diyComponent.value.topRounded) style += 'border-top-right-radius:' + diyComponent.value.topRounded * 2 + 'rpx;';
     if (diyComponent.value.bottomRounded) style += 'border-bottom-left-radius:' + diyComponent.value.bottomRounded * 2 + 'rpx;';
     if (diyComponent.value.bottomRounded) style += 'border-bottom-right-radius:' + diyComponent.value.bottomRounded * 2 + 'rpx;';
+    return style;
+})
+
+const iconfontStyle = computed(() => {
+	let style = "";
+    // #ifdef H5
+    style += "position: relative;top: 1rpx;";
+    // #endif
+    // #ifdef MP
+    style += "position: relative;top: 4rpx;";
+    // #endif
     return style;
 })
 

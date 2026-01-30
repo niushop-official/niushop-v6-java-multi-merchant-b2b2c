@@ -2,9 +2,8 @@ package com.niu.core.controller.adminapp;
 
 import com.niu.core.common.domain.Result;
 import com.niu.core.enums.adminapp.BottomNavEnum;
-import com.niu.core.enums.adminapp.StatAppEnum;
-import com.niu.core.enums.adminapp.TodoAppEnum;
 import com.niu.core.service.adminapp.IAppsService;
+import com.niu.core.service.adminapp.param.PstarEditParam;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,18 +52,12 @@ public class AppsController {
     }
 
     /**
-     * 待办
+     * 设置首页应用
+     * @param param
+     * @return
      */
-    @GetMapping("/todo")
-    public Result todo() {
-        return Result.success(TodoAppEnum.getTodo());
-    }
-
-    /**
-     * 统计
-     */
-    @GetMapping("/stat")
-    public Result stat() {
-        return Result.success(StatAppEnum.getStat());
+    @PostMapping("/apps_of_index")
+    public Result setAppsOfIndex(@RequestBody PstarEditParam param) {
+        return Result.success(appsService.setAppsOfIndex(param));
     }
 }

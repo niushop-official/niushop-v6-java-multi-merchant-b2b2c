@@ -29,6 +29,8 @@ public class SysDataAddParam implements Serializable {
 
     /** 访问量 */
     private Integer accessSum = 0;
+    /** 访客数 */
+    private Integer visitNum = 0;
 
     /** 订单应收 */
     private BigDecimal orderReceivableMoney = BigDecimal.ZERO;
@@ -78,6 +80,11 @@ public class SysDataAddParam implements Serializable {
     /** 充值支付金额 */
     private BigDecimal rechargePayMoney = BigDecimal.ZERO;
 
+    /** 充值订单金额 */
+    private BigDecimal rechargeOrderMoney = BigDecimal.ZERO;
+
+    /** 充值赠送金额 */
+    private BigDecimal rechargeGiveMoney = BigDecimal.ZERO;
 
     /** 供货金额 */
     private BigDecimal supplyMoney = BigDecimal.ZERO;

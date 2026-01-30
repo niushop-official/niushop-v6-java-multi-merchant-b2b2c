@@ -62,3 +62,10 @@ export function getDeliveryPackage(params: Record<string, any>) {
 export function getDeliveryStoreList(params: Record<string, any>) {
     return request.get('delivery/delivery_store/list', params)
 }
+
+/**
+ * 查询同城配送地图
+ */
+export function getTrackOfLocal(params: Record<string, any>) {
+    return request.get('basic/delivery/track_of_local', params)
+}

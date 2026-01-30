@@ -2,11 +2,11 @@
     <el-dialog v-model="showDialog" :title="t('editAddress')" width="700px" class="edit-address-dialog-wrap" :destroy-on-close="true" :before-close="handleClose">
         <div v-loading="loading">
             <el-form :model="formData" label-width="100px" ref="formRef" :rules="formRules" class="page-form mb-[30px]">
-                <el-form-item :label="t('deliveryType')" prop="delivery_type">
+                <!-- <el-form-item :label="t('deliveryType')" prop="delivery_type">
                     <el-radio-group v-model="formData.delivery_type" @change="deliveryChange">
                         <el-radio :label="item.key" v-for="(item, index) in deliveryType" :key="index"  status>{{ item.name }}</el-radio>
                     </el-radio-group>
-                </el-form-item>
+                </el-form-item> -->
                 <!-- 物流配送/同城配送 -->
                 <template v-if="changeDeliveryType == 'express' || changeDeliveryType =='local_delivery'">
                     <el-form-item :label="t('contacts')"  prop="taker_name">
@@ -39,6 +39,12 @@
                     <div v-if="changeDeliveryType == 'local_delivery' && mapMessage" class="text-[#f52222] text-[12px] line-height-[15px]">{{ mapMessage }}</div>
 
                 </el-form-item>
+                <!-- 门店自提 -->
+                <el-form-item :label="changeDeliveryType == 'store' ? t('提货门店') : t('配送门店')" v-if="changeDeliveryType == 'store' || changeDeliveryType == 'local_delivery'">
+                    <el-select v-model="formData.take_store_id" value-key="store_id" @change="selectStore" >
+                        <el-option v-for="(item, index) in deliveryList " :key="index" :label="item.store_name" :value="item.store_id"/>
+                    </el-select>
+                </el-form-item>
 
             </el-form>
         </div>
@@ -55,7 +61,7 @@
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { t } from '@/lang'
 import { FormInstance } from 'element-plus'
-import { getCompanyList, getShopDeliveryList } from '@/app/api/delivery_site'
+import { getCompanyList, getShopDeliveryList, getDeliveryStoreListAll } from '@/app/api/delivery_site'
 import { getOrderEditAddress, orderEditAddress } from '@/addon/mall/api/site/order'
 import { getIsTradeManaged } from '@/app/api/weapp'
 import { createMarker, latLngToAddress, addressToLatLng } from '@/utils/qqmap'
@@ -101,7 +107,8 @@ const initialFormData = {
     is_delivery_address: 0,
     is_refund_address: 0,
     is_default_delivery: 0,
-    is_default_refund: 0
+    is_default_refund: 0,
+    take_store_id: ''
 }
 const formData: Record<string, any> = reactive({ ...initialFormData })
 
@@ -163,6 +170,10 @@ const ContactInformation = (rule: any, value: any, callback: any) => {
     callback()
 }
 
+const selectStore = (data:any) => {
+    formData.take_store_id = data
+}
+
 const emit = defineEmits(['complete'])
 
 const addressChange = () => {
@@ -197,6 +208,19 @@ const confirm = async (formEl: FormInstance | undefined) => {
                 }).catch(() => {
                     loading.value = false
                 })
+            } else {
+                const params = {
+                    order_id: formData.order_id,
+                    delivery_type: changeDeliveryType.value,
+                    take_store_id: formData.take_store_id
+                }
+                orderEditAddress(params).then(res => {
+                    loading.value = false
+                    showDialog.value = false
+                    emit('complete')
+                }).catch(() => {
+                    loading.value = false
+                })
             }
         }
     })
@@ -225,6 +249,7 @@ const setFormData = async (data: any) => {
     nextTick(() => {
         initMap()
         getAddressInfoFn(params)
+        getDeliveryStoreListAllFn({ pick_up_type: data.delivery_type })
     })
 }
 
@@ -241,6 +266,15 @@ const deliveryChange = (data: any) => {
     changeDeliveryType.value = data
     if (changeDeliveryType.value == 'local_delivery') areaChange()
 }
+
+// 门店自提列表
+const getDeliveryStoreListAllFn = (data: any) => {
+    getDeliveryStoreListAll(data).then((res) => {
+        deliveryList.value = res.data
+    })
+}
+
+
 /**
 * 初始化地图
  */
@@ -484,7 +518,8 @@ const initData = () => {
         is_delivery_address: 0,
         is_refund_address: 0,
         is_default_delivery: 0,
-        is_default_refund: 0
+        is_default_refund: 0,
+        take_store_id: ''
 
     }
     Object.keys(formData).forEach((key: string) => {

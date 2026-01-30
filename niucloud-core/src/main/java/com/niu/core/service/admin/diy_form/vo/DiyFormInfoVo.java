@@ -72,5 +72,5 @@ private static final long serialVersionUID = 1L;
 
     /** 更新时间 */
     private Long updateTime;
-
+    private String addonName;
 }

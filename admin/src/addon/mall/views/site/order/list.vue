@@ -36,8 +36,13 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('配送方式')" prop="delivery_type">
-                        <el-select v-model="orderTable.searchParam.delivery_type" :placeholder="t('请选择配送方式')" clearable>
+                        <el-select v-model="orderTable.searchParam.delivery_type" :placeholder="t('请选择配送方式')" clearable  class="input-item">
                             <el-option v-for="(item,index) in deliveryTypeData" :key="index" :label="item" :value="index" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item :label="t('订单类型')" prop="order_type">
+                        <el-select v-model="orderTable.searchParam.order_type" :placeholder="t('请选择订单类型')" clearable>
+                            <el-option v-for="(item,index) in orderType" :key="index" :label="item" :value="index" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
@@ -55,11 +60,7 @@
             </el-card>
             <el-tabs v-model="activeName" class="demo-tabs" @tab-change="handleClick">
                 <el-tab-pane :label="t('all')" name=""></el-tab-pane>
-                <el-tab-pane :label="t('toBePaid')" name="1"></el-tab-pane>
-                <el-tab-pane :label="t('toBeShipped')" name="2"></el-tab-pane>
-                <el-tab-pane :label="t('shipped')" name="3"></el-tab-pane>
-                <el-tab-pane :label="t('completed')" name="5"></el-tab-pane>
-                <el-tab-pane :label="t('closed')" name="-1"></el-tab-pane>
+                <el-tab-pane :label="item.name" :name="item.status" v-for="(item,index) in statusData" :key="index"></el-tab-pane>
             </el-tabs>
             <div>
                 <!-- todo 后续完善，增加批量发货，再修改判断逻辑 -->
@@ -89,6 +90,7 @@
                                         <span>{{ t('orderNo') }}：{{ (item as any).order_no }}</span>
                                         <span class="ml-5">{{ t('createTime') }}：{{ (item as any).create_time }}</span>
                                         <!-- <span class="ml-5">{{ t('orderFrom') }}：{{ (item as any).order_form_name }}</span> -->
+                                        <span class="ml-5" v-if="item.order_type_name">{{ t('订单类型') }}：{{ (item as any).order_type_name }}</span>
                                         <span class="ml-5" v-if="item.pay">{{ t('payType') }}：{{ (item as any).pay.type_name }}</span>
                                         <span class="ml-5 cursor-pointer" v-if="item.supply"  @click.stop="router.push({path:'/supply/select/supply', query: { site_id: item.supply_id }})">{{ t('supplyName') }}：<span class="text-[var(--el-color-primary)]">{{ item.supply.site_name }}</span></span>
                                     </div>
@@ -134,8 +136,9 @@
                                     <el-table-column min-width="120">
                                         <template #default="{ row }">
                                             <div class="cursor-pointer flex items-center flex-wrap" @click.stop="refundEventLink(item,row)" v-if="row.status != 1">
-                                                <span class="mr-[3px] text-[13px]">退款金额￥{{ row.apply_money }}</span>
-                                                <div class="text-[13px] text-[var(--el-color-primary)]">{{ row.status_name }}
+                                                <span class="mr-[3px] text-[13px]">退款金额￥{{ Number(row.refund_money) ? row.refund_money : row.apply_money }}</span>
+                                                <div class="text-[13px] text-[var(--el-color-primary)] flex items-center">
+                                                    <span>{{ row.status_name }}</span>
                                                     <span class="iconfont iconxiangyoujiantou !text-[10px] text-[#888]"></span>
                                                 </div>
                                             </div>
@@ -186,8 +189,9 @@
                                             <!-- 同城配送 -->
                                             <el-button type="primary" link @click="delivery(item,'edit')" v-if="item.status == 3 && !item.supply_id && item.delivery_type != 'virtual'&& item.delivery_type == 'local_delivery' && (item.local_delivery_status == -1 || item.local_delivery_status == -2 || item.local_delivery_status == 8)">{{ t('modifyOutGoods') }}</el-button>
                                             <el-button type="primary" link @click="finish(item)" v-if="item.status == 3 && !item.supply_id">{{t('confirmTakeDelivery') }}</el-button>
-                                            <el-button type="primary"  v-if="item.is_refund_show && item.status != 1 && item.status != -1 && !item.supply_id" link @click="refundEvent(item)">{{ t('voluntaryRefund') }}</el-button>
+                                            <el-button type="primary"  v-if="item.is_refund_show && item.status != 1 && item.status != -1 && !item.supply_id && item.status != 6" link @click="refundEvent(item)">{{ t('voluntaryRefund') }}</el-button>
                                             <el-button type="primary" v-if="item.status == -1" link @click="deleteEvent(item)">{{ t('delete') }}</el-button>
+                                            <el-button type="primary" v-if="item.delivery_type == 'store' && item.status == 2" link @click="verifyEvent(item)">核销</el-button>
                                         </template>
                                     </el-table-column>
                                 </el-table>
@@ -222,7 +226,8 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { getOrderList, getOrderStatus, orderClose, orderFinish, getOrderPayType, getOrderFrom, orderDelete } from '@/addon/mall/api/site/order'
+import { getVerifyCode } from '@/app/api/verify'
+import { getOrderList, getOrderStatus, orderClose, orderFinish, getOrderPayType, getOrderFrom, orderDelete, getOrderType } from '@/addon/mall/api/site/order'
 import { getGoodsSource } from '@/addon/mall/api/site/goods'
 import { printTicket } from '@/app/api/printer'
 import { getShopDeliveryType } from '@/app/api/delivery_site'
@@ -248,12 +253,14 @@ const payTypeData = ref<any[]>([])
 const orderFromData = ref([])
 const goodsSource: any = ref({}) // 商品来源
 const deliveryTypeData = ref([])
+const orderType = ref([])
 const setFormData = async () => {
     statusData.value = await (await getOrderStatus()).data
     payTypeData.value = await (await getOrderPayType()).data
     orderFromData.value = await (await getOrderFrom()).data
     goodsSource.value = await (await getGoodsSource()).data
     deliveryTypeData.value = await (await getShopDeliveryType()).data
+    orderType.value = await (await getOrderType()).data
 }
 setFormData()
 
@@ -339,7 +346,9 @@ const orderTable: any = reactive({
         delivery_type: '',
         status: route.query.status || '',
         create_time: [],
-        pay_time: []
+        pay_time: [],
+        extend_field_1: route.query.pintuan_id || '',
+        order_type: ''
     }
 })
 
@@ -638,7 +647,7 @@ const payInfoDialog = ref<any>(null)
 const getPayInfoFn = (data: any) => {
     payInfoDialog.value.setFormData({
         trade_id: data.order_id,
-        trade_type: data.order_type
+        trade_type: 'mall'
     })
 }
 
@@ -647,7 +656,7 @@ const toDelivery = (data: any) => {
         path: '/site/delivery/local/record',
         query: {
             trade_no: data.order_no,
-            trade_type: data.order_type
+            trade_type: 'mall'
         }
     })
     window.open(url.href)
@@ -705,6 +714,23 @@ const batchDeleteFn = () => {
             loadOrderList(getTablePageStorage(orderTable.searchParam).page)
         }).catch(() => {
         })
+    })
+}
+
+// 获取核销码
+const verifyEvent = (data: any) => {
+    if (repeat.value) return
+    repeat.value = true
+    getVerifyCode({
+        trade_id: data.order_id,
+        trade_type: 'mall'
+    }).then(res => {
+        repeat.value = false
+        const url = router.resolve({
+            path: '/marketing/verify/index',
+            query: { code: res.data[0].code }
+        })
+        window.open(url.href)
     })
 }
 </script>

@@ -20,7 +20,7 @@
                     <el-input v-model.trim="formData.store_name" clearable :placeholder="t('storeNamePlaceholder')" class="input-width" maxlength="30" :disabled="formData.is_system === 1" />
                 </el-form-item>
                 <el-form-item :label="t('contactName')" prop="contact_name">
-                    <el-input v-model.trim="formData.contact_name" clearable :placeholder="t('contactNamePlaceholder')" class="input-width" maxlength="30" />
+                    <el-input v-model.trim="formData.contact_name" clearable :placeholder="t('contactNamePlaceholder')" class="input-width" maxlength="30" :disabled="formData.is_system === 1" />
                 </el-form-item>
                 <el-form-item :label="t('storeMobile')" prop="mobile">
                     <el-input v-model.trim="formData.mobile" clearable :placeholder="t('storeMobilePlaceholder')" class="input-width" @keyup="filterNumber($event)" @blur="formData.mobile = $event.target.value" maxlength="11" :disabled="formData.is_system === 1" />
@@ -304,7 +304,7 @@ const refreshAddress = (bool = false) => {
     getDeliveryStoreDetail(formData.store_id).then(({ data }) => {
         loading.value = false
         Object.keys(formData).forEach((key: string) => {
-            const addressKeyArr = ['store_name', 'mobile', 'trade_time', 'province_id', 'city_id', 'district_id', 'address', 'full_address', 'latitude', 'longitude']
+            const addressKeyArr = ['store_name', 'contact_name', 'mobile', 'trade_time', 'province_id', 'city_id', 'district_id', 'address', 'full_address', 'latitude', 'longitude']
             if (addressKeyArr.includes(key)) {
                 if (data[key] != undefined) formData[key] = data[key]
             }
@@ -525,18 +525,18 @@ const areaChange = debounce(() => {
                 })
                 formData.latitude = result.location.lat
                 formData.longitude = result.location.lng
-                if (formData.pick_up_type.indexOf('local_delivery') != -1) {
-                    formData.area.forEach(item => {
-                        // 先删除旧的图形
-                        deleteGeometry(item.area_json.key)
-                        // 重新创建图形
-                        item.area_json.center = {
-                            lat: result.location.lat,
-                            lng: result.location.lng
-                        }
-                        item.area_type == 'radius' ? createCircle(map, item.area_json) : createPolygon(map, item.area_json)
-                    })
-                }
+                // if (formData.pick_up_type.indexOf('local_delivery') != -1) {
+                //     formData.area.forEach(item => {
+                //         // 先删除旧的图形
+                //         deleteGeometry(item.area_json.key)
+                //         // 重新创建图形
+                //         item.area_json.center = {
+                //             lat: result.location.lat,
+                //             lng: result.location.lng
+                //         }
+                //         item.area_type == 'radius' ? createCircle(map, item.area_json) : createPolygon(map, item.area_json)
+                //     })
+                // }
             } else {
                 console.error(message, result)
             }

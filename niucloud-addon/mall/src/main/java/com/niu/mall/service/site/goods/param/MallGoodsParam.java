@@ -88,7 +88,6 @@ public class MallGoodsParam implements Serializable {
     @NotNull(message = "unit参数缺失")
     private String unit = "件";
 
-    private Integer virtualSaleNum = 0;
 
     private Integer isLimit = 0;
 

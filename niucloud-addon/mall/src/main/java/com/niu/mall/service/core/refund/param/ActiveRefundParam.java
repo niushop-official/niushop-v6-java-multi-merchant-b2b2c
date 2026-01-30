@@ -17,6 +17,8 @@ public class ActiveRefundParam implements Serializable {
     @NotNull(message = "order_goods_ids参数缺失")
     private Integer[] orderGoodsIds;
 
+    private Integer orderId;
+
     private BigDecimal refundMoney;
 
     private String shopActiveRefundRemark = "";
@@ -30,4 +32,8 @@ public class ActiveRefundParam implements Serializable {
     private Integer supplyId;
 
     private Integer supplyRefundId;
+
+    private String source;
+
+    private String remark;
 }

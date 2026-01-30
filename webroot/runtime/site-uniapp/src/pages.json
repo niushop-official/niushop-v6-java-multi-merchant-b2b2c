@@ -60,6 +60,20 @@
 			"needLogin": true
 		},
 		{
+			"path": "app/pages/site_address/list",
+			"style": {
+				"navigationBarTitleText": "%pages.site_address.list%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/site_address/edit",
+			"style": {
+				"navigationBarTitleText": "%pages.site_address.edit%"
+			},
+			"needLogin": true
+		},
+		{
 			"path": "app/pages/verify/index",
 			"style": {
 				"navigationBarTitleText": "%pages.verify.index%"
@@ -91,6 +105,34 @@
 			"path": "app/pages/verify/manual",
 			"style": {
 				"navigationBarTitleText": "%pages.verify.manual%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/setting/index",
+			"style": {
+				"navigationBarTitleText": "%pages.setting.index%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/setting/stat_edit",
+			"style": {
+				"navigationBarTitleText": "%pages.setting.stat_edit%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/setting/todo_edit",
+			"style": {
+				"navigationBarTitleText": "%pages.setting.todo_edit%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/setting/app_edit",
+			"style": {
+				"navigationBarTitleText": "%pages.setting.app_edit%"
 			},
 			"needLogin": true
 		},
@@ -167,9 +209,70 @@
 				"navigationBarTitleText": "%pages.article.detail%"
 			},
 			"needLogin": true
-
+		},
+		{
+			"path": "app/pages/account/index",
+			"style": {
+				"navigationBarTitleText": "%pages.account.index%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/account/account_record",
+			"style": {
+				"navigationBarTitleText": "%pages.account.account_record%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/account/account_detail",
+			"style": {
+				"navigationBarTitleText": "%pages.account.account_detail%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/account/cash_out",
+			"style": {
+				"navigationBarTitleText": "%pages.account.cash_out%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/account/cash_out_result",
+			"style": {
+				"navigationBarTitleText": "%pages.account.cash_out_result%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/account/cash_out_record",
+			"style": {
+				"navigationBarTitleText": "%pages.account.cash_out_record%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/account/cash_out_detail",
+			"style": {
+				"navigationBarTitleText": "%pages.account.cash_out_detail%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/account/transfer_type",
+			"style": {
+				"navigationBarTitleText": "%pages.account.transfer_type%"
+			},
+			"needLogin": true
+		},
+		{
+			"path": "app/pages/attachment/config",
+			"style": {
+				"navigationBarTitleText": "%pages.attachment.config%"
+			},
+			"needLogin": true
 		}
-
 	],
 	"subPackages": [
 		// {{ PAGE_BEGAIN }}
@@ -203,6 +306,13 @@
 					"path": "pages/goods/content",
 					"style": {
 						"navigationBarTitleText": "%mall.pages.goods.content%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/goods/album",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.album%"
 					},
 					"needLogin": true
 				},
@@ -245,6 +355,20 @@
 					"needLogin": true
 				},
 				{
+					"path": "pages/order/active_refund",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.order.active_refund%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/pay_info",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.order.pay_info%"
+					},
+					"needLogin": true
+				},
+				{
 					"path": "pages/refund/list",
 					"style": {
 						"navigationBarTitleText": "%mall.pages.refund.list%"
@@ -262,6 +386,20 @@
 					"path": "pages/refund/log",
 					"style": {
 						"navigationBarTitleText": "%mall.pages.refund.log%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/account/bill",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.account.bill%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/account/bill_detail",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.account.bill_detail%"
 					},
 					"needLogin": true
 				}

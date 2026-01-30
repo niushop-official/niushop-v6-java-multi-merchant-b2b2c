@@ -5,7 +5,6 @@ import cn.hutool.json.JSONObject;
 import com.niu.core.common.domain.Result;
 import com.niu.core.service.admin.web.IWebConfigService;
 import com.niu.core.service.admin.web.vo.WebConfigVo;
-import com.niu.core.service.core.weapp.param.WeappConfigParam;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,9 +44,10 @@ public class WebConfigController {
     }
 
     /**
-     * 设置商品设置配置
+     * 设置电脑端首页配置
      *
-     * @return
+     * @param data 配置参数
+     * @return Result<Object>
      */
     @PostMapping("/config")
     public Result<Object> setWebConfig(@RequestBody JSONObject data) {

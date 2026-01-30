@@ -28,6 +28,16 @@
             <el-form-item :label="t('sort')">
                 <el-input v-model.trim="formData.sort" maxlength="6" clearable :placeholder="t('sortPlaceholder')" class="input-width" @keyup="filterNumber($event)" @blur="formData.sort = $event.target.value" />
             </el-form-item>
+            <el-form-item :label="t('显示状态')" prop="status">
+                <el-select v-model="formData.status" :placeholder="t('请选择显示状态')" clearable>
+                    <el-option v-for="(item,index) in initData.status_list" :key="index" :label="item" :value="index" />
+                </el-select>
+            </el-form-item>
+            <el-form-item :label="t('是否热门')" prop="is_hot">
+                <el-select v-model="formData.is_hot" :placeholder="t('请选择是否热门')" clearable>
+                    <el-option v-for="(item,index) in initData.is_hot_list" :key="index" :label="item" :value="index" />
+                </el-select>
+            </el-form-item>
 
         </el-form>
 
@@ -46,7 +56,7 @@ import { t } from '@/lang'
 import type { FormInstance } from 'element-plus'
 import { filterNumber } from '@/utils/common'
 
-import { addBrand, editBrand, getBrandInfo } from '@/app/api/basic_admin'
+import { addBrand, editBrand, getBrandInfo, getBrandInit } from '@/app/api/basic_admin'
 
 const showDialog = ref(false)
 const loading = ref(false)
@@ -65,7 +75,9 @@ const initialFormData = {
         border_color: ''
     },
     desc: '',
-    sort: ''
+    sort: '',
+    status: '1',
+    is_hot: '2'
 }
 const formData: Record<string, any> = reactive({ ...initialFormData })
 
@@ -91,6 +103,14 @@ const predefineColors = ref([
 ])
 
 const formRef = ref<FormInstance>()
+
+const initData = ref<any>({})
+const getBrandInitFn = () => {
+    getBrandInit().then(res => {
+        initData.value = res.data
+    })
+}
+getBrandInitFn()
 
 // 表单验证规则
 const formRules = computed(() => {

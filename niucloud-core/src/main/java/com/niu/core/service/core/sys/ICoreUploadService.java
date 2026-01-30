@@ -14,6 +14,13 @@ public interface ICoreUploadService {
     AttachmentUploadVo upload(AttachmentUploadParam param);
 
     /**
+     * Base64上传附件
+     *
+     * @param param
+     */
+    AttachmentUploadVo uploadBase64(AttachmentUploadParam param);
+
+    /**
      * 删除附件
      *
      * @param siteId

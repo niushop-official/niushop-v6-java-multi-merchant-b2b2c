@@ -23,4 +23,6 @@ public interface ICorePosterService {
     void add(AddPosterParam param);
 
     void initDefaultPoster(Integer siteId,String type,String addon);
+
+    Integer  getDefaultPosterIdByType(Integer siteId, String type, String addon);
 }

@@ -4,6 +4,13 @@
 export function getAdvInfo(params: Record<string, any>) {
     return request.get(`diy/adv`, params)
 }
+
+/**
+ * 获取web端配置
+ */
+export function getWebConfig() {
+    return request.get(`web/config`)
+}
 /**
  * 获取导航列表
  */

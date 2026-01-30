@@ -26,10 +26,7 @@ import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderRefund;
 import com.niu.mall.entity.order.MallOrderRefundLog;
 import com.niu.core.entity.site.SiteAddress;
-import com.niu.mall.enums.order.OrderLogMainTypeEnum;
-import com.niu.mall.enums.order.OrderRefundActionTypeEnum;
-import com.niu.mall.enums.order.OrderRefundStatusEnum;
-import com.niu.mall.enums.order.OrderRefundTypeEnum;
+import com.niu.mall.enums.order.*;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
 import com.niu.mall.mapper.order.MallOrderRefundLogMapper;
@@ -234,6 +231,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
         param.setMainType(OrderLogMainTypeEnum.STORE.getType());
         param.setMainId(RequestUtils.uid());
         param.setSiteId(RequestUtils.siteId());
+        param.setSource(OrderRefundSourceEnum.ACTIVE_REFUND.getType().toString());
         coreRefundActionService.shopActiveRefund(param);
     }
 }

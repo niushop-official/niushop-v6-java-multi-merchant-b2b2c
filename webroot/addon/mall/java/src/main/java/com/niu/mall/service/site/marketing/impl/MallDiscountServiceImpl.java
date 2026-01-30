@@ -498,7 +498,7 @@ public class MallDiscountServiceImpl implements IMallDiscountService {
         if (ObjectUtil.isEmpty(orderRiscount)) return;
 
         // 查询订单项
-        List<MallOrderGoods> orderGoods = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().select("goods_id,SUM(goods_money) as goods_money,SUM(num) as num").eq("order_id", order.getOrderId()).groupBy("goods_id"));
+        List<MallOrderGoods> orderGoods = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().select("goods_id,SUM(goods_money) as goods_money,SUM(order_goods_money) as order_goods_money,SUM(num) as num").eq("order_id", order.getOrderId()).groupBy("goods_id"));
         Map<Integer, MallOrderGoods> orderGoodsMap = orderGoods.stream().collect(Collectors.toMap(MallOrderGoods::getGoodsId, i -> i));
 
         for (MallOrderDiscount item: orderRiscount) {
@@ -513,11 +513,11 @@ public class MallDiscountServiceImpl implements IMallDiscountService {
             List<MallActiveGoods> activeGoodsList = mallActiveGoodsMapper.selectList(new QueryWrapper<MallActiveGoods>().eq("active_id", item.getDiscountTypeId()).in("goods_id", orderGoodsMap.keySet()));
             for (MallActiveGoods activeGoodsItem: activeGoodsList) {
                 MallOrderGoods orderGoodsItem = orderGoodsMap.get(activeGoodsItem.getGoodsId());
-                activeOrderMoney = activeOrderMoney.add(orderGoodsItem.getGoodsMoney());
+                activeOrderMoney = activeOrderMoney.add(orderGoodsItem.getOrderGoodsMoney());
                 activeSuccessNum += orderGoodsItem.getNum();
 
                 UpdateWrapper activeGoodsUpdate = new UpdateWrapper<>();
-                activeGoodsUpdate.setSql("active_goods_order_money = active_goods_order_money + " + orderGoodsItem.getGoodsMoney());
+                activeGoodsUpdate.setSql("active_goods_order_money = active_goods_order_money + " + orderGoodsItem.getOrderGoodsMoney());
                 activeGoodsUpdate.setSql("active_goods_order_num = active_goods_order_num + 1");
                 activeGoodsUpdate.setSql("active_goods_success_num = active_goods_success_num + " + orderGoodsItem.getNum());
                 if (participationNum == 1) activeGoodsUpdate.setSql("active_goods_member_num = active_goods_member_num + 1");

@@ -71,4 +71,8 @@ public class SiteShopBasicInfoParam implements Serializable {
     private String businessHours;
 
     private Integer businessStatus;
+
+    private String backgroundH5;
+
+    private String contactName;
 }

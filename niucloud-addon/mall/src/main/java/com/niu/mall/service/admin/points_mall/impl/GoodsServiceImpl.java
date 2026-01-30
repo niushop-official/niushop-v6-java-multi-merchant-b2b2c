@@ -56,10 +56,12 @@ public class GoodsServiceImpl implements IGoodsService {
     public PageResult<PointsMallGoodsSelectVo> getMallGoodsSelectPage(PointsMallGoodsSelectParam param, PageParam pageParam) {
         MPJQueryWrapper<MallGoods> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("g")
-                .leftJoin("?_mall_goods_sku goodsSku ON g.goods_id = goodsSku.goods_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_mall_goods_sku goodsSku ON g.goods_id = goodsSku.goods_id".replace("?_", GlobalConfig.tablePrefix))
+                .leftJoin("?_site site ON g.site_id = site.site_id".replace("?_", GlobalConfig.tablePrefix));
 
         queryWrapper.select("g.site_id", "g.goods_id", "g.goods_name", "g.goods_type", "g.goods_cover", "g.stock");
         queryWrapper.select("goodsSku.sku_id", "goodsSku.sku_name", "goodsSku.goods_id as sku_goods_id", "goodsSku.price", "goodsSku.stock as sku_stock");
+        queryWrapper.select("site.site_id as site_site_id", "site.site_name");
 
         queryWrapper.eq("goodsSku.is_default", 1);
         

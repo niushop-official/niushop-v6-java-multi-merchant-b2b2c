@@ -9,7 +9,7 @@
                 </template>
             </el-alert>
             <el-form :model="formData" label-width="100px" ref="formRef" :rules="formRules" class="page-form mb-[30px]">
-                <template v-if="formData.delivery_type == 'express' || formData.delivery_type == 'none_express'">
+                <div>
                     <el-form-item :label="t('deliveryType')" prop="delivery_type">
                         <el-radio-group v-model="formData.delivery_type" @change="deliveryChange">
                             <el-radio :label="index" v-for="(item, index) in deliveryType" :key="index">{{ item }}</el-radio>
@@ -36,7 +36,7 @@
                             </el-select>
                         </el-form-item>
                     </template>
-                </template>
+                </div>
                 <template v-if="formData.delivery_type == 'local_delivery'">
                     <el-form-item :label="t('deliveryWay')">
                         <el-radio-group v-model="formData.delivery_way" @change="deliveryWayChange">
@@ -409,8 +409,8 @@ const deliveryChange = () => {
         formData.delivery_way = 'manual_write'
     } else if (formData.delivery_type && formData.delivery_type == 'local_delivery') {
         formData.delivery_way = 'store_delivery'
-    } 
-}
+    }
+} 
 
 const deliveryWayChange = () => {
     curThirdDelivery.value = {}

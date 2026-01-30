@@ -48,7 +48,6 @@ public class MallVirtualGoodsInitVo implements Serializable {
         private Integer[] serviceIds;  // 商品服务
         private String unit;  // 单位
         private Integer stock;  // 商品库存（总和）
-        private Integer virtualSaleNum;  // 虚拟销量
         private Integer isLimit = 0;
         private Integer limitType = 1;
         private Integer maxBuy = 0;

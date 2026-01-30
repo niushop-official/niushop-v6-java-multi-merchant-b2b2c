@@ -18,4 +18,7 @@ public class SiteShopCashOutCodeVo implements Serializable {
     /** 二维码 */
     private String qrcode;
 
+    /** 二维码 */
+    private String urlLink;
+
 }

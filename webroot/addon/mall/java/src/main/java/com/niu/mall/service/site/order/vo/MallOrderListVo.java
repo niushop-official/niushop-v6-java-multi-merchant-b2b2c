@@ -1,6 +1,7 @@
 package com.niu.mall.service.site.order.vo;
 
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.component.context.SpringContext;
@@ -13,6 +14,7 @@ import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.admin.member.vo.MemberBriefInfoVo;
 import com.niu.core.service.core.sys.ICoreUploadService;
 import com.niu.mall.enums.order.*;
+import jodd.util.StringUtil;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -180,6 +182,7 @@ public class MallOrderListVo implements Serializable {
         private Integer isVerify; // 是否需要核销
         private BigDecimal discountMoney;
         private BigDecimal applyMoney;
+        private BigDecimal refundMoney;
         private BigDecimal mallDiscountMoney;
         private Integer refundId;
         private String expressCompanyName;
@@ -230,7 +233,15 @@ public class MallOrderListVo implements Serializable {
     }
 
     public String getOrderTypeName() {
-        return "";
+        if(StringUtil.isNotEmpty(this.orderType) && this.orderType.equals("pintuan")){
+            Object orderType = OrderTypeEnum.getOrderType(this.orderType);
+            if(JSONUtil.isTypeJSON(orderType.toString())){
+                return "";
+            }
+            return orderType.toString();
+        }else{
+            return "";
+        }
     }
 
     public String getOrderFromName() {
@@ -245,6 +256,6 @@ public class MallOrderListVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType);
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType,this.orderType);
     }
 }

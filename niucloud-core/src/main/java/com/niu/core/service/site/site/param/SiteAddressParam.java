@@ -47,12 +47,12 @@ public class SiteAddressParam implements Serializable {
 
     private String shopName;
 
-    private Integer isDeliveryAddress = 0;
+    private Object isDeliveryAddress;
 
-    private Integer isRefundAddress = 0;
+    private Object isRefundAddress;
 
-    private Integer isDefaultDelivery = 0;
+    private Object isDefaultDelivery;
 
-    private Integer isDefaultRefund = 0;
+    private Object isDefaultRefund;
 
 }

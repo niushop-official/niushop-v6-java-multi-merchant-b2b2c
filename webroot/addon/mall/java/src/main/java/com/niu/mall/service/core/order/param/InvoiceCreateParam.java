@@ -19,4 +19,5 @@ public class InvoiceCreateParam implements Serializable {
     private String address; // 注册地址
     private String bankName; // 开户银行
     private String bankCardNumber; // 银行账号
+    private String contentType; // 内容类型
 }

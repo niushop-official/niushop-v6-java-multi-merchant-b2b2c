@@ -626,7 +626,7 @@
         "title": "甄选好店",
         "icon": "nc-iconfont nc-icon-dianpuV6xx",
         "path": "edit-mall-shop-list",
-        "support_page": ["DIY_INDEX"],
+        "support_page": ["DIY_INDEX", "DIY_PAGE"],
         "uses": 0,
         "sort": 10011,
         "value": {
@@ -651,6 +651,64 @@
           "source": "all",
           "num": 10,
           "site_ids": [],
+          "siteStyle": {
+            "startBgColor": "#FFC3C4",
+            "endBgColor": "#FFDABA",
+            "gradientAngle": "to bottom",
+            "bgUrl": "/addon/mall/diy/mall_shop_list/index/bgUrl.jpg"
+          },
+          "siteNameStyle": {
+            "color": "#303133",
+            "fontWeight": "normal",
+            "isShow": true
+          },
+          "imgElementRounded": 10
+        },
+        "template": {
+          "textColor": "#303133",
+          "pageStartBgColor": "",
+          "pageEndBgColor": "",
+          "pageGradientAngle": "to bottom",
+          "componentBgUrl": "",
+          "componentBgAlpha": 2,
+          "componentStartBgColor": "",
+          "componentEndBgColor": "",
+          "componentGradientAngle": "to bottom",
+          "topRounded": 0,
+          "bottomRounded": 0,
+          "elementBgColor": "",
+          "topElementRounded": 10,
+          "bottomElementRounded": 10,
+          "margin": {
+            "top": 10,
+            "bottom": 0,
+            "both": 10
+          }
+        }
+      },
+      "MallManyShopList": {
+        "title": "店铺列表",
+        "icon": "nc-iconfont nc-icon-dianpuV6xx",
+        "path": "edit-mall-many-shop-list",
+        "support_page": [
+          "DIY_INDEX"
+        ],
+        "uses": 0,
+        "sort": 10011,
+        "value": {
+          "distance": {
+            "isShow": true,
+            "sort": "mall_sale_num"
+          },
+          "source": "all",
+          "is_self": "",
+          "category_id": "",
+          "position": {
+            "control": false
+          },
+          "localDelivery": {
+            "control": false
+          },
           "siteStyle": {
             "startBgColor": "#FFC3C4",
             "endBgColor": "#FFDABA",

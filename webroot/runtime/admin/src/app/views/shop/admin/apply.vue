@@ -228,10 +228,10 @@ const setupEvent = (data: any) => {
         phone: data.user_mobile,
         category_id: data.category_id,
         business_license: data.business_license,
-		uid:data.uid,
-        username:data.account,
-        password:data.password,
-        confirm_password:data.password
+        uid: data.uid,
+        username: data.account,
+        password: data.password,
+        confirm_password: data.password
     })
     setupShopDialog.value.showDialog = true
 }

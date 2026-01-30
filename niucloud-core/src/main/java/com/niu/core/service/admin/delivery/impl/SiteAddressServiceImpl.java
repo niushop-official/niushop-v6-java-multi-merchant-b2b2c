@@ -108,6 +108,9 @@ public class SiteAddressServiceImpl implements ISiteAddressService {
      */
     @Override
     public void add(SiteAddressParam addParam) {
+        // 处理布尔值转整数（确保数据正确）
+        normalizeBooleanFields(addParam);
+        
         SiteAddress model = new SiteAddress();
         BeanUtils.copyProperties(addParam, model);
         model.setSiteId(RequestUtils.siteId());
@@ -133,6 +136,9 @@ public class SiteAddressServiceImpl implements ISiteAddressService {
      */
     @Override
     public void edit(Integer id, SiteAddressParam editParam) {
+        // 处理布尔值转整数（确保数据正确）
+        normalizeBooleanFields(editParam);
+        
         SiteAddress model = shopAddressMapper.selectOne(
                 new QueryWrapper<SiteAddress>()
                         .eq("id", id)
@@ -172,6 +178,24 @@ public class SiteAddressServiceImpl implements ISiteAddressService {
     @Override
     public List<SiteAddressListVo> refundAddress() {
         return CollectUtils.convert(shopAddressMapper.selectList(new QueryWrapper<SiteAddress>().eq("is_refund_address", 1).eq("site_id", RequestUtils.siteId())), SiteAddressListVo.class);
+    }
+
+    /**
+     * 规范化布尔字段：确保Integer字段不为null，默认值为0
+     */
+    private void normalizeBooleanFields(SiteAddressParam param) {
+        if (param.getIsDeliveryAddress() == null) {
+            param.setIsDeliveryAddress(0);
+        }
+        if (param.getIsRefundAddress() == null) {
+            param.setIsRefundAddress(0);
+        }
+        if (param.getIsDefaultDelivery() == null) {
+            param.setIsDefaultDelivery(0);
+        }
+        if (param.getIsDefaultRefund() == null) {
+            param.setIsDefaultRefund(0);
+        }
     }
 
 }

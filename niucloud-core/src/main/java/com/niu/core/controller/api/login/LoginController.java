@@ -44,7 +44,7 @@ public class LoginController {
      */
     @PostMapping("/login/mobile")
     public Result<LoginVo> mobile(@Validated @RequestBody MobileLoginParam param) {
-        registerService.checkLoginConfig(MemberLoginTypeEnum.MOBILE.getType());
+        //registerService.checkLoginConfig(MemberLoginTypeEnum.MOBILE.getType());
         registerService.checkMobileCode(param.getMobile(), param.getMobileKey(), param.getMobileCode());
         return Result.success(loginService.mobile(param));
     }
@@ -80,7 +80,7 @@ public class LoginController {
     @PostMapping("/send/mobile/{type}")
     public Result<?> sendMobileCode(@PathVariable("type") String type, @Validated @RequestBody SendMobileCodeParam param) {
         param.setType(type);
-        CaptchaUtils.check(param.getCaptchaKey(), param.getCaptchaCode());
+        //CaptchaUtils.check(param.getCaptchaKey(), param.getCaptchaCode());
         return Result.success(loginService.sendMobileCode(param));
     }
 

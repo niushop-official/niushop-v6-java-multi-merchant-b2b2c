@@ -1,5 +1,10 @@
 package com.niu.core.service.admin.goods.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.niu.core.common.domain.BeanJsonSerializer;
+import com.niu.core.enums.goods.BrandAuditEnum;
+import com.niu.core.enums.goods.BrandPopularEnum;
+import com.niu.core.enums.goods.BrandStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -22,8 +27,32 @@ public class GoodsBrandListVo implements Serializable {
     private String logo;  // 品牌logo
     private String desc;  // 品牌介绍
     private Integer sort;  // 排序
-    private String createTime; // 创建时间
-    private String updateTime; // 更新时间
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long createTime; // 创建时间
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long updateTime; // 更新时间
+
+    private Integer status;  // 排序
+
+    private Integer isHot;  // 排序
+
+    private Integer auditStatus;
+    private String auditReason;
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long auditTime;
+    private String auditStatusName;
+    private String statusName;
+    private String isHotName;
+
+    public String getStatusName() {
+        return BrandStatusEnum.getNameByType(this.status);
+    }
+    public String getIsHotName() {
+        return BrandPopularEnum.getNameByType(this.isHot);
+    }
+    public String getAuditStatusName() {
+        return BrandAuditEnum.getNameByType(this.auditStatus);
+    }
 
     @Data
     public static class SiteInfoVO{

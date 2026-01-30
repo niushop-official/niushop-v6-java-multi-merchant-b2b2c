@@ -95,28 +95,31 @@ public class CoreGoodsStatServiceImpl implements ICoreGoodsStatService {
         long startTime = DateUtils.StringToTimestamp(startDate);
         long endTime = DateUtils.StringToTimestamp(endDate);
         QueryWrapper<MallGoodsStat> queryWrapper = new QueryWrapper<>();
-        if(ObjectUtil.isNotEmpty(siteId))
-        {
-            queryWrapper.eq("site_id", siteId);
-        }
+        queryWrapper.eq("site_id", siteId);
+        
         if(ObjectUtil.isNotEmpty(startDate) && ObjectUtil.isNotEmpty(endDate))
         {
-            queryWrapper.between("date_time", startTime, endTime);
-        }else if(ObjectUtil.isNotEmpty(startDate))
-        {
             queryWrapper.ge("date_time", startTime);
-        }else{
-            queryWrapper.ge("date_time", 0);
+            queryWrapper.le("date_time", endTime);
+        }
+        else if(ObjectUtil.isNotEmpty(startDate))
+        {
+            queryWrapper.eq("date_time", startTime);
+        }
+        else
+        {
+            queryWrapper.gt("date_time", 0);
         }
 
-        queryWrapper.select("IFNULL(sum(cart_num), 0) AS cart_num, " +
-                            "IFNULL(sum(sale_num), 0) AS sale_num, " +
+        // 按照 PHP STAT_FIELD 的顺序排列字段
+        queryWrapper.select("IFNULL(sum(sale_num), 0) AS sale_num, " +
                             "IFNULL(sum(pay_num), 0) AS pay_num, " +
                             "IFNULL(sum(pay_money), 0) AS pay_money, " +
                             "IFNULL(sum(refund_num), 0) AS refund_num, " +
                             "IFNULL(sum(refund_money), 0) AS refund_money, " +
                             "IFNULL(sum(access_num), 0) AS access_num, " +
                             "IFNULL(sum(collect_num), 0) AS collect_num, " +
+                            "IFNULL(sum(cart_num), 0) AS cart_num, " +
                             "IFNULL(sum(evaluate_num), 0) AS evaluate_num, " +
                             "IFNULL(sum(goods_visit_member_count), 0) AS goods_visit_member_count");
         MallGoodsStat mallGoodsStat = mallGoodsStatMapper.selectOne(queryWrapper);

@@ -36,6 +36,9 @@
                     </template>
                     <button v-else-if="maxBuy == 0" :style="{ width : '420rpx' + '!important'  }" class="flex-1 !h-[70rpx] font-500 text-[26rpx] !text-[#fff] !bg-[#ccc] !m-0 leading-[70rpx] rounded-full remove-border">已达限购数量</button>
                 </view>
+                <view class="flex flex-1" v-if="diyComponent.goods.status == 0 || diyComponent.goods.status == -3">
+                    <button class="flex-1 !h-[70rpx] font-500 text-[26rpx] !text-[#fff] !bg-[#ccc] !m-0 leading-[70rpx] rounded-full remove-border !mr-[16rpx]">商品已下架</button>
+                </view>
             </view>
             <template v-else-if="diyStore.mode == 'decorate'">
                 <button v-if="diyComponent.cartIsShow" class="flex-1 !h-[70rpx] font-500 text-[26rpx] !m-0 !mr-[16rpx] leading-[70rpx] rounded-full remove-border" :style="cartBtnStyle">

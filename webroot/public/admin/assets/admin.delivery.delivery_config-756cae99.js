@@ -1,1 +1,0 @@
-const s="展示店铺距离",i="开启后,店铺列表以及店铺主页中会出现客户距店铺的距离,店铺列表中还会出现依据距离衍生出的距离排序以及区域筛选",e="是否开启物流配送",o="是否开启同城配送",t="是否开启门店自提",c={isShow:s,distanceTips:i,isExpress:e,isLocalDelivery:o,isStore:t};export{c as default,i as distanceTips,e as isExpress,o as isLocalDelivery,s as isShow,t as isStore};

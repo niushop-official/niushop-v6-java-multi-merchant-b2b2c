@@ -1,5 +1,5 @@
 <template>
-    <view class="min-h-[100vh] bg-[var(--page-bg-color)]  overflow-hidden" :style="themeColor()">
+    <view class="min-h-[100vh] bg-[var(--page-bg-color)]  overflow-hidden" :style="themeColor()" v-if="!loading">
         <view class="sidebar-margin pt-[var(--top-m)]" v-if="couponList.length">
             <view v-for="(item,index) in couponList" :key="index" class="bg-[#fff5f3] py-[20rpx] flex items-center relative  rounded-[var(--rounded-mid)] overflow-hidden mb-[20rpx] coupon-item">
                 <view class="w-[200rpx] flex  flex-col items-center justify-center ">

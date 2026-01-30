@@ -60,7 +60,7 @@
                         </u-form-item>
                     </view>
                 </template>
-                <template v-if="type == 'username'">
+                <!-- <template v-if="type == 'username'">
                     <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[40rpx] box-border bg-[#F6F6F6] mt-[40rpx]">
                         <u-form-item label="" prop="captcha_code" :border-bottom="false">
                             <u-input v-model="formData.captcha_code" border="none" :placeholder="t('captchaPlaceholder')" class="!bg-transparent" :disabled="real_name_input" fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]">
@@ -70,7 +70,7 @@
                             </u-input>
                         </u-form-item>
                     </view>
-                </template>
+                </template> -->
             </u-form>
             <view class="mt-[140rpx]">
                 <button class="w-full h-[80rpx] !bg-[var(--primary-color)] text-[26rpx] rounded-[40rpx] leading-[80rpx] font-500 !text-[#fff]" @click="handleRegister">{{ t('register') }}</button>
@@ -113,6 +113,7 @@
                 </view>
             </view>
         </u-popup>
+        <Verify @success='success' :mode="'pop'" :captchaType="configStore.login.captcha_type" ref="verifyRef" :imgSize="{width:'310px',height:'155px'}"></Verify>
     </view>
 </template>
 
@@ -128,6 +129,7 @@ import { redirect, getToken, pxToRpx } from '@/utils/common'
 import { onLoad } from '@dcloudio/uni-app';
 import { topTabar } from '@/utils/topTabbar'
 import useSystemStore from "@/stores/system";
+import Verify from '@/components/verify/verify.vue'
 
 const systemStore = useSystemStore()
 /********* 自定义头部 - start ***********/
@@ -146,6 +148,7 @@ const formData = reactive({
     mobile_key: '',
     captcha_key: '',
     captcha_code: '',
+    captcha_type: '',
     site_id: ''
 })
 const popupShow = ref(false)
@@ -297,6 +300,21 @@ const isAgree = ref(false)
 
 const formRef: any = ref(null)
 
+const verifyRef: any = ref(null)
+const success = async (data: any) => {
+    verifyRef.value.close()
+    formData.captcha_code = data.captchaVerification
+    formData.captcha_key = data.captcha_key
+    formData.captcha_type = configStore.login.captcha_type
+    usernameRegister(formData).then((res: any) => {
+        memberStore.setToken(res.data.token)
+        useLogin().handleLoginBack()
+    }).catch(() => {
+        loading.value = false
+        captcha.refresh()
+    })
+}
+
 const handleRegister = () => {
     formRef.value.validate().then(() => {
         if (configStore.login.agreement_show && !isAgree.value) {
@@ -305,16 +323,19 @@ const handleRegister = () => {
         }
         if (loading.value) return
         loading.value = true
-
-        const register = type.value == 'username' ? usernameRegister : mobileRegister
-
-        register(formData).then((res: any) => {
-            memberStore.setToken(res.data.token)
-            useLogin().handleLoginBack()
-        }).catch(() => {
-            loading.value = false
-            captcha.refresh()
-        })
+        if(type.value == 'username'){
+            verifyRef.value.show()
+        } else {
+            formData.captcha_type = configStore.login.captcha_type
+            mobileRegister(formData).then((res: any) => {
+                memberStore.setToken(res.data.token)
+                useLogin().handleLoginBack()
+            }).catch(() => {
+                loading.value = false
+                captcha.refresh()
+            })
+        }
+        
     })
 }
 const toLink = () => {

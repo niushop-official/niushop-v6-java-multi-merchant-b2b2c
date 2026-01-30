@@ -17,7 +17,8 @@ public class OrderConfigVo implements Serializable {
     private MallOrderEvaluate evaluate; //订单评价配置
     private MallOrderInvoice invoice;  //订单发票配置
     private MallOrderFinish confirm;  //订单完成配置
-    private Integer isClose;////自动取消订单 2:否 1:是
+    private MallOrderDelaySpear delaySpear; //延迟分账配置
+    private Integer isClose; //自动取消订单 2:否 1:是
     private Integer isFinish; // 自动确认收货 2:否 1:是
     private Integer formId;
 

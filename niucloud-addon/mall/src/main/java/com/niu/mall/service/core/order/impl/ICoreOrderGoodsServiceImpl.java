@@ -23,18 +23,18 @@ public class ICoreOrderGoodsServiceImpl implements ICoreOrderGoodsService {
 
     @Override
     public boolean cancelOrderGoodsDelivery(OrderGoodsDeliveryParam param) {
-        MallOrder order = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>().eq("order_no", param.getOrderNo()));
-
-        if(ObjectUtil.isEmpty(order)) return true;
-
-        MallOrderGoods updateOrderGoods = new MallOrderGoods();
-        updateOrderGoods.setDeliveryStatus(OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus());
-        QueryWrapper<MallOrderGoods> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("order_no", param.getOrderNo());
-        if(ObjectUtil.isNotEmpty(param.getOrderGoodsIds())) {
-            queryWrapper.in("order_goods_id", param.getOrderGoodsIds());
-        }
-        mallOrderGoodsMapper.update(updateOrderGoods, queryWrapper);
+//        MallOrder order = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>().eq("order_no", param.getOrderNo()));
+//
+//        if(ObjectUtil.isEmpty(order)) return true;
+//
+//        MallOrderGoods updateOrderGoods = new MallOrderGoods();
+//        updateOrderGoods.setDeliveryStatus(OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus());
+//        QueryWrapper<MallOrderGoods> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("order_no", param.getOrderNo());
+//        if(ObjectUtil.isNotEmpty(param.getOrderGoodsIds())) {
+//            queryWrapper.in("order_goods_id", param.getOrderGoodsIds());
+//        }
+//        mallOrderGoodsMapper.update(updateOrderGoods, queryWrapper);
         return true;
     }
 }

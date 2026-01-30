@@ -14,7 +14,7 @@
                             <el-radio label="1">{{ t('isInvoiceOpen') }}</el-radio>
                         </el-radio-group>
                     </el-form-item>
-                    <el-form-item class="invoice">
+                    <!-- <el-form-item class="invoice">
                         <div class="flex">
                             <div>{{ t('invoiceContent') }}</div>
                             <div class="mx-[10px]">
@@ -39,7 +39,7 @@
                             </div>
                             <el-button @click="insertInvoiceContent">{{ t('insert') }}</el-button>
                         </div>
-                    </el-form-item>
+                    </el-form-item> -->
                     <!-- <el-form-item prop="invoice_type">
                         <span class="mr-[10px]">{{ t('invoiceType') }}</span>
                         <el-checkbox-group v-model="formData.invoice_type">

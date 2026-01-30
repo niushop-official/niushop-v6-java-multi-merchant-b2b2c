@@ -12,4 +12,14 @@ public class GoodsBrandSearchParam implements Serializable {
 
     private String brandName;
 
+    private Integer status;
+
+    private Integer auditStatus;
+
+    private Integer isHot;
+
+    private String order;
+
+    private String sort;
+
 }

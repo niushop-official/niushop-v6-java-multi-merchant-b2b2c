@@ -6,6 +6,8 @@
     "userMobile":"联系电话",
     "useMobilePlaceholder":"请输入联系电话",
     "mobileError":"请输入正确的手机号",
+    "mobileCode":"验证码",
+    "mobileCodePlaceholder":"请输入验证码",
     "categoryId":"店铺分类",
     "categoryIdPlaceholder":"请选择店铺分类",
     "groupId":"店铺套餐",

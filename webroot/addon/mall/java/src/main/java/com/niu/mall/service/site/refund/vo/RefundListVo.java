@@ -30,7 +30,9 @@ public class RefundListVo implements Serializable {
     private String refundType;  // 退款方式 
     private String reason;  // 退款原因 
     private Integer memberId;  // 会员id
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
     private BigDecimal applyMoney;  // 申请退款
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
     private BigDecimal money;  // 实际退款
     private String status;  // 退款状态
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)

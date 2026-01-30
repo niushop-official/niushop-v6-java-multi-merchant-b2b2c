@@ -65,7 +65,7 @@ public class WechatTemplateServiceImpl implements IWechatTemplateService {
         Map<String, NoticeInfoVo> list = coreNoticeService.getList(RequestUtils.siteId(), param.getKeys());
 
         for (NoticeInfoVo item : list.values()) {
-            if (item.getWechat() != null) {
+            if (item.getWechat() != null && !item.getWechat().isEmpty()) {
                 if (item.getWeappTemplateId().length() > 0) {
                     deleteTemplate(item.getWeappTemplateId());
                 }

@@ -15,6 +15,10 @@ public class GoodsBrandSearchParam implements Serializable {
 
     private String brandName;
 
+    private Integer auditStatus;
+
+    private Integer status;
+
     private JSONArray brandIds;
 
 }

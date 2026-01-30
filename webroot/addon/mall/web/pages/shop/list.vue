@@ -17,11 +17,19 @@
                             <div class="mb-[15px] cursor-pointer">
                                 <div  class="w-[228px] border-solid border-[#eee] border-[1px] pb-[20px] rounded-[16px] bg-[#fff] flex items-center flex-col overflow-hidden box-border"  @click="toDetail(item.site_id)" >
                                     <div class="w-[228px] h-[228px] overflow-hidden">
+                                        <el-image :src="img(item.logo)" fit="cover" class="w-[228px] h-[228px] align-middle">
+                                            <template #error>
+                                               <img :src="img(`static/resource/images/site/back0${ Math.floor(Math.random() * 4) + 1}.jpg`)" alt="" class="w-[228px] h-[228px]">
+                                            </template>
+                                        </el-image>
                                         <img :src="img(item.logo)" v-if="item.logo" class="w-[228px] h-[228px] align-middle" />
                                     </div>
-                                    <div class="w-[80px] h-[80px] rounded-full border-[#eee] border-solid border-[2px] flex items-center justify-center mb-[18px] mt-[-36px]">
-                                        <img :src="img(item.front_end_logo)" alt="" v-if="item.front_end_logo" class="w-full max-h-[80px] rounded-full">
-                                        <img src="@/assets/images/shop_default.png" alt="" v-else class="w-full max-h-[80px] rounded-full">
+                                    <div class="relative w-[80px] h-[80px] rounded-full border-[#eee] border-solid border-[2px] flex items-center justify-center mb-[18px] mt-[-36px]">
+                                        <el-image :src="img(item.front_end_logo)" fit="cover" class="w-[80px] h-[80px] rounded-full" >
+                                            <template #error>
+                                               <img src="@/assets/images/shop_default.png" alt="" class="w-[80px] h-[80px] rounded-full">
+                                            </template>
+                                        </el-image>
                                     </div>
                                     <div class="flex justify-center">
                                         <div class="w-[170px] text-center truncate">{{item.site_name}}</div>
@@ -53,7 +61,7 @@ import { useRouter,useRoute } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
 let shopCategory = ref([])
-const shopTableData = reactive({
+const shopTableData = reactive<any>({
     page: 1,
 	limit: 10,
 	total: 0,

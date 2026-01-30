@@ -2,10 +2,13 @@ package com.niu.core.service.admin.verify;
 
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.service.admin.verify.param.VerifyCodeParam;
 import com.niu.core.service.admin.verify.param.VerifySearchParam;
+import com.niu.core.service.admin.verify.vo.VerifyCodeVo;
 import com.niu.core.service.admin.verify.vo.VerifyInfoVo;
 import com.niu.core.service.admin.verify.vo.VerifyListVo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,4 +37,10 @@ public interface IVerifyService {
 
     Map<String, String>  getVerifierTypeList();
 
+    /**
+     * 获取核销码
+     * @param param 参数
+     * @return VerifyCodeVo
+     */
+    List<VerifyCodeVo> getVerifyCode(VerifyCodeParam  param);
 }

@@ -32,7 +32,7 @@ public interface ISiteShopService {
      * @param id 主键ID
      * @return  SiteShopInfoVo
      */
-    SiteShopInfoVo info(Integer id);
+    SiteShopInfoVo info(Object id,Map<String, String> allParams);
 
     /**
      * 店铺二维码

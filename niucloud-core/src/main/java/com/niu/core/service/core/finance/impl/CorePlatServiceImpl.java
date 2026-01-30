@@ -81,12 +81,6 @@ public class CorePlatServiceImpl implements ICorePlatService {
                     logData.setMemo("余额支付成功,扣除用户余额" + orderPlatParam.getOrderMoney() + "元");
 
                     coreSiteFinanceService.addPlatLog(logData);
-
-                    // 充值消费金额统计
-                    SysDataAddParam statData = new SysDataAddParam();
-                    statData.setSiteId(RequestUtils.defaultSiteId());
-                    statData.setRechargePayMoney(orderPlatParam.getOrderMoney());
-                    coreStatService.addStat(statData);
                 } else if (!pay.getType().equals("offlinepay")) {
 
                     // 非线下支付 - 记录收入
@@ -533,12 +527,6 @@ public class CorePlatServiceImpl implements ICorePlatService {
                 logData.setMemo("余额退款成功,退还用户余额" + orderRefundParam.getMoney() + "元");
 
                 coreSiteFinanceService.addPlatLog(logData);
-
-                //充值消费金额统计
-                SysDataAddParam sysDataAddParam = new SysDataAddParam();
-                sysDataAddParam.setSiteId(RequestUtils.defaultSiteId());
-                sysDataAddParam.setRechargePayMoney(orderRefundParam.getMoney());
-                coreStatService.addStat(sysDataAddParam);
             }else{
                 if("offlinepay".equals(payRefund.getType())){
                     SiteFinanceLog logData = new SiteFinanceLog();

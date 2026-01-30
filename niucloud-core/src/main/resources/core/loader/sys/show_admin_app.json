@@ -1,4 +1,6 @@
 {
+  "app": [
+  ],
   "tool": [
     {
       "title": "万能表单",
@@ -22,6 +24,13 @@
       "url": "/adminapp"
     }
   ],
-  "addon": [
+  "promotion": [
+    {
+      "title": "会员充值",
+      "desc": "在线充值到会员账户",
+      "icon": "static/resource/images/recharge/icon.png",
+      "key": "recharge",
+      "url": "/recharge/config"
+    }
   ]
 }

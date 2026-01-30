@@ -2,34 +2,49 @@ package com.niu.core.service.core.local_delivery.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.loader.local_delivery.BaseLocalDelivery;
 import com.niu.core.common.loader.local_delivery.LocalDeliveryLoader;
-import com.niu.core.common.loader.local_delivery.param.CloseShopDeliveryOrderParam;
-import com.niu.core.common.utils.StringUtils;
+import com.niu.core.common.utils.DistanceCalculateUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrder;
-import com.niu.core.entity.delivery.DeliveryShopDeliveryOrder;
 import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
-import com.niu.core.enums.local_delivery.LocalDeliveryOrderCancelReasonEnum;
+import com.niu.core.enums.local_delivery.LocalDeliveryStatusEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
+import com.niu.core.event.local_delivery.GetLocalDeliveryTrackEventDefiner;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderMapper;
-import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderCloseService;
+import com.niu.core.service.api.delivery.param.TrackOfLocalServiceParam;
+import com.niu.core.service.api.delivery.vo.TrackCenterVo;
+import com.niu.core.service.api.delivery.vo.TrackOfLocalServiceVo;
+import com.niu.core.service.api.delivery.vo.TrackPointsVo;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
+import com.niu.core.service.core.delivery.ICoreConfigService;
+import com.niu.core.service.core.delivery.ICoreDeliveryConfigService;
+import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderService;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryService;
-import com.niu.core.service.core.local_delivery.param.LocalDeliveryOrderCloseParam;
+import com.niu.core.service.core.map.ICoreMapService;
 import jakarta.annotation.Resource;
-import org.springframework.beans.BeanUtils;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * 同城配送事件服务实现
  */
+@Log4j2
 @Service
 public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrderService {
 
@@ -37,6 +52,10 @@ public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrde
     private DeliveryLocalDeliveryOrderMapper deliveryLocalDeliveryOrderMapper;
     @Resource
     private ICoreLocalDeliveryService coreLocalDeliveryService;
+    @Resource
+    private ICoreDeliveryConfigService coreDeliveryConfigService;
+    @Resource
+    private ICoreMapService coreMapService;
 
     @Override
     @Transactional
@@ -48,9 +67,6 @@ public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrde
         Map<String, Object> localDeliveryConfig = new HashMap<>();
         if(!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(info.getDeliveryService())){
             localDeliveryConfig = coreLocalDeliveryService.getConfig(info.getDeliveryService(),info.getSiteId());
-            String deliveryServiceName = LocalDeliveryTypeEnum.getName(info.getDeliveryService());
-            if (localDeliveryConfig.isEmpty() || !localDeliveryConfig.containsKey("config"))   throw new RuntimeException(deliveryServiceName + "未配置");
-            localDeliveryConfig = JSONUtil.parseObj(localDeliveryConfig.get("config"));
         }
 
         localDeliveryConfig.put("siteId", info.getSiteId());
@@ -70,5 +86,167 @@ public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrde
         }catch (Exception e){
             throw new CommonException(e.getMessage());
         }
+    }
+
+    @Override
+    public Boolean getUnderwayDeliveryOrder(String tradeType, String tradeNo) {
+        List<DeliveryLocalDeliveryOrder> list =  deliveryLocalDeliveryOrderMapper.selectList(new QueryWrapper<DeliveryLocalDeliveryOrder>()
+                .eq("trade_type", tradeType).eq("trade_no", tradeNo).ne("status", LocalDeliveryStatusEnum.CANCELED.getStatus()));
+        if (list.isEmpty()){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    @Override
+    public TrackOfLocalServiceVo getTrackInfo(TrackOfLocalServiceParam param) {
+        DeliveryLocalDeliveryOrder localDeliveryOrder = deliveryLocalDeliveryOrderMapper.selectOne(new LambdaQueryWrapper<DeliveryLocalDeliveryOrder>()
+                .eq(DeliveryLocalDeliveryOrder::getTradeType, param.getTradeType())
+                .eq(DeliveryLocalDeliveryOrder::getTradeNo, param.getTradeNo())
+                .orderByDesc(DeliveryLocalDeliveryOrder::getCreateTime)
+                .last("limit 1")
+        );
+        //查询配送订单的起始点
+        GetLocalDeliveryTrackEventDefiner.GetLocalDeliveryTrackEvent event = new GetLocalDeliveryTrackEventDefiner.GetLocalDeliveryTrackEvent();
+        event.setSiteId(localDeliveryOrder.getSiteId());
+        event.setLocalDeliveryOrder(localDeliveryOrder);
+        event.setMemberId(param.getMemberId());
+        List<GetLocalDeliveryTrackEventDefiner.GetLocalDeliveryTrackResult> resultList = EventAndSubscribeOfPublisher.publishAndCallback(event);
+        List<TrackPointsVo> points = new ArrayList<>();
+        for (int i = 0; i < resultList.size(); i++) {
+            GetLocalDeliveryTrackEventDefiner.GetLocalDeliveryTrackResult itemResult = resultList.get(i);
+            if (ObjectUtil.isNotEmpty(itemResult) && ObjectUtil.isNotEmpty(itemResult.getPoints())) {
+                points = itemResult.getPoints();
+            }
+        }
+        if (points.isEmpty()){
+            return new TrackOfLocalServiceVo();
+        }
+        TrackOfLocalServiceVo data = new TrackOfLocalServiceVo();
+        data.setPoints( points);
+        //增加
+        AdminDeliveryConfigVo configVo =  coreDeliveryConfigService.getAdminDeliveryConfig();
+        Integer isShowPolyline = ObjectUtil.isNotEmpty(configVo.getIsShowPolyline()) ? configVo.getIsShowPolyline() : 0;
+        JSONObject driving = new JSONObject();
+        TrackCenterVo center = new TrackCenterVo();
+        if(points.size()>1){
+            center = calculateCenter(points);
+            if(isShowPolyline>0){
+                TrackPointsVo fromPoint = points.get(0);
+                TrackPointsVo toPoint = points.get(1);
+                try {
+                    driving =  coreMapService.getPolygon(fromPoint.getLatitude()+","+fromPoint.getLongitude(),toPoint.getLatitude()+","+toPoint.getLongitude());
+                }catch (Exception e){
+                    log.error(" 获取配送订单轨迹失败 - 堆栈信息:{}", e.getMessage());
+                }
+            }
+        }else{
+            center.setLongitude(points.get(0).getLongitude());
+            center.setLatitude(points.get(0).getLatitude());
+        }
+        data.setCenter(center);
+        data.setDriving(driving);
+        data.setLocalDeliveryOrder(JSONUtil.parseObj(localDeliveryOrder));
+        JSONArray step = new JSONArray();
+        step.add(Map.of("desc","已接单","logo",""));
+        step.add(Map.of("desc","召唤骑手取货","logo",""));
+        step.add(Map.of("desc","骑手配送中","logo",""));
+        step.add(Map.of("desc","配送完成","logo",""));
+        data.setStep( step);
+        data.setExpectedFinishTime(getExpectedFinishTime(data,localDeliveryOrder));
+        return data;
+    }
+
+    public String getExpectedFinishTime(TrackOfLocalServiceVo data,DeliveryLocalDeliveryOrder localDeliveryOrder) {
+        List<TrackPointsVo> points = data.getPoints();
+        long currentTime = System.currentTimeMillis() / 1000; // 当前时间戳(秒)
+        double riderSpeed = 25.0; // 骑手速度，单位：公里/小时
+        long expectedFinishTime = currentTime;
+
+        switch (Integer.parseInt(localDeliveryOrder.getStatus())) {
+            case 0:
+            case 1: // 待接单
+                double distance = DistanceCalculateUtils.calculateDistance(
+                        Double.parseDouble(localDeliveryOrder.getDeliveryStartLat()),
+                        Double.parseDouble(localDeliveryOrder.getDeliveryStartLng()),
+                        Double.parseDouble(localDeliveryOrder.getDeliveryEndLat()),
+                        Double.parseDouble(localDeliveryOrder.getDeliveryEndLng())
+                );
+                expectedFinishTime += (long)((distance / riderSpeed) * 3600 + 600);
+                break;
+
+            case 2: //待取货
+                double distance1;
+                if (points.size() > 1) {
+                    distance1 = DistanceCalculateUtils.calculateDistance(
+                            Double.parseDouble(points.get(0).getLatitude()),
+                            Double.parseDouble(points.get(0).getLongitude()),
+                            Double.parseDouble(points.get(1).getLatitude()),
+                            Double.parseDouble(points.get(1).getLongitude())
+                    );
+                } else {
+                    distance1 = 0;
+                }
+                double distance2 = DistanceCalculateUtils.calculateDistance(
+                        Double.parseDouble(localDeliveryOrder.getDeliveryStartLat()),
+                        Double.parseDouble(localDeliveryOrder.getDeliveryStartLng()),
+                        Double.parseDouble(localDeliveryOrder.getDeliveryEndLat()),
+                        Double.parseDouble(localDeliveryOrder.getDeliveryEndLng())
+                );
+                expectedFinishTime += (long)((distance1 + distance2) / riderSpeed * 3600);
+                break;
+
+            case 3: //骑士到店
+                double distance3 = DistanceCalculateUtils.calculateDistance(
+                        Double.parseDouble(points.get(0).getLatitude()),
+                        Double.parseDouble(points.get(0).getLongitude()),
+                        Double.parseDouble(points.get(1).getLatitude()),
+                        Double.parseDouble(points.get(1).getLongitude())
+                );
+                double distance4 = DistanceCalculateUtils.calculateDistance(
+                        Double.parseDouble(localDeliveryOrder.getDeliveryStartLat()),
+                        Double.parseDouble(localDeliveryOrder.getDeliveryStartLng()),
+                        Double.parseDouble(localDeliveryOrder.getDeliveryEndLat()),
+                        Double.parseDouble(localDeliveryOrder.getDeliveryEndLng())
+                );
+                expectedFinishTime += (long)((distance3 + distance4) / riderSpeed * 3600);
+                break;
+
+            case 4: //配送中
+                double distance5 = DistanceCalculateUtils.calculateDistance(
+                        Double.parseDouble(points.get(0).getLatitude()),
+                        Double.parseDouble(points.get(0).getLongitude()),
+                        Double.parseDouble(points.get(1).getLatitude()),
+                        Double.parseDouble(points.get(1).getLongitude())
+                );
+                expectedFinishTime += (long)((distance5 / riderSpeed) * 3600);
+                break;
+        }
+
+        // 转换为HH:mm格式
+        LocalDateTime dateTime = LocalDateTime.ofEpochSecond(expectedFinishTime, 0, java.time.ZoneOffset.UTC);
+        return dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+    }
+
+    /**
+     * 计算坐标集合的经纬度中心点
+     * @param points
+     * @return
+     */
+    public static TrackCenterVo calculateCenter(List<TrackPointsVo> points) {
+        TrackCenterVo center = new TrackCenterVo();
+        double sumX = 0;
+        double sumY = 0;
+        int count = points.size();
+        for (TrackPointsVo point : points) {
+            sumX += Double.parseDouble(point.getLatitude());
+            sumY += Double.parseDouble(point.getLongitude());
+        }
+        BigDecimal xCenter = new BigDecimal(sumX / count);
+        BigDecimal yCenter = new BigDecimal(sumY / count);
+        center.setLatitude(xCenter.toString());
+        center.setLongitude(yCenter.toString());
+        return center;
     }
 }

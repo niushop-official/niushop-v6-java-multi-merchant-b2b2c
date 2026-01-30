@@ -111,3 +111,18 @@ export function orderEditAddress(params: Record<string, any>) {
 export function getSelectOrderGoodsWeight(params: Record<string, any>) {
     return request.get(`mall/site/order/select/weight`, params)
 }
+
+/**
+ * 获取已选订单项配送费用
+ * @return
+ */
+export function getDeliveryFee(params: Record<string, any>) {
+    return request.get(`mall/site/order/delivery/fee`, params)
+}
+
+/**
+ * 商家主动退款
+ */
+export function shopActiveRefund(params: Record<string, any>) {
+    return request.post(`mall/site/order/refund/active`, params)
+}

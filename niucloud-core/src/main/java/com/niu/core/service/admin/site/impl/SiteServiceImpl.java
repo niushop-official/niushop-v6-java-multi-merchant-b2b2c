@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -20,6 +21,7 @@ import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.json.JacksonUtils;
 import com.niu.core.common.utils.json.JsonModuleLoader;
 import com.niu.core.entity.addon.Addon;
+import com.niu.core.entity.diy.DiyPage;
 import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteGroup;
 import com.niu.core.entity.sys.SysMenu;
@@ -31,6 +33,7 @@ import com.niu.core.enums.sys.CacheTagEnum;
 import com.niu.core.event.site.SiteAddAfterEvent;
 import com.niu.core.event.site.SiteEditAfterEvent;
 import com.niu.core.mapper.addon.AddonMapper;
+import com.niu.core.mapper.diy.DiyPageMapper;
 import com.niu.core.mapper.site.SiteGroupMapper;
 import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.mapper.sys.SysMenuMapper;
@@ -121,6 +124,9 @@ public class SiteServiceImpl implements ISiteService {
 
     @Resource
     ICoreSiteService coreSiteService;
+
+    @Resource
+    DiyPageMapper diyPageMapper;
 
     /**
      * 站点列表
@@ -512,6 +518,10 @@ public class SiteServiceImpl implements ISiteService {
         toolsVo.setTitle("系统工具");
         toolsVo.setList(new ArrayList<>());
         map.put("tool", toolsVo);
+        ShowAppListVo promotionVo = new ShowAppListVo();
+        promotionVo.setTitle("营销活动");
+        promotionVo.setList(new ArrayList<>());
+        map.put("promotion", promotionVo);
         
         List<String> filterKeys = new ArrayList<>();
         filterKeys.add("b2b2c_dada");
@@ -535,7 +545,23 @@ public class SiteServiceImpl implements ISiteService {
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
                     String appKey = jsonObject.getStr("key");
-                    
+
+                    //处理拼团路径
+                    if (appKey.equals("pintuan_diy")){
+                        String page = "/admin/decorate/edit?type=DIY_PINTUAN_ACTIVITY_GOODS_DETAIL&title=拼团活动详情&back=/admin/app/index&is_target=true";
+                        DiyPage diyPageInfo = diyPageMapper.selectOne(new LambdaQueryWrapper<DiyPage>()
+                                .eq(DiyPage::getType, "DIY_PINTUAN_ACTIVITY_GOODS_DETAIL")
+                                .eq(DiyPage::getMode, "diy")
+                                .eq(DiyPage::getSiteId, RequestUtils.siteId())
+                                .eq(DiyPage::getIsDefault, 1)
+                                .last("limit 1")
+                        );
+                        if(ObjectUtil.isNotEmpty(diyPageInfo)){
+                            page = "/admin/decorate/edit?id=" + diyPageInfo.getId() + "&back=/admin/app/index&is_target=true";
+                        }
+                        //替换url
+                        jsonObject.set("url", page);
+                    }
                     // 过滤特定插件
                     if (filterKeys.contains(appKey)) {
                         continue;
@@ -552,6 +578,8 @@ public class SiteServiceImpl implements ISiteService {
                         addonVo.getList().add(appInfo);
                     } else if (key.equals("tool")) {
                         toolsVo.getList().add(appInfo);
+                    } else if (key.equals("promotion")) {
+                        promotionVo.getList().add(appInfo);
                     }
                     appKeys.add(appKey);
                 }
@@ -719,14 +747,14 @@ public class SiteServiceImpl implements ISiteService {
         }
         if (isAdmin > 0) {
             // 超级管理员获取所有菜单
-            List<SysMenu> menuList = sysMenuService.getAdminAllMenuList(appType, status, isButton == 1);
+            List<SysMenu> menuList = sysMenuService.getAdminAllMenuList(appType, status, isButton == 1,0);
             JSONArray jsonArray = JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(menuList));
             return isTree ? TreeUtils.listToTree(jsonArray, "menu_key", "parent_key", "children") : jsonArray;
         } else {
             String userRoleIds = authRole.getRoleIds();
             strings.add(userRoleIds);
             List<String> menuKeys = sysRoleService.getMenuIdsByRoleIds(siteId, strings);
-            List<SysMenu> adminMenuListByMenuKeys = sysMenuService.getAdminMenuListByMenuKeys(RequestUtils.appType(), siteId, status, isButton, menuKeys, addon);
+            List<SysMenu> adminMenuListByMenuKeys = sysMenuService.getAdminMenuListByMenuKeys(RequestUtils.appType(), siteId, status, isButton, menuKeys, addon,0);
             JSONArray jsonArray = JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(adminMenuListByMenuKeys));
             return isTree ? TreeUtils.listToTree(jsonArray, "menu_key", "parent_key", "children") : jsonArray;
         }

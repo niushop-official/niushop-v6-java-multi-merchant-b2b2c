@@ -33,7 +33,7 @@
                             </el-input>
                         </el-form-item>
                     </div>
-                    <div v-show="type == 'username'">
+                    <!-- <div v-show="type == 'username'">
                         <el-form-item prop="captcha_code">
                             <el-input v-model="formData.captcha_code" :placeholder="t('captchaPlaceholder')">
                                 <template #suffix>
@@ -43,7 +43,7 @@
                                 </template>
                             </el-input>
                         </el-form-item>
-                    </div>
+                    </div> -->
 
                     <div class="flex justify-end leading-none">
                         <NuxtLink to="/auth/login">
@@ -79,16 +79,19 @@
                 <div class="mt-[60px] text-base cursor-pointer leading-none" @click="active = !active">账号注册</div>
             </div>
         </div>
+        <!-- 验证组件 -->
+    	<verify @success="success"   :captchaType="configStore.login.captcha_type" :imgSize="{ width: '330px', height: '155px' }" ref="verifyRef"></verify>
     </div>
 </template>
 
 <script lang="ts" setup>
-    import { ref,reactive,watch,computed } from 'vue'
+import { ref,reactive,watch,computed } from 'vue'
 import { usernameRegister, mobileRegister, wechatCheck } from '@/app/api/auth'
 import useMemberStore from '@/stores/member'
 import useConfigStore from '@/stores/config'
 import { FormInstance } from 'element-plus'
 import { useRouter } from 'vue-router'
+import verify from '@/components/verifition/Verify.vue'
 definePageMeta({
     layout: "container"
 });
@@ -182,6 +185,7 @@ const formRules = computed(() => {
 })
 
 const formRef = ref<FormInstance>()
+const verifyRef = ref<any>(null)
 
 const handleRegister = async () => {
     await formRef.value?.validate(async (valid, fields) => {
@@ -189,15 +193,18 @@ const handleRegister = async () => {
             if (loading.value) return
             loading.value = true
 
-            const register = type.value == 'username' ? usernameRegister : mobileRegister
-
-            register(formData).then((res: responseResult) => {
-                memberStore.setToken(res.data.token)
-                router.push({ path: '/' })
-            }).catch(() => {
-                loading.value = false
-                captcha.refresh()
-            })
+            if(type.value == 'username') {
+                verifyRef.value?.show()
+            } else {
+                mobileRegister(formData).then((res: any) => {
+                    memberStore.setToken(res.data.token)
+                    router.push({ path: '/' })
+                }).catch(() => {
+                    loading.value = false
+                    captcha.refresh()
+                })
+            }
+            
         }
     })
 }
@@ -214,12 +221,30 @@ wechatCheckFn()
 const captcha = useCaptcha(formData)
 captcha.refresh()
 
+// 验证码 - start
+const success = (params: any) => {
+    if(type.value == 'username'){
+        formData.captcha_code = params.captchaVerification
+        formData.captcha_key = params.captcha_key
+        usernameRegister(formData).then((res: any) => {
+            memberStore.setToken(res.data.token)
+            router.push({ path: '/' })
+        }).catch(() => {
+            loading.value = false
+            captcha.refresh()
+        })
+    } else {
+        smsCodeRef.value?.send({captcha_code: params.captchaVerification})
+    }
+}
+// 验证码 - end
+
 // 获取手机验证码
 const smsCodeRef = ref<AnyObject | null>(null)
 const sendSmsCode = async () => {
     await formRef.value?.validateField('mobile', async (valid, fields) => {
         if (valid) {
-            smsCodeRef.value?.send()
+            verifyRef.value?.show()
         }
     })
 }

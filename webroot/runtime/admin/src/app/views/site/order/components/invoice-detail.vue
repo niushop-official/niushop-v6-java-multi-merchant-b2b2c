@@ -13,9 +13,9 @@
 								<div class="input-width">{{ logData.header_type_name }}</div>
 						</el-form-item>
                     </el-col>
-                    <el-col :span="12" v-if="logData.name">
+                    <el-col :span="12" v-if="logData.content_type_name">
                         <el-form-item :label="t('name')">
-								<div class="input-width">{{ logData.name  }}</div>
+								<div class="input-width">{{ logData.content_type_name  }}</div>
 						</el-form-item>
                     </el-col>
                     <el-col :span="12" v-if="logData.invoice_number">
@@ -113,6 +113,7 @@ interface LogDataType {
     header_name?: string
     header_type_name?: string
     name?: string
+    content_type_name?: string
     invoice_number?: string
     type_name?: string
     tax_number?: string

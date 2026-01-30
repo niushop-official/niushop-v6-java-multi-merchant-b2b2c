@@ -1,8 +1,8 @@
 <template>
 	<view class="bg-[var(--page-bg-color)] overflow-hidden min-h-screen">
 		<view class="mescroll-box" v-if="tabsData.length">
-			<view v-if="config.search.control" class="search-box box-border z-10 fixed top-0 left-0 right-0  h-[100rpx] bg-[#fff]" :style="{'top': systemStore.topTabbarInfo.fullHeight || 0}">
-				<view class="flex-1 search-input">
+			<view v-if="config.search.control" class="search-box box-border z-10 fixed top-0 left-0 right-0  h-[100rpx] bg-[var(--page-bg-color)]" :style="{'top': systemStore.topTabbarInfo.fullHeight || 0}">
+				<view class="flex-1 search-input bg-[#fff]">
 					<text @click.stop="searchNameFn" class="nc-iconfont nc-icon-sousuo-duanV6xx1 btn"></text>
 					<input class="input" type="text" v-model="searchName" :placeholder="config.search.title" placeholderClass="text-[var(--text-color-light9)]" @confirm="searchNameFn">
 					<text v-if="searchName" class="nc-iconfont nc-icon-cuohaoV6xx clear" @click="searchName=''"></text>
@@ -20,7 +20,7 @@
 				</scroll-view>
 			</view>
 			<scroll-view class="h-[100vh]" :scroll-y="true">
-				<view class="pl-[188rpx] scroll-ios pt-[20rpx] pr-[20rpx]" :class="{ '!pt-[120rpx]': config.search.control }">
+				<view class="pl-[188rpx] scroll-ios pt-[20rpx] pr-[20rpx]" :class="{ '!pt-[100rpx]': config.search.control }">
 					<view class="bg-[#fff] grid grid-cols-3 gap-x-[50rpx] gap-y-[32rpx] py-[32rpx] px-[24rpx] rounded-[var(--rounded-big)]" v-if="tabsData[tabActive]?.child_list && !loading">
 						<template v-for="(item, index) in tabsData[tabActive]?.child_list" :key="item.category_id">
 							<view @click="toLink(item.category_id)" class=" flex items-center  flex-col">
@@ -223,7 +223,7 @@ const searchNameFn = () => {
 .tabs-box .tab-item-active {
     position: relative;
     color: var(--primary-color);
-    background-color: var(--temp-bg);
+    // background-color: var(--temp-bg);
 
 	&::before {
 		display: inline-block;

@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
+import com.niu.core.enums.basic.InvoiceContentEnum;
+import com.niu.core.enums.basic.InvoiceTypeEnum;
 import lombok.Data;
 import java.math.BigDecimal;
 /**
@@ -92,5 +94,20 @@ private static final long serialVersionUID = 1L;
         
         /** 发票类型名称 */
         private String typeName;
-
+        private String contentType;  // 备注
+        private String contentTypeName;  // 备注
+        /**
+         * 获取头名称
+         * @return
+         */
+        public String getContentTypeName(){
+                return InvoiceContentEnum.getNameByType(this.contentType);
+        }
+        /**
+         * 获取类型名称
+         * @return
+         */
+        public String getTypeName(){
+                return InvoiceTypeEnum.getNameByType(this.type);
+        }
 }

@@ -14,13 +14,31 @@
                     <el-form-item :label="t('brandName')" prop="brand_name">
                         <el-input v-model.trim="brandTable.searchParam.brand_name" :placeholder="t('brandNamePlaceholder')" />
                     </el-form-item>
-
+                    <el-form-item :label="t('显示状态')" prop="status">
+                        <el-select v-model="brandTable.searchParam.status" :placeholder="t('请选择显示状态')" clearable>
+                            <el-option v-for="(item,index) in initData.status_list" :key="index" :label="item" :value="index" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item :label="t('是否热门')" prop="is_hot">
+                        <el-select v-model="brandTable.searchParam.is_hot" :placeholder="t('请选择是否热门')" clearable>
+                            <el-option v-for="(item,index) in initData.is_hot_list" :key="index" :label="item" :value="index" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item :label="t('审核状态')" prop="audit_status" v-if="activeName == 'audit'">
+                        <el-select v-model="brandTable.searchParam.audit_status" :placeholder="t('请选择审核状态')" clearable>
+                            <el-option v-for="(item,index) in initData.audit_status_list" :key="index" :label="item" :value="index" />
+                        </el-select>
+                    </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadBrandList()">{{ t('search') }}</el-button>
                         <el-button @click="resetForm(searchFormRef)">{{ t('reset') }}</el-button>
                     </el-form-item>
                 </el-form>
             </el-card>
+            <el-tabs v-model="activeName" class="goods-tabs" @tab-click="tabHandleClick">
+                <el-tab-pane :label="t('商品品牌')" name="pass"></el-tab-pane>
+                <el-tab-pane :label="t('品牌审核')" name="audit"></el-tab-pane>
+            </el-tabs>
 
             <div class="mt-[10px]">
                 <el-table :data="brandTable.data" size="large" v-loading="brandTable.loading" @sort-change="sortChange">
@@ -60,15 +78,36 @@
                             <el-input v-model.trim="row.sort" class="!w-[100px]" maxlength="8" @blur="sortInputListener(row.sort, row)" />
                         </template>
                     </el-table-column>
+                    <el-table-column prop="status_name" :label="t('显示状态')" min-width="120">
+                        <template #default="{ row }">
+                            <el-tag class="cursor-pointer" :type="row.status == 1 ? 'success' : 'danger'" @click="updateStatus(row)">{{ row.status == 1 ? '显示': '隐藏' }}</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="is_hot_name" :label="t('是否热门')" min-width="120">
+                        <template #default="{ row }">
+                            <el-tag class="cursor-pointer" :type="row.is_hot == 1 ? 'success' : 'danger'" @click="updateHot(row)">{{ row.is_hot == 1 ? '是': '否' }}</el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="t('审核状态')" min-width="120" v-if="activeName=='audit'">
+                        <template #default="{ row }">
+                            <div>
+                                <div>{{ row.audit_status_name }}</div>
+                                <div v-if="row.audit_status == -1">拒绝原因：{{ row.audit_reason }}</div>
+                            </div>
+                        </template>
+                    </el-table-column>
 
                     <el-table-column :label="t('operation')" fixed="right" align="right" min-width="120">
                         <template #default="{ row }">
-                            <div v-if="row.brand_type == 'admin'">
+                            <div v-if="row.brand_type == 'admin' && activeName=='pass'">
                                 <el-button type="primary" link @click="editEvent(row)">{{ t('edit') }}</el-button>
                                 <el-button type="primary" link @click="deleteEvent(row.brand_id)">{{ t('delete') }}</el-button>
                             </div>
-                            <div v-else>
+                            <div v-if="row.brand_type != 'admin' && activeName=='pass'">
                                 <el-button type="primary" link @click="moveEvent(row.brand_id)">{{ t('move') }}</el-button>
+                            </div>
+                            <div v-if="row.audit_status == 1 && activeName=='audit'">
+                                <el-button type="primary" link @click="auditEvent(row)">审核</el-button>
                             </div>
                         </template>
                     </el-table-column>
@@ -83,13 +122,33 @@
 
             <brand-edit ref="editBrandDialog" @complete="loadBrandList" />
         </el-card>
+        <!-- 审核弹框 -->
+        <el-dialog v-model="auditShowDialog" :title="t('审核')" width="460px" class="diy-dialog-wrap" :destroy-on-close="true">
+            <el-form :model="auditFormData" label-width="90px" ref="auditFormRef" :rules="auditFormRules" class="page-form">
+                <el-form-item :label="t('审核状态')" prop="status">
+                        <el-radio-group v-model="auditFormData.audit_status">
+                            <el-radio :label="2">通过</el-radio>
+                            <el-radio :label="-1">拒绝</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                <el-form-item :label="t('拒绝原因')" prop="audit_reason" v-if="auditFormData.audit_status == -1">
+                    <el-input v-model.tirm="auditFormData.audit_reason" type="textarea" rows="4" clearable class="input-width"  :maxlength="100"  :show-word-limit="true" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="auditCancel">{{ t('cancel') }}</el-button>
+                    <el-button type="primary" :loading="loading" @click="auditConfirm(auditFormRef)">{{ t('confirm') }}</el-button>
+                </span>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { getBrandPageList, deleteBrand, modifyBrandSort, moveBrand } from '@/app/api/basic_admin'
+import { getBrandPageList, getBrandPageAuditList, editBrandAudit, deleteBrand, modifyBrandSort, moveBrand, getBrandInit, updateBrandStatus, updateBrandHot } from '@/app/api/basic_admin'
 import { debounce, img } from '@/utils/common'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import BrandEdit from '@/app/views/admin/goods/components/brand-edit.vue'
@@ -107,12 +166,23 @@ const brandTable = reactive({
     searchParam: {
         brand_name: '',
         order: '',
-        sort: ''
+        sort: '',
+        audit_status: '',
+        is_hot: '',
+        status: ''
     }
 })
+const activeName = ref('pass')
 
 const searchFormRef = ref<FormInstance>()
 
+const initData = ref<any>({})
+const getBrandInitFn = () => {
+    getBrandInit().then(res => {
+        initData.value = res.data
+    })
+}
+getBrandInitFn()
 // 监听排序
 const sortChange = (event: any) => {
     let sort = ''
@@ -135,7 +205,9 @@ const loadBrandList = (page: number = 1) => {
     brandTable.loading = true
     brandTable.page = page
 
-    getBrandPageList({
+    const api = activeName.value == 'audit' ? getBrandPageAuditList : getBrandPageList
+
+    api({
         page: brandTable.page,
         limit: brandTable.limit,
         ...brandTable.searchParam
@@ -148,6 +220,11 @@ const loadBrandList = (page: number = 1) => {
     })
 }
 loadBrandList()
+
+const tabHandleClick = (tab: any) => {
+    activeName.value = tab.props.name
+    loadBrandList()
+}
 
 const editBrandDialog: Record<string, any> | null = ref(null)
 
@@ -189,7 +266,7 @@ const deleteEvent = (id: number) => {
 /**
  * 转入商品品牌
  */
- const moveEvent = (id: number) => {
+const moveEvent = (id: number) => {
     ElMessageBox.confirm(t('brandMoveTips'), t('warning'),
         {
             confirmButtonText: t('confirm'),
@@ -224,6 +301,79 @@ const sortInputListener = debounce((sort, row) => {
     }).then((res) => {
     })
 })
+
+// 更新状态
+const updateStatus = (row: any) => {
+    row.status = row.status == 1 ? 2 : 1
+    updateBrandStatus({
+        brand_id: row.brand_id,
+        status: row.status
+    }).then(() => {
+
+    })
+}
+
+// 更新热门
+const updateHot = (row: any) => {
+    row.is_hot = row.is_hot == 1 ? 2 : 1
+    updateBrandHot({
+        brand_id: row.brand_id,
+        is_hot: row.is_hot
+    }).then(() => {
+
+    })
+}
+
+// 审核
+const auditShowDialog = ref(false)
+const auditFormData = reactive({
+    brand_id: '',
+    audit_status: 2,
+    audit_reason: ''
+})
+const auditFormRef = ref<FormInstance>()
+const loading = ref(false)
+
+// 表单验证规则
+const auditFormRules = computed(() => {
+    return {
+        audit_reason: [
+            { required: true, message: t('请输入拒绝原因'), trigger: 'blur' }
+        ]
+    }
+})
+
+const auditEvent = (data: any) => {
+    auditFormData.brand_id = data.brand_id
+    auditFormData.audit_status = 2
+    auditFormData.audit_reason = ''
+    auditShowDialog.value = true
+}
+
+const auditConfirm = async (formEl: FormInstance | undefined) => {
+    if (loading.value || !formEl) return
+    await formEl.validate(async (valid) => {
+        if (valid) {
+            loading.value = true
+
+            editBrandAudit(auditFormData).then(() => {
+                loading.value = false
+                auditShowDialog.value = false
+                loadBrandList()
+            }).catch(() => {
+                loading.value = false
+                auditShowDialog.value = false
+            })
+        }
+    })
+}
+
+const auditCancel = () => {
+    auditShowDialog.value = false
+    auditFormData.brand_id = ''
+    auditFormData.audit_status = 2
+    auditFormData.audit_reason = ''
+}
 const resetForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return
     formEl.resetFields()

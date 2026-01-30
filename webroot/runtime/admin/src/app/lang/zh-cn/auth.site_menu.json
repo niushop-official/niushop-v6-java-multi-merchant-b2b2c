@@ -28,6 +28,7 @@
     "menuShortName":"菜单短标题",
     "menuShortNamePlaceholder":"请输入菜单短标题",
     "addon":"选择应用",
+    "addonPlaceholder":"请选择应用",
     "system":"系统菜单",
     "application":"应用菜单"
 }

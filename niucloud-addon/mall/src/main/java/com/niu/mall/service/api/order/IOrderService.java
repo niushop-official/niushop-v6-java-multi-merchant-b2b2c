@@ -4,10 +4,7 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.mall.service.api.order.param.DeliveryPackageSearchParam;
 import com.niu.mall.service.api.order.param.MallOrderSearchParam;
-import com.niu.mall.service.api.order.vo.DeliveryPackageVo;
-import com.niu.mall.service.api.order.vo.MallOrderInfoVo;
-import com.niu.mall.service.api.order.vo.MallOrderListVo;
-import com.niu.mall.service.api.order.vo.OrderNumVo;
+import com.niu.mall.service.api.order.vo.*;
 
 import java.util.Map;
 
@@ -23,7 +20,7 @@ public interface IOrderService {
      * @param searchParam 搜索参数
      * @return PageResult<ShopOrderListVo>
      */
-    PageResult<MallOrderListVo> page(PageParam pageParam, MallOrderSearchParam searchParam);
+    MallOrderListPageVo page(PageParam pageParam, MallOrderSearchParam searchParam);
 
     /**
      * 订单详情

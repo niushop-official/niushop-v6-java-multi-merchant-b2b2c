@@ -8,6 +8,7 @@ import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.utils.CommonUtils;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.article.Article;
 import com.niu.core.entity.article.ArticleCategory;
@@ -17,6 +18,7 @@ import com.niu.core.service.admin.article.param.ArticeSearchParam;
 import com.niu.core.service.admin.article.param.ArticleParam;
 import com.niu.core.service.admin.article.vo.ArticleInfoVo;
 import com.niu.core.service.admin.article.vo.ArticleListVo;
+import com.niu.core.service.admin.article.vo.ArticlePageVo;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -65,7 +67,7 @@ public class ArticleServiceImpl implements IArticleService {
             BeanUtils.copyProperties(item, vo);
             String wapDomain = ObjectUtil.isNotEmpty(GlobalConfig.webDomain) ? GlobalConfig.webDomain.replace("#/$#", "") : RequestUtils.getRequestSecure() + "://" + RequestUtils.getRequestDomain();
             vo.setArticleUrl(wapDomain);
-            vo.setImageThumbSmall(item.getImage());
+            vo.setImageThumbSmall(CommonUtils.thumbImageSmall(RequestUtils.siteId(),item.getImage()));
             list.add(vo);
         }
         return PageResult.build(page, limit, iPage.getTotal()).setData(list);
@@ -184,5 +186,35 @@ public class ArticleServiceImpl implements IArticleService {
     @Override
     public void del(Integer id) {
         articleMapper.delete(new QueryWrapper<Article>().eq("id", id));
+    }
+
+    @Override
+    public PageResult<ArticlePageVo> pageList(PageParam pageParam, ArticeSearchParam searchParam) {
+        Integer page = pageParam.getPage();
+        Integer limit = pageParam.getLimit();
+
+        MPJQueryWrapper<Article> queryWrapper = new MPJQueryWrapper<>();
+        queryWrapper.setAlias("at");
+        queryWrapper.select("at.id, atc.name as category_name,at.site_id,at.category_id,at.title,at.image,at.author,at.visit,at.create_time");
+        queryWrapper.leftJoin("?_article_category atc ON atc.`category_id` = at.category_id".replace("?_", GlobalConfig.tablePrefix));
+        if (ObjectUtil.isNotEmpty(searchParam.getTitle())) {
+            queryWrapper.like("at.title", searchParam.getTitle());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId())) {
+            queryWrapper.eq("at.category_id", searchParam.getCategoryId());
+        }
+        queryWrapper.eq("at.is_show",1);
+        queryWrapper.eq("at.site_id", RequestUtils.siteId());
+        queryWrapper.orderByAsc("at.create_time");
+
+        IPage<ArticlePageVo> iPage = articleMapper.selectJoinPage(new Page<>(page, limit), ArticlePageVo.class,  queryWrapper);
+        List<ArticlePageVo> list = new LinkedList<>();
+        for (ArticlePageVo item : iPage.getRecords()) {
+            ArticlePageVo vo = new ArticlePageVo();
+            BeanUtils.copyProperties(item, vo);
+            vo.setImageThumbSmall(CommonUtils.thumbImageSmall(RequestUtils.siteId(),item.getImage()));
+            list.add(vo);
+        }
+        return PageResult.build(page, limit, iPage.getTotal()).setData(list);
     }
 }

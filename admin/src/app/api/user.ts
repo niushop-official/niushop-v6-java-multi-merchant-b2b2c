@@ -65,3 +65,11 @@ export function checkUsernameIsExist(username: string) {
 export function getAllSiteUserList(params: Record<string, any>) {
     return request.get(`user/site/user_all`, { params })
 }
+
+/**
+ * 获取店铺管理员
+ * @returns
+ */
+export function getSiteUserList() {
+    return request.get(`user/site/user_list`)
+}

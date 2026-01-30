@@ -6,6 +6,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
+import com.niu.core.service.admin.sys.ISysConfigService;
 import com.niu.core.service.core.poster.ICorePosterService;
 import com.niu.core.service.core.poster.param.GetPosterParam;
 import com.niu.core.service.core.sys.ICoreUploadService;
@@ -100,5 +101,13 @@ public class CommonUtils {
         param.setIsThrowException(isThrowException);
         param.setChannel(channel);
         return ObjectUtil.defaultIfEmpty(corePosterService.get(param),"");
+    }
+
+    /**
+     * 获取site表中 服务器地址
+     */
+    public static String getServerDomain() {
+        ISysConfigService sysConfigService = SpringContext.bean(ISysConfigService.class);
+        return ObjectUtil.defaultIfEmpty(sysConfigService.getServerDomain(),"");
     }
 }

@@ -90,8 +90,8 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref,h } from 'vue'
-import { getMenus, deleteMenu,menuRefresh } from '@/app/api/sys'
+import { reactive, ref, h } from 'vue'
+import { getMenus, deleteMenu, menuRefresh } from '@/app/api/sys'
 import { t } from '@/lang'
 import { ElMessageBox } from 'element-plus'
 import EditMenu from '@/app/views/auth/components/edit-menu.vue'

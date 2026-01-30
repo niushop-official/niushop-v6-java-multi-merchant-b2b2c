@@ -492,6 +492,9 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
             // 设置状态：是否自动审核
             cashOut.setStatus("1".equals(cashOutConfig.getIsAutoVerify()) ? 2 : 1);
             cashOut.setCreateTime(System.currentTimeMillis() / 1000);
+            if(cashOutConfig.getIsAutoVerify().equals("1")){
+                cashOut.setAuditTime(System.currentTimeMillis() / 1000);
+            }
             // 保存提现记录
             siteShopCashOutMapper.insert(cashOut);
 

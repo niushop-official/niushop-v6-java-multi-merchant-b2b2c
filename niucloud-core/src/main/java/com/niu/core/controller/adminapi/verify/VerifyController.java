@@ -5,6 +5,7 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
 import com.niu.core.service.admin.verify.IVerifyService;
+import com.niu.core.service.admin.verify.param.VerifyCodeParam;
 import com.niu.core.service.admin.verify.param.VerifySearchParam;
 import com.niu.core.service.admin.verify.vo.VerifyInfoVo;
 import com.niu.core.service.admin.verify.vo.VerifyListVo;
@@ -67,6 +68,14 @@ public class VerifyController {
     @GetMapping("verifier/type/list")
     public Result<?> getVerifierTypeList() {
         return Result.success(verifyService.getVerifierTypeList());
+    }
+
+    /**
+     * 获取核销码
+     */
+    @GetMapping("/code")
+    public Result<?> getVerifyCode(@Validated VerifyCodeParam param) {
+        return Result.success(verifyService.getVerifyCode(param));
     }
 
 }

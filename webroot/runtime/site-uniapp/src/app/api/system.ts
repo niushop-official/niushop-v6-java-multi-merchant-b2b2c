@@ -50,6 +50,24 @@ export function getWechatSdkConfig(data: AnyObject) {
 }
 
 /**
+ * 获取附件列表
+ * @param params
+ * @returns
+ */
+export function getAttachmentList(params: Record<string, any>) {
+    return request.get(`sys/attachment`, params)
+}
+
+/**
+ * 获取附件组列表
+ * @param params
+ * @returns
+ */
+export function getAttachmentCategoryList(params: Record<string, any>) {
+    return request.get(`sys/attachment/category`, params)
+}
+
+/**
  * 上传图片
  */
 export function uploadImage(data: AnyObject) {
@@ -57,10 +75,10 @@ export function uploadImage(data: AnyObject) {
 }
 
 /**
- * 上传图片
+ * 上传图片base64
  */
-export function uploadSiteImage(data: AnyObject) {
-    return request.upload('wuxinggou/shop_setup/image', data, { showErrorMessage: true })
+export function uploadImageBase64(data: AnyObject) {
+    return request.post('sys/base64', data, { showErrorMessage: true })
 }
 
 /**
@@ -188,4 +206,28 @@ export function getInitInfo(params: Record<string, any>) {
  */
 export function getSiteNavs() {
     return request.get('adminapp/site/navs', )
+}
+
+
+/**
+ * 获取支付信息店铺端
+ * @returns
+ */
+export function getSitePayInfo(params: Record<string, any>) {
+    return request.get('pay/info_by_trade', params)
+}
+
+
+/**
+ * 获取相册设置
+ */
+export function getAttachmentConfig() {
+    return request.get(`sys/attachment/config`)
+}
+
+/**
+ * 相册设置
+ */
+export function setAttachmentConfig(params: Record<string, any>) {
+    return request.put(`sys/attachment/config`, params)
 }

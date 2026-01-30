@@ -5,9 +5,10 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.service.api.shop.param.SiteShopCashOutAuditParam;
 import com.niu.core.service.api.shop.param.SiteShopCashOutParam;
 import com.niu.core.service.api.shop.param.SiteShopCashOutSearchParam;
-import com.niu.core.service.api.shop.param.SiteShopCashOutTransferParam;
+import com.niu.core.service.api.shop.vo.SiteShopCashOutInfoNewVo;
 import com.niu.core.service.api.shop.vo.SiteShopCashOutInfoVo;
 import com.niu.core.service.api.shop.vo.SiteShopCashOutListVo;
+import com.niu.core.service.core.shop.param.ShopTransferParam;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -44,7 +45,12 @@ public interface ISiteShopCashOutService {
      * @param id
      * @param transferParam
      */
-    void transfer(Integer id, SiteShopCashOutTransferParam transferParam);
+    void transfer(Integer id, ShopTransferParam transferParam);
+
+    /**
+     * 店铺转账校验
+     */
+    Object checkTransfer(String code);
 
     /**
      * 商家站点提现添加

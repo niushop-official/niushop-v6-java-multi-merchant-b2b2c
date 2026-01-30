@@ -24,4 +24,10 @@ public class LoginConfigParam implements Serializable {
 
     @NotNull(message = "site_bg参数缺失")
     private String siteBg;
+
+    @NotNull(message = "平台端验证类型参数缺失")
+    private String captchaType;
+
+    @NotNull(message = "平台端验证类型参数缺失")
+    private String siteCaptchaType;
 }

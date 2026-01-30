@@ -176,8 +176,10 @@ public class RegisterServiceImpl implements IRegisterService {
         MobileCodeCacheVo vo = new MobileCodeCacheVo();
         BeanUtils.copyProperties(cache, vo);
         if (!vo.getMobile().equals(mobile) || !vo.getCode().equals(mobileCode)) throw new CommonException("手机验证码有误");
-        cached.remove(mobileKey);
+        clearMobileCode(mobileKey);
     }
 
-
+    private void clearMobileCode(String key){
+        cached.remove(key);
+    }
 }

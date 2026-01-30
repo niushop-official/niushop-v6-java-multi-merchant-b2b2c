@@ -10,6 +10,8 @@ import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.enums.common.ChannelEnum;
+import com.niu.core.enums.local_delivery.LocalDeliveryStatusEnum;
+import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.core.sys.ICoreUploadService;
 import com.niu.mall.entity.order.MallOrderDiscount;
@@ -102,7 +104,7 @@ public class MallOrderInfoVo implements Serializable {
     private Integer formRecordId;
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long buyerAskDeliveryTime;
-
+    private Boolean showLocalDeliveryInfo;
     private List<LocalDeliveryOrderLogInfo> localDeliveryOrderLog;
 
     private Site site;
@@ -110,7 +112,11 @@ public class MallOrderInfoVo implements Serializable {
 
     private Integer mchId;  // 关联id
     private Boolean isTradeManaged;  // 积分兑换
-
+    private Boolean canInvoice;  // 积分兑换
+    @JsonProperty("extend_field_1")
+    private String extendField1; //扩展字段1
+    @JsonProperty("extend_field_2")
+    private String extendField2; //扩展字段2
     @Data
     public static class Site{
         private Integer siteID;
@@ -204,6 +210,22 @@ public class MallOrderInfoVo implements Serializable {
         private String localDeliveryOrderId;
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
         private Long createTime; // 创建时间
+
+        private String deliveryService;
+        private String deliveryServiceName;
+        private Integer localDeliverId;
+        private Integer localDeliverOrderId;
+        private Integer localDeliveryStatus;
+        private String localDeliveryStatusName;
+        private String riderMobile;
+        private String riderName;
+
+        public String getDeliveryServiceName() {
+            return LocalDeliveryTypeEnum.getName(this.deliveryService);
+        }
+        public String getLocalDeliveryStatusName() {
+            return LocalDeliveryStatusEnum.getNameByStatus(this.localDeliveryStatus);
+        }
     }
 
 
@@ -362,6 +384,6 @@ public class MallOrderInfoVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType);
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType,this.orderType);
     }
 }

@@ -6,7 +6,7 @@
                     <template #value>
                         <!-- #ifndef MP-WEIXIN -->
                         <u-upload @afterRead="afterRead" :maxCount="1">
-                            <u-avatar :src="img(saveInfo.headimg)" :default-url="img('static/resource/images/default_headimg.png')" size="40" leftIcon="none" />
+                            <u-avatar :src="img(saveInfo.head_img)" :default-url="img('static/resource/images/default_headimg.png')" size="40" leftIcon="none" />
                         </u-upload>
                         <!-- #endif -->
                     </template>
@@ -73,14 +73,6 @@ const afterRead = (event: any) => {
         filePath: event.file.url,
         name: 'file'
     }).then((res: any) => {
-        
-    }).catch(() => {
-    })
-    uploadImage({
-        filePath: event.file.url,
-        name: 'file'
-    }).then((res: any) => {
-        
         setUserInfo({
             head_img: res.data.url,
             real_name: saveInfo.real_name

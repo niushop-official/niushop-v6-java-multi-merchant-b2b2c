@@ -9,8 +9,8 @@ import java.util.Map;
 @Getter
 @AllArgsConstructor
 public enum OrderRefundSourceEnum {
-    APPLY("买家申请退款", 1),
-    ACTIVE_REFUND("卖家主动退款", 2);
+    APPLY("申请退款", 1),
+    ACTIVE_REFUND("商家主动退款", 2);
 
     private final String name;
 

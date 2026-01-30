@@ -30,7 +30,7 @@ public class VerifierCheckListener extends VerifierCheckEventDefiner {
         Map<String, Object> data = event.getData();
         Integer siteId = event.getSiteId();
         String type = event.getType();
-
+        Integer verifyMemberId = event.getVerifyMemberId();
         List<Integer> verifyMemberIds = new ArrayList<>();
 
         if ("shopVirtualGoods".equals(type)) {

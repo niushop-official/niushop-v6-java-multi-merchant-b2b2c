@@ -36,6 +36,11 @@
                             <el-option v-for="(item,index) in deliveryTypeData" :key="index" :label="item" :value="index" />
                         </el-select>
                     </el-form-item>
+					<el-form-item :label="t('订单类型')" prop="order_type">
+                        <el-select v-model="orderTable.searchParam.order_type" :placeholder="t('请选择订单类型')" clearable>
+                            <el-option v-for="(item,index) in orderType" :key="index" :label="item" :value="index" />
+                        </el-select>
+                    </el-form-item>
 					<el-form-item :label="t('createTime')" prop="create_time">
 						<el-date-picker v-model="orderTable.searchParam.create_time" type="datetimerange"
 							value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
@@ -55,11 +60,7 @@
 			</el-card>
 			<el-tabs v-model="activeName" class="demo-tabs" @tab-change="handleClick">
 				<el-tab-pane :label="t('all')" name=""></el-tab-pane>
-				<el-tab-pane :label="t('toBePaid')" name="1"></el-tab-pane>
-				<el-tab-pane :label="t('toBeShipped')" name="2"></el-tab-pane>
-				<el-tab-pane :label="t('shipped')" name="3"></el-tab-pane>
-				<el-tab-pane :label="t('completed')" name="5"></el-tab-pane>
-				<el-tab-pane :label="t('closed')" name="-1"></el-tab-pane>
+				<el-tab-pane :label="item.name" :name="item.status" v-for="(item,index) in statusData" :key="index"></el-tab-pane>
 			</el-tabs>
 			<div>
 				<el-table :data="orderTable.data" size="large" class="table-top" @select-all="selectAllCheck">
@@ -83,6 +84,7 @@
 										<span class="">{{ t('orderNo') }}：{{ (item as any).order_no }}</span>
 										<span class="ml-5">{{ t('createTime') }}：{{ (item as any).create_time }}</span>
 										<!-- <span class="ml-5">{{ t('orderFrom') }}：{{ (item as any).order_form_name }}</span> -->
+										<span class="ml-5" v-if="item.order_type_name">{{ t('订单类型') }}：{{ (item as any).order_type_name }}</span>
 										<span class="ml-5" v-if="item.pay">{{ t('payType') }}：{{ (item as any).pay.type_name }}</span>
 										<span  class="ml-5" v-if="item.supply">{{ t('supplyName') }}：{{ item.supply.site_name }}</span>
 									</div>
@@ -120,7 +122,7 @@
 									<el-table-column min-width="120">
 										<template #default="{ row }">
 											<div class="cursor-pointer flex items-center flex-wrap" @click.stop="refundEventLink(item,row)" v-if="row.status != 1">
-												<span class="mr-[3px] text-[13px]">退款金额￥{{ row.apply_money }}</span>
+												<span class="mr-[3px] text-[13px]">退款金额￥{{ Number(row.refund_money) ? row.refund_money : row.apply_money }}</span>
 												<div class="text-[var(--el-color-primary)] text-[13px]">{{ row.status_name }}
 													<span class="iconfont iconxiangyoujiantou !text-[10px] text-[#888]"></span>
 												</div>
@@ -192,7 +194,7 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { getOrderList, getOrderStatus, getOrderPayType, getOrderFrom } from '@/addon/mall/api/admin/order'
+import { getOrderList, getOrderStatus, getOrderPayType, getOrderFrom, getOrderType } from '@/addon/mall/api/admin/order'
 import { getGoodsSource } from '@/addon/mall/api/admin/goods'
 import { getAdminDeliveryType } from '@/app/api/delivery_admin'
 import OrderExportSelect from '@/addon/mall/views/admin/order/components/order-export-select.vue'
@@ -205,17 +207,19 @@ const router = useRouter()
 const pageName = route.meta.title
 const activeName = Object.keys(route.query).length ? ref(route.query.status) : ref('')
 
-const statusData = ref([])
+const statusData = ref<any>([])
 const payTypeData = ref<any[]>([])
 const orderFromData = ref([])
 const goodsSource: any = ref({}) // 商品来源
 const deliveryTypeData = ref([])
+const orderType = ref([])
 const setFormData = async () => {
     statusData.value = await (await getOrderStatus()).data
     payTypeData.value = await (await getOrderPayType()).data
     orderFromData.value = await (await getOrderFrom()).data
     goodsSource.value = await (await getGoodsSource()).data
     deliveryTypeData.value = await (await getAdminDeliveryType()).data
+    orderType.value = await (await getOrderType()).data
 }
 setFormData()
 
@@ -261,7 +265,9 @@ const orderTable = reactive<OrderTable>({
         delivery_type: '',
         status: Object.keys(route.query).length ? route.query.status : '',
         create_time: [],
-        pay_time: []
+        pay_time: [],
+        extend_field_1: route.query.pintuan_id || '',
+        order_type: ''
     }
 })
 

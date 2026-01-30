@@ -1,4 +1,13 @@
 {
+  "niuyun": {
+    "name": "牛云短信",
+    "params":{},
+    "encrypt_params":[],
+    "show_type": "view",
+    "view": "/src/app/views/setting/sms_niu.vue",
+    "component": "",
+    "driver": "com.niu.core.service.core.sms.driver.Nuiyun"
+  },
   "aliyun": {
     "name": "阿里云短信",
     "driver": "com.niu.core.service.core.sms.driver.Aliyun",
@@ -7,6 +16,8 @@
       "app_key": "APP_KEY",
       "secret_key": "APP_SECRET"
     },
+    "encrypt_params": ["secret_key"],
+    "show_type": "component",
     "component": "/src/app/views/setting/components/sms-ali.vue"
   },
 
@@ -19,6 +30,8 @@
       "secret_id": "SECRET_ID",
       "secret_key": "SECRET_KEY"
     },
+    "encrypt_params": ["secret_key"],
+    "show_type": "component",
     "component": "/src/app/views/setting/components/sms-tencent.vue"
   }
 }

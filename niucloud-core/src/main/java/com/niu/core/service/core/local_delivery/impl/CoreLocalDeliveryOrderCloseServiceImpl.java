@@ -59,12 +59,7 @@ public class CoreLocalDeliveryOrderCloseServiceImpl implements ICoreLocalDeliver
         Map<String, Object> config = new HashMap<>();
         config.put("siteId", info.getSiteId());
         if(!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryService)){
-            Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryService,info.getSiteId());
-            if (localDeliveryConfig.isEmpty()) {
-                String typeName = LocalDeliveryTypeEnum.getName(deliveryService) != null ? LocalDeliveryTypeEnum.getName(deliveryService) : deliveryService;
-                throw new RuntimeException(typeName + "未配置");
-            }
-            config = JSONUtil.parseObj(localDeliveryConfig.get("config"));
+            config = coreLocalDeliveryService.getConfig(deliveryService,info.getSiteId());
         }
 
 

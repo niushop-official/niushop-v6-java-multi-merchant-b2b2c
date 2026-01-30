@@ -24,6 +24,10 @@ import com.niu.core.mapper.member.MemberAddressMapper;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.service.api.member.IMemberLevelService;
 import com.niu.core.service.core.addon.ICoreAddonService;
+import com.niu.core.service.core.delivery.ICoreDeliveryConfigService;
+import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
+import com.niu.core.service.core.delivery.vo.DeliveryConfigVo;
+import com.niu.core.service.core.sys.ICoreConfigService;
 import com.niu.mall.entity.coupon.MallCouponGoods;
 import com.niu.mall.entity.order.MallOrderGroup;
 import com.niu.mall.entity.order.MallOrderGroupDiscount;
@@ -40,14 +44,13 @@ import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
 import com.niu.mall.service.core.marketing.vo.MallMemberCouponInfoVo;
 import com.niu.mall.service.core.marketing.vo.MallMemberCouponListVo;
 import com.niu.mall.service.core.order.ICoreMallOrderCreateService;
+import com.niu.mall.service.core.order.ICoreOrderConfigService;
 import com.niu.mall.service.core.order.ICoreOrderCreateService;
 import com.niu.mall.service.core.order.ICoreOrderPayService;
 import com.niu.mall.service.core.order.param.*;
-import com.niu.mall.service.core.order.vo.MallOrderCreateDataVo;
-import com.niu.mall.service.core.order.vo.MallOrderCreateResultVo;
-import com.niu.mall.service.core.order.vo.OrderCouponListVo;
-import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
+import com.niu.mall.service.core.order.vo.*;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +60,7 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateService {
 
@@ -95,6 +99,10 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
     private MallOrderCalculateParam param;
     @Resource
     MallCouponGoodsMapper mallCouponGoodsMapper;
+    @Resource
+    ICoreDeliveryConfigService coreDeliveryConfigService;
+    @Resource
+    ICoreOrderConfigService coreOrderConfigService;
 
 
     @Override
@@ -121,6 +129,8 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
 
         selectTakeAddress(param);
 
+        //设置配置
+        getConfig("delivery");
         mallOrderCreateDataVo.setOrderHandleList(new HashMap<>());
         for (Map.Entry<Integer, MallOrderCalculateParam.Body> entry : param.getBody().entrySet()) {
             OrderCalculateParam orderCalculateParam = new OrderCalculateParam();
@@ -184,6 +194,10 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
         {
             mallOrderCreateDataVo.getDelivery().setTakerMobile(param.getDelivery().getTakerMobile());
         }
+        if(!param.getDelivery().getTakerName().equals(""))
+        {
+            mallOrderCreateDataVo.getDelivery().setTakerName(param.getDelivery().getTakerName());
+        }
 
         //合并订单
         splitOrder();
@@ -217,6 +231,11 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
                 entry.getValue().getDelivery().setTakerMobile(param.getDelivery().getTakerMobile());
             }
             entry.getValue().setMemberRemark(param.getBody().get(entry.getValue().getSiteId()).getMemberRemark());
+            entry.getValue().setWeappVersion(param.getWeappVersion());
+            entry.getValue().setBuyerAskDeliveryTime(param.getBody().get(entry.getValue().getSiteId()).getDelivery().getBuyerAskDeliveryTime());
+            entry.getValue().setLocalDeliveryType(param.getBody().get(entry.getValue().getSiteId()).getDelivery().getLocalDeliveryType());
+            entry.getValue().setOrderType(param.getBody().get(entry.getValue().getSiteId()).getOrderType());
+            entry.getValue().setExtendData(param.getBody().get(entry.getValue().getSiteId()).getExtendData());
             coreOrderCreateService.create(entry.getValue());
         }
         //平台优惠
@@ -428,8 +447,12 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
                     supplyOrderCreateDataVo.getBasic().setCostGoodsMoney(supplyOrderCreateDataVo.getBasic().getCostGoodsMoney().add(sku.getCostGoodsMoney()));
                     supplyOrderCreateDataVo.getBasic().setDiscountMoney(supplyOrderCreateDataVo.getBasic().getDiscountMoney().add(sku.getDiscountMoney()));
                     supplyOrderCreateDataVo.getBasic().setMallDiscountMoney(supplyOrderCreateDataVo.getBasic().getMallDiscountMoney().add(sku.getMallDiscountMoney()));
+
                     supplyOrderCreateDataVo.getBasic().getHasGoodsTypes().add(sku.getGoods().getGoodsType());
-                    supplyOrderCreateDataVo.getBasic().setVirtualVerifyMobile(sku.getGoods().getVirtualVerifyMobile());
+                    if(sku.getGoods().getVirtualVerifyMobile() != null && sku.getGoods().getVirtualVerifyMobile() > 0){
+                        supplyOrderCreateDataVo.getBasic().setVirtualVerifyMobile(sku.getGoods().getVirtualVerifyMobile());
+                    }
+
                     supplyOrderCreateDataVo.getBasic().setMallCouponMoney(supplyOrderCreateDataVo.getBasic().getMallCouponMoney().add(sku.getMallCouponMoney()));
 
                     if (entry.getValue().getDelivery().getDeliveryType().equals(DeliveryTypeEnum.EXPRESS.getType())) {
@@ -440,7 +463,7 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
                     supplyOrderCreateDataVo.getBasic().setBody(supplyOrderCreateDataVo.getBasic().getBody() + sku.getSkuName() + sku.getGoods().getGoodsName() + " ");
                     goodsData.put(sku.getSkuId(), sku);
 
-                    supplyOrderCreateDataVo.getCartIds().add(sku.getCardId());
+                    supplyOrderCreateDataVo.getCartIds().add(ObjectUtil.isNotEmpty(sku.getCardId()) ? sku.getCardId() : 0L);
 
                 }
                 supplyOrderCreateDataVo.setGoodsData(goodsData);
@@ -450,8 +473,14 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
                 }
                 supplyOrderCreateDataVo.getBasic().setOrderMoney(supplyOrderCreateDataVo.getBasic().getGoodsMoney().subtract(supplyOrderCreateDataVo.getBasic().getDiscountMoney()).subtract(supplyOrderCreateDataVo.getBasic().getMallDiscountMoney()).add(supplyOrderCreateDataVo.getBasic().getDeliveryMoney()));
                 supplyOrderCreateDataVo.getBasic().setHasGoodsTypes(new HashSet<>(supplyOrderCreateDataVo.getBasic().getHasGoodsTypes()));
+                if(StringUtils.isNotEmpty(mallOrderCreateDataVo.getDelivery().getTakerName()) ){
+                    entry.getValue().getDelivery().setTakerName(supplyOrderCreateDataVo.getDelivery().getTakerName());
+                }
+                if(StringUtils.isNotEmpty(mallOrderCreateDataVo.getDelivery().getTakerMobile()) ){
+                    entry.getValue().getDelivery().setTakerMobile(supplyOrderCreateDataVo.getDelivery().getTakerMobile());
+                }
                 if (supplyOrderCreateDataVo.getBasic().getHasGoodsTypes().contains(GoodsTypeEnum.REAL.getType())) {
-                    supplyOrderCreateDataVo.getDelivery().setDeliveryType(entry.getValue().getDelivery().getDeliveryType());
+                    supplyOrderCreateDataVo.setDelivery(entry.getValue().getDelivery());
                 } else {
                     supplyOrderCreateDataVo.getDelivery().setDeliveryType(OrderDeliveryTypeEnum.VIRTUAL.getType());
                     supplyOrderCreateDataVo.getDelivery().setTakerMobile(supplyOrderCreateDataVo.getDelivery().getTakerMobile());
@@ -632,6 +661,10 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
             mallOrderCreateDataVo.getBasic().setGoodsMoney(mallOrderCreateDataVo.getBasic().getGoodsMoney().add(order.getBasic().getGoodsMoney()));
             mallOrderCreateDataVo.getBasic().setOrderMoney(mallOrderCreateDataVo.getBasic().getOrderMoney().add(order.getBasic().getOrderMoney()));
             mallOrderCreateDataVo.getBasic().setBody(mallOrderCreateDataVo.getBasic().getBody() + order.getBasic().getBody());
+            //只要有一个店铺不能使用平台优惠券,则整个订单不能使用平台优惠券
+            if(ObjectUtil.isEmpty(order.getIsPlatCoupon()) || (ObjectUtil.isNotEmpty(order.getIsPlatCoupon()) && order.getIsPlatCoupon() == 0)){
+                mallOrderCreateDataVo.setIsPlatCoupon(0);
+            }
         }
         calculateDiscount();
     }
@@ -651,15 +684,15 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
     private Map<String, OrderCreateDataVo> getOrderListBySiteIds(JSONArray siteIds)
     {
         if(ObjectUtil.isEmpty(siteIds)) return mallOrderCreateDataVo.getOrderHandleList();
+        // 按 key 筛选（具体类型，类型安全）
+        Map<String, OrderCreateDataVo> filteredList = new LinkedHashMap<>();
 
-        Map<String, OrderCreateDataVo> list = new HashMap<>();
-        for (OrderCreateDataVo order : mallOrderCreateDataVo.getOrderHandleList().values()) {
-
-            if(siteIds.contains(order.getSiteId())){
-                list.put(order.getSiteId().toString(), order);
+        for (String siteId : mallOrderCreateDataVo.getOrderHandleList().keySet()){
+            if (!siteIds.contains(siteId)){
+                filteredList.put(siteId, mallOrderCreateDataVo.getOrderHandleList().get(siteId));
             }
         }
-        return list;
+        return filteredList;
     }
 
     /**
@@ -671,14 +704,14 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
         MallOrderCalculateParam.MallDiscount mallDiscount = param.getMallDiscount();
         Integer platformCouponId = mallDiscount != null ? mallDiscount.getPlatformCouponId() : null;
         mallOrderCreateDataVo.setDiscount(new HashMap<>());
-        if (platformCouponId != null && platformCouponId > 0) {
+        if (platformCouponId != null && platformCouponId > 0 && mallOrderCreateDataVo.getIsPlatCoupon() > 0) {
             // 查询优惠券信息
             MallMemberCouponInfoVo couponInfo = coreCouponMemberService.getUsePlatformCouponInfoById(platformCouponId);
 
             if (couponInfo != null) {
                 String couponType = couponInfo.getType();
                 List<MallCouponGoods> goodsData = couponInfo.getGoods();
-                BigDecimal mallDiscountMoney = couponInfo.getCouponPrice();
+                BigDecimal mallDiscountMoney = couponInfo.getPrice();
                 BigDecimal minConditionMoney = couponInfo.getMinConditionMoney();
                 Integer isAllSiteJoin = couponInfo.getCoupon().getIsAllSiteJoin();
                 JSONArray joinSiteIds = new JSONArray();
@@ -689,7 +722,7 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
 
 
                 Map<String, OrderCreateDataVo> orderList = getOrderListBySiteIds(
-                        isAllSiteJoin == 1 ? null : joinSiteIds
+                        isAllSiteJoin == 0 ? null : joinSiteIds
                 );
 
                 BigDecimal matchGoodsMoney = BigDecimal.ZERO;
@@ -840,6 +873,7 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
                             discount.setMoney(itemMallDiscountMoney);
                             discount.setDiscountTypeId(platformCouponId);
                             discount.setTitle(couponInfo.getTitle());
+                            discount.setNum(1);
                             order.getDiscount().put("platform_coupon", discount);
                         }
                     }
@@ -924,4 +958,27 @@ public class CoreMallOrderCreateServiceImpl implements ICoreMallOrderCreateServi
     }
 
 
+    /**
+     * 配置设置或查询
+     *
+     * @param key
+     */
+    public void getConfig(String key) {
+        //查询购物配置
+        switch ( key){
+            case "order":
+                OrderConfigVo orderConfig = coreOrderConfigService.getConfig();
+                MallOrderCreateDataVo.CloseOrder closeOrder = new MallOrderCreateDataVo.CloseOrder();
+                closeOrder.setIsClose(orderConfig.getCloseOrderInfo().getIsClose());
+                closeOrder.setCloseLength(orderConfig.getCloseOrderInfo().getCloseLength());
+                mallOrderCreateDataVo.getConfig().setOrder(closeOrder);
+                break;
+            case "delivery":
+                AdminDeliveryConfigVo deliveryObj = coreDeliveryConfigService.getAdminDeliveryConfig();
+                MallOrderCreateDataVo.Delivery delivery = new MallOrderCreateDataVo.Delivery();
+                BeanUtils.copyProperties(deliveryObj, delivery);
+                mallOrderCreateDataVo.getConfig().setDelivery(delivery);
+                break;
+        }
+    }
 }

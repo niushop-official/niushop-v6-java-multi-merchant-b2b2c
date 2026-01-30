@@ -47,6 +47,8 @@ public class ConfigServiceImpl implements IConfigService {
         jsonObject.set("is_site_captcha", loginConfigParam.getIsSiteCaptcha());
         jsonObject.set("bg", loginConfigParam.getBg());
         jsonObject.set("site_bg", loginConfigParam.getSiteBg());
+        jsonObject.set("captcha_type", loginConfigParam.getCaptchaType());
+        jsonObject.set("site_captcha_type", loginConfigParam.getSiteCaptchaType());
         coreConfigService.setConfig(RequestUtils.siteId(), ConfigKeyEnum.ADMIN_LOGIN.getName(), jsonObject);
     }
 }

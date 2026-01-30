@@ -57,7 +57,8 @@ public class MallGoodsListVo implements Serializable {
     private SiteInfo site;
     Integer hasBuy = 0;
     private Double distance;
-
+    /** 虚拟商品收货方式，auto：自动收货，artificial：买家确认收货，verify：到店核销 */
+    private String virtualReceiveType;
     private List<MallGoodsSkuListVo> goodsSkuListVos;
 
     @Data

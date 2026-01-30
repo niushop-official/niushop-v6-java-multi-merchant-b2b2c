@@ -101,7 +101,14 @@ public class DiyServiceImpl implements IDiyService {
 
         if (ObjectUtil.isNotEmpty(searchParam.getTitle())) queryWrapper.like("title", searchParam.getTitle());
         if (ObjectUtil.isNotEmpty(searchParam.getMode())) queryWrapper.eq("mode", searchParam.getMode());
-        if (ObjectUtil.isNotEmpty(searchParam.getType())) queryWrapper.eq("type", searchParam.getType());
+        if (ObjectUtil.isNotEmpty(searchParam.getType())) {
+            if(searchParam.getType().contains(",")){
+                queryWrapper.in("type", searchParam.getType().split( ","));
+            }else{
+                queryWrapper.eq("type", searchParam.getType());
+            }
+
+        }
 
         List<DiyPage> pages = diyPageMapper.selectList(queryWrapper);
         List<DiyPageListVo> list = new LinkedList<>();
@@ -498,9 +505,14 @@ public class DiyServiceImpl implements IDiyService {
         for (String formComponentObj : ComponentList.keySet()) {
             JSONObject formComponent = ComponentList.getJSONObject(formComponentObj);
             JSONObject list = formComponent.getJSONObject("list");
+            if (list == null || list.isEmpty()) {
+                continue;
+            }
             Iterator<Map.Entry<String, Object>> iterator = list.entrySet().iterator();
             while (iterator.hasNext()) {
-                JSONObject cv = JSONUtil.parseObj(iterator.next().getValue());
+                Map.Entry<String, Object> entry = iterator.next();
+                String componentKey = entry.getKey();
+                JSONObject cv = JSONUtil.parseObj(entry.getValue());
                 if (cv.containsKey("support_page")) {
                     JSONArray support = cv.getJSONArray("support_page");
                     if (ObjectUtil.isNotEmpty(type)) {
@@ -510,7 +522,7 @@ public class DiyServiceImpl implements IDiyService {
                         }
                     }
                     if (RequestUtils.siteId() > 0) {
-                        if (type.equals("MallGoodsRanking") || type.equals("MallShopList")) {
+                        if ("MallGoodsRanking".equals(componentKey) || "MallShopList".equals(componentKey)) {
                             iterator.remove();
                             continue;
                         }
@@ -806,7 +818,7 @@ public class DiyServiceImpl implements IDiyService {
         if(count.intValue() == 0){
             DiyPage  page = new DiyPage();
             page.setSiteId(siteId);
-            page.setPageTitle(template.getStr("pageTitle"));
+            page.setPageTitle(template.getStr("title"));
             page.setTitle(template.getStr("title"));
             page.setType(flag);
             page.setName(flag);

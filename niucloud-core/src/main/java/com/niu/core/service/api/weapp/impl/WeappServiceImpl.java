@@ -2,47 +2,39 @@ package com.niu.core.service.api.weapp.impl;
 
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import cn.binarywang.wx.miniapp.bean.WxMaPhoneNumberInfo;
-import cn.binarywang.wx.miniapp.bean.shop.response.WxMaOrderShippingIsTradeManagedResponse;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.WechatUtils;
 import com.niu.core.entity.member.Member;
+import com.niu.core.entity.pay.Pay;
 import com.niu.core.entity.sys.SysNotice;
+import com.niu.core.event.sys.VerifyCreateEventDefiner;
+import com.niu.core.event.sys.WapOrderDetailPathEventDefiner;
 import com.niu.core.mapper.member.MemberMapper;
+import com.niu.core.mapper.pay.PayMapper;
 import com.niu.core.mapper.sys.SysNoticeMapper;
 import com.niu.core.service.admin.member.vo.LoginConfigVo;
 import com.niu.core.service.api.login.ILoginService;
 import com.niu.core.service.api.login.IRegisterService;
 import com.niu.core.service.api.login.vo.LoginVo;
 import com.niu.core.service.api.weapp.IWeappService;
-import com.niu.core.service.api.wechat.IWechatService;
+import com.niu.core.service.api.weapp.parma.TradeManagedScanParam;
 import com.niu.core.service.api.wechat.param.AuthRegisterParam;
-import com.niu.core.service.api.wechat.param.WechatAuthDataLoginParam;
 import com.niu.core.service.api.wechat.param.WechatAuthParam;
-import com.niu.core.service.api.wechat.param.WechatSyncParam;
-import com.niu.core.service.api.wechat.vo.WechatCodeUrlVo;
-import com.niu.core.service.api.wechat.vo.WechatScanLoginVo;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.member.ICoreMemberConfigService;
-import com.niu.core.service.core.sys.ICoreScanService;
+import com.niu.core.service.core.weapp.ICoreWeappConfigService;
 import com.niu.core.service.core.weapp.ICoreWeappDeliveryService;
-import com.niu.core.service.core.weapp.vo.IsTradeManagedVo;
+import com.niu.core.service.core.delivery_weapp.vo.IsTradeManagedVo;
+import com.niu.core.service.core.weapp.vo.WeappConfigVo;
 import lombok.extern.slf4j.Slf4j;
-import me.chanjar.weixin.common.bean.WxJsapiSignature;
-import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
-import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
-import org.springframework.beans.BeanUtils;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Lazy;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Resource;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,6 +58,12 @@ public class WeappServiceImpl implements IWeappService {
 
     @Resource
     ICoreWeappDeliveryService coreWeappDeliveryService;
+
+    @Resource
+    PayMapper payMapper;
+
+    @Resource
+    ICoreWeappConfigService coreWeappConfigService;
 
     /**
      * 小程序登录
@@ -212,9 +210,37 @@ public class WeappServiceImpl implements IWeappService {
 
     /**
      * 查询小程序是否已开通发货信息管理服务
-     * @return
      */
     public IsTradeManagedVo getIsTradeManaged() {
-        return coreWeappDeliveryService.getIsTradeManaged(RequestUtils.siteId());
+        return coreWeappDeliveryService.getIsTradeManaged();
+    }
+
+    @Override
+    public String getMsgJumpPath(TradeManagedScanParam param) {
+        //查询支付信息
+        String path = "";
+        Pay pay = payMapper.selectOne(new QueryWrapper<Pay>().eq("trade_no", param.getTransactionId()));
+        if(ObjectUtil.isNotEmpty( pay)){
+            // 通过事件获取核销创建
+            WapOrderDetailPathEventDefiner.WapOrderDetailPathEvent event = new WapOrderDetailPathEventDefiner.WapOrderDetailPathEvent();
+            event.setPayInfo(pay);
+            List<WapOrderDetailPathEventDefiner.WapOrderDetailPathResult> objectList = EventAndSubscribeOfPublisher.publishAndCallback(event);
+            for (WapOrderDetailPathEventDefiner.WapOrderDetailPathResult result : objectList){
+                if (result == null) continue;
+                if (StringUtils.isNotEmpty(result.getPath())){
+                    path = result.getPath();
+                }
+            }
+        }
+        return path;
+    }
+
+    @Override
+    public Boolean checkWeappConfig() {
+        WeappConfigVo weappConfigVo = coreWeappConfigService.getWeappConfig();
+        if(ObjectUtil.isNotEmpty(weappConfigVo) && StringUtils.isNotEmpty(weappConfigVo.getAppId())){
+            return true;
+        }
+        return false;
     }
 }

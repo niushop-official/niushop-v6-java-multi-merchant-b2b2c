@@ -96,7 +96,7 @@
 									</el-table-column>
 									<el-table-column min-width="120">
 										<template #default>
-											<span class="text-[14px]">￥{{ item.apply_money }}</span>
+											<span class="text-[14px]">￥{{ Number(item.money) ? item.money : item.apply_money }}</span>
 										</template>
 									</el-table-column>
 									<el-table-column min-width="120">

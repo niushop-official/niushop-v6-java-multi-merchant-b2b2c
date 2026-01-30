@@ -14,6 +14,7 @@ import com.niu.core.enums.member.AccountTypeEnum;
 import com.niu.core.enums.member.MemberCashOutStatusEnum;
 import com.niu.core.enums.pay.PayMainType;
 import com.niu.core.enums.pay.TransferTypeEnum;
+import com.niu.core.enums.shop.ShopTransferEnum;
 import com.niu.core.mapper.member.MemberCashOutAccountMapper;
 import com.niu.core.mapper.member.MemberCashOutMapper;
 import com.niu.core.mapper.member.MemberMapper;
@@ -77,7 +78,7 @@ public class CoreMemberCashOutServiceImpl implements ICoreMemberCashOutService {
         if (!config.getTransferType().contains(param.getTransferType())) throw new CommonException("当前会员提现方式未启用");
 
         MemberCashOutAccount cashoutAccount = new MemberCashOutAccount();
-        if (!param.getTransferType().equals(TransferTypeEnum.WECHATPAY.getKey())) {
+        if (!param.getTransferType().equals(ShopTransferEnum.WECHAT.getKey())) {
             cashoutAccount = memberCashOutAccountMapper.selectOne(new QueryWrapper<MemberCashOutAccount>()
                     .eq("member_id", param.getMemberId())
                     .eq("site_id", param.getSiteId())
@@ -214,7 +215,7 @@ public class CoreMemberCashOutServiceImpl implements ICoreMemberCashOutService {
             data.put("transfer_account", cashOut.getTransferAccount());
             data.put("transfer_payment_code", cashOut.getTransferPaymentCode());
 
-            if (cashOut.getTransferType().equals(TransferTypeEnum.WECHATPAY.getKey())) {
+            if (cashOut.getTransferType().equals(ShopTransferEnum.WECHAT.getKey())) {
                 JSONObject transferPayee = new JSONObject();
                 transferPayee.put("open_id", param.getOpenId());
                 transferPayee.put("channel", param.getChannel());

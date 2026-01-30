@@ -1,6 +1,6 @@
 <template>
     <view :style="warpCss" class="overflow-hidden" v-if="diyComponent && diyComponent.goods && Object.keys(diyComponent.goods).length">
-        <view v-if="diyComponent.evaluate_is_show" class="card-template">
+        <view class="card-template">
             <view class="flex items-center justify-between min-h-[40rpx]" :class="{'mb-[30rpx]': evaluate && evaluate.list && evaluate.list.length}">
                 <text class="title !mb-[0]">宝贝评价({{ evaluate.count }})</text>
                 <view v-if="evaluate.count" class="h-[40rpx] flex items-center" @click="toLink(diyComponent.goods_id)">
@@ -44,7 +44,6 @@ const emits = defineEmits(['update:componentIsShow']); //商品数据加载完�
 const diyComponent = computed(() => {
     if (diyStore.mode == 'decorate') {
         const obj = {
-            evaluate_is_show: true,
             goods: {goods_type: 'real'},
             goods_id: ''
         }

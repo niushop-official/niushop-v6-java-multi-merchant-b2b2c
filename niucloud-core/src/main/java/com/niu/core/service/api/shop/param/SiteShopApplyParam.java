@@ -47,7 +47,7 @@ public class SiteShopApplyParam implements Serializable {
     private String siteName;
 
     /** 申请状态（1待审核，2已通过，-1已拒绝） */
-    private Integer status;
+    private Integer status = 1;
 
     /** 用户手机号 */
     private String userMobile;
@@ -55,13 +55,15 @@ public class SiteShopApplyParam implements Serializable {
     /** 用户姓名 */
     private String userName;
 
-    /** 登录账号 */
-    private String account;
-
-    /** 登录密码 */
-    private String password;
+//    /** 登录账号 */
+//    private String account;
+//
+//    /** 登录密码 */
+//    private String password;
 
     /** 用户ID */
     private Integer uid;
 
+    private String mobileKey;
+    private String mobileCode;
 }

@@ -231,8 +231,8 @@ const inputUp=()=>{
       let input1 = start_price.value == "" ? "0" : start_price.value;
       let input2 = end_price.value == "" ? "0" : end_price.value;
     //   if (input1 === "0" && input2 === "0") return false;
-      if (!isNaN(parseInt(input1)) && !isNaN(parseInt(input2))) {
-        if (parseInt(input1) > parseInt(input2) && end_price.value != "") {
+      if (!isNaN(Number(input1)) && !isNaN(Number(input2))) {
+        if (Number(input1) > Number(input2) && end_price.value != "") {
 			ElMessage({
             message: "你所选择的区间不对哦！",
             type: "warning",

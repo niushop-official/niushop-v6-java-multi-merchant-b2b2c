@@ -6,10 +6,12 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.service.admin.sys.ISysAttachmentService;
 import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.service.admin.sys.vo.*;
+import com.niu.core.service.admin.sys.vo.SysAttachmentConfigVo;
 import com.niu.core.common.domain.PageParam;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import jdk.jfr.Description;
 
 import jakarta.annotation.Resource;
 import java.util.ArrayList;
@@ -98,6 +100,15 @@ public class SysAttachmentController {
     }
 
     /**
+     * base64图片上传
+     */
+    @PostMapping("/base64")
+    @Description("base64图片上传")
+    public Result<AttachmentUploadVo> base64(@Validated @RequestBody AttachmentUploadParam param) {
+        return Result.success(sysAttachmentService.base64(param));
+    }
+
+    /**
      * 附件分组列表
      *
      * @param searchParam
@@ -158,5 +169,15 @@ public class SysAttachmentController {
         return Result.success(new ArrayList<>());
     }
 
+    @GetMapping("/attachment/config")
+    public Result<SysAttachmentConfigVo> getConfig() {
+        SysAttachmentConfigVo config = sysAttachmentService.getConfig();
+        return Result.success(config);
+    }
+    @PutMapping("/attachment/config")
+    public Result<Object> setConfig(@Validated @RequestBody SysAttachmentConfigParam param) {
+        sysAttachmentService.setConfig(param);
+        return Result.success();
+    }
 
 }

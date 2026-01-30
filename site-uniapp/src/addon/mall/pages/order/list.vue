@@ -42,7 +42,10 @@
 								</up-image>
 								<view class="ml-[20rpx] flex flex-1 flex-col box-border">
 									<view class="flex justify-between items-baseline">
-										<view class="max-w-[322rpx] text-[28rpx] leading-[40rpx] font-400 truncate text-[#303133]">{{ subitem.goods_name }}</view>
+										<view class="max-w-[322rpx] text-[28rpx] leading-[40rpx] font-400 truncate text-[#303133]">
+											<text v-if="item.order_type_name" class="relative top-[-4rpx] inline-block mr-[4rpx] bg-primary text-[#fff] text-[18rpx] rounded-[4rpx] leading-[30rpx] px-[6rpx]">{{ item.order_type_name }}</text>
+											{{ subitem.goods_name }}
+										</view>
 										<view class="text-right leading-[42rpx] ml-[10rpx] price-font">
 											<text class="text-[22rpx]">￥</text>
 											<text class="text-[32rpx] font-500">{{parseFloat(subitem.price).toFixed(2).split('.')[0] }}</text>
@@ -118,7 +121,9 @@
 					</view>
                 </view>
             </view>
-         </u-popup>
+        </u-popup>
+        <!-- 提示框 -->
+        <tips-popup ref="tipsRef" />
 	</view>
 </template>
 
@@ -160,13 +165,22 @@ const getMallOrderFn = (mescroll:any) => {
 	let data: object = {
 		page: mescroll.num,
 		limit: mescroll.size,
-		order_no: keyword.value,
+		order_keyword: keyword.value,
 		status: orderState.value,
 		create_time: create_time.value
-	};	
+	};
 
 	getOrderList(data).then((res: any) => {
 		let newArr = (res.data.data as Array<Object>);
+		newArr.forEach((item: any, index: number, arr: any) => {
+            let refundOrderNum = 0
+            item.order_goods.forEach((orderItem: any, orderIndex: number) => {
+                if (orderItem.is_enable_refund == 1) {
+                    refundOrderNum++
+                }
+            })
+            arr[index].is_refund_show = refundOrderNum > 0 ? true : false;
+        })
 		//设置列表数据
 		if (mescroll.num == 1) {
 			list.value = []; //如果是第一页需手动制空列表
@@ -180,10 +194,13 @@ const getMallOrderFn = (mescroll:any) => {
 			if((item.status == 1 || item.status == 2) && item.delivery_type != 'virtual' && !item.supply_id  && item.delivery_type!='store'){
 				item.btnList.push({ name: '修改地址', type: 'edit_address' })
 			}
-			if(item.status == 2 && !item.supply_id && item.delivery_type == 'express'){
+			if(item.status == 2 && !item.supply_id && item.delivery_type !== 'store'){
 				item.btnList.push({ name: '发货', type: 'delivery' })
 			}
-			if(item.status == 3 && !item.supply_id && item.delivery_type != 'virtual'&& item.delivery_type == 'express'){
+			if(item.status == 3 && !item.supply_id && item.delivery_type != 'virtual' && item.delivery_type == 'express'){
+				item.btnList.push({ name: '修改发货', type: 'edit_delivery' })
+			}
+			if(item.status == 3 && !item.supply_id && item.delivery_type != 'virtual' && item.delivery_type == 'local_delivery' && (item.local_delivery_status == -1 || item.local_delivery_status == -2 || item.local_delivery_status == 8)){
 				item.btnList.push({ name: '修改发货', type: 'edit_delivery' })
 			}
 			if(item.status == 3 && !item.supply_id){
@@ -192,8 +209,14 @@ const getMallOrderFn = (mescroll:any) => {
 			if(item.status == 1 && !item.supply_id){
 				item.btnList.push({ name: '关闭订单', type: 'close' })
 			}
+			if (item.is_refund_show && item.status != 1 && item.status != -1 && !item.supply_id){
+				item.btnList.push({ name: '主动退款', type: 'refund' })
+			}
 			if(item.status == -1){
 				item.btnList.push({ name: '删除', type: 'delete' })
+			}
+			if(item.out_trade_no){
+				item.btnList.push({ name: '支付信息', type: 'pay_info' })
 			}
 			// 根据btnList生成rightList和leftList
 			item.rightList = item.btnList.slice(0, 3);
@@ -256,8 +279,14 @@ const  orderBtnFn = (type: any, data: any) => {
 		case 'finish':
 			finish(data);
 			break;
+		case 'refund':
+			refundEvent(data);
+			break;
 		case 'delete':
 			deleteEvent(data);
+			break;
+		case 'pay_info':
+			toPayInfo(data);
 			break;
 		default:
 			break;
@@ -287,20 +316,15 @@ const orderNotesRef = ref();
 const setNotes = (data: any) => {
 	orderNotesRef.value.open(data);
 }
+
+const tipsRef = ref();
 // 关闭订单
 const closeEvent = (data: any) => {
-	uni.showModal({
-        title: '提示',
-        content: '您确定要关闭该订单吗？',
-        confirmColor: 'var(--primary-color)',
-        success: res => {
-            if (res.confirm) {
-                orderClose(data.order_id).then(() => {
-					getMescroll().resetUpScroll();
-				})
-            }
-        }
-    })
+	tipsRef.value.open('您确定要关闭该订单吗？', () => {
+		orderClose(data.order_id).then(() => {
+			getMescroll().resetUpScroll();
+		})
+	})
 }
 // 调整价格
 const orderAdjustMoney = (data: any) => {
@@ -320,34 +344,30 @@ const delivery = (data: any, type: any) => {
 }
 // 确认收货
 const finish = (data: any) => {
-	uni.showModal({
-        title: '提示',
-        content: '是否确认用户已经收货？',
-        confirmColor: 'var(--primary-color)',
-        success: res => {
-            if (res.confirm) {
-				orderFinish(data.order_id).then(() => {
-					getMescroll().resetUpScroll();
-				})
-            }
-        }
-    })
+	tipsRef.value.open('是否确认用户已经收货？', () => {
+		orderFinish(data.order_id).then(() => {
+			getMescroll().resetUpScroll();
+		})
+	})
+}
+// 主动退款
+const refundEvent = (data: any) => {
+	showMoreDialog.value = false;
+	redirect({ url: '/addon/mall/pages/order/active_refund', param: { order_id: data.order_id } })
 }
 // 删除
 const deleteEvent = (data: any) => {
-	uni.showModal({
-        title: '提示',
-        content: '是否确认删除该订单？',
-        confirmColor: 'var(--primary-color)',
-        success: res => {
-            if (res.confirm) {
-				orderDelete({ order_ids: [data.order_id] }).then(() => {
-					getMescroll().resetUpScroll();
-				}).catch(() => {
-				})
-            }
-        }
-    })
+	tipsRef.value.open('是否确认删除该订单？', () => {
+		orderDelete({ order_ids: [data.order_id] }).then(() => {
+			getMescroll().resetUpScroll();
+		}).catch(() => {
+		})
+	})
+}
+// 支付信息
+const toPayInfo = (data: any) => {
+	showMoreDialog.value = false;
+	redirect({ url: '/addon/mall/pages/order/pay_info', param: { order_id: data.order_id, order_type: 'mall' } })
 }
 
 

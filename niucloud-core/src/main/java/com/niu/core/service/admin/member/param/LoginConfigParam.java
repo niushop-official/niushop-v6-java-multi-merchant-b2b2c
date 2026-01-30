@@ -35,6 +35,8 @@ public class LoginConfigParam implements Serializable {
     private String bgUrl;
 
     @NotNull(message = "desc参数缺失")
-    private String desc;
+    private String desc = "精选好物，购物优惠的省钱平台";
+
+    private String captchaType = "blockPuzzle";
 
 }

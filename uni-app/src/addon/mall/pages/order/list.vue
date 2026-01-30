@@ -1,6 +1,18 @@
 <template>
 	<view class="bg-[var(--page-bg-color)] min-h-screen overflow-hidden order-list" :style="themeColor()">
-		<view class="fixed left-0 top-0 right-0 z-10" v-if="statusLoading">
+		<view class="search-box px-[30rpx] z-10 bg-[#f6f6f6] fixed top-0 left-0 right-0 box-border">
+            <view class="h-[100rpx] flex items-center flex-1  justify-between" :style="navbarInnerStyle">
+                <!-- #ifdef MP-WEIXIN || APP-PLUS -->
+                <view class="back-wrap text-[26px] nc-iconfont nc-icon-zuoV6xx" @click="back"></view>
+                <!-- #endif -->
+                <view class="search-input bg-[#fff]">
+                    <text @click.stop="searchNameFn" class="nc-iconfont nc-icon-sousuo-duanV6xx1 btn"></text>
+                    <input class="input" type="text" v-model.trim="searchName" placeholder="请输入商品名称" @confirm="searchNameFn" placeholderClass="text-[var(--text-color-light9)]">
+                    <text v-if="searchName" class="nc-iconfont nc-icon-cuohaoV6xx1 clear" @click="searchName=''"></text>
+                </view>
+            </view> 
+        </view>
+		<view class="fixed left-0 top-0 right-0 z-10" v-if="statusLoading" :style="`top: ${categoryTop}`">
 			<scroll-view :scroll-x="true" class="tab-style-2">
 				<view class="tab-content">
 					<view class="tab-items" :class="{ 'class-select': orderState === item.status.toString() }" @click="orderStateFn(item.status)" v-for="(item, index) in orderStateList">{{ item.name }}</view>
@@ -8,8 +20,8 @@
 			</scroll-view>
 		</view>
 
-		<mescroll-body ref="mescrollRef" top="88rpx" @init="mescrollInit" :down="{ use: false }" @up="getMallOrderFn">
-			<view class="sidebar-margin pt-[var(--top-m)]" v-if="list.length">
+		<mescroll-body ref="mescrollRef" :top="listTop" @init="mescrollInit" :down="{ use: false }" @up="getMallOrderFn">
+			<view class="sidebar-margin mt-[var(--top-m)]" v-if="list.length">
 				<template v-for="(item, index) in list" :key="index">
 					<view class="mb-[var(--top-m)] card-template">
 						<view @click.stop="toLink(item)">
@@ -28,7 +40,10 @@
 								</up-image>
 								<view class="ml-[20rpx] flex flex-1 flex-col box-border">
 									<view class="flex justify-between items-baseline">
-										<view class="max-w-[322rpx] text-[28rpx] leading-[40rpx] font-400 truncate text-[#303133]">{{ subitem.goods_name }}</view>
+										<view class="max-w-[322rpx] text-[28rpx] leading-[40rpx] font-400 truncate text-[#303133]">
+											<text v-if="item.order_type_name" class="relative top-[-4rpx] inline-block mr-[4rpx] bg-primary text-[#fff] text-[18rpx] rounded-[4rpx] leading-[30rpx] px-[6rpx]">{{ item.order_type_name }}</text>
+											{{ subitem.goods_name }}
+										</view>
 										<view class="text-right leading-[42rpx] ml-[10rpx] price-font">
 											<text class="text-[22rpx]">￥</text>
 											<text class="text-[32rpx] font-500">{{parseFloat(subitem.price).toFixed(2).split('.')[0] }}</text>
@@ -58,11 +73,13 @@
 								</view>
 							</view>
 						</view>
-						<view class="flex justify-end text-[28rpx] mt-[20rpx] items-center" v-if="(item.status == 1) || (item.status == 3) || (item.status == 5 && evaluateConfig.is_evaluate == 1)">
-							<view class="text-[24rpx] font-500 leading-[52rpx] h-[56rpx] min-w-[150rpx] text-center border-[2rpx] border-solid border-[var(--text-color-light9)] rounded-full text-[var(--text-color-light6)] box-border" v-if="item.status == 1" @click.stop="orderBtnFn(item, 'close')">{{ t('orderClose') }}</view>
-							<view class="text-[24rpx] font-500 flex-center h-[56rpx] min-w-[150rpx] text-center border-[0] text-[#fff] primary-btn-bg rounded-full ml-[20rpx] box-border" @click.stop="orderBtnFn(item, 'pay')" v-if="item.status == 1">{{ t('topay') }}</view>
-							<view class="text-[24rpx] font-500 flex-center h-[56rpx] min-w-[150rpx] text-center border-[0] text-[#fff] primary-btn-bg rounded-full ml-[20rpx] box-border" @click.stop="orderBtnFn(item, 'finish')" v-if="item.status == 3">{{ t('orderFinish') }}</view>
-							<view class="text-[24rpx] font-500 leading-[52rpx] h-[56rpx] min-w-[150rpx] text-center border-[2rpx] border-solid border-[var(--text-color-light9)] rounded-full ml-[20rpx]  text-[var(--text-color-light6)] box-border" v-if="item.status == 5 && evaluateConfig.is_evaluate == 1" @click.stop="orderBtnFn(item, 'evaluate')">{{ item.is_evaluate == 1 ? t('selectedEvaluate') : t('evaluate') }}</view>
+						<view class="flex justify-end text-[28rpx] mt-[20rpx] items-center" v-if="(item.status == 1) || (item.status == 3) || (item.status == 5 && evaluateConfig.is_evaluate == 1) || (item.order_type == 'pintuan' && item.extend_field_2 > 0)">
+							<view class="ml-[20rpx] order-grey-hollow-btn" v-if="item.order_type == 'pintuan' && item.extend_field_2 > 0" @click="handlePintuan(item)">查看拼团</view>
+							<view class="ml-[20rpx] order-grey-hollow-btn" v-if="item.status == 1" @click.stop="orderBtnFn(item, 'close')">{{ t('orderClose') }}</view>
+							<view class="order-primary-solid-btn primary-btn-bg ml-[20rpx]" @click.stop="orderBtnFn(item, 'pay')" v-if="item.status == 1">{{ t('topay') }}</view>
+							<view class="order-primary-solid-btn primary-btn-bg  ml-[20rpx]" @click.stop="orderBtnFn(item, 'finish')" v-if="item.status == 3">{{ t('orderFinish') }}</view>
+							<view class="order-grey-hollow-btn ml-[20rpx]" v-if="item.status == 5 && evaluateConfig.is_evaluate == 1" @click.stop="orderBtnFn(item, 'evaluate')">{{ item.is_evaluate == 1 ? t('selectedEvaluate') : t('evaluate') }}</view>
+							<view class="text-[24rpx] font-500 leading-[52rpx] h-[56rpx] min-w-[150rpx] text-center border-[2rpx] border-solid border-[#ccc] rounded-full text-[var(--text-color-light3)] ml-[20rpx] box-border" v-if="item.can_invoice" @click.stop="orderBtnFn(item, 'invoice')">开票</view>
 						</view>
 					</view>
 				</template>
@@ -82,9 +99,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
+import { ref, nextTick ,computed } from 'vue';
 import { t } from '@/locale'
-import { img, redirect } from '@/utils/common';
+import { img, redirect, pxToRpx } from '@/utils/common';
 import { getMallOrderStatus, getMallOrder, orderClose, orderFinish,getMallOrderPay,getMallOrderClose } from '@/addon/mall/api/order';
 import { getEvaluateConfig } from '@/addon/mall/api/shop';
 import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue';
@@ -96,6 +113,41 @@ import useConfigStore from "@/stores/config";
 const { mescrollInit, downCallback, getMescroll } = useMescroll(onPageScroll, onReachBottom);
 import groupPay from './components/group-pay/group-pay.vue'
 import groupClose from './components/group-close/group-close.vue'
+import { topTabar } from '@/utils/topTabbar';
+import useSystemStore from '@/stores/system';
+const systemStore = useSystemStore()
+
+/********* 自定义头部 - start ***********/
+const topTabarObj = topTabar()
+
+let topTabbarData = topTabarObj.setTopTabbarParam({ topStatusBar:{style :'style-5',textColor:'#606266'} })
+/********* 自定义头部 - end ***********/
+
+const navbarInnerStyle = ref('')
+// #ifdef MP-WEIXIN || MP-BAIDU || MP-TOUTIAO || MP-QQ
+let rightButtonWidth = systemStore.menuButtonInfo.width ? systemStore.menuButtonInfo.width * 2 + 'rpx' : '70rpx';
+navbarInnerStyle.value += 'padding-right:calc(' + rightButtonWidth + ' + 30rpx);';
+navbarInnerStyle.value += 'padding-top:' + systemStore.menuButtonInfo.top + 'px;';
+navbarInnerStyle.value += 'padding-bottom: 8px;';
+navbarInnerStyle.value+= 'height:' + systemStore.menuButtonInfo.height + 'px;';
+// #endif
+
+// #ifdef APP-PLUS
+navbarInnerStyle.value += 'padding-top:' + systemStore.systemInfo.statusBarHeight + 'px;';
+// #endif
+const categoryTop = computed(() => {
+    let height = Object.keys(systemStore.menuButtonInfo).length && systemStore.menuButtonInfo.height ? (pxToRpx(Number(systemStore.menuButtonInfo.height)) + pxToRpx(systemStore.menuButtonInfo.top) + pxToRpx(8)) : 100;
+    
+    return height + 'rpx';
+});
+
+const listTop = computed(() => {
+    let height = Object.keys(systemStore.menuButtonInfo).length && systemStore.menuButtonInfo.height ? (pxToRpx(Number(systemStore.menuButtonInfo.height)) + pxToRpx(systemStore.menuButtonInfo.top) + pxToRpx(8) + 88) : 188;
+    // let height = Object.keys(systemStore.menuButtonInfo).length && systemStore.menuButtonInfo.height ? 88: 128;
+    return height + 'rpx';
+});
+
+
 const list = ref<Array<Object>>([]);
 const loading = ref<boolean>(false);
 const statusLoading = ref<boolean>(false);
@@ -125,14 +177,18 @@ const evaluateEvent = () => {
 	})
 }
 onShow(() => {
-	getMescroll().resetUpScroll();
+	nextTick(() => {
+		getMescroll().resetUpScroll();
+	})
+	
 });
 const getMallOrderFn = (mescroll:any) => {
 	loading.value = false;
 	let data: object = {
 		page: mescroll.num,
 		limit: mescroll.size,
-		status: orderState.value
+		status: orderState.value,
+		keyword: searchName.value,
 	};
 
 	getMallOrder(data).then((res: any) => {
@@ -179,6 +235,22 @@ const toLink = (data: any) => {
 	redirect({ url: '/addon/mall/pages/order/detail', param: { order_id: data.order_id } })
 }
 
+const searchName = ref('')
+const searchNameFn = () => {
+    list.value = [];
+    getMescroll().resetUpScroll();
+}
+const back = () => {
+    if (getCurrentPages().length > 1) {
+        uni.navigateBack()
+    } else {
+        redirect({
+            url: '/addon/mall/pages/index',
+            mode: 'reLaunch'
+        });
+    }
+}
+
 // 支付
 const payRef = ref(null)
 const orderBtnFn = (data: any, type = '') => {
@@ -194,7 +266,10 @@ const orderBtnFn = (data: any, type = '') => {
 		} else {
 			redirect({ url: '/addon/mall/pages/evaluate/order_evaluate_view', param: { order_id: data.order_id } })
 		}
-	}
+	} else if (type == 'invoice') {
+
+        redirect({ url: '/app/pages/invoice/invoice', param: { order_id: data.order_id, trade_type: 'mall' } })
+    }
 }
 
 // 支付
@@ -202,12 +277,12 @@ let groupPayRef: any = ref(null)
 const payFn = (item:any) => {
 	getMallOrderPay(item.order_id).then((res: any) =>{
 		if(res.data.is_allow_pay){
-			payRef.value?.open(item.order_type, res.data.group_id, `/addon/mall/pages/order/detail?order_id=${item.order_id}`);
+			payRef.value?.open('mall', res.data.group_id, `/addon/mall/pages/order/detail?order_id=${item.order_id}`);
 		}else{
 			if(res.data.order_list.length){
 				groupPayRef.value.open(res.data,item)
 			}else{
-				payRef.value?.open(item.order_type, res.data.group_id, `/addon/mall/pages/order/detail?order_id=${item.order_id}`);
+				payRef.value?.open('mall', res.data.group_id, `/addon/mall/pages/order/detail?order_id=${item.order_id}`);
 			}
 		}
 	})
@@ -298,6 +373,15 @@ const finish = (item: any) => {
         })
     }
     // #endif
+}
+
+const handlePintuan = (data: any) => {
+    redirect({
+        url: '/addon/pintuan/pages/order/detail',
+        param: {
+            order_id: data.order_id
+        }
+    })
 }
 </script>
 <style>

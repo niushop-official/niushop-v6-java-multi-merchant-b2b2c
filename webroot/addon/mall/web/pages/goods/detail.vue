@@ -470,7 +470,7 @@ const goodsMaxBuy = (data:any = {})=>{
 			}
 
 			if(max_buy > data.goods.stock){
-				maxBuy.value = data.goods.stock <= 0 ? data.goods.min_buy : data.goods.stock
+				maxBuy.value = data.goods.stock <= 0 ? (data.goods.min_buy || 1) : (data.goods.stock || 1)
 			}else if(max_buy <= data.goods.stock){
 				maxBuy.value = max_buy;
 			}
@@ -482,7 +482,7 @@ const goodsMaxBuy = (data:any = {})=>{
 		// 仅用于展示
 		maxBuyShow.value = data.goods.max_buy; // 限购
 	}else{
-		maxBuy.value = data.goods.stock <= 0 ? data.goods.min_buy : data.goods.stock;
+		maxBuy.value = data.goods.stock <= 0 ? (data.goods.min_buy || 1) : (data.goods.stock || 1);
 	}
 
 	// 起售
@@ -686,7 +686,7 @@ const buyFn = (type: string) => {
 			sku_id: goodsDetail.value.sku_id,
 			num: buyNum.value
 		}
-		storage.set({ key: 'orderCreateData', data: { body: { [goodsDetail.value.shop_info.site_id]: { sku_data: [data] } } } })
+		storage.set({ key: 'orderCreateData', data: { body: { [goodsDetail.value.shop_info.site_id]: { sku_data: [data], order_type: 'mall' } } } })
 		router.push('/order/payment')
 	}
 }

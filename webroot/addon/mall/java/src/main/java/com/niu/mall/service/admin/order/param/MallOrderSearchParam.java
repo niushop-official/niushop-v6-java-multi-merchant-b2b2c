@@ -1,4 +1,5 @@
 package com.niu.mall.service.admin.order.param;
+import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.Data;
 import java.io.Serializable;
 
@@ -31,4 +32,10 @@ public class MallOrderSearchParam implements Serializable {
     private String deliveryType;
 
     private String goodsSource;
+
+    @JSONField(name = "extend_field_1")
+    private Integer extendField1;
+
+    @JSONField(name = "extend_field_2")
+    private Integer extendField2;
 }

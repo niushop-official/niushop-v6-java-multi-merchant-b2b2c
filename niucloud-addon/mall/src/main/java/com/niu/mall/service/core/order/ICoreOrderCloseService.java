@@ -17,4 +17,11 @@ public interface ICoreOrderCloseService {
      */
     void checkAllClose(Integer orderId);
 
+    /**
+     * 设置订单关闭超时时间
+     *
+     * @param orderId
+     */
+    void setOrderCloseTimeout(Integer orderId, Long timeout);
+
 }

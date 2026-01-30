@@ -455,7 +455,7 @@ export function useGoodsEdit(params: any = {}) {
             if (['1', '0'].indexOf(data.goods_info.status) != -1) {
                 formData.status = data.goods_info.status
             } else {
-                formData.status = '1'
+                formData.status = '0'
             }
 
             /*************** 商品参数-start ****************/
@@ -530,6 +530,7 @@ export function useGoodsEdit(params: any = {}) {
                             goodsSkuData[key].sku_id = item.sku_id;
                             goodsSkuData[key].sku_no = item.sku_no;
                             goodsSkuData[key].is_default = item.is_default;
+                            goodsSkuData[key].is_sell = 0;
                             goodsSkuData[key].is_sell = item.is_sell;
                             break;
                         }
@@ -1027,9 +1028,9 @@ export function useGoodsEdit(params: any = {}) {
             goods_image: [
                 { required: true, message: t('goodsImagePlaceholder'), trigger: 'blur' }
             ],
-            goods_category: [
-                { required: !formData.supply_goods_id, message: t('goodsCategoryPlaceholder'), trigger: 'blur' },
-            ],
+            // goods_category: [
+            //     { required: !formData.supply_goods_id, message: t('goodsCategoryPlaceholder'), trigger: 'blur' },
+            // ],
             goods_mall_category: [
                 { required: true, message: t('goodsMallCategoryPlaceholder'), trigger: 'blur' }
             ],
@@ -1131,24 +1132,6 @@ export function useGoodsEdit(params: any = {}) {
                     }
                 }
             ],
-            virtual_sale_num: [
-                {
-                    trigger: 'blur',
-                    validator: (rule: any, value: any, callback: any) => {
-                        if (formData.spec_type == 'single') {
-                            if (isNaN(value) || !regExp.number.test(value)) {
-                                callback(new Error(t('virtualSaleNumTips')))
-                            } else if (value < 0) {
-                                callback(new Error(t('virtualSaleNumNotZeroTips')))
-                            } else {
-                                callback()
-                            }
-                        } else {
-                            callback()
-                        }
-                    }
-                }
-            ],
             // 多规格
             spec_type: [
                 {
@@ -1225,7 +1208,7 @@ export function useGoodsEdit(params: any = {}) {
         return [{
             trigger: 'blur',
             validator: (rule: any, value: any, callback: any) => {
-                if (formData.spec_type == 'multi') {
+                if (formData.spec_type == 'multi' && item.is_sell) {
                     if (value.length == 0) {
                         callback(t('pricePlaceholder'))
                     } else if (isNaN(value) || !regExp.digit.test(value)) {
@@ -1290,11 +1273,11 @@ export function useGoodsEdit(params: any = {}) {
     }
 
     // 多规格，库存 验证规则
-    const skuStockRules = () => {
+    const skuStockRules = (item: any) => {
         return [{
             trigger: 'blur',
             validator: (rule: any, value: any, callback: any) => {
-                if (formData.spec_type == 'multi') {
+                if (formData.spec_type == 'multi' && item.is_sell) {
                     if (value.length == 0) {
                         callback(t('stockPlaceholder'))
                     } else if (isNaN(value) || !regExp.number.test(value)) {
@@ -1456,7 +1439,7 @@ export function useGoodsEdit(params: any = {}) {
             }
 
             const goodsCategory: any = []
-            data.goods_category.forEach((item: any) => {
+            data.goods_category && data.goods_category.forEach((item: any) => {
                 if (typeof item == 'object') {
                     item.forEach((second: any) => {
                         if (goodsCategory.indexOf(second) == -1) {

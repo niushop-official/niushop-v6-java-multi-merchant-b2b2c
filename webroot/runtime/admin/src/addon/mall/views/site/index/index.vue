@@ -502,19 +502,29 @@ const articleDetail = (id: any) => {
 <style lang="scss" scoped>
 .store{
     background-image: url('@/addon/mall/assets/index/store_bg.png');
-	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	border-radius: 8px;
 }
 .goods{
 	background-image: url('@/addon/mall/assets/index/goods.png');
-	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-size: auto 100%;
+	background-position: right;
+	border-radius: 8px;
 }
 .order{
 	background-image: url('@/addon/mall/assets/index/order.png');
-	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-size: auto 100%;
+	background-position: right;
+	border-radius: 8px;
 }
 .addon{
 	background-image: url('@/addon/mall/assets/index/addon.png');
-	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-size: auto 100%;
+	background-position: right;
+	border-radius: 8px;
 }
 /* 右收起动画 */
 .slide-fade-enter-active {

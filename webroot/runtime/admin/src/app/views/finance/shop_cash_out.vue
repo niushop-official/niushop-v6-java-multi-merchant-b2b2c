@@ -395,8 +395,16 @@ const detailEvent = (id: any) => {
  * 提现审核通过
  */
 const auditApprovedEvent = (id: number) => {
-    auditShopCashOut({ id, status: 2 }).then(res => {
-        loadOrderList()
+    ElMessageBox.confirm(t('确定要通过审核吗'), t('warning'),
+        {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+        }
+    ).then(() => {
+        auditShopCashOut({ id, status: 2 }).then(res => {
+            loadOrderList()
+        })
     })
 }
 /**

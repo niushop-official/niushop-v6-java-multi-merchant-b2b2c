@@ -81,15 +81,21 @@ public class SysConfigServiceImpl implements ISysConfigService {
     @Override
     public String getIndexQrcode() {
         Map<String, Object> urlData = Map.of("key", "", "value", "");
-        // 生成二维码
-        String url = QrcodeUtils.qrcodeToFile(
-                RequestUtils.defaultSiteId(),
-                "weapp",
-                coreSysConfigService.getSceneDomain().getWapUrl(),
-                "app/pages/index/index",
-                urlData,
-                "upload/qrcode/index"
-        );
+        String url = "";
+        try {
+            // 生成二维码
+            url = QrcodeUtils.qrcodeToFile(
+                    RequestUtils.defaultSiteId(),
+                    "weapp",
+                    coreSysConfigService.getSceneDomain().getWapUrl(),
+                    "app/pages/index/index",
+                    urlData,
+                    "upload/qrcode/index"
+            );
+        }catch (Exception e){
+            log.error("生成二维码失败,{}", e.getMessage());
+        }
+
         return url;
     }
 

@@ -15,7 +15,7 @@ public class MallOrderSearchParam implements Serializable {
     private String orderNo;
 
     private String status;
-
+    private String keyword;
     private String activityType;
 
 }

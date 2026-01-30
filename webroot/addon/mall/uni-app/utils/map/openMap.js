@@ -86,16 +86,13 @@ export default {
 		// #ifdef APP-PLUS
 		switch (uni.getSystemInfoSync().platform) {
 			case 'android':
-				// console.log('运行Android上')
 				openMapByAndroid(arr[1], arr[0], name)
 				break;
 			case 'ios':
-				// console.log('运行iOS上')
 				openMapByIos(arr[1], arr[0], name)
 				break;
 			default:
 				openMapByDefault(arr[1], arr[0], name)
-				// console.log('运行在开发者工具上')
 				break;
 		}
 		// #endif

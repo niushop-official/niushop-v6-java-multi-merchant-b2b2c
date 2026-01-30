@@ -1,8 +1,12 @@
 package com.niu.mall.enums.order;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.enums.delivery.DeliveryTypeEnum;
+import io.swagger.models.auth.In;
+import jodd.util.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -24,34 +28,29 @@ public enum OrderStatusEnum {
 
     private final Integer isRefund;
 
-    public static String getNameByStatus(Integer status){
-        for (OrderStatusEnum item: OrderStatusEnum.values()) {
-            if(item.getStatus().equals(status))
-            {
-                return item.getName();
-            }
+    public static String getNameByStatus(Integer status,String orderType){
+        Map<Integer, Map<String, Object>> jsonObject = OrderStatusJsonEnum.getOrderOrder(orderType);
+        if (jsonObject != null && ObjectUtil.isNotEmpty(jsonObject.get(status))){
+            return jsonObject.get(status).getOrDefault("name","").toString();
         }
         return "";
     }
 
-    public static Map<String, Object> getMapByStatus(Integer status){
+    public static Map<String, Object> getMapByStatus(Integer status,String orderType){
+        Map<Integer, Map<String, Object>> jsonObject = OrderStatusJsonEnum.getOrderOrder(orderType);
         Map<String, Object> map = new HashMap<>();
-        for (OrderStatusEnum item: OrderStatusEnum.values()) {
-            if(item.getStatus().equals(status))
-            {
-                map.put("name", item.getName());
-                map.put("status", item.getStatus());
-            }
+        if (jsonObject != null && ObjectUtil.isNotEmpty(jsonObject.get(status))){
+            map = jsonObject.get(status);
         }
         return map;
     }
 
-    public static Map<String, Object> getDeliveryTypeMapByStatus(Integer status,String deliveryType){
+    public static Map<String, Object> getDeliveryTypeMapByStatus(Integer status,String deliveryType,String orderType){
         Map<String, Object> map = new HashMap<>();
         if(StringUtils.isEmpty(deliveryType)){
-            map = getMapByStatus(status);
+            map = getMapByStatus(status,orderType);
         }else{
-            map = getMapByStatus(status);
+            map = getMapByStatus(status,orderType);
             if(DeliveryTypeEnum.STORE.getType().equals(deliveryType) && ObjectUtil.isNotEmpty(status)){
                 if(WAIT_DELIVERY.getStatus().equals(status)){
                     map.put("name", "待提货");
@@ -65,11 +64,9 @@ public enum OrderStatusEnum {
 
     public static Map<Integer, Map<String, Object>> getMap() {
         Map<Integer, Map<String, Object>> map = new HashMap<>();
-        for (OrderStatusEnum item : OrderStatusEnum.values()) {
-            Map<String, Object> mapItem = new HashMap<>();
-            mapItem.put("name", item.getName());
-            mapItem.put("status", item.getStatus());
-            map.put(item.getStatus(), mapItem);
+        Map<Integer, Map<String, Object>> jsonObject = OrderStatusJsonEnum.getOrderOrder(null);
+        if (jsonObject != null){
+            map = jsonObject;
         }
         return map;
     }

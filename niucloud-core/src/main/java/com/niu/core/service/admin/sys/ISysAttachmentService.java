@@ -5,6 +5,7 @@ import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.service.admin.sys.vo.AttachmentUploadVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentCategoryListVo;
+import com.niu.core.service.admin.sys.vo.SysAttachmentConfigVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentInfoVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentListVo;
 import org.springframework.validation.annotation.Validated;
@@ -81,4 +82,22 @@ public interface ISysAttachmentService {
      * @param param
      */
     AttachmentUploadVo document(AttachmentUploadParam param);
+
+    /**
+     * base64
+     * @param param
+     */
+    AttachmentUploadVo base64(AttachmentUploadParam param);
+
+    /**
+     * 获取相册设置
+     * @return 相册配置
+     */
+    SysAttachmentConfigVo getConfig();
+
+    /**
+     * 设置相册设置
+     * @param param 配置参数
+     */
+    void setConfig(SysAttachmentConfigParam param);
 }

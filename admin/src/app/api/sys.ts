@@ -538,6 +538,14 @@ export function clearCronLog(params: Record<string, any>) {
     return request.put(`sys/schedule/log/clear`, params, { showSuccessMessage: true })
 }
 
+/**
+ * 重置计划任务
+ * @returns
+ */
+export function resetCron() {
+    return request.post(`sys/schedule/reset`, { showSuccessMessage: true })
+}
+
 
 /***************************************************** 协议管理 ****************************************************/
 
@@ -883,7 +891,7 @@ export function getFabNavs() {
  * 获取悬浮按钮
  */
 export function setFabNavs(params: Record<string, any>) {
-    return request.post(`sys/fab/fabnavs`, params , { showErrorMessage: true })
+    return request.post(`sys/fab/fabnavs`, params ,  { showSuccessMessage: true, showErrorMessage: true })
 }
 
 /**

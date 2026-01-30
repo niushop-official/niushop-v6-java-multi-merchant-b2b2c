@@ -196,7 +196,12 @@ public class DiyServiceImpl implements IDiyService {
                     .collect(Collectors.toList());
         }
 
-        return list;
+        List<BottomConfigVo> tabbarList = new LinkedList<>();
+        for (BottomConfigVo item : list) {
+            BottomConfigVo config = coreDiyConfigService.getBottomConfig(param.getSiteId(), item.getKey());
+            tabbarList.add(config);
+        }
+        return tabbarList;
     }
 
     @Override

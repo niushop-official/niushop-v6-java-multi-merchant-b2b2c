@@ -5,6 +5,8 @@ import com.niu.core.enums.delivery.DeliveryTypeEnum;
 import com.niu.core.service.api.delivery.IConfigService;
 import com.niu.core.service.api.delivery.IOrderService;
 import com.niu.core.service.api.delivery.param.OrderServiceParam;
+import com.niu.core.service.api.delivery.param.TrackOfLocalServiceParam;
+import com.niu.core.service.api.delivery.vo.TrackOfLocalServiceVo;
 import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -55,6 +57,15 @@ public class DeliveryController {
     @GetMapping("/track")
     public Result<Object> getDeliveryTrack(@Validated OrderServiceParam param) {
         return Result.success(orderService.getDeliveryTrack(param));
+    }
+
+    /**
+     * 获取同城配送轨迹
+     * @return Result
+     */
+    @GetMapping("/track_of_local")
+    public Result<Object> getDeliveryTrackOfLocal(@Validated TrackOfLocalServiceParam param) {
+        return Result.success(orderService.getTrackOfLocalDeliveryOrder(param));
     }
 
 }

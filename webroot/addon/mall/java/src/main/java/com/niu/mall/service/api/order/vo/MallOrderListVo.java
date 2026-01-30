@@ -1,6 +1,9 @@
 package com.niu.mall.service.api.order.vo;
 
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.common.component.context.SpringContext;
@@ -10,6 +13,8 @@ import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.core.sys.ICoreUploadService;
 import com.niu.mall.enums.order.OrderDeliveryTypeEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
+import com.niu.mall.enums.order.OrderTypeEnum;
+import jodd.util.StringUtil;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -27,6 +32,7 @@ public class MallOrderListVo implements Serializable {
 
     public static JSONObject payTypeEnum = PayTypeEnum.getType();
 
+    private Integer groupId;
     private Integer orderId;  // 
     private Integer siteId;  // 站点id
     private String orderNo;  // 订单编号
@@ -75,6 +81,7 @@ public class MallOrderListVo implements Serializable {
     private Integer isEnableRefund;  // 是否允许退款
     private String memberRemark;  // 会员留言信息
     private String shopRemark;  // 商家留言
+    private String mallRemark;  // 商家留言
     private String closeRemark;  // 关闭原因
     private String closeType;  // 关闭来源(未支付自动关闭   手动关闭  退款关闭)
     private Integer refundStatus;  // 退款状态  1不存在退款  2 部分退款  3 全部退款
@@ -86,9 +93,12 @@ public class MallOrderListVo implements Serializable {
     private Long nowTime = System.currentTimeMillis() / 1000;
     private Long expireTime;
     private Pay pay;
-
+    private Boolean canInvoice;
     private Site site;
-
+    @JsonProperty("extend_field_1")
+    private String extendField1; //扩展字段1
+    @JsonProperty("extend_field_2")
+    private String extendField2; //扩展字段2
     @Data
     public static class Site{
         private Integer siteID;
@@ -96,6 +106,7 @@ public class MallOrderListVo implements Serializable {
     }
 
     private List<OrderGoods> orderGoods;
+    private OrderGroup orderGroup;
 
     @Data
     public static class OrderGoods {
@@ -126,6 +137,14 @@ public class MallOrderListVo implements Serializable {
     }
 
     @Data
+    public static class OrderGroup {
+        private Integer groupId;
+        private Integer isBundlePay;
+        private Integer status;
+        private List<MallGroupOrderInfoVo> mallOrder;
+    }
+
+    @Data
     public static class Pay {
         private String type;
         private String typeName;
@@ -138,7 +157,15 @@ public class MallOrderListVo implements Serializable {
     }
 
     public String getOrderTypeName() {
-        return "";
+        if(StringUtil.isNotEmpty(this.orderType) && this.orderType.equals("pintuan")){
+            Object orderType = OrderTypeEnum.getOrderType(this.orderType);
+            if(JSONUtil.isTypeJSON(orderType.toString())){
+                return "";
+            }
+            return orderType.toString();
+        }else{
+            return "";
+        }
     }
 
     public String getOrderFromName() {
@@ -150,6 +177,6 @@ public class MallOrderListVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType);
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType,this.orderType);
     }
 }

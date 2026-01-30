@@ -117,4 +117,8 @@ private static final long serialVersionUID = 1L;
     private BigDecimal logisticsScore; // 发货物流
 
     private Integer evaluateNum;
+
+    private String contactName;
+
+    private String backgroundH5;
 }

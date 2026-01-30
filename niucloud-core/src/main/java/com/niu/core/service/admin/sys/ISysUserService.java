@@ -87,6 +87,13 @@ public interface ISysUserService {
     SysUserInfoVo getUserInfoByUserName(String userName);
 
     /**
+     * 通过手机号获取账号信息
+     * @param mobile
+     * @return
+     */
+    SysUserInfoVo getUserInfoByMobileInfo(String mobile);
+
+    /**
      * 通手机获取账号信息
      * @param mobile
      * @return

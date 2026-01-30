@@ -10,9 +10,7 @@ export const useSubscribeMessage = () => {
         // #endif
 
         // #ifdef MP
-        let env = __wxConfig.envVersion 
         method({
-            miniprogram_state: env,
             keys
         }).then(({ data }) => {
             uni.requestSubscribeMessage({

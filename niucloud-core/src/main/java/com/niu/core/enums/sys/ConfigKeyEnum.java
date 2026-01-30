@@ -22,7 +22,9 @@ public enum ConfigKeyEnum {
     WEAPP_AUTHORIZATION_INFO("weapp_authorization_info"),
     WECHAT_AUTHORIZATION_INFO("wechat_authorization_info"),
     WECHAT_TRANSFER_SCENE_CONFIG("WECHAT_TRANSFER_SCENE_CONFIG"),
-    SHOP_CASH_OUT("shop_cash_out");//店铺提现
+    SHOP_CASH_OUT("shop_cash_out"),//店铺提现
+    PINTUAN_ORDER_CONFIG("PINTUAN_ORDER_CONFIG"),//拼团订单配置
+    PINTUAN_CUSTOMER_CONFIG("PINTUAN_CUSTOMER_CONFIG");//拼团客服配置
     
     private final String name;
 }

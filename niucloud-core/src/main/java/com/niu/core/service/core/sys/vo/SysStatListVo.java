@@ -86,12 +86,27 @@ public class SysStatListVo implements Serializable {
     /** 供货退款金额 */
     private BigDecimal supplyRefundMoney;
 
+    /** 供货商支付分账 */
+    private BigDecimal supplySeparateMoney;
+
+    /** 供货商退款分账 */
+    private BigDecimal supplyRefundSeparateMoney;
+
+    /** 充值订单金额 */
+    private BigDecimal rechargeOrderMoney;
+
+    /** 充值赠送金额 */
+    private BigDecimal rechargeGiveMoney;
+
     /**
      * 商家分账=支付分账-退款分账
      * @return
      */
     public BigDecimal getSeparateMoney() {
-        return shopSeparateMoney.subtract(shopRefundSeparateMoney);
+        if (shopSeparateMoney == null || shopRefundSeparateMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return shopSeparateMoney.subtract(shopRefundSeparateMoney).setScale(2, RoundingMode.HALF_UP);
     }
 
 
@@ -100,7 +115,10 @@ public class SysStatListVo implements Serializable {
      * @return
      */
     public BigDecimal getCommission() {
-        return shopCommission.subtract(shopRefundCommission);
+        if (shopCommission == null || shopRefundCommission == null) {
+            return BigDecimal.ZERO;
+        }
+        return shopCommission.subtract(shopRefundCommission).setScale(2, RoundingMode.HALF_UP);
     }
 
     /**
@@ -108,68 +126,136 @@ public class SysStatListVo implements Serializable {
      * @return
      */
     public BigDecimal getShippingFee() {
-        return deliveryMoney.subtract(refundDeliveryMoney);
+        if (deliveryMoney == null || refundDeliveryMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return deliveryMoney.subtract(refundDeliveryMoney).setScale(2, RoundingMode.HALF_UP);
     }
 
     public BigDecimal getServiceMoney() {
-        return mallServiceMoney.subtract(mallRefundServiceMoney);
+        if (mallServiceMoney == null || mallRefundServiceMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return mallServiceMoney.subtract(mallRefundServiceMoney).setScale(2, RoundingMode.HALF_UP);
     }
 
     public BigDecimal getIncomeMoney() {
-        return orderActualMoney.subtract(orderActualRefundMoney);
+        if (siteId == null || siteId == 0) {
+            // 实际收入=订单实收-订单应退
+            if (orderActualMoney == null || orderRefundMoney == null) {
+                return BigDecimal.ZERO;
+            }
+            return orderActualMoney.subtract(orderRefundMoney);
+        } else {
+            // 实际收入=订单应收-订单应退
+            if (orderReceivableMoney == null || orderRefundMoney == null) {
+                return BigDecimal.ZERO;
+            }
+            return orderReceivableMoney.subtract(orderRefundMoney);
+        }
     }
 
     public BigDecimal getOrderRefundMoney() {
-        return orderRefundMoney.multiply(new BigDecimal(-1));
+        if (orderRefundMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return orderRefundMoney.negate();
     }
     public BigDecimal getActualRefundMoney() {
-        return orderActualRefundMoney.multiply(new BigDecimal(-1));
+        if (orderActualRefundMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return orderActualRefundMoney.negate();
     }
 
     public BigDecimal getShopRefundSeparateMoney() {
-        return shopRefundSeparateMoney.multiply(new BigDecimal(-1));
+        if (shopRefundSeparateMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return shopRefundSeparateMoney.negate();
     }
     public BigDecimal getShopRefundCommission() {
-        return shopRefundCommission.multiply(new BigDecimal(-1));
+        if (shopRefundCommission == null) {
+            return BigDecimal.ZERO;
+        }
+        return shopRefundCommission.negate();
     }
     public BigDecimal getRefundDeliveryMoney() {
-        return refundDeliveryMoney.multiply(new BigDecimal(-1));
+        if (refundDeliveryMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return refundDeliveryMoney.negate();
     }
     public BigDecimal getMallRefundServiceMoney() {
-        return mallRefundServiceMoney.multiply(new BigDecimal(-1));
+        if (mallRefundServiceMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return mallRefundServiceMoney.negate();
     }
     public BigDecimal getMallCouponMoney() {
-        if(siteId.equals(0)) {
-            return mallCouponMoney.multiply(new BigDecimal(-1));
-        }else{
+        if (mallCouponMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        if (siteId != null && siteId == 0) {
+            return mallCouponMoney.negate();
+        } else {
             return mallCouponMoney;
         }
     }
     public BigDecimal getMallRefundCouponMoney() {
-        if(siteId.equals(0)) {
+        if (mallRefundCouponMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        if (siteId != null && siteId == 0) {
             return mallRefundCouponMoney;
-        }else {
-            return mallRefundCouponMoney.multiply(new BigDecimal(-1));
+        } else {
+            return mallRefundCouponMoney.negate();
         }
     }
 
     public BigDecimal getSupplyRefundMoney() {
-        return supplyRefundMoney.multiply(new BigDecimal(-1));
+        if (supplyRefundMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return supplyRefundMoney.negate();
+    }
+
+    public BigDecimal getSupplyRefundSeparateMoney() {
+        if (supplyRefundSeparateMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return supplyRefundSeparateMoney.negate();
     }
 
     public BigDecimal getSupplyGoodsMoney() {
+        if (supplyMoney == null || supplyRefundMoney == null) {
+            return BigDecimal.ZERO;
+        }
         return supplyMoney.subtract(supplyRefundMoney).setScale(2, RoundingMode.HALF_UP);
     }
 
+    /**
+     * 供货商分账=供货商支付分账-供货商退款分账
+     * @return
+     */
+    public BigDecimal getSupplyAllSeparateMoney() {
+        if (supplySeparateMoney == null || supplyRefundSeparateMoney == null) {
+            return BigDecimal.ZERO;
+        }
+        return supplySeparateMoney.subtract(supplyRefundSeparateMoney).setScale(2, RoundingMode.HALF_UP);
+    }
+
     public BigDecimal getOutlayMoney() {
-        if(siteId.equals(0)) {
-            return getSeparateMoney().add(getCommission()).add(getShippingFee()).add(getSupplyMoney());
-        }else{
-            return getServiceMoney().add(getCommission()).add(getSupplyGoodsMoney());
+        if (siteId == null || siteId == 0) {
+            // 实际支出=商家分账+佣金+运费+供货商分账
+            return getSeparateMoney().add(getCommission()).add(getShippingFee()).add(getSupplyAllSeparateMoney()).setScale(2, RoundingMode.HALF_UP);
+        } else {
+            // 实际支出=平台手续费+佣金+供货商货款
+            return getServiceMoney().add(getCommission()).add(getSupplyGoodsMoney()).setScale(2, RoundingMode.HALF_UP);
         }
     }
 
     public BigDecimal getBalanceMoney() {
-        return getIncomeMoney().subtract(getOutlayMoney());
+        return getIncomeMoney().subtract(getOutlayMoney()).setScale(2, RoundingMode.HALF_UP);
     }
 }

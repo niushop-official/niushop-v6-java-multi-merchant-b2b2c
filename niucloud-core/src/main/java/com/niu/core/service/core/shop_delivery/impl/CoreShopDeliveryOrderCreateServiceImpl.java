@@ -76,8 +76,8 @@ public class CoreShopDeliveryOrderCreateServiceImpl implements ICoreShopDelivery
         deliveryOrder.setDeliveryNo(createNo());
         deliveryOrder.setOutDeliveryNo(param.getDeliveryNo());
         deliveryOrder.setTradeId(param.getOrderDate().getOrderId());
-        deliveryOrder.setTradeNo(param.getOrderDate().getOrderNo());
-        deliveryOrder.setTradeType(param.getOrderDate().getOrderType());
+        deliveryOrder.setTradeNo(param.getTradeNo());
+        deliveryOrder.setTradeType(param.getTradeType());
         deliveryOrder.setDeliveryMoney(param.getOrderDate().getDeliveryMoney());
 
         // 设置配送起始地址

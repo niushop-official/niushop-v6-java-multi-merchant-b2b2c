@@ -22,8 +22,7 @@
 import { ref, reactive } from 'vue'
 import { t } from '@/lang'
 import type { FormInstance } from 'element-plus'
-import { editShopMemberDetail } from '@/app/api/shop_site'
-import { getMemberLabelAll } from '@/app/api/member'
+import { editShopMemberDetail, getShopMemberLabelAll } from '@/app/api/shop_site'
 
 // 修改类型
 const type = ref('')
@@ -35,10 +34,10 @@ const loading = ref(false)
 
 const labelSelectData = ref(null)
 // 获取全部标签
-const getMemberLabelAllFn = async () => {
-    labelSelectData.value = await (await getMemberLabelAll()).data
+const getShopMemberLabelAllFn = async () => {
+    labelSelectData.value = await (await getShopMemberLabelAll()).data
 }
-getMemberLabelAllFn()
+getShopMemberLabelAllFn()
 
 /**
  * 表单数据

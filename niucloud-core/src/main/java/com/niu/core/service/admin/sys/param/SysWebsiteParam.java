@@ -23,6 +23,7 @@ public class SysWebsiteParam {
     private String frontEndLogo;  // 前台logo
     private String frontEndIcon;  // 前台icon
     private String icon;  // 网站图标
+    private String siteDomain;  // 服务端地址
     private String wechatCode;
     private String enterpriseWechat;
     private String tel;

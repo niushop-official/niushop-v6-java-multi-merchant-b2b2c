@@ -1,5 +1,6 @@
 package com.niu.mall.service.core.goods.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.mall.entity.order.MallOrderGoods;
@@ -7,11 +8,15 @@ import com.niu.mall.enums.order.OrderGoodsRefundEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsLimitBuyService;
+import com.niu.mall.service.core.order.helper.OrderCreateHelper;
 import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -21,26 +26,30 @@ public class CoreGoodsLimitBuyServiceImpl implements ICoreGoodsLimitBuyService {
     MallOrderGoodsMapper mallOrderGoodsMapper;
 
     @Override
-    public String checkGoodsLimitBuy(Integer memberId, Map<String, OrderCreateDataVo.LimitBuy> goodsList) {
-        int goodsCount = goodsList.size();
-        for (OrderCreateDataVo.LimitBuy item : goodsList.values()) {
+    public String checkGoodsLimitBuy(Integer memberId, OrderCreateDataVo vo) {
+        Map<String, OrderCreateDataVo.LimitBuy> limitList = getGoodsLimit(vo);
+        for (OrderCreateDataVo.LimitBuy item : limitList.values()) {
             if (item.getMinBuy() > 0) {
                 if (item.getStock() < item.getMinBuy()) {
-                    return (goodsCount > 1? "商品“" + item.getGoodsName() + "”" : "该商品") + "库存数量小于起购数量";
+                    String error = "商品【" + item.getGoodsName() + "】" + "库存数量小于起购数量";
+                    setGoodsError(error,vo, item.getSkuIds());
                 }
                 if (item.getNum() < item.getMinBuy()) {
-                    return (goodsCount > 1? "商品“" + item.getGoodsName() + "”" : "该商品") + item.getMinBuy() + "件起购";
+                    String error = "商品【" + item.getGoodsName() + "】" + item.getMinBuy() + "件起购";
+                    setGoodsError(error,vo, item.getSkuIds());
                 }
             }
             if (item.getIsLimit() == 1 && item.getMaxBuy() > 0) {
                 if (item.getLimitType() == 1) { // 单次限购
                     if (item.getNum() > item.getMaxBuy()) {
-                        return (goodsCount > 1? "商品“" + item.getGoodsName() + "”" : "该商品") + "单次限购" + item.getMaxBuy() + "件";
+                        String error = "商品【" + item.getGoodsName() + "】" + "单次限购" + item.getMaxBuy() + "件";
+                        setGoodsError(error,vo, item.getSkuIds());
                     }
                 } else if (item.getLimitType() == 2) { // 长期限购
                     int sum = getGoodsHasBuyNumber(item.getSiteId(), memberId, item.getGoodsId());
                     if (sum + item.getNum() > item.getMaxBuy()) {
-                        return (goodsCount > 1? "商品“" + item.getGoodsName() + "”" : "该商品") + "每人限购" + item.getMaxBuy() + "件" + (sum > 0? "，您已购买" + sum + "件" : "");
+                        String error = "商品【" + item.getGoodsName() + "】" + "每人限购" + item.getMaxBuy() + "件" +  (sum > 0? "，您已购买" + sum + "件" : "");
+                        setGoodsError(error,vo, item.getSkuIds());
                     }
                 }
             }
@@ -65,5 +74,50 @@ public class CoreGoodsLimitBuyServiceImpl implements ICoreGoodsLimitBuyService {
         return mallOrderGoodsMapper.selectObjs(queryWrapper).stream()
                 .map(o -> new BigDecimal(o.toString()).intValue())
                 .findFirst().orElse(0);
+    }
+
+    public Map<String, OrderCreateDataVo.LimitBuy> getGoodsLimit(OrderCreateDataVo vo){
+        if(vo.getLimitBuy() != null && !vo.getLimitBuy().isEmpty()){
+            return  vo.getLimitBuy();
+        }
+        Map<String, OrderCreateDataVo.LimitBuy> limitList = new HashMap<>();
+        for (OrderCreateDataVo.Sku value : vo.getGoodsData().values()){
+            Integer num = value.getNum();
+            Integer skuId = value.getSkuId();
+            if(vo.getLimitBuy() != null && ObjectUtil.isNotEmpty(vo.getLimitBuy().get(value.getGoodsId().toString()))){
+                OrderCreateDataVo.LimitBuy limitBuy =  ObjectUtil.isNotEmpty(vo.getLimitBuy().get("goods_"+value.getGoodsId().toString())) ? vo.getLimitBuy().get(value.getGoodsId().toString()) : new OrderCreateDataVo.LimitBuy();
+                Integer goodsNum = ObjectUtil.isNotEmpty(limitBuy.getNum()) ? limitBuy.getNum()+num : num;
+                limitBuy.setNum(goodsNum);
+                List<Integer> skuIds = ObjectUtil.isNotEmpty(limitBuy.getSkuIds()) ? limitBuy.getSkuIds() : new ArrayList<>();
+                skuIds.add(skuId);
+                skuIds = skuIds.stream().distinct().toList();
+                limitBuy.setSkuIds(skuIds);
+                vo.getLimitBuy().put("goods_"+value.getGoodsId().toString(), limitBuy);
+            }else{
+                OrderCreateDataVo.LimitBuy limitBuy = new OrderCreateDataVo.LimitBuy();
+                limitBuy.setGoodsId(value.getGoodsId());
+                limitBuy.setSiteId(value.getSiteId());
+                limitBuy.setGoodsName(value.getGoods().getGoodsName());
+                limitBuy.setStock(value.getStock());
+                limitBuy.setNum(num);
+                limitBuy.setIsLimit(value.getGoods().getIsLimit());
+                limitBuy.setLimitType(value.getGoods().getLimitType());
+                limitBuy.setMaxBuy(value.getMaxBuy());
+                limitBuy.setMinBuy(value.getMinBuy());
+                limitBuy.setSkuIds(List.of(skuId));
+                vo.getLimitBuy().put(value.getGoodsId().toString(), limitBuy);
+            }
+        }
+        return vo.getLimitBuy();
+    }
+
+    public void setGoodsError(String error,OrderCreateDataVo vo,List<Integer> skuIds){
+        for(Integer key : vo.getGoodsData().keySet()){
+            Integer skuId = vo.getGoodsData().get(key).getSkuId();
+            if(skuIds.contains(skuId)){
+                vo.getGoodsData().get(key).setError(error);
+            }
+        }
+        vo.getError().add(error);
     }
 }

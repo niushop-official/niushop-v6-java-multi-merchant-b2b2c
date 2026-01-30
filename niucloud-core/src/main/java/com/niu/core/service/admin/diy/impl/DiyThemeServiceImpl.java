@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.niu.core.common.component.context.cache.Cached;
+import com.niu.core.common.exception.AdminException;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.addon.Addon;
@@ -22,6 +23,7 @@ import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.addon.vo.InstallAddonListVo;
 import com.niu.core.service.core.diy.ICoreDiyService;
 import jakarta.annotation.Resource;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -361,41 +363,47 @@ public class DiyThemeServiceImpl implements IDiyThemeService {
     @Transactional
     public void addDiyTheme(DiyThemeParam data) {
         Integer siteId = RequestUtils.defaultSiteId();
-        List<Addon> addonData = addonMapper.selectList(new QueryWrapper<Addon>().eq("support_app", data.getAddon()));
-        List<DiyTheme> addonSaveData = new ArrayList<>();
-        if (!addonData.isEmpty()) {
-            for (Addon addon : addonData) {
-
-                DiyTheme diyTheme = new DiyTheme();
-                diyTheme.setSiteId(siteId);
-                diyTheme.setType("addon");
-                diyTheme.setAddon(addon.getKey());
-                diyTheme.setTitle(data.getTitle());
-                diyTheme.setTheme(data.getTheme() != null ? data.getTheme().toString() : "");
-                diyTheme.setNewTheme(data.getNewTheme() != null ? data.getNewTheme().toString() : "");
-                diyTheme.setDefaultTheme(data.getDefaultTheme() != null ? data.getDefaultTheme().toString() : "");
-                diyTheme.setThemeType("diy");
-                diyTheme.setCreateTime(System.currentTimeMillis() / 1000);
-                addonSaveData.add(diyTheme);
+        String type = "";
+        if (data.getAddon().equals("app")){
+            type = "app";
+        }else{
+            Addon addonData = addonMapper.selectOne(new QueryWrapper<Addon>().eq("key", data.getAddon()).last("limit 1"));
+            if(ObjectUtil.isEmpty(addonData)){
+                throw new AdminException("插件不存在");
             }
+            type = addonData.getType();
         }
+
+//        List<Addon> addonData = addonMapper.selectList(new QueryWrapper<Addon>().eq("support_app", data.getAddon()));
+//        List<DiyTheme> addonSaveData = new ArrayList<>();
+//        if (!addonData.isEmpty()) {
+//            for (Addon addon : addonData) {
+//
+//                DiyTheme diyTheme = new DiyTheme();
+//                diyTheme.setSiteId(siteId);
+//                diyTheme.setType("addon");
+//                diyTheme.setAddon(addon.getKey());
+//                diyTheme.setTitle(data.getTitle());
+//                diyTheme.setTheme(data.getTheme() != null ? data.getTheme().toString() : "");
+//                diyTheme.setNewTheme(data.getNewTheme() != null ? data.getNewTheme().toString() : "");
+//                diyTheme.setDefaultTheme(data.getDefaultTheme() != null ? data.getDefaultTheme().toString() : "");
+//                diyTheme.setThemeType("diy");
+//                diyTheme.setCreateTime(System.currentTimeMillis() / 1000);
+//                addonSaveData.add(diyTheme);
+//            }
+//        }
 
         DiyTheme model = new DiyTheme();
         model.setSiteId(siteId);
-        model.setType("app");
+        model.setType(type);
         model.setAddon(data.getAddon());
         model.setTitle(data.getTitle());
         model.setDefaultTheme(data.getDefaultTheme() != null ? data.getDefaultTheme().toString() : "");
         model.setTheme(data.getTheme() != null ? data.getTheme().toString() : "");
         model.setNewTheme(data.getNewTheme() != null ? data.getNewTheme().toString() : "");
-        model.setThemeType("diy");
+        model.setThemeType(ObjectUtil.defaultIfEmpty(data.getThemeType(), "diy"));
         model.setCreateTime(System.currentTimeMillis() / 1000);
-        addonSaveData.add(model);
-        if (ObjectUtil.isNotEmpty(addonSaveData)) {
-            for (DiyTheme diyTheme : addonSaveData) {
-                diyThemeMapper.insert(diyTheme);
-            }
-        }
+        diyThemeMapper.insert(model);
     }
 
     @Override
@@ -406,35 +414,35 @@ public class DiyThemeServiceImpl implements IDiyThemeService {
         if (ObjectUtil.isEmpty(diyThemeInfo)) {
             throw new RuntimeException("主题色不存在");
         }
-        List<DiyTheme> addonData = diyThemeMapper.selectList(new QueryWrapper<DiyTheme>().eq("type", "addon").eq("title", diyThemeInfo.getTitle()));
-        List<DiyTheme> addonSaveData = new ArrayList<>();
-        if (ObjectUtil.isNotEmpty(addonData)) {
-            for (DiyTheme diyTheme : addonData) {
-                DiyTheme saveData = new DiyTheme();
-                saveData.setId(diyTheme.getId());
-                saveData.setSiteId(diyTheme.getSiteId());
-                saveData.setTitle(diyTheme.getTitle());
-                saveData.setTheme(data.getTheme().toString());
-                saveData.setNewTheme(data.getNewTheme().toString());
-                saveData.setUpdateTime(System.currentTimeMillis() / 1000);
-
-                addonSaveData.add(saveData);
-            }
-        }
+//        List<DiyTheme> addonData = diyThemeMapper.selectList(new QueryWrapper<DiyTheme>().eq("type", "addon").eq("title", diyThemeInfo.getTitle()));
+//        List<DiyTheme> addonSaveData = new ArrayList<>();
+//        if (ObjectUtil.isNotEmpty(addonData)) {
+//            for (DiyTheme diyTheme : addonData) {
+//                DiyTheme saveData = new DiyTheme();
+//                saveData.setId(diyTheme.getId());
+//                saveData.setSiteId(diyTheme.getSiteId());
+//                saveData.setTitle(diyTheme.getTitle());
+//                saveData.setTheme(data.getTheme().toString());
+//                saveData.setNewTheme(data.getNewTheme().toString());
+//                saveData.setUpdateTime(System.currentTimeMillis() / 1000);
+//
+//                addonSaveData.add(saveData);
+//            }
+//        }
         diyThemeInfo.setAddon(data.getAddon());
         diyThemeInfo.setTitle(data.getTitle());
         diyThemeInfo.setDefaultTheme(data.getDefaultTheme() != null ? data.getDefaultTheme().toString() : "");
         diyThemeInfo.setTheme(data.getTheme() != null ? data.getTheme().toString() : "");
         diyThemeInfo.setNewTheme(data.getNewTheme() != null ? data.getNewTheme().toString() : "");
         diyThemeInfo.setUpdateTime(System.currentTimeMillis() / 1000);
-
+        diyThemeInfo.setThemeType(ObjectUtil.defaultIfEmpty(data.getThemeType(), "diy"));
         diyThemeMapper.updateById(diyThemeInfo);
 
-        if (ObjectUtil.isNotEmpty(addonSaveData)) {
-            for (DiyTheme diyTheme : addonSaveData) {
-                diyThemeMapper.updateById(diyTheme);
-            }
-        }
+//        if (ObjectUtil.isNotEmpty(addonSaveData)) {
+//            for (DiyTheme diyTheme : addonSaveData) {
+//                diyThemeMapper.updateById(diyTheme);
+//            }
+//        }
     }
 
     @Override

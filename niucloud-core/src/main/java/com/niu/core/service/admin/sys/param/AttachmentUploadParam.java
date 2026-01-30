@@ -35,4 +35,6 @@ public class AttachmentUploadParam implements Serializable {
     private String dir = "";
 
     private String newFilename = "";
+
+    private String content = "";
 }

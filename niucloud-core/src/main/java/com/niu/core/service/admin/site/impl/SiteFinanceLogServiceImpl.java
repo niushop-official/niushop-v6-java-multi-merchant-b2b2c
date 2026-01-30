@@ -67,4 +67,33 @@ public class SiteFinanceLogServiceImpl implements ISiteFinanceLogService {
 
         return PageResult.build(page, limit, iPage.getTotal()).setData(voList);
     }
+
+    @Override
+    public List<SiteFinanceLogVo> getLatest() {
+        QueryWrapper<SiteFinanceLog> queryWrapper = new QueryWrapper<>();
+        // 设置查询字段
+        queryWrapper.select(SiteFinanceLog.class,
+                info -> Arrays.asList("id", "main_id", "main_name", "site_id", "type", "value",
+                        "trade_type", "trade_no", "create_time",
+                        "memo", "rae_type").contains(info.getColumn()));
+        queryWrapper.eq("site_id",RequestUtils.siteId());
+        // 排序
+        queryWrapper.orderByDesc("create_time","id");
+        queryWrapper.last("limit 10");
+        //分页
+        List<SiteFinanceLog> list = siteFinanceLogMapper.selectList(queryWrapper);
+        //转换为 VO
+        List<SiteFinanceLogVo> voList = new ArrayList<>();
+        for (SiteFinanceLog record : list) {
+            SiteFinanceLogVo vo = new SiteFinanceLogVo();
+            BeanUtils.copyProperties(record, vo);
+
+            vo.setTypeName(SiteFinanceLogEnum.getName(record.getType()));
+            vo.setTradeTypeName(SiteFinanceLogEnum.getName(record.getTradeType()));
+            vo.setRaeTypeName( SiteFinanceLogEnum.getName(record.getRaeType()));
+            voList.add(vo);
+        }
+
+        return voList;
+    }
 }

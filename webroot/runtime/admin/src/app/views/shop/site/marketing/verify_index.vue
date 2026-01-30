@@ -92,11 +92,13 @@
 <script lang='ts' setup>
 import { ref } from 'vue'
 import { t } from '@/lang'
-import {img} from '@/utils/common'
-import { useRouter } from 'vue-router'
-import { getVerifyDetailInfo ,verify} from '@/app/api/verify'
+import { img } from '@/utils/common'
+import { useRoute,useRouter } from 'vue-router'
+import { getVerifyDetailInfo, verify } from '@/app/api/verify'
 
+const route = useRoute()
 const router = useRouter()
+const code = route.query.code as string
 const loading = ref(false)
 const verifycode = ref('')
 const verifyInfo = ref<any>([])
@@ -113,6 +115,10 @@ const handelVerify = () => {
         loading.value = false
     })
 }
+if (code) {
+    verifycode.value = code
+    handelVerify()
+}
 
 const isSubmit = ref(false)
 const verifyCode = () => {
@@ -121,6 +127,7 @@ const verifyCode = () => {
     isSubmit.value = true
     verify(verifycode.value).then(() => {
         showDialog.value = false
+        verifycode.value = ''
         isSubmit.value = false
     }).catch(() => {
         isSubmit.value = false

@@ -2,7 +2,9 @@ package com.niu.core.service.site.goods;
 
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.service.site.goods.vo.GoodsBrandInitVo;
 import com.niu.core.service.site.goods.param.EditGoodsBrandSortParam;
+import com.niu.core.service.site.goods.param.EditGoodsBrandStatusParam;
 import com.niu.core.service.site.goods.param.GoodsBrandParam;
 import com.niu.core.service.site.goods.param.GoodsBrandSearchParam;
 import com.niu.core.service.site.goods.vo.GoodsBrandInfoVo;
@@ -69,4 +71,16 @@ public interface IGoodsBrandService {
      */
     void modifySort(EditGoodsBrandSortParam editParam);
 
+    /**
+     * 修改品牌状态
+     *
+     * @param editParam
+     */
+    void modifyStatus(EditGoodsBrandStatusParam editParam);
+
+    /**
+     * 获取字典
+     *
+     */
+    GoodsBrandInitVo init();
 }

@@ -13,6 +13,8 @@
     "confirmCancelBottom":"关闭后订单将不会自动确认收货",
     "finishLengthPlaceholder":"请输入自动确认收货时间",
     "isFinish":"自动确认收货",
+    "delayDaysPlaceholder":"请输入延时分账时间",
+    "delayDaysBottom":"延时分账时间时间必须在1-15天之间",
     "refund":"确认收货后售后",
     "refundLeft":"确认收货",
     "refundRight":"天内，可申请售后",

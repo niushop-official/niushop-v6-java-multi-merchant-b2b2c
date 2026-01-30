@@ -1,1 +1,0 @@
-import{B as n}from"./index-a206b603.js";function t(){return n.get("mall/rank")}function a(t){return n.get("mall/rank/goods",t)}function r(){return n.get("mall/rank/getRankConfig")}function e(t){return n.get("mall/rank/components",t)}export{t as a,r as b,a as c,e as g};

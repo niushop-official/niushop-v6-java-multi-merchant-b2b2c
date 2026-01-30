@@ -13,6 +13,7 @@ import com.niu.core.service.core.site.ICoreSiteService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.Arrays;
 
 @Slf4j
 public class JsonModuleLoader {
@@ -27,7 +28,6 @@ public class JsonModuleLoader {
     public JSONArray findContentToArray(String addon, String jsonFile) {
         JSONArray jsonArrayResult = new JSONArray();
         String jsonString = AddonModuleContext.readResourceAsStreamToText(addon, "loader/" + jsonFile);
-        log.info("JSON => " + addon + " loader/" + jsonFile + " , result => " + jsonString);
         if (StrUtil.isNotEmpty(jsonString)) {
             jsonString = jsonString.trim();
             try {
@@ -64,7 +64,6 @@ public class JsonModuleLoader {
         Set<String> addonModules = AddonModuleContext.getAddonModules();
         for (String addonModule : addonModules) {
             String jsonString = AddonModuleContext.readResourceAsStreamToText(addonModule, "loader/" + jsonFile);
-            log.info("JSON => " + addonModule + " loader/" + jsonFile + " , result => " + jsonString);
             if (StrUtil.isNotEmpty(jsonString)) {
                 jsonString = jsonString.trim();
                 try {
@@ -81,7 +80,7 @@ public class JsonModuleLoader {
                 }
             }
         }
-        RequestUtils.setJsonFileContent( "mergeResultElement" + jsonFile, jsonArrayResult.toString());
+        RequestUtils.setJsonFileContent( "mergeContentToArray" + jsonFile, jsonArrayResult.toString());
         return jsonArrayResult;
     }
 
@@ -94,7 +93,6 @@ public class JsonModuleLoader {
     public JSONArray findResultSet(String addon, String jsonFile) {
         final JSONArray jsonArrayResult = new JSONArray();
         String jsonString = AddonModuleContext.readResourceAsStreamToText(addon, "loader/" + jsonFile);
-        log.info("JSON => " + addon + " loader/" + jsonFile + " , result => " + jsonString);
         if (StrUtil.isNotEmpty(jsonString)) {
             jsonString = jsonString.trim();
             try {
@@ -120,7 +118,6 @@ public class JsonModuleLoader {
     public JSONArray getResultSet(String addonModule, String jsonFile) {
         final JSONArray jsonArrayResult = new JSONArray();
         String jsonString = AddonModuleContext.readResourceAsStreamToText(addonModule, "loader/" + jsonFile);
-        log.info("JSON => " + addonModule + " loader/" + jsonFile + " , result => " + jsonString);
         if (StrUtil.isNotEmpty(jsonString)) {
             jsonString = jsonString.trim();
             try {
@@ -145,6 +142,10 @@ public class JsonModuleLoader {
      * @return
      */
     public JSONArray mergeResultSet(String jsonFile) {
+        String jsonStringContent = RequestUtils.jsonFileContent( "mergeContentToArray" + jsonFile);
+        if(!jsonStringContent.isEmpty()) {
+            return JSONUtil.parseArray(jsonStringContent);
+        }
         final JSONArray jsonArrayResult = new JSONArray();
         Set<String> addonModules = AddonModuleContext.getAddonModules();
         Set<String> newAddonModules = new HashSet<>();
@@ -154,7 +155,6 @@ public class JsonModuleLoader {
         newAddonModules.addAll(addonModules);
         for (String addonModule : newAddonModules) {
             String jsonString = AddonModuleContext.readResourceAsStreamToText(addonModule, "loader/" + jsonFile);
-            log.info("JSON => " + addonModule + " loader/" + jsonFile + " , result => " + jsonString);
             if (StrUtil.isNotEmpty(jsonString)) {
                 jsonString = jsonString.trim();
                 try {
@@ -168,6 +168,7 @@ public class JsonModuleLoader {
                 }
             }
         }
+        RequestUtils.setJsonFileContent( "mergeContentToArray" + jsonFile, jsonArrayResult.toString());
         return jsonArrayResult;
     }
 
@@ -183,7 +184,6 @@ public class JsonModuleLoader {
         List<String> addonModules = getSiteAddonModules(siteId);
         for (String addonModule : addonModules) {
             String jsonString = AddonModuleContext.readResourceAsStreamToText(addonModule, "loader/" + jsonFile);
-            log.info("JSON => " + addonModule + " loader/" + jsonFile + " , result => " + jsonString);
             if (StrUtil.isNotEmpty(jsonString)) {
                 jsonString = jsonString.trim();
                 try {
@@ -216,7 +216,6 @@ public class JsonModuleLoader {
         }
         Set<JSONObject> jsonContentSet = new HashSet<>();
         Set<String> addonModules = AddonModuleContext.getAddonModules();
-        log.info("JSON addonModules -> " + addonModules);
         for (String addonModule : addonModules) {
             String jsonString = AddonModuleContext.readResourceAsStreamToText(addonModule, "loader/" + jsonFile);
             if (StrUtil.isNotEmpty(jsonString)) {
@@ -257,10 +256,8 @@ public class JsonModuleLoader {
         }
         Set<JSONObject> jsonContentSet = new HashSet<>();
         List<String> addonModules = getSiteAddonModules(siteId);
-        log.info("JSON addonModules -> " + addonModules);
         for (String addonModule : addonModules) {
             String jsonString = AddonModuleContext.readResourceAsStreamToText(addonModule, "loader/" + jsonFile);
-            log.info("JSON => " + addonModule + " loader/" + jsonFile + " , result => " + (StrUtil.isEmpty(jsonString) ? "EMPTY" : jsonString.substring(0, Math.min(100, jsonString.length()))));
             if (StrUtil.isNotEmpty(jsonString)) {
                 jsonString = jsonString.trim();
                 try {
@@ -310,7 +307,6 @@ public class JsonModuleLoader {
     public JSONObject getResultElement(String addonModule, String jsonFile) {
         Set<JSONObject> jsonContentSet = new HashSet<>();
         String jsonString = AddonModuleContext.readResourceAsStreamToText(addonModule, "loader/" + jsonFile);
-        log.info("JSON => " + addonModule + " loader/" + jsonFile + " , result => " + jsonString);
         if (StrUtil.isNotEmpty(jsonString)) {
             jsonString = jsonString.trim();
             try {
@@ -344,12 +340,36 @@ public class JsonModuleLoader {
                 if (value == null) {
                     targetMap.put(key, jsonObject.get(key));
                 } else {
-                    JSONObject jsonValue1 = (JSONObject) value;
-                    JSONObject jsonValue2 = (JSONObject) jsonObject.get(key);
-                    jsonValue2.keySet().stream().forEach(k -> {
-                        jsonValue1.set(k, jsonValue2.get(k));
-                    });
-                    targetMap.put(key, jsonValue1);
+                    if(value instanceof JSONArray){
+                        JSONArray jsonValue1 = (JSONArray) value;
+                        JSONArray jsonValue2 = (JSONArray) jsonObject.get(key);
+                        jsonValue1.addAll(jsonValue2);
+                        targetMap.put(key, jsonValue1);
+                    }else if(value instanceof JSONObject){
+                        JSONObject jsonValue1 = (JSONObject) value;
+                        JSONObject jsonValue2 = (JSONObject) jsonObject.get(key);
+                        jsonValue2.keySet().stream().forEach(k -> {
+                            Object v2 = jsonValue2.get(k);
+                            if (jsonValue1.containsKey(k)) {
+                                Object v1 = jsonValue1.get(k);
+                                if (v1 instanceof JSONObject && v2 instanceof JSONObject) {
+                                    jsonValue1.set(k, mergeJsonForAttribute(Arrays.asList((JSONObject)v1, (JSONObject)v2)));
+                                } 
+                                else if (v1 instanceof JSONArray && v2 instanceof JSONArray) {
+                                    JSONArray arr1 = (JSONArray) v1;
+                                    JSONArray arr2 = (JSONArray) v2;
+                                    arr1.addAll(arr2);
+                                    jsonValue1.set(k, arr1);
+                                }
+                                else {
+                                    jsonValue1.set(k, v2);
+                                }
+                            } else {
+                                jsonValue1.set(k, v2);
+                            }
+                        });
+                        targetMap.put(key, jsonValue1);
+                    }
                 }
             });
         }

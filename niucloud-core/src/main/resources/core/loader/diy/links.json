@@ -53,13 +53,6 @@
                   "action": ""
                 },
                 {
-                  "name": "MEMBER_COMMISSION",
-                  "title": "我的佣金",
-                  "url": "/app/pages/member/commission",
-                  "is_share": 1,
-                  "action": ""
-                },
-                {
                   "name": "MEMBER_ADDRESS",
                   "title": "收货地址",
                   "url": "/app/pages/member/address",
@@ -88,26 +81,57 @@
                   "action": ""
                 },
                 {
-                  "name": "MEMBER_CONTACT",
-                  "title": "客服",
-                  "url": "/app/pages/member/contact",
-                  "is_share": 0,
+                  "name": "MEMBER_RECHARGE_INDEX",
+                  "title": "会员充值",
+                  "url": "/app/pages/recharge/recharge",
+                  "is_share": 1,
+                  "action": ""
+                },
+                {
+                  "name": "MEMBER_INVOICE",
+                  "title": "发票管理",
+                  "url": "/app/pages/invoice/list",
+                  "is_share": 1,
                   "action": ""
                 }
               ]
 
+         },
+         {
+           "name": "DIY_FORM_SELECT",
+           "title": "万能表单",
+           "component": "/src/app/views/diy_form/components/form-select-content.vue",
+           "link_type": "all"
+         },
+         {
+            "name": "ARTICLE_LINK",
+            "title": "文章资讯",
+            "child_list": [
+              {
+                "name": "article_list",
+                "title": "文章列表",
+                "url": "/app/pages/article/list",
+                "is_share": 1,
+                "action": "decorate"
+              }
+            ]
+         },
+         {
+            "name": "ARTICLE_SELECT",
+            "title": "选择文章",
+            "component": "/src/app/views/article/components/article-select-content.vue",
+            "link_type": "all"
          }
-
       ]
     },
     "DIY_PAGE": {
-    "title": "自定义页面",
-    "addon_info": {
-      "title": "系统",
-      "key": "app"
-    },
-    "child_list": [],
-    "name": "DIY_PAGE"
+        "title": "自定义页面",
+        "addon_info": {
+          "title": "系统",
+          "key": "app"
+        },
+        "child_list": [],
+        "name": "DIY_PAGE"
     },
     "OTHER_LINK": {
       "title": "其他页面",

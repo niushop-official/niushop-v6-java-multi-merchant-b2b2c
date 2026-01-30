@@ -12,6 +12,15 @@ export function getArticleList(params: Record<string, any>) {
 }
 
 /**
+ * 获取文章表列表
+ * @param params
+ * @returns
+ */
+export function getArticleSelect(params: Record<string, any>) {
+    return request.get(`article/article/select`, { params })
+}
+
+/**
  * 获取文章表详情
  * @param id 文章表id
  * @returns

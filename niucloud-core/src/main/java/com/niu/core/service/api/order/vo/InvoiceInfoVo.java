@@ -2,6 +2,7 @@ package com.niu.core.service.api.order.vo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
+import com.niu.core.enums.basic.InvoiceContentEnum;
 import com.niu.core.enums.basic.InvoiceHeaderTypeEnum;
 import com.niu.core.enums.basic.InvoiceTypeEnum;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class InvoiceInfoVo implements Serializable {
     private Integer headerType;  // 抬头类型
     private String headerName;  // 名称（发票抬头）
     private Integer type;  // 发票类型
+    private String typeName;  // 发票内容
     private String name;  // 发票内容
     private String taxNumber;  // 公司税号
     private String mobile;  // 开票人手机号
@@ -45,6 +47,8 @@ public class InvoiceInfoVo implements Serializable {
     private Long createTime;  // 创建时间
     @JsonProperty("orderData")
     private InvoiceListVo.OrderInfo orderData;
+    private String contentType;  // 备注
+    private String contentTypeName;  // 备注
     /**
      * 获取头名称
      * @return
@@ -59,5 +63,12 @@ public class InvoiceInfoVo implements Serializable {
      */
     public String getTypeName(){
         return InvoiceTypeEnum.getNameByType(this.type);
+    }
+    /**
+     * 获取头名称
+     * @return
+     */
+    public String getContentTypeName(){
+        return InvoiceContentEnum.getNameByType(this.contentType);
     }
 }

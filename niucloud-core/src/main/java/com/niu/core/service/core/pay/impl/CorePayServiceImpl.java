@@ -443,4 +443,21 @@ public class CorePayServiceImpl implements ICorePayService {
         return result;
     }
 
+    @Override
+    public String create(Integer siteId, String mainType, Integer mainId, BigDecimal money, String tradeType, Integer tradeId, String body) {
+        String outTradeNo = createOutTradeNo();
+        Pay pay = new Pay();
+        pay.setSiteId(siteId);
+        pay.setMoney(money);
+        pay.setTradeType(tradeType);
+        pay.setTradeId(tradeId);
+        pay.setBody(body);
+        pay.setOutTradeNo(outTradeNo);
+        pay.setMainId(mainId);
+        pay.setMainType(mainType);
+        pay.setFromMainId(mainId);
+        payMapper.insert(pay);
+        return outTradeNo;
+    }
+
 }

@@ -2,6 +2,7 @@ package com.niu.core.service.admin.sys.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -288,8 +289,9 @@ public class SysMenuServiceImpl implements ISysMenuService {
     }
 
     @Override
-    public List<SysMenu> getAdminMenuListByMenuKeys(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon) {
-        return cached.remember(useCache, cacheTagName, Arrays.asList("getSiteMenuListByMenuKeys", appType, siteId, status, isButton, menuKeys, addon), uniqueKey -> {
+    public List<SysMenu> getAdminMenuListByMenuKeys(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon,Integer showMount) {
+        showMount = ObjectUtil.defaultIfNull(showMount, 0);
+        List<SysMenu> menuListAll = cached.remember(useCache, cacheTagName, Arrays.asList("getSiteMenuListByMenuKeys", appType, siteId, status, isButton, menuKeys, addon), uniqueKey -> {
             QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
             if (ObjectUtil.isNotEmpty(appType)) {
                 queryWrapper.eq("app_type", appType);
@@ -315,11 +317,56 @@ public class SysMenuServiceImpl implements ISysMenuService {
             List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
             return menuList;
         });
+         //挂载菜单
+        if (showMount == 1){
+            menuListAll.addAll(getAdminMountMenu(appType, siteId, status, isButton, menuKeys, addon));
+        }
+        return menuListAll;
+    }
+
+    //查询挂载菜单
+    public  List<SysMenu> getAdminMountMenu(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon) {
+        return cached.remember(useCache, cacheTagName, Arrays.asList("getAdminMountMenu", appType, siteId, status, isButton, menuKeys, addon), uniqueKey -> {
+            QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
+            if (ObjectUtil.isNotEmpty(appType)) {
+                queryWrapper.eq("app_type", appType);
+            }
+            List<String> addonList = coreAddonService.getAddonCache();
+            if (addonList.size() > 0) {
+                addonList.add("");
+                queryWrapper.in("addon", addonList);
+            }
+            if (status != 100) {
+                queryWrapper.eq("status", status);
+            }
+            if (menuKeys.size() > 0) {
+                queryWrapper.in("menu_key", menuKeys);
+            }
+            if (isButton == 0) {
+                queryWrapper.ne("menu_type", 2);
+            }
+            queryWrapper.orderByDesc("sort");
+            queryWrapper.isNotNull("mount_key");
+            queryWrapper.ne("mount_key","");
+            List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
+            List<SysMenu> menuListAll = new ArrayList<>();
+            if(!menuList.isEmpty()){
+                for (SysMenu sysMenu : menuList){
+                    if (ObjectUtil.isNotEmpty(sysMenu.getMountKey())){
+                        JSONArray jsonArray = JSONUtil.parseArray(sysMenu.getMountKey());
+                        sysMenu.setParentKey(jsonArray.get(0).toString());
+                        menuListAll.add(sysMenu);
+                    }
+                }
+            }
+            return menuListAll;
+        });
     }
 
     @Override
-    public List<SysMenu> getSiteMenuListByMenuKeys(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon) {
-        return cached.remember(useCache, cacheTagName, Arrays.asList("getSiteMenuListByMenuKeys", appType, siteId, status, isButton, menuKeys, addon), uniqueKey -> {
+    public List<SysMenu> getSiteMenuListByMenuKeys(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon,Integer showMount) {
+        showMount = ObjectUtil.defaultIfNull(showMount, 0);
+        List<SysMenu> menuListAll =  cached.remember(useCache, cacheTagName, Arrays.asList("getSiteMenuListByMenuKeys", appType, siteId, status, isButton, menuKeys, addon), uniqueKey -> {
             QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
             if (ObjectUtil.isNotEmpty(appType)) {
                 queryWrapper.eq("app_type", appType);
@@ -349,11 +396,61 @@ public class SysMenuServiceImpl implements ISysMenuService {
             List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
             return menuList;
         });
+
+        //挂载菜单
+        if (showMount == 1){
+            menuListAll.addAll(getSiteMenuListByMenu(appType, siteId, status, isButton, menuKeys, addon));
+        }
+        return menuListAll;
+    }
+
+    //查询挂载菜单
+    public  List<SysMenu> getSiteMenuListByMenu(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon) {
+        return cached.remember(useCache, cacheTagName, Arrays.asList("getSiteMenuListByMenu", appType, siteId, status, isButton, menuKeys, addon), uniqueKey -> {
+            QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
+            if (ObjectUtil.isNotEmpty(appType)) {
+                queryWrapper.eq("app_type", appType);
+            }
+            if (siteId != 0) {
+                List<String> addonList = coreSiteService.getAddonKeysBySiteId(siteId);
+                if (addonList.size() > 0) {
+                    addonList.add("");
+                    queryWrapper.in("addon", addonList);
+                } else {
+                    queryWrapper.in("addon", "");
+                }
+            }
+            if (status != 100) {
+                queryWrapper.eq("status", status);
+            }
+            if (menuKeys.size() > 0) {
+                queryWrapper.in("menu_key", menuKeys);
+            }
+            if (isButton == 0) {
+                queryWrapper.ne("menu_type", 2);
+            }
+            queryWrapper.orderByDesc("sort");
+            queryWrapper.isNotNull("mount_key");
+            queryWrapper.ne("mount_key","");
+            List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
+            List<SysMenu> menuListAll = new ArrayList<>();
+            if(!menuList.isEmpty()){
+                for (SysMenu sysMenu : menuList){
+                    if (ObjectUtil.isNotEmpty(sysMenu.getMountKey())){
+                        JSONArray jsonArray = JSONUtil.parseArray(sysMenu.getMountKey());
+                        sysMenu.setParentKey(jsonArray.get(0).toString());
+                        menuListAll.add(sysMenu);
+                    }
+                }
+            }
+            return menuListAll;
+        });
     }
 
     @Override
-    public List<SysMenu> getAdminAllMenuList(String appType, Integer status, Boolean isButton) {
-        return cached.remember(useCache, cacheTagName, Arrays.asList("getAdminAllMenuList", appType, status, isButton), uniqueKey -> {
+    public List<SysMenu> getAdminAllMenuList(String appType, Integer status, Boolean isButton,Integer showMount) {
+        showMount = ObjectUtil.defaultIfNull(showMount, 0);
+        List<SysMenu> menuListAll = cached.remember(useCache, cacheTagName, Arrays.asList("getAdminAllMenuList", appType, status, isButton), uniqueKey -> {
             QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
             if (ObjectUtil.isNotEmpty(appType)) {
                 queryWrapper.eq("app_type", appType);
@@ -377,11 +474,54 @@ public class SysMenuServiceImpl implements ISysMenuService {
             List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
             return menuList;
         });
+        //挂载菜单
+        if (showMount == 1){
+            menuListAll.addAll(getAdminAllMountMenu(appType, status, isButton));
+        }
+        return menuListAll;
+    }
+
+    //查询挂载菜单
+    public  List<SysMenu> getAdminAllMountMenu(String appType, Integer status, Boolean isButton) {
+        return cached.remember(useCache, cacheTagName, Arrays.asList("getAdminAllMountMenu", appType, status, isButton), uniqueKey -> {
+            QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
+            if (ObjectUtil.isNotEmpty(appType)) {
+                queryWrapper.eq("app_type", appType);
+            }
+            List<String> addonList = coreAddonService.getAddonCache();
+            if (addonList.size() > 0) {
+                addonList.add("");
+                queryWrapper.in("addon", addonList);
+            }
+            if (status != 100) {
+                queryWrapper.eq("status", status);
+            }
+            if (!isButton) {
+                queryWrapper.ne("menu_type", 2);
+            }
+
+            queryWrapper.orderByDesc("sort");
+            queryWrapper.isNotNull("mount_key");
+            queryWrapper.ne("mount_key","");
+            List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
+            List<SysMenu> menuListAll = new ArrayList<>();
+            if(!menuList.isEmpty()){
+                for (SysMenu sysMenu : menuList){
+                    if (ObjectUtil.isNotEmpty(sysMenu.getMountKey())){
+                        JSONArray jsonArray = JSONUtil.parseArray(sysMenu.getMountKey());
+                        sysMenu.setParentKey(jsonArray.get(0).toString());
+                        menuListAll.add(sysMenu);
+                    }
+                }
+            }
+            return menuListAll;
+        });
     }
 
     @Override
-    public List<SysMenu> getSiteAllMenuList(String appType, Integer siteId, Integer status, Boolean isButton) {
-        return cached.remember(useCache, cacheTagName, Arrays.asList("getSiteAllMenuList", appType, siteId, status, isButton), uniqueKey -> {
+    public List<SysMenu> getSiteAllMenuList(String appType, Integer siteId, Integer status, Boolean isButton,Integer showMount) {
+        showMount = ObjectUtil.defaultIfNull(showMount, 0);
+        List<SysMenu> menuListAll =  cached.remember(useCache, cacheTagName, Arrays.asList("getSiteAllMenuList", appType, siteId, status, isButton), uniqueKey -> {
             QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
             if (ObjectUtil.isNotEmpty(appType)) {
                 queryWrapper.eq("app_type", appType);
@@ -407,6 +547,51 @@ public class SysMenuServiceImpl implements ISysMenuService {
 
             List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
             return menuList;
+        });
+        //挂载菜单
+        if (showMount == 1){
+            menuListAll.addAll(getSiteAllMountMenu(appType,siteId, status, isButton));
+        }
+        return menuListAll;
+    }
+
+    //查询挂载菜单
+    public  List<SysMenu> getSiteAllMountMenu(String appType, Integer siteId, Integer status, Boolean isButton) {
+        return cached.remember(useCache, cacheTagName, Arrays.asList("getSiteAllMountMenu", appType, siteId,status, isButton), uniqueKey -> {
+            QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
+            if (ObjectUtil.isNotEmpty(appType)) {
+                queryWrapper.eq("app_type", appType);
+            }
+            if (siteId != 0) {
+                List<String> addonList = coreSiteService.getAddonKeysBySiteId(siteId);
+                if (addonList.size() > 0) {
+                    addonList.add("");
+                    queryWrapper.in("addon", addonList);
+                } else {
+                    queryWrapper.in("addon", "");
+                }
+            }
+            if (status != 100) {
+                queryWrapper.eq("status", status);
+            }
+            if (!isButton) {
+                queryWrapper.ne("menu_type", 2);
+            }
+            queryWrapper.orderByDesc("sort");
+            queryWrapper.isNotNull("mount_key");
+            queryWrapper.ne("mount_key","");
+            List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
+            List<SysMenu> menuListAll = new ArrayList<>();
+            if(!menuList.isEmpty()){
+                for (SysMenu sysMenu : menuList){
+                    if (ObjectUtil.isNotEmpty(sysMenu.getMountKey())){
+                        JSONArray jsonArray = JSONUtil.parseArray(sysMenu.getMountKey());
+                        sysMenu.setParentKey(jsonArray.get(0).toString());
+                        menuListAll.add(sysMenu);
+                    }
+                }
+            }
+            return menuListAll;
         });
     }
 
@@ -657,6 +842,15 @@ public class SysMenuServiceImpl implements ISysMenuService {
         }
 
         return isTree == 1 ? menuToTree(voList, "menu_key", "parent_key", "children", "auth", "", isButton) : voList;
+    }
+
+    @Override
+    public void clear() {
+        /** 清理缓存 */
+        cached.tag(CacheTagEnum.ADDON_CACHE.getTagName()).clear();
+        cached.tag(CacheTagEnum.SITE_CACHE.getTagName()).clear();
+        cached.tag(CacheTagEnum.USER_ROLE_CACHE.getTagName()).clear();
+        cached.tag(cacheTagName).clear();
     }
 
     /**

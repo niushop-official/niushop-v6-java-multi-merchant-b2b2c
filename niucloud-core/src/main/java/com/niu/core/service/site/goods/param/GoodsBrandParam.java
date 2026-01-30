@@ -1,5 +1,6 @@
 package com.niu.core.service.site.goods.param;
 
+import cn.hutool.json.JSONObject;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -21,10 +22,10 @@ public class GoodsBrandParam implements Serializable {
     @NotNull(message = "logo参数缺失")
     private String logo;
 
-    @NotNull(message = "desc参数缺失")
     private String desc;
 
-    @NotNull(message = "sort参数缺失")
     private String sort;
+
+    private JSONObject colorJson;
 
 }

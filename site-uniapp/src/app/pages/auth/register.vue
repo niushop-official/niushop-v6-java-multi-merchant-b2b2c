@@ -34,7 +34,7 @@
                                     <text class="nc-iconfont nc-icon-yanzhengmaV6xx text-[40rpx]"></text>
                                 </template>
                                 <template #suffix>
-                                    <sms-code :mobile="formData.mobile" type="login" v-model="formData.mobile_key" ref="smsCodeRef"></sms-code>
+                                    <sms-code :mobile="formData.mobile" type="login" v-model="formData.mobile_key" ref="smsCodeRef" @codeSend="handleCodeSend"></sms-code>
                                 </template>
                             </u-input>
                         </u-form-item>
@@ -50,7 +50,7 @@
             </view>
         </view>
         <!-- 验证组件 -->
-        <verify @success="success" mode="pop" captchaType="blockPuzzle" :imgSize="{ width: '300px', height: '155px' }" ref="verifyRef"></verify>
+        <verify @success="success" mode="pop" :captchaType="loginConfig.site_captcha_type" :imgSize="{ width: '300px', height: '155px' }" ref="verifyRef"></verify>
     </view>
 </template>
 
@@ -60,7 +60,7 @@ import { pxToRpx, img, redirect, setToken } from '@/utils/common'
 import { topTabar } from '@/utils/topTabbar'
 import {  getLoginConfig, siteRegister } from '@/app/api/auth'
 import useUserStore from '@/stores/user'
-import Verify from '@/components/verifition/verify.vue'
+import Verify from '@/components/verify/verify.vue'
 
 /********* 自定义头部 - start ***********/
 const topTabarObj = topTabar()
@@ -95,11 +95,13 @@ const formData = reactive({
     mobile_code: '',
     mobile_key: '',
     captcha_code: '',
+    captcha_type: '',
 })
 
 // 获取登录配置信息
 const loginConfig = ref<any>({
     is_site_captcha: '',
+    site_captcha_type: '',
 })
 const getLoginConfigFn = async () => {
     const data = await (await getLoginConfig()).data
@@ -168,12 +170,19 @@ const verifyRef = ref<any>(null)
 const smsCodeRef = ref<any>(null)
 
 const success = (params: any) => {
+    verifyRef.value.close()
     formData.captcha_code = params.captchaVerification
-   
-    loginFn()
+    formData.captcha_type = loginConfig.value.site_captcha_type
+    smsCodeRef.value.handleConfirm(formData)
 }
 // 验证码 - end
 
+// 手机号登录 - start
+const handleCodeSend = () =>{
+    verifyRef.value.show()
+
+}
+// 手机号登录 - end
 const loginFn = () => { 
     loading.value = true
 

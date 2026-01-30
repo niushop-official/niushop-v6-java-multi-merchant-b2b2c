@@ -13,5 +13,15 @@
     "name": "商家",
     "key": "site",
     "sort": 5
+  },
+  {
+    "name": "财务",
+    "key": "finance",
+    "sort": 6
+  },
+  {
+    "name": "数据报表",
+    "key": "stats",
+    "sort": 7
   }
 ]

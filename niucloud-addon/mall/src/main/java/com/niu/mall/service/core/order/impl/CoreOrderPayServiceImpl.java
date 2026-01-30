@@ -14,6 +14,7 @@ import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderGroup;
 import com.niu.mall.enums.order.*;
+import com.niu.mall.event.order.MallOrderPayEvent;
 import com.niu.mall.event.order.OrderPayAfterEvent;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderGroupMapper;
@@ -84,7 +85,10 @@ public class CoreOrderPayServiceImpl implements ICoreOrderPayService {
 
         order = mallOrderMapper.selectById(order.getOrderId());
 
-
+        if(order.getOrderType().equals("mall")){
+            orderPayEvent(order,OrderStatusEnum.WAIT_DELIVERY.getStatus().toString());
+        }
+        order = mallOrderMapper.selectById(order.getOrderId());
         MallOrder finalOrder = order;
 
         //计算佣金
@@ -135,5 +139,38 @@ public class CoreOrderPayServiceImpl implements ICoreOrderPayService {
         orderGroup.setPayTime(System.currentTimeMillis() / 1000);
         mallOrderGroupMapper.updateById(orderGroup);
 
+    }
+
+    @Override
+    @Transactional
+    public void orderPayEvent(MallOrder order, String status) {
+        // 变更订单状态
+        MallOrder orderObj = new MallOrder();
+        orderObj.setOrderId(order.getOrderId());
+        orderObj.setStatus(status);
+        mallOrderMapper.updateById(orderObj);
+
+        //订单到达发货状态
+        this.orderGoodsPay(order.getOrderId(), status);
+
+        if (OrderStatusEnum.WAIT_DELIVERY.getStatus().toString().equals(status)){
+            MallOrder orderEvent = mallOrderMapper.selectById(order.getOrderId());
+            // 订单支付之后事件
+            MallOrderPayEvent event = new MallOrderPayEvent();
+            event.setSiteId(order.getSiteId());
+            event.addAppSign("mall");
+            event.setName("MallOrderPayEvent");
+            event.setOrder(orderEvent);
+            EventAndSubscribeOfPublisher.publishAll(event);
+        }
+    }
+
+    private void orderGoodsPay(Integer orderId,String status){
+        MallOrderGoods orderGoods = new MallOrderGoods();
+        orderGoods.setIsEnableRefund(1);
+        if(OrderStatusEnum.WAIT_DELIVERY.getStatus().toString().equals( status)){
+            orderGoods.setDeliveryStatus(OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus());
+        }
+        mallOrderGoodsMapper.update(orderGoods, new QueryWrapper<MallOrderGoods>().eq("order_id", orderId));
     }
 }

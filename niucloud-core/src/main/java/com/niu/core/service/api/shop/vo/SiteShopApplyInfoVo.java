@@ -71,10 +71,10 @@ public class SiteShopApplyInfoVo implements Serializable {
     private String userMobile;
 
     /** 用户姓名 */
-    private String userName;
-
-    /** 用户账号 */
-    private String account;
+//    private String userName;
+//
+//    /** 用户账号 */
+//    private String account;
 
     /** 登录密码 */
     private String password;

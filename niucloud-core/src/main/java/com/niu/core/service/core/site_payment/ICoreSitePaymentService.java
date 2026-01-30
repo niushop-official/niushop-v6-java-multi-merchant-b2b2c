@@ -1,7 +1,9 @@
 package com.niu.core.service.core.site_payment;
 
 import cn.hutool.json.JSONArray;
+import com.niu.core.service.core.site_payment.vo.SitePaymentListVo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,6 +20,13 @@ public interface ICoreSitePaymentService {
      * 获取店铺分账账户列表
      */
     JSONArray getSiteSpearPaymentTypeListByType(Integer siteId);
+
+    /**
+     * 获取支付详情
+     * @param isSettle 是否结算
+     * @return 支付详情信息
+     */
+    List<SitePaymentListVo> getList(Integer isSettle);
 
     /**
      * 获取支付详情

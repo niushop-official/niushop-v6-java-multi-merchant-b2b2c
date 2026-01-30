@@ -297,7 +297,7 @@ const detailEvent = (from_type: any, related_id: any) => {
         }).catch(() => {
             loadShopAccountLogList()
         })
-    } else if (from_type == 'site_separate' || from_type == 'order') {
+    } else if (from_type == 'site_separate' || from_type == 'order' || from_type == 'coupon') {
         router.push(`/site/mall/order/detail?order_id=${related_id}`)
     } else if (from_type == 'supply_separate') {
         router.push(`/site/supply/order/detail?order_id=${related_id}`)

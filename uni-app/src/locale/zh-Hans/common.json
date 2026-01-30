@@ -124,5 +124,9 @@
     "mall_fenxiao.actualPayment": "实付款",
     "mall_fenxiao.orderClose": "关闭订单",
     "mall_fenxiao.orderFinish": "确认收货",
-    "notHave": "无"
+    "notHave": "无",
+    "points_mall.orderNo": "订单号",
+    "points_mall.actualPayment": "实付款",
+    "points_mall.orderClose": "关闭订单",
+    "points_mall.orderFinish": "确认收货"
 }

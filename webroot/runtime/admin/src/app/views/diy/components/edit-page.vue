@@ -198,7 +198,6 @@ const inputBoth = (value: any) => {
     diyStore.value.forEach((item, index) => {
         item.margin.both = value
     })
-
 }
 
 watch(

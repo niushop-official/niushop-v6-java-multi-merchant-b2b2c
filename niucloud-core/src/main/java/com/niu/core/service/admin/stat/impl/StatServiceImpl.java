@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.utils.CollectUtils;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
@@ -468,6 +469,141 @@ public class StatServiceImpl implements IStatService {
         return statData;
     }
 
+    @Override
+    public SysStatListVo financeAccountsDetail(SysStatSearchParam searchParam) {
+        // 处理日期参数
+        String date = "";
+        if (searchParam.getDate() != null && searchParam.getDate().length > 0) {
+            date = searchParam.getDate()[0];
+        }
+        // 获取站点ID
+        Integer siteId = RequestUtils.siteId();
+        // 默认为按天查询
+        String type = StringUtils.isNotEmpty(searchParam.getType()) ? searchParam.getType() : "day";
+        
+        // 调用核心服务获取详情（返回core层的VO）
+        com.niu.core.service.core.sys.vo.SysStatListVo coreVo = coreSysStatService.getStatDetail(siteId, date, type);
+        
+        // 转换为admin层的VO
+        SysStatListVo vo = new SysStatListVo();
+        BeanUtils.copyProperties(coreVo, vo);
+        
+        // 设置基础字段
+        vo.setSiteId(coreVo.getSiteId());
+        vo.setTime(coreVo.getTime());
+        vo.setOrderNum(coreVo.getOrderNum());
+        vo.setSaleMoney(coreVo.getSaleMoney());
+        vo.setRefundMoney(coreVo.getRefundMoney());
+        vo.setAccessSum(coreVo.getAccessNum() != null ? coreVo.getAccessNum() : 0);
+        vo.setOrderReceivableMoney(coreVo.getOrderReceivableMoney());
+        vo.setOrderActualMoney(coreVo.getOrderActualMoney());
+        vo.setMallCouponMoney(coreVo.getMallCouponMoney());
+        vo.setMallRefundCouponMoney(coreVo.getMallRefundCouponMoney());
+        vo.setOrderRefundMoney(coreVo.getOrderRefundMoney());
+        vo.setOrderActualRefundMoney(coreVo.getOrderActualRefundMoney());
+        vo.setShopSeparateMoney(coreVo.getShopSeparateMoney());
+        vo.setShopRefundSeparateMoney(coreVo.getShopRefundSeparateMoney());
+        vo.setShopCommission(coreVo.getShopCommission());
+        vo.setShopRefundCommission(coreVo.getShopRefundCommission());
+        vo.setDeliveryMoney(coreVo.getDeliveryMoney());
+        vo.setRefundDeliveryMoney(coreVo.getRefundDeliveryMoney());
+        vo.setMallServiceMoney(coreVo.getMallServiceMoney());
+        vo.setMallRefundServiceMoney(coreVo.getMallRefundServiceMoney());
+        vo.setRechargeMoney(coreVo.getRechargeMoney());
+        vo.setRechargePayMoney(coreVo.getRechargePayMoney());
+        vo.setSupplyMoney(coreVo.getSupplyMoney());
+        vo.setSupplyRefundMoney(coreVo.getSupplyRefundMoney());
+        vo.setSupplySeparateMoney(coreVo.getSupplySeparateMoney());
+        vo.setSupplyRefundSeparateMoney(coreVo.getSupplyRefundSeparateMoney());
+        vo.setType(type);
+        
+        // 计算额外字段（与financeAccountsList方法保持一致）
+        BigDecimal shopSeparateMoney = Optional.ofNullable(vo.getShopSeparateMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal shopRefundSeparateMoney = Optional.ofNullable(vo.getShopRefundSeparateMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal separateMoney = shopSeparateMoney.subtract(shopRefundSeparateMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
+        vo.setSeparateMoney(separateMoney);
+
+        // 佣金=支付佣金-退还佣金（注意：保留原始shopCommission值，commission用于计算）
+        BigDecimal shopCommission = Optional.ofNullable(vo.getShopCommission()).orElse(BigDecimal.ZERO);
+        BigDecimal shopRefundCommission = Optional.ofNullable(vo.getShopRefundCommission()).orElse(BigDecimal.ZERO);
+        BigDecimal commission = shopCommission.subtract(shopRefundCommission).setScale(2, BigDecimal.ROUND_HALF_UP);
+        // 注意：PHP版本中commission是新字段，Java版本中VO没有commission字段，所以不覆盖shopCommission
+
+        BigDecimal deliveryMoney = Optional.ofNullable(vo.getDeliveryMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal refundDeliveryMoney = Optional.ofNullable(vo.getRefundDeliveryMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal shippingFee = deliveryMoney.subtract(refundDeliveryMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
+        vo.setShippingFee(shippingFee);
+
+        BigDecimal mallServiceMoney = Optional.ofNullable(vo.getMallServiceMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal mallRefundServiceMoney = Optional.ofNullable(vo.getMallRefundServiceMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal serviceMoney = mallServiceMoney.subtract(mallRefundServiceMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
+        vo.setServiceMoney(serviceMoney);
+
+        BigDecimal orderActualMoney = Optional.ofNullable(vo.getOrderActualMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal orderReceivableMoney = Optional.ofNullable(vo.getOrderReceivableMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal orderRefundMoney = Optional.ofNullable(vo.getOrderRefundMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal incomeMoney;
+        if (siteId == 0) {
+            incomeMoney = orderActualMoney.subtract(orderRefundMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
+        } else {
+            incomeMoney = orderReceivableMoney.subtract(orderRefundMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
+        }
+        vo.setIncomeMoney(incomeMoney);
+
+        BigDecimal supplyMoney = Optional.ofNullable(vo.getSupplyMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal supplyRefundMoney = Optional.ofNullable(vo.getSupplyRefundMoney()).orElse(BigDecimal.ZERO);
+        vo.setSupplyGoodsMoney(supplyMoney.subtract(supplyRefundMoney).setScale(2, RoundingMode.HALF_UP));
+
+        BigDecimal supplySeparateMoney = Optional.ofNullable(vo.getSupplySeparateMoney()).orElse(BigDecimal.ZERO);
+        BigDecimal supplyRefundSeparateMoney = Optional.ofNullable(vo.getSupplyRefundSeparateMoney()).orElse(BigDecimal.ZERO);
+        vo.setSupplyAllSeparateMoney(supplySeparateMoney.subtract(supplyRefundSeparateMoney).setScale(2, RoundingMode.HALF_UP));
+
+        // 设置展示字段，添加负号（与PHP版本一致，在计算outlay_money之前设置）
+        if (vo.getOrderRefundMoney() != null) {
+            vo.setOrderRefundMoney(vo.getOrderRefundMoney().negate());
+        }
+        if (vo.getOrderActualRefundMoney() != null) {
+            vo.setOrderActualRefundMoney(vo.getOrderActualRefundMoney().negate());
+        }
+        if (vo.getShopRefundSeparateMoney() != null) {
+            vo.setShopRefundSeparateMoney(vo.getShopRefundSeparateMoney().negate());
+        }
+        if (vo.getShopRefundCommission() != null) {
+            vo.setShopRefundCommission(vo.getShopRefundCommission().negate());
+        }
+        if (vo.getRefundDeliveryMoney() != null) {
+            vo.setRefundDeliveryMoney(vo.getRefundDeliveryMoney().negate());
+        }
+        if (vo.getMallRefundServiceMoney() != null) {
+            vo.setMallRefundServiceMoney(vo.getMallRefundServiceMoney().negate());
+        }
+        if (vo.getSupplyRefundMoney() != null) {
+            vo.setSupplyRefundMoney(vo.getSupplyRefundMoney().negate());
+        }
+        if (vo.getSupplyRefundSeparateMoney() != null) {
+            vo.setSupplyRefundSeparateMoney(vo.getSupplyRefundSeparateMoney().negate());
+        }
+        if (vo.getMallCouponMoney() != null) {
+            vo.setMallCouponMoney(siteId == 0 ? vo.getMallCouponMoney().negate() : vo.getMallCouponMoney());
+        }
+        if (vo.getMallRefundCouponMoney() != null) {
+            vo.setMallRefundCouponMoney(siteId == 0 ? vo.getMallRefundCouponMoney() : vo.getMallRefundCouponMoney().negate());
+        }
+
+        BigDecimal outlayMoney;
+        if (siteId == 0) {
+            outlayMoney = separateMoney.add(commission).add(shippingFee).add(vo.getSupplyAllSeparateMoney()).setScale(2, BigDecimal.ROUND_HALF_UP);
+        } else {
+            outlayMoney = serviceMoney.add(commission).add(vo.getSupplyGoodsMoney()).setScale(2, BigDecimal.ROUND_HALF_UP);
+        }
+        vo.setOutlayMoney(outlayMoney);
+
+        BigDecimal balanceMoney = incomeMoney.subtract(outlayMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
+        vo.setBalanceMoney(balanceMoney);
+
+        return vo;
+    }
+
     /**
      * 聚合统计字段列表
      */
@@ -574,6 +710,78 @@ public class StatServiceImpl implements IStatService {
             return shopStatVo;
         }
 
+    }
+
+
+    @Override
+    public SysStatRechargeVo getRechargeStat(Integer siteId, String startDate, String endDate) {
+        // 构建查询条件
+        QueryWrapper<SysStat> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("site_id", siteId);
+        if(org.apache.commons.lang3.StringUtils.isNotEmpty(startDate) && org.apache.commons.lang3.StringUtils.isNotEmpty(endDate)){
+            queryWrapper.ge("date", startDate);
+            queryWrapper.le("date", endDate);
+        }else if(org.apache.commons.lang3.StringUtils.isNotEmpty(startDate)){
+            queryWrapper.eq("date", startDate);
+        }
+        if (org.apache.commons.lang3.StringUtils.isEmpty(startDate) && org.apache.commons.lang3.StringUtils.isEmpty(endDate)){
+            queryWrapper.gt("date_time", 0);
+        }
+        queryWrapper.select("IFNULL(sum(recharge_money), 0) as recharge_money","IFNULL(sum(recharge_order_money), 0) as recharge_order_money",
+                "IFNULL(sum(recharge_pay_money), 0) as recharge_pay_money","IFNULL(sum(recharge_give_money), 0) as recharge_give_money");
+
+        // 执行查询获取统计数据
+        SysStat resultList = sysStatMapper.selectOne(queryWrapper);
+        SysStatRechargeVo vo = new SysStatRechargeVo();
+        BeanUtils.copyProperties(resultList,vo);
+        return vo;
+    }
+
+    @Override
+    public PageResult<SysStatRechargeVo> getRechargeStatList(PageParam pageParam,Integer siteId, String startDate, String endDate, String type) {
+        // 分页参数
+        Integer page = pageParam.getPage();
+        Integer limit = pageParam.getLimit();
+        // 构建查询条件
+        QueryWrapper<SysStat> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("site_id", siteId);
+        if(org.apache.commons.lang3.StringUtils.isNotEmpty(startDate) && org.apache.commons.lang3.StringUtils.isNotEmpty(endDate)){
+            queryWrapper.ge("date", startDate);
+            queryWrapper.le("date", endDate);
+        }else if(org.apache.commons.lang3.StringUtils.isNotEmpty(startDate)){
+            queryWrapper.eq("date", startDate);
+        }
+        if (org.apache.commons.lang3.StringUtils.isEmpty(startDate) && org.apache.commons.lang3.StringUtils.isEmpty(endDate)){
+            queryWrapper.gt("date_time", 0);
+        }
+        queryWrapper.select("site_id,IFNULL(sum(recharge_money), 0) as recharge_money","IFNULL(sum(recharge_order_money), 0) as recharge_order_money",
+                "IFNULL(sum(recharge_pay_money), 0) as recharge_pay_money","IFNULL(sum(recharge_give_money), 0) as recharge_give_money");
+        if(type.equals("month")){
+            queryWrapper.select("month as date");
+            queryWrapper.ne("month", "");
+            queryWrapper.groupBy("month");
+            queryWrapper.orderByDesc("month");
+        }else{
+            queryWrapper.select("date");
+            queryWrapper.groupBy("date");
+            queryWrapper.orderByDesc("date");
+        }
+
+        // 执行查询获取统计数据
+        IPage<SysStat> pageList = sysStatMapper.selectPage(new Page<>(page, limit),queryWrapper);
+
+        List<SysStatRechargeVo> resultList = new LinkedList<>();
+        for (SysStat sysStat : pageList.getRecords()){
+            SysStatRechargeVo vo = new SysStatRechargeVo();
+            vo.setTime(sysStat.getDate());
+            vo.setRechargeMoney(ObjectUtil.defaultIfNull(sysStat.getRechargeMoney(), BigDecimal.ZERO));
+            vo.setRechargePayMoney(ObjectUtil.defaultIfNull(sysStat.getRechargePayMoney(), BigDecimal.ZERO));
+            vo.setRechargeOrderMoney(ObjectUtil.defaultIfNull(sysStat.getRechargeOrderMoney(), BigDecimal.ZERO));
+            vo.setRechargeGiveMoney(ObjectUtil.defaultIfNull(sysStat.getRechargeGiveMoney(), BigDecimal.ZERO));
+            resultList.add(vo);
+        }
+
+        return PageResult.build(page, limit, pageList.getTotal()).setData(resultList);
     }
 
     /**

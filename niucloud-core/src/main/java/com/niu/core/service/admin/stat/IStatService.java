@@ -1,5 +1,6 @@
 package com.niu.core.service.admin.stat;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.service.admin.stat.param.SysStatSearchParam;
@@ -26,6 +27,13 @@ public interface IStatService {
     Map<String, Object> financeAccountsTotal(SysStatSearchParam param);
 
     /**
+     * 获取账单详情
+     * @param param 包含日期和类型参数
+     * @return 账单详情数据
+     */
+    SysStatListVo financeAccountsDetail(SysStatSearchParam param);
+
+    /**
      * 首页获取最新动态
      * @return
      */
@@ -42,4 +50,16 @@ public interface IStatService {
      * @return
      */
     ShopStatVo getStat(Integer siteId,String startDate, String endDate);
+
+    /**
+     * 查询充值统计总和
+     * @return
+     */
+    SysStatRechargeVo getRechargeStat(Integer siteId, String startDate, String endDate);
+
+    /**
+     * 查询充值统计列表
+     * @return
+     */
+    PageResult<SysStatRechargeVo> getRechargeStatList(PageParam pageParam,Integer siteId, String startDate, String endDate, String type);
 }

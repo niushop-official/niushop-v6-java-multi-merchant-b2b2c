@@ -5,6 +5,7 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
 import com.niu.core.service.admin.verify.param.VerifierParam;
 import com.niu.core.service.admin.verify.param.VerifierSearchParam;
+import com.niu.core.service.admin.verify.vo.VerifierDetailVo;
 import com.niu.core.service.admin.verify.vo.VerifierListVo;
 
 import java.util.List;
@@ -36,10 +37,24 @@ public interface IVerifierService {
     void add(VerifierParam addParam);
 
     /**
+     * 核销员添加
+     * @param addParam 添加参数
+     */
+    void edit(Integer id,VerifierParam addParam);
+
+    /**
      * 核销员删除
      * @param id 主键ID
      */
     void del(Integer id);
     Result getVerifierTypeList();
+
+
+    /**
+     * 获取核销员信息
+     * @return
+     */
+    VerifierDetailVo detail(Integer id);
+
 
 }

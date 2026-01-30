@@ -32,6 +32,7 @@
   "userName": "用户名",
   "headImg": "头像",
   "accountNumber": "账号",
+  "mobile": "手机号",
   "accountSettings": "账号设置",
   "realName":"名称",
   "realNamePlaceholder": "请输入用户名称",
@@ -208,6 +209,7 @@
   "promoteUrl": "推广链接",
   "downLoadQRCode": "下载二维码",
   "configureFailed": "配置失败",
+
   "contentTitle":"内容标题",
   "contentTitlePlaceholder":"请输入内容标题",
   "contentType":"内容类型",

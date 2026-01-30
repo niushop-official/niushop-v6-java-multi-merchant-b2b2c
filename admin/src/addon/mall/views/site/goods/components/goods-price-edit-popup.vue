@@ -207,13 +207,6 @@ const verify = () => {
                 message: `${t('priceNotZeroTips')}`
             })
             break
-        } else  if (item.price === '' || item.price == 0) {
-            result = false
-            ElMessage({
-                type: 'warning',
-                message: `${t('pricePlaceholder')}`
-            })
-            break
         } else if (Number(item.price) < Number(item.cost_price) && goods.supply_id) {
             result = false
             ElMessage({

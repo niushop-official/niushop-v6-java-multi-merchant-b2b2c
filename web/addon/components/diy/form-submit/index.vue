@@ -10,7 +10,6 @@
             </div>
         </div>
         <div v-if="diyComponent.btnPosition == 'hover_screen_bottom'" class="w-[100%]" :style="submitFillHeight"></div>
-        <!-- && diyStore.mode != 'decorate' => 装修也展示组件的占位 -->
         <!-- 苹果安全距离，辅助计算 -->
         <div class="iphone-secure"></div>
     </div>
@@ -20,7 +19,7 @@
 // 表单提交组件
 import { ref, computed, watch, onMounted, nextTick, getCurrentInstance } from 'vue';
 import useDiyStore from '@/app/stores/diy';
-import { img, redirect, getValidTime, deepClone, getToken } from '@/utils/common';
+import { img, getValidTime, deepClone, getToken } from '@/utils/common';
 import { addFormRecord, editFormRecord } from '@/app/api/diy_form';
 
 const props = defineProps(['component', 'index', 'global']);
@@ -162,14 +161,14 @@ onMounted(() => {
             if (newValue) {
                 let formData = getFormSComponentsData(newValue);
                 if (formData.components.length) {
-                    uni.setStorageSync('diyFormStorage_' + diyStore.id, formData)
+                    storage.set({ key: 'diyFormStorage_' + diyStore.id, data: formData})
                 }
             }
         },
         { deep: true }
     )
     nextTick(() => {
-        tabbarInfo.value = uni.getStorageSync('tabbarInfo')
+        tabbarInfo.value = storage.get('tabbarInfo')
     })
 });
 
@@ -194,10 +193,10 @@ const submit = () => {
     if (diyStore.mode === 'decorate') return
 
     if (!getToken()) {
-        uni.showToast({
-            title: '请先登录',
-            icon: 'none'
-        }); 
+        ElMessage({
+            message: '请先登录',
+            type: 'error'
+        });
         return false;
     }
     
@@ -215,9 +214,9 @@ const submit = () => {
                     let verify = compRef.verify(); // 验证表单组件数据
                     if (verify && !verify.code) {
                         isBreak = true;
-                        uni.showToast({
-                            title: verify.message,
-                            icon: 'none'
+                        ElMessage({
+                            message: verify.message,
+                            type: 'warning'
                         });
                         break;
                     }
@@ -237,7 +236,7 @@ const submit = () => {
     if (repeat.value) return
     repeat.value = true
 
-    let diyFormStorage = uni.getStorageSync('diyFormStorage_' + diyStore.id)
+    let diyFormStorage = storage.get('diyFormStorage_' + diyStore.id)
     let value = {};
     if (diyFormStorage) {
         value = diyFormStorage.components
@@ -253,15 +252,15 @@ const submit = () => {
     }
     
     let api = addFormRecord;
-    if(uni.getStorageSync('personalFormRecordId')){
+    if(storage.get('personalFormRecordId')){
         api = editFormRecord;
-        data.record_id = uni.getStorageSync('personalFormRecordId');
+        data.record_id = storage.get('personalFormRecordId');
     }else{
         data.record_id = '';
     }
     api(data).then((res: any) => {
-        uni.removeStorageSync('diyFormStorage_' + diyStore.id)
-        uni.removeStorageSync('personalFormRecordId')
+        storage.remove('diyFormStorage_' + diyStore.id)
+        storage.remove('personalFormRecordId')
         if (currPage.route == 'app/pages/member/personal_form') {
             // 个人资料
             redirect({

@@ -250,7 +250,7 @@ import { useRouter } from 'vue-router'
 import { timeStampTurnTime } from '@/utils/common'
 
 const router = useRouter()
-const terminalId = ref(Date.now()); 
+const terminalId = ref(Date.now());
 const showDialog = ref<boolean>(false)
 const upgradeContent = ref<null | AnyObject>(null)
 const isAllowUpgrade = ref(true) // 是否允许升级
@@ -271,7 +271,7 @@ const upgradeOption = ref({
     is_need_backup: true,
     is_need_cloudbuild: true
 })
-const isShowRestartTips = ref(false) 
+const isShowRestartTips = ref(false)
 
 // 升级步骤排除，backupCode 备份代码，backupSql 备份数据库
 const excludeSteps: any = ref([
@@ -297,10 +297,10 @@ const errorMsg = ref('')
 const getUpgradeTaskFn = () => {
     getUpgradeTask().then(({ data }) => {
         if (!data) return
-        
+
         if (!upgradeContent.value) {
             upgradeContent.value = data.upgrade_content
-        
+
             if (!data.upgrade_content || !Array.isArray(data.upgrade_content.content)) {
                 return
             }

@@ -1,6 +1,7 @@
 package com.niu.core.controller.siteapi.shop;
 
 import com.niu.core.common.domain.Result;
+import com.niu.core.service.site.shop.ISiteShopAccountLogService;
 import com.niu.core.service.site.shop.ISiteShopInfoService;
 import com.niu.core.service.site.shop.param.SiteShopBusinessStatusParam;
 import com.niu.core.service.site.shop.vo.SiteShopInfoVo;
@@ -18,6 +19,8 @@ public class SiteShopInfoController {
 
     @Resource
     ISiteShopInfoService siteShopInfoService;
+    @Resource
+    ISiteShopAccountLogService siteShopAccountLogService;
 
     /**
      * 店铺信息
@@ -40,6 +43,16 @@ public class SiteShopInfoController {
     public Result<Object> edit(@Validated @RequestBody SiteShopBusinessStatusParam editParam) {
         siteShopInfoService.editBusinessStatus(editParam.getBusinessStatus());
         return Result.success();
+    }
+
+    /**
+     * 店铺扩展表编辑
+     *
+     * @return Result<Object>
+     */
+    @GetMapping("/income_of_range/{range}")
+    public Result edit(@PathVariable("range") String range) {
+        return Result.success(siteShopAccountLogService.getIncomeByDateRange(range));
     }
 
 

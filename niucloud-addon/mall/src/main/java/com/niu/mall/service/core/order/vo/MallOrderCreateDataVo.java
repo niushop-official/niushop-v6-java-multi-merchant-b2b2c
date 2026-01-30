@@ -29,6 +29,8 @@ public class MallOrderCreateDataVo implements Serializable {
 
     protected Buyer buyer;
 
+    protected Config config = new Config();
+
     protected Integer buyerId;
 
     protected Integer groupId;
@@ -38,6 +40,8 @@ public class MallOrderCreateDataVo implements Serializable {
     private Integer mainId;
 
     private Boolean isSupply;
+
+    protected Integer isPlatCoupon = 1;
 
     protected OrderHelperParam.Delivery delivery = new OrderHelperParam.Delivery();
 
@@ -102,5 +106,32 @@ public class MallOrderCreateDataVo implements Serializable {
         private String content;
 
         private String title;
+    }
+
+    @Data
+    public static class Config {
+        protected Delivery delivery = new Delivery();
+        protected CloseOrder order = new CloseOrder();
+    }
+
+    @Data
+    public static class Delivery {
+        protected Integer isExpress;
+
+        protected Integer isLocalDelivery;
+
+        protected Integer isLocalDeliveryStoreSelect;
+
+        protected Integer isShow;
+
+        protected Integer isShowPolyline;
+
+        protected Integer isStore;
+    }
+
+    @Data
+    public static class CloseOrder{
+        protected Integer isClose;
+        protected Integer closeLength;
     }
 }

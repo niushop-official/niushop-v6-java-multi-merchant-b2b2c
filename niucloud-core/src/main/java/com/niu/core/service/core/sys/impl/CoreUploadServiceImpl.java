@@ -1,6 +1,7 @@
 package com.niu.core.service.core.sys.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.crypto.SecureUtil;
 import cn.hutool.json.JSONObject;
 import com.niu.core.common.component.upload.model.*;
 import com.niu.core.common.exception.CommonException;
@@ -8,6 +9,8 @@ import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.upload.IUploadProvider;
 import com.niu.core.common.component.upload.factory.UploadProviderFactory;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
+import com.niu.core.common.utils.date.DateFormatUtils;
 import com.niu.core.entity.sys.SysAttachment;
 import com.niu.core.enums.sys.StorageEnum;
 import com.niu.core.enums.upload.UploadRolesEnum;
@@ -50,15 +53,37 @@ public class CoreUploadServiceImpl implements ICoreUploadService {
         this.generateNewName(attachmentUploadParam);
 
         JSONObject configObject = null;
+        String storageType = null;
+        
         // 获取站点的上传配置
         if (ObjectUtil.isNotEmpty(attachmentUploadParam.getStorageType())) {
-            configObject = coreStorageService.getStorageByType(attachmentUploadParam.getStorageType());
+            storageType = attachmentUploadParam.getStorageType();
+            configObject = coreStorageService.getStorageByType(storageType);
         } else {
             configObject = coreStorageService.getDefaultStorage();
+            // 如果默认存储配置为空，抛出异常（与PHP逻辑一致）
+            if (configObject == null || configObject.isEmpty()) {
+                throw new CommonException("上传服务未配置，请先配置存储方式");
+            }
+            storageType = configObject.getStr("storage_type");
+        }
+
+        if (configObject == null) {
+            configObject = new JSONObject();
+        }
+        
+        configObject.set("storage_type", storageType);
+        
+        // 获取配置参数
+        JSONObject configParams = configObject.getJSONObject("config_params");
+        if (configParams == null) {
+            configParams = new JSONObject();
         }
 
         // 根据配置初始化
-        IUploadProvider uploadProvider = UploadProviderFactory.createAndInit(configObject.getStr("storage_type", StorageEnum.LOCAL.getCode()), configObject.getJSONObject("config_params"));
+        IUploadProvider uploadProvider = UploadProviderFactory.createAndInit(storageType, configParams);
+        Assert.notNull(uploadProvider, "上传服务未配置，请先配置存储方式");
+        
         // 构建上传参数
         UploadModel uploadModel = new UploadModel();
         uploadModel.setUploadFile(attachmentUploadParam.getFile());
@@ -67,6 +92,77 @@ public class CoreUploadServiceImpl implements ICoreUploadService {
         uploadModel.setUploadFileName(attachmentUploadParam.getNewFilename());
         // 上传操作
         UploadModelResult uploadModelResult = uploadProvider.upload(uploadModel);
+        // Service返回结果
+        AttachmentUploadVo attachmentUploadVo = new AttachmentUploadVo();
+        // 是否上传到相册
+        if (attachmentUploadParam.getIsAttachment().equals(1)) {
+            SysAttachment newSysAttachment = this.buildSysAttachment(attachmentUploadParam, uploadModelResult);
+            newSysAttachment.setUrl(uploadProvider.getAccessUrl(uploadModelResult.getAccessUrl()));
+            sysAttachmentMapper.insert(newSysAttachment);
+            attachmentUploadVo.setUrl(uploadProvider.getAccessUrl(uploadModelResult.getAccessUrl()));
+            attachmentUploadVo.setAttId(newSysAttachment.getAttId());
+        } else {
+            attachmentUploadVo.setUrl(uploadProvider.getAccessUrl(uploadModelResult.getAccessUrl()));
+        }
+        return attachmentUploadVo;
+    }
+
+    @Override
+    public AttachmentUploadVo uploadBase64(AttachmentUploadParam attachmentUploadParam) {
+        // 上传相对目录
+        attachmentUploadParam.setDir(this.rootPath + "/" + attachmentUploadParam.getDir());
+
+        String fileName = SecureUtil.md5(attachmentUploadParam.getContent()) + ".jpg";
+        attachmentUploadParam.setNewFilename(fileName);
+        JSONObject configObject = null;
+        String storageType = null;
+
+        // 获取站点的上传配置
+        if (ObjectUtil.isNotEmpty(attachmentUploadParam.getStorageType())) {
+            storageType = attachmentUploadParam.getStorageType();
+            configObject = coreStorageService.getStorageByType(storageType);
+        } else {
+            configObject = coreStorageService.getDefaultStorage();
+            // 如果默认存储配置为空，抛出异常（与PHP逻辑一致）
+            if (configObject == null || configObject.isEmpty()) {
+                throw new CommonException("上传服务未配置，请先配置存储方式");
+            }
+            storageType = configObject.getStr("storage_type");
+        }
+
+        if (configObject == null) {
+            configObject = new JSONObject();
+        }
+
+        configObject.set("storage_type", storageType);
+
+        // 获取配置参数
+        JSONObject configParams = configObject.getJSONObject("config_params");
+        if (configParams == null) {
+            configParams = new JSONObject();
+        }
+
+        // 根据配置初始化
+        IUploadProvider uploadProvider = UploadProviderFactory.createAndInit(storageType, configParams);
+        Assert.notNull(uploadProvider, "上传服务未配置，请先配置存储方式");
+
+        // 构建上传参数
+        Base64Model uploadModel = new Base64Model();
+        uploadModel.setContent(attachmentUploadParam.getContent());
+        uploadModel.setUploadFilePath(attachmentUploadParam.getDir());
+        uploadModel.setUploadFileName(fileName);
+        // 上传操作
+        String path = uploadProvider.base64(uploadModel);
+        String url = uploadProvider.getAccessUrl(path);
+
+        //base64图片大小
+        long attSize = getBase64ImageSize(attachmentUploadParam.getContent());
+        UploadModelResult uploadModelResult = new UploadModelResult();
+        uploadModelResult.setAccessUrl(url);
+        uploadModelResult.setSize(attSize);
+        uploadModelResult.setOriginalFilename("base64_image_" + System.currentTimeMillis());
+        uploadModelResult.setUploadMethod(storageType);
+
         // Service返回结果
         AttachmentUploadVo attachmentUploadVo = new AttachmentUploadVo();
         // 是否上传到相册
@@ -159,6 +255,20 @@ public class CoreUploadServiceImpl implements ICoreUploadService {
         if (deleteModelResult.isResult()) {
             // 删除成功 -> 忽略
         }
+    }
+
+    /**
+     * 计算base64图片大小
+     */
+    private long getBase64ImageSize(String base64String) {
+        if (base64String.contains("base64,")) {
+            base64String = base64String.substring(base64String.indexOf("base64,") + 7);
+        }
+        long size = (long) (base64String.length() * 3.0 / 4);
+        int paddingCount = (int) base64String.chars().filter(ch -> ch == '=').count();
+        size -= paddingCount;
+
+        return size;
     }
 
     /**

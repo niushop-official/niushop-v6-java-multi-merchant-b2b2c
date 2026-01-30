@@ -304,7 +304,7 @@ public class SysUserServiceImpl implements ISysUserService {
     @Override
     public Integer add(SysUserParam addParam) {
         if(checkUserName(addParam.getUsername())){
-            throw new AdminException("USERNAME_REPEAT");
+            throw new AdminException("用户名重复");
         }
         //查询手机号是否唯一
         if(StringUtils.isNotEmpty(addParam.getMobile()) && checkUserMobile(addParam.getMobile(), null)){
@@ -410,7 +410,18 @@ public class SysUserServiceImpl implements ISysUserService {
     @Override
     public SysUserInfoVo getUserInfoByUserName(String userName) {
         SysUser model=sysUserMapper.selectOne(new QueryWrapper<SysUser>()
-                .and(it->  it.eq("username", userName).or().eq("mobile", userName))
+                .eq("username", userName)
+                .last("limit 1"));
+        Assert.notNull(model, "账号或密码错误");
+        SysUserInfoVo vo = new SysUserInfoVo();
+        BeanUtils.copyProperties(model, vo);
+        return vo;
+    }
+
+    @Override
+    public SysUserInfoVo getUserInfoByMobileInfo(String mobile) {
+        SysUser model=sysUserMapper.selectOne(new QueryWrapper<SysUser>()
+                .eq("mobile", mobile)
                 .last("limit 1"));
         Assert.notNull(model, "账号或密码错误");
         SysUserInfoVo vo = new SysUserInfoVo();

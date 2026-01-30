@@ -50,6 +50,7 @@ public class CoreGoodsEvaluateServiceImpl implements ICoreGoodsEvaluateService {
         if (mallGoodsEvaluate.getOrderId() > 0) {
             MallOrder mallOrder = new MallOrder();
             mallOrder.setIsEvaluate(1);
+            mallOrder.setEvaluateTimer(0L);
             mallOrderMapper.update(mallOrder, new QueryWrapper<MallOrder>().eq("order_id", mallGoodsEvaluate.getOrderId()));
         }
 

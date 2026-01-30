@@ -3,7 +3,7 @@
         <el-form :model="formData" label-width="90px" ref="formRef" :rules="formRules" class="page-form" v-loading="loading">
 
             <el-form-item :label="t('accountNumber')" v-if="!formData.uid" prop="uid">
-                <el-select :model-value="uid" :placeholder="t('accountNumberPlaceholder')" class="input-width" filterable clearable :allow-create="true" @change="selectUser" :default-first-option="true">
+                <el-select v-model.trim="uid" :placeholder="t('accountNumberPlaceholder')" class="input-width" filterable clearable :allow-create="true" @change="selectUser" :default-first-option="true">
                     <el-option v-for="item in userList" :key="item.uid" :label="item.username" :value="item.uid">
                         <div class="flex items-center">
                             <el-avatar :src="img(item.head_img)" size="small" class="mr-[10px]" v-if="item.head_img" />
@@ -15,7 +15,7 @@
             </el-form-item>
 
             <el-form-item :label="t('accountNumber')" prop="username" v-else>
-                <el-input v-model="formData.username" :placeholder="t('accountNumberPlaceholder')" clearable :disabled="formData.uid" class="input-width" maxlength="10" show-word-limit />
+                <el-input v-model.trim="formData.username" :placeholder="t('accountNumberPlaceholder')" clearable :disabled="formData.uid" class="input-width" maxlength="10" show-word-limit />
             </el-form-item>
 
             <div v-if="needAddUserInfo">
@@ -24,27 +24,27 @@
                 </el-form-item>
 
                 <el-form-item :label="t('userRealName')" prop="real_name">
-                    <el-input v-model="formData.real_name" :placeholder="t('userRealNamePlaceholder')" :readonly="real_name_input" @click="real_name_input = false" @blur="real_name_input = true" clearable class="input-width" maxlength="10" show-word-limit />
+                    <el-input v-model.trim="formData.real_name" :placeholder="t('userRealNamePlaceholder')" :readonly="real_name_input" @click="real_name_input = false" @blur="real_name_input = true" clearable class="input-width" maxlength="10" show-word-limit />
                 </el-form-item>
                 <div v-if="!formData.uid">
                     <el-form-item :label="t('password')" prop="password">
-                        <el-input v-model="formData.password" :placeholder="t('passwordPlaceholder')" :readonly="password_input" @click="password_input = false" @blur="password_input = true" type="password" :show-password="true" clearable class="input-width" />
+                        <el-input v-model.trim="formData.password" :placeholder="t('passwordPlaceholder')" :readonly="password_input" @click="password_input = false" @blur="password_input = true" type="password" :show-password="true" clearable class="input-width" />
                     </el-form-item>
 
                     <el-form-item :label="t('confirmPassword')" prop="confirm_password">
-                        <el-input v-model="formData.confirm_password" :placeholder="t('confirmPasswordPlaceholder')" :readonly="confirm_password_input" @click="confirm_password_input = false" @blur="confirm_password_input = true" type="password" :show-password="true" clearable class="input-width" />
+                        <el-input v-model.trim="formData.confirm_password" :placeholder="t('confirmPasswordPlaceholder')" :readonly="confirm_password_input" @click="confirm_password_input = false" @blur="confirm_password_input = true" type="password" :show-password="true" clearable class="input-width" />
                     </el-form-item>
                 </div>
             </div>
 
             <el-form-item :label="t('userRoleName')" prop="role_ids" v-if="!formData.userrole.is_admin">
-                <el-select v-model="formData.role_ids" :placeholder="t('userRolePlaceholder')" class="input-width" multiple collapse-tags collapse-tags-tooltip>
+                <el-select v-model.trim="formData.role_ids" :placeholder="t('userRolePlaceholder')" class="input-width" multiple collapse-tags collapse-tags-tooltip>
                     <el-option :label="item.role_name" :value="item.role_id" v-for="(item, index) in roles" :key="index" :disabled="item.disabled"/>
                 </el-select>
             </el-form-item>
 
             <el-form-item :label="t('userMobile')" prop="mobile">
-                <el-input v-model="formData.mobile" :placeholder="t('userMobilePlaceholder')" clearable class="input-width" maxlength="11" show-word-limit />
+                <el-input v-model.trim="formData.mobile" :placeholder="t('userMobilePlaceholder')" clearable class="input-width" maxlength="11" show-word-limit />
             </el-form-item>
 
             <el-form-item :label="t('status')">

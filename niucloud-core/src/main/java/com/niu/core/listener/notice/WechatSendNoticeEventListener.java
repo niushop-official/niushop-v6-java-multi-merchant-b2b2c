@@ -59,7 +59,7 @@ public class WechatSendNoticeEventListener extends SendNoticeEventDefiner {
             model.setParams(JSONUtil.parseObj(noticeData.getVars()).toString());
 
             if (noticeData.getOpenid().isEmpty() && noticeData.getMemberId() > 0) {
-                Member member = memberMapper.selectOne(new QueryWrapper<Member>().select("wx_openid,nickname").eq("site_id", event.getSiteId()).eq("member_id", noticeData.getMemberId()));
+                Member member = memberMapper.selectOne(new QueryWrapper<Member>().select("wx_openid,nickname").eq("member_id", noticeData.getMemberId()));
                 if (member != null && !member.getWxOpenid().isEmpty()) {
                     noticeData.setOpenid(member.getWxOpenid());
                     model.setNickname(member.getNickname());

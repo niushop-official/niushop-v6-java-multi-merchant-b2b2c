@@ -52,6 +52,7 @@ public class OrderCreateServiceImpl implements IOrderCreateService {
         param.setOrderFrom(RequestUtils.channel());
         param.setMainType(OrderLogEnum.MEMBER.getName());
         param.setMainId(RequestUtils.memberId().longValue());
+        param.setWeappVersion(RequestUtils.weappVersion());
         return coreOrderCreateService.create(param);
     }
 

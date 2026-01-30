@@ -1,9 +1,9 @@
 <template>
     <view class="min-h-[100vh] bg-[var(--page-bg-color)]  overflow-hidden" :style="themeColor()">
-        <view class="fixed left-0 right-0 top-0 product-warp bg-[#fff] py-[14rpx] px-[20rpx]">
+        <view class="fixed left-0 right-0 top-0 product-warp bg-[#fff] py-[14rpx] px-[20rpx] z-10">
             <view class="search-input">
                 <input class="input" maxlength="50" type="text" v-model="keyword"  placeholder="请搜索会员编号/昵称/手机号" placeholderClass="text-[var(--text-color-light9)] text-[24rpx]" confirm-type="search" @confirm="searchTypeFn">
-                <text v-if="keyword" class="nc-iconfont nc-icon-cuohaoV6xx1 clear" @click="keyword=''"></text>
+                <text v-if="keyword" class="nc-iconfont nc-icon-cuohaoV6xx1 clear mr-[10rpx]" @click="keyword=''"></text>
                 <text @click.stop="searchTypeFn" class="nc-iconfont nc-icon-sousuo-duanV6xx1 btn !mr-0"></text>
             </view>
         </view>

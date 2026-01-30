@@ -131,5 +131,9 @@ public interface ISysConfigService {
      */
     void setWeappListSetting(SysWeappListSettingParam param);
 
+    /**
+     * 获取服务器域名
+     */
+    String getServerDomain();
 
 }

@@ -198,7 +198,7 @@ public class MallOrderInfoVo implements Serializable {
         private Boolean formRecordShow;
         @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal applyMoney; //商家主动退款金额
-
+        private BigDecimal refundMoney;
         private ICoreUploadService coreUploadService() {
             return SpringContext.bean(ICoreUploadService.class);
         }
@@ -296,7 +296,7 @@ public class MallOrderInfoVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType);
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType,this.orderType);
     }
 
     public Boolean getFormRecordShow() {

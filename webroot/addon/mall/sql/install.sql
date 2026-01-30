@@ -438,6 +438,14 @@ CREATE TABLE `{{prefix}}mall_order`  (
                                `form_record_id` int NOT NULL DEFAULT 0 COMMENT '万能表单记录id',
                                `supply_delivery_money` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '供货商运费',
                                `buyer_ask_delivery_time` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '购买人要求的配送/发货/自提时间（文本）',
+                               `extend_field_1` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '扩展字段1',
+                               `extend_field_2` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '扩展字段2',
+                               `extend_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '扩展数据',
+                               `settlement_timer` int NOT NULL DEFAULT 0 COMMENT '预计结算时间',
+                               `perk_status` int NOT NULL DEFAULT 1 COMMENT '补贴状态',
+                               `perk_time` int NOT NULL DEFAULT 0 COMMENT '补贴时间',
+                               `evaluate_timer` int NOT NULL DEFAULT 0 COMMENT '自动好评时间，评价后重置为0',
+                               `weapp_version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '小程序类型，developer为开发版；trial为体验版；formal为正式版；默认为正式版',
                                PRIMARY KEY (`order_id`) USING BTREE
 ) ENGINE = InnoDB  CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '订单表' ROW_FORMAT = Dynamic;
 
@@ -629,6 +637,7 @@ CREATE TABLE `{{prefix}}mall_order_refund`  (
                                       `refund_commission` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '退还佣金',
                                       `supply_id` int NOT NULL DEFAULT 0 COMMENT '供应商id',
                                       `supply_refund_id` int NOT NULL DEFAULT 0 COMMENT '供应商退款id',
+                                      `weapp_version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '小程序类型，developer为开发版；trial为体验版；formal为正式版；默认为正式版',
                                       PRIMARY KEY (`refund_id`) USING BTREE
 ) ENGINE = InnoDB  CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '订单退款表' ROW_FORMAT = Dynamic;
 

@@ -5,10 +5,8 @@ import com.niu.core.common.domain.Result;
 import com.niu.core.service.admin.weapp.IWeappTemplateService;
 import com.niu.core.service.admin.weapp.param.WeappTemplateSyncParam;
 import com.niu.core.service.core.notice.vo.AddonNoticeListVo;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
 import java.util.List;
@@ -39,7 +37,7 @@ public class TemplateController {
      * @return Result
      */
     @PutMapping("/sync")
-    public Result editKeyword(WeappTemplateSyncParam param) {
+    public Result editKeyword(@Validated @RequestBody WeappTemplateSyncParam param) {
         weappTemplateService.sync(param);
         return Result.success();
     }

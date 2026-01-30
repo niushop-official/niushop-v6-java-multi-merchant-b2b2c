@@ -1,1 +1,0 @@
-import{B as e}from"./index-96ac6a23.js";function r(r){return e.get("verify/verify/record",r)}function t(r){return e.get(`verify/verify/${r}`)}function i(r){return e.get(`verify/detail/${r}`)}function n(r){return e.post(`verify/verify/${r}`,{},{showSuccessMessage:!0})}export{t as a,r as b,i as g,n as v};

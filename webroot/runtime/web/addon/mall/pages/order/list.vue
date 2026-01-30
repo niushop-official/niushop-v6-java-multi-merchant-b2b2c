@@ -12,6 +12,7 @@
                         <div class="rounded-[12px] overflow-hidden mb-[20px] border-[1px] border-solid border-[#eee]" v-for="(item,index) in tableData.data" :key="index">
                             <div class="h-[54px]  text-[14px] px-[20px] bg-[#fafafa] flex items-center justify-between">
                                 <div class="flex items-center">
+                                    <div class="text-[14px] text-primary mr-[10px]" v-if="item.order_type_name">【{{ item.order_type_name }}】</div>
                                     <div class="bg-[#bbb] text-[#fff] mr-[20px] rounded-[2px] text-[12px] leading-[1] py-[2px] px-[4px]" :class="{'!bg-primary': item.status == 1 || item.status == 2}">{{ item.status_name.name }}</div>
                                     <div class="text-[#999] mr-[20px] oppoSans-R">{{item.create_time}}</div>
                                     <div class="text-[#999] mr-[50px] oppoSans-R">
@@ -220,12 +221,12 @@ let groupPayRef = ref(null)
 const payFn = (item:any) => {
 	getMallOrderPay(item.order_id).then(res =>{
 		if(res.data.is_allow_pay){
-            router.push({ path: '/pay/pay', query: {trade_type: item.order_type,trade_id: res.data.group_id } })
+            router.push({ path: '/pay/pay', query: {trade_type: 'mall',trade_id: res.data.group_id } })
 		}else{
             if(res.data.order_list.length){
 			    groupPayRef.value.open(res.data,item)
             }else{
-                router.push({ path: '/pay/pay', query: {trade_type: item.order_type,trade_id: res.data.group_id } })
+                router.push({ path: '/pay/pay', query: {trade_type: 'mall',trade_id: res.data.group_id } })
             }
 		}
 	})

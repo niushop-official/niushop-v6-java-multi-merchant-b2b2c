@@ -2,12 +2,11 @@ package com.niu.mall.service.api.order.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.niu.core.common.Constants;
+import com.github.yulichang.query.MPJQueryWrapper;
+import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.CommonException;
@@ -19,6 +18,10 @@ import com.niu.core.entity.pay.Pay;
 import com.niu.core.entity.shop.SiteShopCashOut;
 import com.niu.core.entity.delivery.DeliveryCompany;
 import com.niu.core.enums.common.ChannelEnum;
+import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
+import com.niu.core.enums.delivery.DeliveryTypeEnum;
+import com.niu.core.enums.local_delivery.LocalDeliveryStatusEnum;
+import com.niu.core.enums.pay.TransferTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderLogMapper;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderMapper;
 import com.niu.core.mapper.delivery.DeliveryStoreMapper;
@@ -27,22 +30,19 @@ import com.niu.core.mapper.shop.SiteShopCashOutMapper;
 import com.niu.core.mapper.site.DeliveryCompanyMapper;
 import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
-import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
-import com.niu.core.service.core.weapp.ICoreWeappDeliveryService;
-import com.niu.core.service.core.weapp.impl.CoreWeappDeliveryServiceImpl;
-import com.niu.core.service.core.weapp.vo.IsTradeManagedVo;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
+import com.niu.core.service.core.delivery_weapp.ICoreDeliveryWeappService;
+import com.niu.core.service.core.delivery_weapp.vo.IsTradeManagedVo;
+import com.niu.core.service.core.pay.ICorePayService;
 import com.niu.mall.entity.order.*;
 import com.niu.mall.enums.order.*;
+import com.niu.mall.event.pintuan.CheckInvoiceStatusEventDefiner;
 import com.niu.mall.mapper.order.*;
 import com.niu.mall.service.api.order.IOrderService;
 import com.niu.mall.service.api.order.param.DeliveryPackageSearchParam;
 import com.niu.mall.service.api.order.param.MallOrderSearchParam;
-import com.niu.mall.service.api.order.vo.DeliveryPackageVo;
-import com.niu.mall.service.api.order.vo.MallOrderInfoVo;
-import com.niu.mall.service.api.order.vo.MallOrderListVo;
-import com.niu.mall.service.api.order.vo.OrderNumVo;
+import com.niu.mall.service.api.order.vo.*;
 import com.niu.mall.service.core.order.*;
-import com.niu.mall.service.core.order.impl.CoreOrderGroupServiceImpl;
 import com.niu.mall.service.core.order.param.DeliverySearchParam;
 import com.niu.mall.service.core.order.param.OrderCloseParam;
 import com.niu.mall.service.core.order.param.OrderFinishParam;
@@ -50,10 +50,10 @@ import com.niu.mall.service.core.order.vo.MallOrderGroupCloseVo;
 import com.niu.mall.service.core.order.vo.OrderConfigVo;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -118,7 +118,9 @@ public class OrderServiceImpl implements IOrderService {
     @Resource
     private ICoreOrderGroupService coreOrderGroupService;
     @Resource
-    private ICoreWeappDeliveryService coreWeappDeliveryService;
+    private ICoreDeliveryWeappService coreDeliveryWeappService;
+    @Resource
+    private ICorePayService corePayService;
 
     /**
      * 订单列表
@@ -127,27 +129,49 @@ public class OrderServiceImpl implements IOrderService {
      * @return PageResult<ShopOrderListVo>
      */
     @Override
-    public PageResult<MallOrderListVo> page(PageParam pageParam, MallOrderSearchParam searchParam) {
+    public MallOrderListPageVo page(PageParam pageParam, MallOrderSearchParam searchParam) {
         Integer page  = pageParam.getPage();
         Integer limit =pageParam.getLimit();
 
         QueryWrapper<MallOrder> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("site_id,order_id,order_no,order_type,order_from,out_trade_no,status,member_id,ip,goods_money,delivery_money,order_money,create_time,pay_time,delivery_type,taker_name,taker_mobile,taker_full_address,take_store_id,is_enable_refund,member_remark,shop_remark,close_remark,is_evaluate");
+        queryWrapper.select("site_id,order_id,order_no,order_type,order_from,out_trade_no,status,member_id,ip,goods_money,delivery_money,order_money,invoice_id,create_time,pay_time,delivery_type,taker_name,taker_mobile,taker_full_address,take_store_id,is_enable_refund,member_remark,mall_remark,close_remark,is_evaluate, group_id,extend_field_1,extend_field_2");
         queryWrapper.eq("member_id", RequestUtils.memberId());
         if (ObjectUtil.isNotEmpty(searchParam.getOrderNo())) queryWrapper.like("order_no", searchParam.getOrderNo());
         if (ObjectUtil.isNotEmpty(searchParam.getStatus())) queryWrapper.eq("status", searchParam.getStatus());
         if (ObjectUtil.isNotEmpty(searchParam.getActivityType())) queryWrapper.eq("activity_type", searchParam.getActivityType());
+        if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) {
+            queryWrapper.and(wrapper -> {
+                wrapper.like("order_no", searchParam.getKeyword())
+                        .or()
+                        .like("body", searchParam.getKeyword());
+            });
+        }
         queryWrapper.orderByDesc("create_time");
 
         OrderConfigVo orderConfig = coreOrderConfigService.getConfig();
 
         IPage<MallOrder> iPage = mallOrderMapper.selectPage(new Page<>(page, limit), queryWrapper);
+        List<Integer> orderIds = iPage.getRecords().stream().map(MallOrder::getOrderId).toList();
+        List<Integer> groupIds = iPage.getRecords().stream().map(MallOrder::getGroupId).toList();
+        List<MallOrderGoods> orderGoodsAll = new ArrayList<>();
+        if(!orderIds.isEmpty()){
+            orderGoodsAll = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().in("order_id", orderIds));
+        }
+        List<MallOrderGroup> orderGroups = new ArrayList<>();
+        if(!groupIds.isEmpty()){
+            orderGroups = mallOrderGroupMapper.selectByIds(groupIds);
+        }
+        List<MallOrder> orderGroupsList = new ArrayList<>();
+        if(!orderGroups.isEmpty()){
+            orderGroupsList = mallOrderMapper.selectList(new QueryWrapper<MallOrder>().in("group_id", orderGroups.stream().map(MallOrderGroup::getGroupId).toList()));
+        }
+
         List<MallOrderListVo> list = new LinkedList<>();
         for (MallOrder item : iPage.getRecords()) {
             MallOrderListVo vo = new MallOrderListVo();
             BeanUtils.copyProperties(item, vo);
 
-            List<MallOrderListVo.OrderGoods> orderGoods = CollectUtils.convert(mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().eq("order_id", item.getOrderId())), MallOrderListVo.OrderGoods.class);
+            List<MallOrderListVo.OrderGoods> orderGoods = CollectUtils.convert(orderGoodsAll.stream().filter(it->it.getOrderId().equals(item.getOrderId())).toList(), MallOrderListVo.OrderGoods.class);
             vo.setOrderGoods(orderGoods);
 
             vo.setExpireTime(vo.getCreateTime() + orderConfig.getCloseOrderInfo().getCloseLength() * 60);
@@ -161,14 +185,29 @@ public class OrderServiceImpl implements IOrderService {
                 }
 
             }
+            //查询订单组
+            List<MallOrderGroup>  mallOrderGroupThis = orderGroups.stream().filter(it->it.getGroupId().equals(item.getGroupId())).toList();
+            MallOrderListVo.OrderGroup orderGroup = new MallOrderListVo.OrderGroup();
+            if(!mallOrderGroupThis.isEmpty()){
+                BeanUtils.copyProperties(mallOrderGroupThis.get(0), orderGroup);
+            }
+            //查询订单
+            List<MallGroupOrderInfoVo> mallOrder = CollectUtils.convert(orderGroupsList.stream().filter(it->it.getGroupId().equals(item.getGroupId())).toList(), MallGroupOrderInfoVo.class);
+            orderGroup.setMallOrder(mallOrder);
+            vo.setOrderGroup(orderGroup);
             SiteInfoVo siteInfoVo = siteService.info(vo.getSiteId());
             MallOrderListVo.Site site = new MallOrderListVo.Site();
             site.setSiteID(siteInfoVo.getSiteId());
             site.setSiteName(siteInfoVo.getSiteName());
             vo.setSite(site);
+            //校验发票
+            vo.setCanInvoice(checkIfCanInvoice(item.getInvoiceId(), item.getOrderType(), item.getStatus()));
             list.add(vo);
         }
-        return PageResult.build(page, limit, iPage.getTotal()).setData(list);
+
+        //查询小程序是否已开通发货信息管理服务
+        IsTradeManagedVo verifyRankIds = coreDeliveryWeappService.getIsTradeManaged();
+        return new MallOrderListPageVo(PageResult.build(page, limit, iPage.getTotal()).setData(list), verifyRankIds.getMchId(), verifyRankIds.getIsTradeManaged());
     }
 
     /**
@@ -183,7 +222,7 @@ public class OrderServiceImpl implements IOrderService {
                 new QueryWrapper<MallOrder>()
                     .eq("order_id", orderId)
                     .eq("member_id", RequestUtils.memberId())
-                    .select("order_id,group_id,site_id,order_no,order_type,order_from,out_trade_no,status,member_id,ip,goods_money,delivery_money,order_money,invoice_id,create_time,pay_time,delivery_time,take_time,finish_time,close_time,delivery_type,taker_name,taker_mobile,taker_province,taker_city,taker_district,taker_address,taker_full_address,taker_longitude,taker_latitude,take_store_id,is_enable_refund,member_remark,shop_remark,close_remark,discount_money,is_evaluate,mall_discount_money,form_record_id,buyer_ask_delivery_time"));
+                    .select("order_id,group_id,site_id,order_no,order_type,order_from,out_trade_no,status,member_id,ip,goods_money,delivery_money,order_money,invoice_id,create_time,pay_time,delivery_time,take_time,finish_time,close_time,delivery_type,taker_name,taker_mobile,taker_province,taker_city,taker_district,taker_address,taker_full_address,taker_longitude,taker_latitude,take_store_id,is_enable_refund,member_remark,shop_remark,close_remark,discount_money,is_evaluate,mall_discount_money,form_record_id,buyer_ask_delivery_time,extend_field_1,extend_field_2"));
 
         Assert.notNull(model, "订单不存在");
 
@@ -217,15 +256,29 @@ public class OrderServiceImpl implements IOrderService {
                 vo.setPay(payVo);
             }
         }
-
+        vo.setShowLocalDeliveryInfo(false);
         // 查询订单包裹信息
         if (vo.getDeliveryType().equals(OrderDeliveryTypeEnum.EXPRESS.getType()) || vo.getDeliveryType().equals(OrderDeliveryTypeEnum.LOCAL_DELIVERY.getType())) {
+            MPJQueryWrapper<MallOrderDelivery> mpjQueryWrapper = new MPJQueryWrapper<>();
+            mpjQueryWrapper.setAlias("od");
+            mpjQueryWrapper.innerJoin("?_delivery_local_delivery_order ol ON od.local_delivery_order_id = ol.delivery_no ".replace("?_", GlobalConfig.tablePrefix));
+            mpjQueryWrapper.eq("od.order_id", vo.getOrderId());
+            mpjQueryWrapper.select("od.*,ol.status as local_delivery_status,ol.delivery_service,ol.rider_name,ol.rider_mobile");
+            mpjQueryWrapper.groupBy("od.order_id,od.local_delivery_order_id");
             List<MallOrderInfoVo.OrderDelivery> orderDelivery = CollectUtils.convert(mallOrderDeliveryMapper.selectList(new QueryWrapper<MallOrderDelivery>().eq("order_id", vo.getOrderId())), MallOrderInfoVo.OrderDelivery.class);
             vo.setOrderDelivery(orderDelivery);
             if(!orderDelivery.isEmpty()){
                 String localDeliveryId = orderDelivery.get(0).getLocalDeliveryOrderId();
                 DeliveryLocalDeliveryOrder orderLog = deliveryLocalDeliveryOrderMapper.selectOne(new QueryWrapper<DeliveryLocalDeliveryOrder>().eq("delivery_no",localDeliveryId).last("limit 1"));
                 if(ObjectUtil.isNotEmpty(orderLog) ){
+                    List<String> statusList = List.of(LocalDeliveryStatusEnum.ORDER_ACCEPTED.getStatus().toString(),
+                            LocalDeliveryStatusEnum.PENDING_ACCEPTANCE.getStatus().toString(),
+                            LocalDeliveryStatusEnum.PENDING_PICKUP.getStatus().toString(),
+                            LocalDeliveryStatusEnum.RIDER_ARRIVED.getStatus().toString(),
+                            LocalDeliveryStatusEnum.IN_DELIVERY.getStatus().toString());
+                    if (!orderLog.getDeliveryService().equals(DeliveryStoreTypeEnum.MERCHANT.getKey()) && statusList.contains(orderLog.getStatus())){
+                        vo.setShowLocalDeliveryInfo(true);
+                    }
                     List<MallOrderInfoVo.LocalDeliveryOrderLogInfo> list = CollectUtils.convert(deliveryLocalDeliveryOrderLogMapper.selectList(new QueryWrapper<DeliveryLocalDeliveryOrderLog>().eq("order_id", orderLog.getId())), MallOrderInfoVo.LocalDeliveryOrderLogInfo.class) ;
                     if(!list.isEmpty()){
                         for(MallOrderInfoVo.LocalDeliveryOrderLogInfo logo: list){
@@ -264,7 +317,7 @@ public class OrderServiceImpl implements IOrderService {
         }
 
         //查询小程序是否开通发货信息管理服务
-        IsTradeManagedVo isTradeManagedVo = coreWeappDeliveryService.getIsTradeManaged(RequestUtils.defaultSiteId());
+        IsTradeManagedVo isTradeManagedVo = coreDeliveryWeappService.getIsTradeManaged();
         if (ObjectUtil.isNotEmpty(isTradeManagedVo)){
             vo.setIsTradeManaged(isTradeManagedVo.getIsTradeManaged());
             vo.setMchId(isTradeManagedVo.getMchId());
@@ -288,6 +341,8 @@ public class OrderServiceImpl implements IOrderService {
         site.setSiteID(siteInfoVo.getSiteId());
         site.setSiteName(siteInfoVo.getSiteName());
         vo.setSite(site);
+
+        vo.setCanInvoice(checkIfCanInvoice(vo.getInvoiceId(), vo.getOrderType(), vo.getStatus()));
         return vo;
     }
 
@@ -395,13 +450,14 @@ public class OrderServiceImpl implements IOrderService {
                         .select("status", "order_from"));
 
         Assert.notNull(order, "订单不存在");
-        if (!order.getStatus().equals(OrderStatusEnum.WAIT_TAKE.getStatus().toString())) throw new CommonException("只有待收货的订单才可以收货");
-
-        if (!order.getOrderFrom().equals(ChannelEnum.WEAPP.getCode())){
-            throw new CommonException("微信小程序订单需在小程序端收货后才能操作完成");
+        if (StringUtils.isNotEmpty(order.getOutTradeNo())){
+            Pay pay = corePayService.findPayInfoByOutTradeNo(order.getOutTradeNo());
+            if(ObjectUtil.isEmpty( pay)) throw new CommonException("支付信息不存在");
+            if (pay.getChannel().equals(ChannelEnum.WEAPP.getCode()) && pay.getType().equals(TransferTypeEnum.WECHATPAY.getKey())){
+                throw new CommonException("微信小程序订单需在小程序端收货后才能操作完成");
+            }
         }
-
-
+        if (!order.getStatus().equals(OrderStatusEnum.WAIT_TAKE.getStatus().toString())) throw new CommonException("只有待收货的订单才可以收货");
         OrderFinishParam finishParam = new OrderFinishParam();
         finishParam.setOrderId(id);
         finishParam.setMainType(OrderLogMainTypeEnum.MEMBER.getType());
@@ -443,4 +499,36 @@ public class OrderServiceImpl implements IOrderService {
         return vo;
     }
 
+    public Boolean checkIfCanInvoice(Integer invoiceId,String orderType,String status){
+        Boolean canInvoice;
+        if (ObjectUtil.isNotEmpty(invoiceId) && invoiceId > 0){
+            canInvoice = false;
+        }else{
+            canInvoice = true;
+            if(orderType.equals("mall")){
+                if(OrderStatusEnum.WAIT_PAY.getStatus().toString().equals(status) || OrderStatusEnum.CLOSE.getStatus().toString().equals(status)){
+                    canInvoice = false;
+                }
+            }else{
+                //校验发票生效状态
+                CheckInvoiceStatusEventDefiner.CheckInvoiceStatusEvent event = new CheckInvoiceStatusEventDefiner.CheckInvoiceStatusEvent();
+                event.setOrderType(orderType);
+                event.setStatus(status);
+                List<CheckInvoiceStatusEventDefiner.CheckInvoiceStatusResult> resultList = EventAndSubscribeOfPublisher.publishAndCallback(event);
+                Boolean er = false;
+                if(!resultList.isEmpty()){
+                    for (CheckInvoiceStatusEventDefiner.CheckInvoiceStatusResult item : resultList){
+                        if(item == null) continue;
+                        if(ObjectUtil.isNotEmpty(item.getData())){
+                            er = item.getData();
+                        }
+                    }
+                }
+                if(!er){
+                    canInvoice = false;
+                }
+            }
+        }
+        return canInvoice;
+    }
 }

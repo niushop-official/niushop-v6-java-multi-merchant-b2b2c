@@ -161,7 +161,7 @@
         </div>
 
         <!-- 验证组件 -->
-        <verify @success="success"  captchaType="blockPuzzle" :imgSize="{ width: '330px', height: '155px' }" ref="verifyRef"></verify>
+        <verify @success="success"  :captchaType="loginType == 'admin' ? loginConfig.captcha_type : loginConfig.site_captcha_type" :imgSize="{ width: '330px', height: '155px' }" ref="verifyRef" v-if="loginConfig"></verify>
         <!-- <el-footer></el-footer> -->
     </el-container>
 </template>
@@ -221,6 +221,7 @@ const success = (params: any) => {
     }
     if (type.value == 'mobile') {
         form.captcha_code = params.captchaVerification
+        form.captcha_type = loginType.value == 'admin' ? loginConfig.value.captcha_type : loginConfig.value.site_captcha_type
         smsCodeRef.value?.handleConfirm(form)
     }
 }
@@ -232,7 +233,8 @@ const form = reactive({
     mobile: '',
     mobile_code: '',
     mobile_key: '',
-    captcha_code: ''
+    captcha_code: '',
+    captcha_type: ''
 })
 
 // 获取登录配置信息
@@ -292,7 +294,7 @@ const handleLogin = async (formEl: FormInstance | undefined) => {
 const loginFn = (data = {}) => {
     loading.value = true
     if (loginType.value == 'admin') {
-        userStore.login({ username: form.username, password: form.password, ...data }, loginType.value).then(res => {
+        userStore.login({ username: form.username, password: form.password, captcha_type: loginConfig.value.captcha_type, ...data }, loginType.value).then(res => {
             storage.set({ key: 'app_type', data: loginType.value })
             const { query: { redirect } } = route
             if (typeof redirect === 'string') {
@@ -305,7 +307,7 @@ const loginFn = (data = {}) => {
         })
     } else {
         if (type.value == 'mobile') {
-            userStore.mobileLoginFn({ mobile: form.mobile, mobile_code: form.mobile_code, mobile_key: form.mobile_key , ...data }).then(res => {
+            userStore.mobileLoginFn({ mobile: form.mobile, mobile_code: form.mobile_code, mobile_key: form.mobile_key, captcha_type: loginConfig.value.site_captcha_type, ...data }).then(res => {
                 storage.set({ key: 'app_type', data: loginType.value })
                 getHomeSiteList().then((res) => {
                     siteList.value = res.data
@@ -315,7 +317,7 @@ const loginFn = (data = {}) => {
                 loading.value = false
             })
         } else {
-            userStore.login({ username: form.username, password: form.password, ...data }, loginType.value).then(res => {
+            userStore.login({ username: form.username, password: form.password, captcha_type: loginConfig.value.site_captcha_type, ...data }, loginType.value).then(res => {
                 storage.set({ key: 'app_type', data: loginType.value })
                 getHomeSiteList().then((res) => {
                     siteList.value = res.data

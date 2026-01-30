@@ -11,6 +11,8 @@ export const useShare = () => {
     let wechatOptions: any = {};
     let weappOptions: any = {};
 
+    const systemStore = useSystemStore()
+
     const wechatInit = () => {
         if (!isWeixinBrowser()) return;
         // 初始化sdk
@@ -43,10 +45,10 @@ export const useShare = () => {
         if (currRoute() == '' || currRoute().indexOf('app/pages/index/close') != -1 || currRoute().indexOf('app/pages/index/nosite') != -1) return;
 
         let queryStr = getQuery();
-
+        let h5Link = '';
         // #ifdef H5
 
-        let h5Link = location.origin + location.pathname + (queryStr.length > 0 ? '?' + queryStr.join('&') : '');
+        h5Link = location.origin + location.pathname + (queryStr.length > 0 ? '?' + queryStr.join('&') : '');
 
         wechatOptions = {
             link: h5Link
@@ -54,40 +56,45 @@ export const useShare = () => {
 
         // #endif
 
-        // #ifdef MP-WEIXIN
         weappOptions = {
             path: '/' + currRoute() + (queryStr.length > 0 ? '?' + queryStr.join('&') : ''),
             query: queryStr.join('&'),
         }
-        // #endif
 
         if (options && Object.keys(options).length) {
-
             if (options.wechat) {
-
-                // #ifdef H5
                 wechatOptions.title = options.wechat.title || ''
                 wechatOptions.link = options.wechat.link || h5Link
                 wechatOptions.desc = options.wechat.desc || ''
                 wechatOptions.imgUrl = options.wechat.url ? img(options.wechat.url) : ''
                 // wechatOptions.success = options.wechat.callback || null;
                 // useSystemStore().shareCallback = options.wechat.callback || null;
+                // #ifdef H5
                 wechatShare()
                 // #endif
             }
 
             if (options.weapp) {
-
-                // #ifdef MP-WEIXIN
                 weappOptions.title = options.weapp.title || ''
                 if (options.weapp.path) weappOptions.path = options.weapp.path
                 weappOptions.imageUrl = options.weapp.url ? img(options.weapp.url) : ''
                 useSystemStore().shareCallback = options.weapp.callback || null;
+                // #ifdef MP-WEIXIN
                 uni.setStorageSync('weappOptions', weappOptions)
                 // #endif
-
             }
 
+            // 在这里判断isStop（关键：放在参数处理之后）
+            if (options.hasOwnProperty('isStop') && options.isStop) {
+                // 停止执行，更新store后返回
+                useSystemStore().$patch((state) => {
+                    state.shareOptions = {
+                        wechatOptions,
+                        weappOptions
+                    }
+                })
+                return; // 终止整个setShare函数
+            }
         }
         getShareInfo({
             route: '/' + currRoute(),
@@ -96,30 +103,45 @@ export const useShare = () => {
 
             let data = res.data;
 
-            // #ifdef H5
             let wechat = data.wechat;
             if (wechat) {
-                wechatOptions.title = wechat.title
-                wechatOptions.desc = wechat.desc
+                wechatOptions.title = wechat.title ? wechat.title : options.wechat?.title
+                wechatOptions.desc = wechat.desc ? wechat.desc : options.wechat?.desc
                 wechatOptions.imgUrl = wechat.url ? img(wechat.url) : ''
             } else {
-                wechatOptions.title = document.title;
+                wechatOptions.title = document ? document.title : ''
                 wechatOptions.desc = ''
             }
+            // #ifdef H5
             wechatShare()
             // #endif
 
-            // #ifdef MP-WEIXIN
             let weapp = data.weapp;
             if (weapp) {
                 weappOptions.title = weapp.title
                 weappOptions.imageUrl = weapp.url ? img(weapp.url) : ''
             }
-            // #endif
+            // #ifdef MP
             if(!weappOptions.title && !weappOptions.imageUrl){
+                uni.setStorageSync('weappOptions', {})
                 return;
             }
             uni.setStorageSync('weappOptions', weappOptions)
+            // #endif
+
+            useSystemStore().$patch((state) => {
+                state.shareOptions = {
+                    wechatOptions,
+                    weappOptions
+                }
+            })
+        })
+        
+        useSystemStore().$patch((state) => {
+            state.shareOptions = {
+                wechatOptions,
+                weappOptions
+            }
         })
     }
 

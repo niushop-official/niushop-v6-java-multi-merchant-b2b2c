@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { img, isWeixinBrowser, redirect,} from '@/utils/common'
+import { getToken, img, isWeixinBrowser, redirect,} from '@/utils/common'
 import { t } from '@/locale'
 import useConfigStore from '@/stores/config'
 import { webScanLogin, wechatUserPc, changeScanStatus } from '@/app/api/auth'
@@ -128,7 +128,9 @@ onLoad(async (options : any) => {
 	}
 	if (options.code) {
 		wxchatCode.value = options.code
-		changeScanStatusFn()
+		if(getToken()){
+			changeScanStatusFn()
+		}
 	}
 })
 const loginLoading = ref(false)

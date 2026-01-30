@@ -92,7 +92,7 @@ public class CoreShopCashOutServiceImpl implements ICoreShopCashOutService {
             Map<String, Object> transferData = new HashMap<>();
             if (!transferType.equals("offline")) {
                 // 获取转账类型的key;
-                transferType = ShopTransferEnum.getNameByKey(cashOut.getTransferType());
+                transferType = ShopTransferEnum.getKeyByTag(Integer.parseInt(cashOut.getTransferType()));
 
                 transferData.put("transfer_type", transferType);
                 transferData.put("transfer_realname", cashOut.getTransferRealname());
@@ -101,7 +101,7 @@ public class CoreShopCashOutServiceImpl implements ICoreShopCashOutService {
                 transferData.put("transfer_account", cashOut.getTransferAccount());
                 transferData.put("transfer_payment_code", cashOut.getTransferPaymentCode());
 
-                if (TransferTypeEnum.WECHATPAY.equals(transferType)) {
+                if (ShopTransferEnum.WECHAT.getKey().equals(transferType)) {
                     // 如果是转账到微信钱包，则需要获取openid
                     Map<String, String> payeeInfo = new HashMap<>();
                     payeeInfo.put("open_id", shopTransferParam.getOpenId() != null ? shopTransferParam.getOpenId() : "");

@@ -1,5 +1,6 @@
 package com.niu.core.service.core.captcha.vo;
 
+import cn.hutool.json.JSONArray;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
@@ -24,4 +25,7 @@ public class CoreCaptchaInfoVo implements Serializable {
     private String secretKey;
     /** token */
     private String token;
+
+    /** 正确文字 */
+    private JSONArray wordList;
 }

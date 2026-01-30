@@ -162,7 +162,8 @@ public class MallOrderServiceImpl implements IMallOrderService {
         if (ObjectUtil.isNotEmpty(searchParam.getPayTime())) QueryMapperUtils.buildByTime(queryWrapper, "p.pay_time", searchParam.getPayTime());
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) queryWrapper.and(i -> i.eq("taker_name", searchParam.getKeyword()).or().eq("taker_mobile", searchParam.getKeyword()));
         if (ObjectUtil.isNotEmpty(searchParam.getActivityType())) queryWrapper.eq("o.activity_type", searchParam.getActivityType());
-
+        if (ObjectUtil.isNotEmpty(searchParam.getExtendField1())) queryWrapper.eq("o.extend_field_1", searchParam.getExtendField1());
+        if (ObjectUtil.isNotEmpty(searchParam.getExtendField2())) queryWrapper.eq("o.extend_field_2", searchParam.getExtendField2());
         if (ObjectUtil.isNotEmpty(searchParam.getDeliveryType())) queryWrapper.eq("o.delivery_type", searchParam.getDeliveryType());
         if (ObjectUtil.isNotEmpty(searchParam.getGoodsSource())){
             if(searchParam.getGoodsSource().equals("self_goods") || searchParam.getGoodsSource().equals("0")){
@@ -178,7 +179,7 @@ public class MallOrderServiceImpl implements IMallOrderService {
             orderGoodsWra.setAlias("o")
                     .leftJoin("?_mall_order_refund r ON o.order_goods_id = r.order_goods_id ".replace("?_", GlobalConfig.tablePrefix));
             orderGoodsWra.select("o.*");
-            orderGoodsWra.select("r.refund_id,r.apply_money");
+            orderGoodsWra.select("r.refund_id,r.apply_money,r.money refund_money");
             orderGoodsWra.eq("o.order_id", vo.getOrderId());
             orderGoodsWra.orderByDesc("r.refund_id");
             List<MallOrderListVo.OrderGoods> orderGoods = mallOrderGoodsMapper.selectJoinList(MallOrderListVo.OrderGoods.class,orderGoodsWra);
@@ -257,7 +258,14 @@ public class MallOrderServiceImpl implements IMallOrderService {
 
 
         // 查询订单项
-        List<MallOrderInfoVo.OrderGoods> orderGoods = CollectUtils.convert(mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().eq("order_id", vo.getOrderId())), MallOrderInfoVo.OrderGoods.class);
+        MPJQueryWrapper<MallOrderGoods> orderGoodsWra = new MPJQueryWrapper<>();
+        orderGoodsWra.setAlias("o")
+                .leftJoin("?_mall_order_refund r ON o.order_goods_id = r.order_goods_id ".replace("?_", GlobalConfig.tablePrefix));
+        orderGoodsWra.select("o.*");
+        orderGoodsWra.select("r.refund_id,r.apply_money,r.money refund_money");
+        orderGoodsWra.eq("o.order_id", vo.getOrderId());
+        List<MallOrderInfoVo.OrderGoods> orderGoods = mallOrderGoodsMapper.selectJoinList(MallOrderInfoVo.OrderGoods.class,orderGoodsWra);
+
         vo.setIsRefundStatusShow(false);
         for(MallOrderInfoVo.OrderGoods orderGoodsVo : orderGoods){
             MallGoods goodsInfo = mallGoodsMapper.selectById(orderGoodsVo.getGoodsId());

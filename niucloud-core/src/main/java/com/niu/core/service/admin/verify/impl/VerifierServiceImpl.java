@@ -3,6 +3,7 @@ package com.niu.core.service.admin.verify.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
@@ -20,6 +21,7 @@ import com.niu.core.service.admin.member.vo.MemberBriefInfoVo;
 import com.niu.core.service.admin.verify.IVerifierService;
 import com.niu.core.service.admin.verify.param.VerifierParam;
 import com.niu.core.service.admin.verify.param.VerifierSearchParam;
+import com.niu.core.service.admin.verify.vo.VerifierDetailVo;
 import com.niu.core.service.admin.verify.vo.VerifierListVo;
 import com.niu.core.service.admin.verify.vo.VerifierVo;
 import jakarta.annotation.Resource;
@@ -124,6 +126,13 @@ public class VerifierServiceImpl implements IVerifierService {
         verifierMapper.insert(model);
     }
 
+    @Override
+    public void edit(Integer id,VerifierParam addParam) {
+        verifierMapper.update(new Verifier(), new UpdateWrapper<Verifier>().eq("id", id).eq("site_id", RequestUtils.siteId())
+                .set("verify_type", JSONUtil.parseArray(addParam.getVerifyType()).toString())
+        );
+    }
+
     /**
      * 核销员删除
      * @param id 主键ID
@@ -136,6 +145,20 @@ public class VerifierServiceImpl implements IVerifierService {
     @Override
     public Result getVerifierTypeList() {
         return Result.success(VerifierTypeEnum.getMap());
+    }
+
+    @Override
+    public VerifierDetailVo detail(Integer id) {
+        MPJQueryWrapper<Verifier> queryWrapper = new MPJQueryWrapper<>();
+        queryWrapper.setAlias("v").innerJoin("?_member m ON v.member_id = m.member_id".replace("?_", GlobalConfig.tablePrefix));
+        queryWrapper.select("v.*,m.member_no,m.username,m.nickname,m.mobile,m.headimg");
+        queryWrapper.eq("v.id", id);
+        queryWrapper.orderByDesc("id");
+        VerifierDetailVo verifier = verifierMapper.selectJoinOne(VerifierDetailVo.class, queryWrapper);
+        MemberBriefInfoVo memberBriefInfoVo = new MemberBriefInfoVo();
+        BeanUtils.copyProperties(verifier, memberBriefInfoVo);
+        verifier.setMember(memberBriefInfoVo);
+        return verifier;
     }
 
 }

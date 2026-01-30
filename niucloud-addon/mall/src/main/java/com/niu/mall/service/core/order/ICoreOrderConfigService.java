@@ -1,5 +1,6 @@
 package com.niu.mall.service.core.order;
 
+import com.niu.mall.entity.order.config.MallOrderDelaySpear;
 import com.niu.mall.entity.order.config.MallOrderEvaluate;
 import com.niu.mall.entity.order.config.MallOrderFinish;
 import com.niu.mall.entity.order.config.MallOrderInvoice;
@@ -38,4 +39,6 @@ public interface ICoreOrderConfigService {
 
 
     MallOrderCloseVo orderClose();
+
+    MallOrderDelaySpear orderDelaySpear();
 }

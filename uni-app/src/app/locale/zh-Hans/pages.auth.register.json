@@ -13,5 +13,6 @@
     "isAgreeTips": "请先阅读并同意协议",
     "usernameRegister": "账号注册",
     "mobileRegister": "手机号注册",
-    "mobilePlaceholder": "请输入手机号"
+    "mobilePlaceholder": "请输入手机号",
+    "usernameTips":"账号格式不正确"
 }

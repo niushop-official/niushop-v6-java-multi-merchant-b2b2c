@@ -3,15 +3,19 @@ package com.niu.core.service.api.login.impl;
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.component.context.event.EventPublisher;
+import com.niu.core.common.exception.AuthException;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.crypto.PasswordEncipher;
 import com.niu.core.common.utils.date.DateUtils;
+import com.niu.core.consts.sms.SmsConst;
 import com.niu.core.entity.member.Member;
 import com.niu.core.enums.member.MemberLoginTypeEnum;
 import com.niu.core.enums.member.StatusEnum;
@@ -80,21 +84,23 @@ public class LoginServiceImpl implements ILoginService {
      * @return
      */
     public LoginVo mobile(MobileLoginParam param) {
-        Member member = memberMapper.selectOne(new QueryWrapper<Member>().eq("mobile", param.getMobile()).eq("site_id", RequestUtils.siteId()));
-
-        if (member != null) {
-            member.setLoginType(MemberLoginTypeEnum.MOBILE.getType());
-            return this.login(member);
-        } else {
-            LoginConfigVo config = coreMemberConfigService.getLoginConfig(RequestUtils.siteId());
-            // 开启强制绑定手机号 登录会自动注册
+        LoginConfigVo config = coreMemberConfigService.getLoginConfig(RequestUtils.siteId());
+        if (config.getIsBindMobile() != 1 && config.getIsMobile() != 1) {
+            throw new CommonException("手机号登录注册未开启");
+        }
+        Member member = memberMapper.selectOne(new QueryWrapper<Member>().eq("mobile", param.getMobile()));
+        if (ObjectUtil.isEmpty( member)){
+            //开启强制绑定手机号，登录会自动注册并绑定手机号
             if (config.getIsBindMobile() == 1) {
                 MobileRegisterParam registerParam = new MobileRegisterParam();
                 BeanUtils.copyProperties(param, registerParam);
                 return registerService.mobile(registerParam);
+            }else{
+                throw new CommonException("账号不存在");
             }
         }
-        throw new CommonException("账号不存在");
+        member.setLoginType(MemberLoginTypeEnum.MOBILE.getType());
+        return this.login(member);
     }
 
     /**
@@ -164,7 +170,15 @@ public class LoginServiceImpl implements ILoginService {
      * @param param
      */
     public SendMobileCodeVo sendMobileCode(SendMobileCodeParam param) {
-        String key = RandomUtil.randomString(30);
+        if (!SmsConst.SCENE_TYPE.contains(param.getType())){
+            throw new AuthException("无效的短信验证码");
+        }
+        String keyType = "";
+        if (SmsConst.MERCHANT_SETTLED.equals(param.getType())){
+            keyType = "merchant_settled_verify_code";
+        }else{
+            keyType = "member_verify_code";
+        }
 
         MobileCodeCacheVo cache = new MobileCodeCacheVo();
         cache.setMobile(param.getMobile());
@@ -175,9 +189,11 @@ public class LoginServiceImpl implements ILoginService {
         data.put("mobile", param.getMobile());
         data.put("code", cache.getCode());
 
-        coreNoticeService.send(param.siteId(), "member_verify_code", data);
+        coreNoticeService.send(param.siteId(), keyType, data);
 
-        this.cached.put(key, cache, 600);
+        String key = DigestUtil.md5Hex(IdUtil.fastUUID());
+        clearMobileCode(param.getMobile(),param.getType());
+        this.cached.put(key, cache,600);
 
         SendMobileCodeVo vo = new SendMobileCodeVo();
         vo.setKey(key);
@@ -190,5 +206,10 @@ public class LoginServiceImpl implements ILoginService {
      */
     public void logout() {
         StpUtil.logout();
+    }
+
+    private void clearMobileCode(String mobile,String type){
+        String cacheTagName = "mobile_key_"+mobile+type;
+        cached.tag(cacheTagName).clear();
     }
 }

@@ -7,9 +7,11 @@ import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.cache.Cached;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.sys.SysUser;
+import com.niu.core.entity.verify.Verifier;
 import com.niu.core.entity.verify.Verify;
 import com.niu.core.enums.sys.VerifierTypeEnum;
 import com.niu.core.enums.sys.VerifyTypeEnum;
@@ -19,6 +21,7 @@ import com.niu.core.event.verify.VerifierCheckEventDefiner;
 import com.niu.core.event.verify.VerifyCheckEventDefiner;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.mapper.sys.SysUserMapper;
+import com.niu.core.mapper.verify.VerifierMapper;
 import com.niu.core.mapper.verify.VerifyMapper;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.verify.ICoreVerifyService;
@@ -37,6 +40,8 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
     SysUserMapper sysUserMapper;
     @Resource
     VerifyMapper verifyMapper;
+    @Resource
+    VerifierMapper verifierMapper;
     @Resource
     MemberMapper memberMapper;
     @Resource
@@ -143,6 +148,15 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
         Integer siteId = (Integer) value.get("site_id");
         Map<String, Object> dataMap = (Map<String, Object>) value.get("data");
 
+        //检查和校园是否存在
+        QueryWrapper<Verifier> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("member_id", memberId);
+        List<Verifier> merberList = verifierMapper.selectList(queryWrapper);
+        if (merberList.isEmpty()) throw new CommonException("核销员不存在");
+        // 检查当前核销员是否有权限
+        if (!merberList.stream().map(Verifier::getSiteId).toList().contains(siteId)) {
+            throw new RuntimeException("您没有对应店铺核销权限，请联系管理员");
+        }
         // 触发核销员检查事件
         VerifierCheckEventDefiner.VerifierCheckEvent verifierEvent = new VerifierCheckEventDefiner.VerifierCheckEvent();
         verifierEvent.setVerifyMemberId(memberId);
@@ -162,7 +176,7 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
 
         // 检查当前核销员是否有权限
         if (!verifyMemberIds.contains(memberId)) {
-            throw new RuntimeException("核销员不存在");
+            throw new RuntimeException("您没有订单核销权限，请联系管理员");
         }
 
         return value;
@@ -179,6 +193,17 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
         Map<String, Object> value = this.getCodeData(code);
         // 检测核销员身份
         Integer siteId = (Integer) value.get("site_id");
+        //检查和校园是否存在
+        QueryWrapper<Verifier> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq("member_id", memberId);
+        List<Verifier> merberList = verifierMapper.selectList(queryWrapper1);
+        if (merberList.isEmpty()) throw new CommonException("核销员不存在");
+        // 检查当前核销员是否有权限
+        if (!merberList.stream().map(Verifier::getSiteId).toList().contains(siteId)) {
+            throw new RuntimeException("您没有对应店铺核销权限，请联系管理员");
+        }
+
+
         Map<String, Object> dataMap = (Map<String, Object>) value.get("data");
         VerifierCheckEventDefiner.VerifierCheckEvent verifierEvent = new VerifierCheckEventDefiner.VerifierCheckEvent();
         verifierEvent.setVerifyMemberId(memberId);
@@ -186,15 +211,18 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
         verifierEvent.setData(dataMap);
         verifierEvent.setSiteId(siteId);
         List<VerifierCheckEventDefiner.VerifierCheckResult> verifierResults = EventAndSubscribeOfPublisher.publishAndCallback(verifierEvent);
+        // 获取核销员ID列表
         List<Integer> verifyMemberIds = new ArrayList<>();
-        if (verifierResults != null && !verifierResults.isEmpty()) {
+        if (!verifierResults.isEmpty()) {
             VerifierCheckEventDefiner.VerifierCheckResult firstResult = verifierResults.get(0);
             if (firstResult != null && firstResult.getVerifyMemberIds() != null) {
                 verifyMemberIds = firstResult.getVerifyMemberIds();
             }
         }
+
+        // 检查当前核销员是否有权限
         if (!verifyMemberIds.contains(memberId)) {
-            throw new RuntimeException("核销员不存在");
+            throw new RuntimeException("您没有订单核销权限，请联系管理员");
         }
         // 核销操作
         Map<String, Object> verifyDataMap = new HashMap<>();

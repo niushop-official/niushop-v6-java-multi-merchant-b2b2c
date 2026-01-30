@@ -67,6 +67,7 @@
 	"orderRefundNo": "退款编号",
 	"createTime": "申请时间",
 	"refundMoney": "退款金额",
+	"realRefundMoney": "实际退款金额",
 	"refundReason": "退款原因",
 	"afterSales": "售后信息",
 	"refundStatus": "退款状态",

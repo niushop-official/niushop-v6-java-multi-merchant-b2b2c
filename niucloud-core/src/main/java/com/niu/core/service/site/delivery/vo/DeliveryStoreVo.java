@@ -78,5 +78,6 @@ public class DeliveryStoreVo implements Serializable {
     private String tradeTime;
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long createTime; // 添加时间
-
+    @JsonSerialize(using = BeanJsonSerializer.StringToJSONObjectSerializer.class)
+    private String area; // 添加时间
 }

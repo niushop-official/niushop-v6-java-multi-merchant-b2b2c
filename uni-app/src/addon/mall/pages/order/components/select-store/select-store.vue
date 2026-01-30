@@ -9,7 +9,7 @@
                         v-for="item in storeList" @click="selectStore(item)">
                         <view class="flex items-center mb-[20rpx]">
                             <view class="flex-1 using-hidden text-[30rpx] text-[#333]">{{ item.store_name }} </view>
-                            <view v-if="item.distance" class="flex-shrink-0 ml-[20rpx] text-[#999] text-[24rpx] font-normal">{{ distanceFormat(item.distance) }}</view>
+                            <view v-if="item.hasOwnProperty('distance')" class="flex-shrink-0 ml-[20rpx] text-[#999] text-[24rpx] font-normal">{{ distance(item.distance) }}</view>
                         </view>
                         <view class="flex items-center justify-between">
                             <view class="flex-1">
@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { getDeliveryStoreList } from '@/app/api/basic'
-import { img, isWeixinBrowser } from '@/utils/common'
+import { img, isWeixinBrowser, distance } from '@/utils/common'
 import wechat from '@/utils/wechat'
 
 const show = ref(false)
@@ -132,9 +132,9 @@ const confirm = () => {
 const distanceFormat = (distance: any) => {
     distance = parseFloat(distance)
     if (distance < 1000) {
-        return `${ distance }m`;
+        return `${ parseInt(distance) }m`;
     } else {
-        const km = (distance / 1000).toFixed(2)
+        const km = (distance / 1000).toFixed(3)
         return `${ km }km`;
     }
 }

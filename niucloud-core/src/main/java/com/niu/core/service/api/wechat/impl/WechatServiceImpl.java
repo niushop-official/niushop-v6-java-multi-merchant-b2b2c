@@ -300,7 +300,7 @@ public class WechatServiceImpl implements IWechatService {
             WxOAuth2AccessToken wxOAuth2AccessToken = WechatUtils.mp(RequestUtils.siteId()).getOAuth2Service().getAccessToken(param.getCode());
             WxOAuth2UserInfo wxUser = WechatUtils.mp(RequestUtils.siteId()).getOAuth2Service().getUserInfo(wxOAuth2AccessToken, null);
 
-            Member member = memberMapper.selectOne(new QueryWrapper<Member>().eq("wx_openid", wxUser.getOpenid()).eq("site_id", RequestUtils.siteId()));
+            Member member = memberMapper.selectOne(new QueryWrapper<Member>().eq("wx_openid", wxUser.getOpenid()));
             if (ObjectUtil.isNotNull(member)) throw new CommonException("账号已存在");
 
             Member updateMember = new Member();
@@ -310,6 +310,17 @@ public class WechatServiceImpl implements IWechatService {
         } catch (Exception e) {
             throw new CommonException(e.getMessage());
         }
+    }
+
+    @Override
+    public void updateOpenidByH5(String wxOpenid) {
+        Member member = memberMapper.selectOne(new QueryWrapper<Member>().eq("wx_openid", wxOpenid));
+        if (ObjectUtil.isNotNull(member)) throw new CommonException("账号已存在");
+
+        Member updateMember = new Member();
+        updateMember.setMemberId(RequestUtils.memberId());
+        updateMember.setWxOpenid(wxOpenid);
+        this.memberMapper.updateById(updateMember);
     }
 
     @Override

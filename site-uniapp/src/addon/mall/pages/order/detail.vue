@@ -33,7 +33,10 @@
                         </up-image>
                         <view class="ml-[20rpx] flex flex-1 flex-col box-border">
                             <view class="flex justify-between items-baseline">
-                                <view class="max-w-[322rpx] text-[28rpx] leading-[40rpx] font-400 truncate text-[#303133]">{{ item.goods_name }}</view>
+                                <view class="max-w-[322rpx] text-[28rpx] leading-[40rpx] font-400 truncate text-[#303133]">
+                                    <text v-if="detail.order_type_name" class="relative top-[-4rpx] inline-block mr-[4rpx] bg-primary text-[#fff] text-[18rpx] rounded-[4rpx] leading-[30rpx] px-[6rpx]">{{ detail.order_type_name }}</text>
+                                    {{ item.goods_name }}
+                                </view>
                                 <view class="text-right leading-[42rpx] ml-[10rpx] price-font">
                                     <text class="text-[22rpx]">￥</text>
                                     <text class="text-[32rpx] font-500">{{parseFloat(item.price).toFixed(2).split('.')[0] }}</text>
@@ -99,7 +102,7 @@
                     <view class="text-[28rpx]">支付方式</view>
                     <view class="text-[28rpx]">{{ detail.pay.type_name }}</view>
                 </view>
-                                <view class="justify-between card-template-item">
+                <view class="justify-between card-template-item">
                     <view class="text-[28rpx]">配送方式</view>
                     <view class="text-[28rpx]">{{ detail.delivery_type_name }}</view>
                 </view>
@@ -133,6 +136,24 @@
                     <view class="text-[28rpx]">收货人手机号</view>
                     <view class="text-[28rpx]">{{ detail.taker_mobile }}</view>
                 </view>
+                <template v-if="detail.delivery_type == 'store'">
+                    <view class="justify-between card-template-item">
+                        <view class="text-[28rpx]">自提点名称</view>
+                        <view class="text-[28rpx]">{{ detail.store.store_name }}</view>
+                    </view>
+                    <view class="justify-between card-template-item !items-start">
+                        <view class="text-[28rpx] flex-shrink-0 mr-[30rpx]">自提点地址</view>
+                        <view class="text-[28rpx]">{{ detail.store.full_address }}</view>
+                    </view>
+                    <view class="justify-between card-template-item">
+                        <view class="text-[28rpx]">自提点电话</view>
+                        <view class="text-[28rpx]">{{ detail.store.mobile }}</view>
+                    </view>
+                    <view class="justify-between card-template-item">
+                        <view class="text-[28rpx]">营业时间</view>
+                        <view class="text-[28rpx]">{{ detail.store.trade_time }}</view>
+                    </view>
+                </template>
                 <view class="justify-between card-template-item">
                     <view class="text-[28rpx]">买家留言</view>
                     <view class="text-[28rpx]">{{ detail.member_remark ?? '--' }}</view>
@@ -221,7 +242,9 @@
 					</view>
                 </view>
             </view>
-         </u-popup>
+        </u-popup>
+        <!-- 提示 -->
+        <tips-popup ref="tipsRef" />
     </view>
 </template>
 
@@ -255,13 +278,27 @@ const orderDetailFn = (id: any) => {
 	loading.value = true;
 	getOrderDetail(id).then((res: any) => {
 		detail.value = res.data;
+        let refundOrderNum = 0
+        detail.value.order_goods.forEach((orderItem: any) => {
+            if (orderItem.is_enable_refund == 1) {
+                refundOrderNum++
+            }
+            orderItem.form_details = null // 每个商品的表单详情
+        })
+        detail.value.is_refund_show = refundOrderNum > 0
 		loading.value = false;
         detail.value.btnList = []
         detail.value.btnList.push({ name: '备注', type: 'notes'})
         if(!detail.value.supply_id){
-            if(detail.value.status == 2 && detail.value.delivery_type == 'express'){
+            if(detail.value.status == 2 && detail.value.delivery_type !== 'store'){
                 detail.value.btnList.push({ name: '订单发货', type: 'delivery'})
             }
+			if(detail.value.status == 3 && !detail.value.supply_id && detail.value.delivery_type != 'virtual' && detail.value.delivery_type == 'express'){
+				detail.value.btnList.push({ name: '修改发货', type: 'edit_delivery' })
+			}
+			if(detail.value.status == 3 && !detail.value.supply_id && detail.value.delivery_type != 'virtual' && detail.value.delivery_type == 'local_delivery' && (detail.value.local_delivery_status == -1 || detail.value.local_delivery_status == -2 || detail.value.local_delivery_status == 8)){
+				detail.value.btnList.push({ name: '修改发货', type: 'edit_delivery' })
+			}
             if(detail.value.status == 1){
                 detail.value.btnList.push({ name: '关闭订单', type: 'close'})
                 if(detail.value.mall_discount_money == 0) { 
@@ -269,6 +306,9 @@ const orderDetailFn = (id: any) => {
                 }
                 
             }
+            if (detail.value.is_refund_show && detail.value.status != 1 && detail.value.status != -1 && !detail.value.supply_id){
+				detail.value.btnList.push({ name: '主动退款', type: 'refund' })
+			}
             if(detail.value.status == 3){
                 detail.value.btnList.push({ name: '确认收货', type: 'finish'})
             }
@@ -303,10 +343,16 @@ const  orderBtnFn = (type: any) => {
 			orderEditAddressFn();
 			break;
 		case 'delivery':
-			delivery();
+			delivery('add');
+			break;
+        case 'edit_delivery':
+			delivery('edit');
 			break;
 		case 'finish':
 			finish();
+			break;
+        case 'refund':
+			refundEvent();
 			break;
         case 'package':
             packageEvent();
@@ -330,24 +376,22 @@ const setNotes = () => {
 }
 
 // 发货/修改发货
-const delivery = () => {
-	redirect({ url: '/addon/mall/pages/order/delivery', param: { order_id: detail.value.order_id } })
+const delivery = (type: any) => {
+	redirect({ url: '/addon/mall/pages/order/delivery', param: { order_id: detail.value.order_id, type: type } })
 }
 
+const tipsRef = ref();
 // 关闭订单
 const close = () => {
-	uni.showModal({
-        title: '提示',
-        content: '您确定要关闭该订单吗？',
-        confirmColor: 'var(--primary-color)',
-        success: res => {
-            if (res.confirm) {
-                orderClose(detail.value.order_id).then(() => {
-					orderDetailFn(orderId.value);
-				})
-            }
-        }
+    tipsRef.value.open('您确定要关闭该订单吗？', () => {
+        orderClose(detail.value.order_id).then(() => {
+            orderDetailFn(orderId.value);
+        })
     })
+}
+// 主动退款
+const refundEvent = () => {
+	redirect({ url: '/addon/mall/pages/order/active_refund', param: { order_id: detail.value.order_id } })
 }
 
 // 调整价格
@@ -357,17 +401,10 @@ const orderAdjustMoney = () => {
 
 // 确认收货
 const finish = () => {
-	uni.showModal({
-        title: '提示',
-        content: '是否确认用户已经收货？',
-        confirmColor: 'var(--primary-color)',
-        success: res => {
-            if (res.confirm) {
-				orderFinish(detail.value.order_id).then(() => {
-					orderDetailFn(orderId.value);
-				})
-            }
-        }
+    tipsRef.value.open('是否确认用户已经收货？', () => {
+        orderFinish(detail.value.order_id).then(() => {
+            orderDetailFn(orderId.value);
+        })
     })
 }
 

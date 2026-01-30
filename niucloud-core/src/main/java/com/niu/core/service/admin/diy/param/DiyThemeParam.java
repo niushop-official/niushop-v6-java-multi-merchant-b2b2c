@@ -26,5 +26,5 @@ public class DiyThemeParam implements Serializable {
     private JSONArray newTheme;
 
     private JSONObject defaultTheme;
-
+    private String themeType;
 }

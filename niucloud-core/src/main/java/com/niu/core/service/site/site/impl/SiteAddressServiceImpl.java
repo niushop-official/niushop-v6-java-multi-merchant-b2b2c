@@ -47,7 +47,7 @@ public class SiteAddressServiceImpl implements ISiteAddressService {
 
         QueryWrapper<SiteAddress> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("site_id", RequestUtils.siteId());
-        if (ObjectUtil.isNotEmpty(searchParam.getMobile())) queryWrapper.eq("mobile", searchParam.getMobile());
+        if (ObjectUtil.isNotEmpty(searchParam.getMobile())) queryWrapper.like("mobile", searchParam.getMobile());
         if (ObjectUtil.isNotEmpty(searchParam.getFullAddress())) queryWrapper.like("full_address", searchParam.getFullAddress());
         queryWrapper.orderByDesc("id");
 
@@ -118,16 +118,27 @@ public class SiteAddressServiceImpl implements ISiteAddressService {
      */
     @Override
     public void add(SiteAddressParam addParam) {
+        // 处理布尔值转整数（确保数据正确）
+        normalizeBooleanFields(addParam);
+        
         SiteAddress model = new SiteAddress();
         BeanUtils.copyProperties(addParam, model);
         model.setSiteId(RequestUtils.siteId());
+        
+        // 手动设置布尔字段，确保BeanUtils.copyProperties无法复制Object类型时也能正确设置
+        model.setIsDeliveryAddress((Integer) addParam.getIsDeliveryAddress());
+        model.setIsRefundAddress((Integer) addParam.getIsRefundAddress());
+        model.setIsDefaultDelivery((Integer) addParam.getIsDefaultDelivery());
+        model.setIsDefaultRefund((Integer) addParam.getIsDefaultRefund());
 
-        if (addParam.getIsDefaultDelivery().equals(1)) {
+        Integer isDefaultDelivery = (Integer) addParam.getIsDefaultDelivery();
+        if (isDefaultDelivery != null && isDefaultDelivery.equals(1)) {
             SiteAddress updateModel = new SiteAddress();
             updateModel.setIsDefaultDelivery(0);
             siteAddressMapper.update(updateModel, new QueryWrapper<SiteAddress>().eq("site_id", RequestUtils.siteId()).ne("is_default_delivery", 0));
         }
-        if (addParam.getIsDefaultRefund().equals(1)) {
+        Integer isDefaultRefund = (Integer) addParam.getIsDefaultRefund();
+        if (isDefaultRefund != null && isDefaultRefund.equals(1)) {
             SiteAddress updateModel = new SiteAddress();
             updateModel.setIsDefaultRefund(0);
             siteAddressMapper.update(updateModel, new QueryWrapper<SiteAddress>().eq("site_id", RequestUtils.siteId()).ne("is_default_refund", 0));
@@ -143,6 +154,9 @@ public class SiteAddressServiceImpl implements ISiteAddressService {
      */
     @Override
     public void edit(Integer id, SiteAddressParam editParam) {
+        // 处理布尔值转整数（确保数据正确）
+        normalizeBooleanFields(editParam);
+        
         SiteAddress model = siteAddressMapper.selectOne(
                 new QueryWrapper<SiteAddress>()
                         .eq("id", id)
@@ -150,13 +164,19 @@ public class SiteAddressServiceImpl implements ISiteAddressService {
 
         Assert.notNull(model, "地址不存在");
         BeanUtils.copyProperties(editParam, model);
+        model.setIsDeliveryAddress((Integer) editParam.getIsDeliveryAddress());
+        model.setIsRefundAddress((Integer) editParam.getIsRefundAddress());
+        model.setIsDefaultDelivery((Integer) editParam.getIsDefaultDelivery());
+        model.setIsDefaultRefund((Integer) editParam.getIsDefaultRefund());
 
-        if (editParam.getIsDefaultDelivery().equals(1)) {
+        Integer isDefaultDelivery = (Integer) editParam.getIsDefaultDelivery();
+        if (isDefaultDelivery != null && isDefaultDelivery.equals(1)) {
             SiteAddress updateModel = new SiteAddress();
             updateModel.setIsDefaultDelivery(0);
             siteAddressMapper.update(updateModel, new QueryWrapper<SiteAddress>().eq("site_id", RequestUtils.siteId()).ne("is_default_delivery", 0));
         }
-        if (editParam.getIsDefaultRefund().equals(1)) {
+        Integer isDefaultRefund = (Integer) editParam.getIsDefaultRefund();
+        if (isDefaultRefund != null && isDefaultRefund.equals(1)) {
             SiteAddress updateModel = new SiteAddress();
             updateModel.setIsDefaultRefund(0);
             siteAddressMapper.update(updateModel, new QueryWrapper<SiteAddress>().eq("site_id", RequestUtils.siteId()).ne("is_default_refund", 0));
@@ -182,6 +202,55 @@ public class SiteAddressServiceImpl implements ISiteAddressService {
     @Override
     public List<SiteAddressListVo> refundAddress() {
         return CollectUtils.convert(siteAddressMapper.selectList(new QueryWrapper<SiteAddress>().eq("is_refund_address", 1).eq("site_id", RequestUtils.siteId())), SiteAddressListVo.class);
+    }
+
+    /**
+     * 规范化布尔字段：处理布尔值转整数，确保Integer字段不为null，默认值为0
+     */
+    private void normalizeBooleanFields(SiteAddressParam param) {
+        // 处理 isDeliveryAddress
+        if (param.getIsDeliveryAddress() == null) {
+            param.setIsDeliveryAddress(0);
+        } else if (param.getIsDeliveryAddress() instanceof Boolean) {
+            param.setIsDeliveryAddress(((Boolean) param.getIsDeliveryAddress()) ? 1 : 0);
+        } else if (param.getIsDeliveryAddress() instanceof Number) {
+            param.setIsDeliveryAddress(((Number) param.getIsDeliveryAddress()).intValue());
+        } else {
+            param.setIsDeliveryAddress(0);
+        }
+        
+        // 处理 isRefundAddress
+        if (param.getIsRefundAddress() == null) {
+            param.setIsRefundAddress(0);
+        } else if (param.getIsRefundAddress() instanceof Boolean) {
+            param.setIsRefundAddress(((Boolean) param.getIsRefundAddress()) ? 1 : 0);
+        } else if (param.getIsRefundAddress() instanceof Number) {
+            param.setIsRefundAddress(((Number) param.getIsRefundAddress()).intValue());
+        } else {
+            param.setIsRefundAddress(0);
+        }
+        
+        // 处理 isDefaultDelivery
+        if (param.getIsDefaultDelivery() == null) {
+            param.setIsDefaultDelivery(0);
+        } else if (param.getIsDefaultDelivery() instanceof Boolean) {
+            param.setIsDefaultDelivery(((Boolean) param.getIsDefaultDelivery()) ? 1 : 0);
+        } else if (param.getIsDefaultDelivery() instanceof Number) {
+            param.setIsDefaultDelivery(((Number) param.getIsDefaultDelivery()).intValue());
+        } else {
+            param.setIsDefaultDelivery(0);
+        }
+        
+        // 处理 isDefaultRefund
+        if (param.getIsDefaultRefund() == null) {
+            param.setIsDefaultRefund(0);
+        } else if (param.getIsDefaultRefund() instanceof Boolean) {
+            param.setIsDefaultRefund(((Boolean) param.getIsDefaultRefund()) ? 1 : 0);
+        } else if (param.getIsDefaultRefund() instanceof Number) {
+            param.setIsDefaultRefund(((Number) param.getIsDefaultRefund()).intValue());
+        } else {
+            param.setIsDefaultRefund(0);
+        }
     }
 
 }

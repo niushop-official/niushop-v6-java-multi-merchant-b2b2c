@@ -27,6 +27,8 @@
                 </el-form>
             </div>
         </div>
+        <!-- 验证组件 -->
+    	<verify @success="success"   :captchaType="configStore.login.captcha_type" :imgSize="{ width: '330px', height: '155px' }" ref="verifyRef"></verify>
     </div>
 </template>
 
@@ -37,11 +39,15 @@ import { bindMobile } from '@/app/api/member'
 import useMemberStore from '@/stores/member'
 import { FormInstance } from 'element-plus'
 import { useRouter } from 'vue-router'
+import useConfigStore from '@/stores/config'
+import verify from '@/components/verifition/Verify.vue'
+
 definePageMeta({
     layout: "container"
 });
 let router = useRouter()
 const memberStore = useMemberStore()
+const configStore = useConfigStore()
 const info = computed(() => memberStore.info)
 const loading = ref(false)
 const formData = reactive({
@@ -98,6 +104,13 @@ const handleRegister = async () => {
     })
 }
 
+// 验证码 - start
+const verifyRef = ref<any>(null)
+const success = (params: any) => {
+    smsCodeRef.value?.send({captcha_code: params.captchaVerification})
+}
+// 验证码 - end
+
 // 验证码
 const captcha = useCaptcha(formData)
 captcha.refresh()
@@ -107,7 +120,7 @@ const smsCodeRef = ref<AnyObject | null>(null)
 const sendSmsCode = async () => {
     await formRef.value?.validateField('mobile', async (valid, fields) => {
         if (valid) {
-            smsCodeRef.value?.send()
+            verifyRef.value?.show()
         }
     })
 }

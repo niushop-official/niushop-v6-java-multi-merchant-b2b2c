@@ -49,7 +49,7 @@
                     <el-table-column prop="create_time" :label="t('createTime')"></el-table-column>
                     <el-table-column prop="group_roles" :label="t('operation')" align="right" fixed="right" width="130">
                         <template #default="{ row }">
-                            <el-button type="primary" link @click="editEvent(row)" v-if="row.create_by == 'user'">{{ t('edit') }}</el-button>
+                            <el-button type="primary" link @click="editEvent(row)">{{ t('edit') }}</el-button>
                             <el-button type="primary" link @click="deleteEvent(row.group_id)" v-if="row.create_by == 'user'">{{ t('delete') }}</el-button>
                         </template>
                     </el-table-column>

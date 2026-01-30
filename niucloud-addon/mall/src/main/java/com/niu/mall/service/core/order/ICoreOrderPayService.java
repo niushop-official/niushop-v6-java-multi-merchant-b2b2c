@@ -1,5 +1,6 @@
 package com.niu.mall.service.core.order;
 
+import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.service.core.order.param.OrderPayParam;
 
 public interface ICoreOrderPayService {
@@ -18,4 +19,10 @@ public interface ICoreOrderPayService {
      * @param param
      */
     void payOfGroup(OrderPayParam param);
+
+    /**
+     * 订单支付成功
+     *
+     */
+    void orderPayEvent(MallOrder order, String status);
 }

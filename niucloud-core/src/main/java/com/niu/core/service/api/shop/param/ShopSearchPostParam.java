@@ -16,12 +16,14 @@ public class ShopSearchPostParam {
     private String[] siteIds;
     private String keyword;
     private String order;
+    private String sort = "desc";
+    private Integer isOnlyArea = 0;
     private Integer groupId;
-    private List< Integer> categoryId;
+    private Object categoryId;
     private Integer isSelf;
     private Integer isLocalDelivery;
     private Integer isLocation;
-    private List<String> deliveryType;
+    private Object deliveryType;
 
     private PositionInfo position;
     private RegionInfo region;
@@ -30,6 +32,8 @@ public class ShopSearchPostParam {
     public static class PositionInfo{
         private String latitude;
         private String longitude;
+        private Integer cityId;
+        private Integer provinceId;
     }
 
     @Data

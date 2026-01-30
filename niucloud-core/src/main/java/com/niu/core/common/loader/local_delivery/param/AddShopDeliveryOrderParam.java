@@ -23,7 +23,9 @@ public class AddShopDeliveryOrderParam implements Serializable {
     private Map<String, Object> createParam;
 
     private List<OrderGoodsInfo> orderGoodsData;
-
+    private BigDecimal goodsWeight;
+    private String tradeNo;
+    private String tradeType;
     @Data
     public static class OrderDateInfo{
         private Integer orderId;

@@ -14,6 +14,8 @@
             "sort": 110,
             "status": 1,
             "is_show": 1,
+            "support_addon": "",
+            "mount_key": "",
             "children": [
                 {
                     "menu_name": "概况",
@@ -28,7 +30,9 @@
                     "methods": "get",
                     "sort": 100,
                     "status": 1,
-                    "is_show": 1
+                    "is_show": 1,
+                    "support_addon": "",
+                    "mount_key": ""
                 },
                 {
                     "menu_name": "商品管理",
@@ -44,6 +48,8 @@
                     "sort": 90,
                     "status": 1,
                     "is_show": 1,
+                    "support_addon": "",
+                    "mount_key": "",
                     "children": [
                         {
                             "menu_name": "商品列表",
@@ -59,6 +65,8 @@
                             "sort": 90,
                             "status": 1,
                             "is_show": 1,
+                            "support_addon": "",
+                            "mount_key": "",
                             "children": [
                                 {
                                     "menu_name": "商品恢复",
@@ -73,7 +81,9 @@
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 },
                                 {
                                     "menu_name": "修改商品排序号",
@@ -88,7 +98,9 @@
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 },
                                 {
                                     "menu_name": "编辑商品规格列表库存",
@@ -103,7 +115,9 @@
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 },
                                 {
                                     "menu_name": "商品复制",
@@ -118,7 +132,9 @@
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 },
                                 {
                                     "menu_name": "编辑商品规格列表价格",
@@ -133,7 +149,9 @@
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 },
                                 {
                                     "menu_name": "修改商品上下架状态",
@@ -148,7 +166,9 @@
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 }
                             ]
                         },
@@ -165,7 +185,9 @@
                             "methods": "get",
                             "sort": 87,
                             "status": 1,
-                            "is_show": 1
+                            "is_show": 1,
+                            "support_addon": "",
+                            "mount_key": ""
                         },
                         {
                             "menu_name": "回收站",
@@ -180,7 +202,9 @@
                             "methods": "get",
                             "sort": 84,
                             "status": 1,
-                            "is_show": 1
+                            "is_show": 1,
+                            "support_addon": "",
+                            "mount_key": ""
                         },
                         {
                             "menu_name": "分类样式",
@@ -196,6 +220,8 @@
                             "sort": 82,
                             "status": 1,
                             "is_show": 1,
+                            "support_addon": "",
+                            "mount_key": "",
                             "children": [
                                 {
                                     "menu_name": "设置",
@@ -210,69 +236,11 @@
                                     "methods": "post",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 }
                             ]
-                        },
-                        {
-                            "menu_name": "商品编辑",
-                            "menu_short_name": "商品编辑",
-                            "menu_key": "mall_goods_real_edit",
-                            "parent_key": "mall_goods_manage",
-                            "menu_type": 1,
-                            "icon": "",
-                            "api_url": "goods/<id>",
-                            "router_path": "mall/goods/real_edit",
-                            "view_path": "site/goods/real_edit",
-                            "methods": "put",
-                            "sort": 0,
-                            "status": 1,
-                            "is_show": 0
-                        },
-                        {
-                            "menu_name": "商品添加",
-                            "menu_short_name": "商品添加",
-                            "menu_key": "mall_goods_virtual_add",
-                            "parent_key": "mall_goods_manage",
-                            "menu_type": 1,
-                            "icon": "",
-                            "api_url": "",
-                            "router_path": "mall/goods/virtual_edit",
-                            "view_path": "site/goods/virtual_edit",
-                            "methods": "post",
-                            "sort": 0,
-                            "status": 1,
-                            "is_show": 0
-                        },
-                        {
-                            "menu_name": "商品编辑",
-                            "menu_short_name": "商品编辑",
-                            "menu_key": "mall_goods_virtual_edit",
-                            "parent_key": "mall_goods_manage",
-                            "menu_type": 1,
-                            "icon": "",
-                            "api_url": "goods/<id>",
-                            "router_path": "mall/goods/virtual_edit",
-                            "view_path": "site/goods/virtual_edit",
-                            "methods": "put",
-                            "sort": 0,
-                            "status": 1,
-                            "is_show": 0
-                        },
-                        {
-                            "menu_name": "商品添加",
-                            "menu_short_name": "商品添加",
-                            "menu_key": "mall_goods_real_add",
-                            "parent_key": "mall_goods_manage",
-                            "menu_type": 1,
-                            "icon": "",
-                            "api_url": "",
-                            "router_path": "mall/goods/real_edit",
-                            "view_path": "site/goods/real_edit",
-                            "methods": "post",
-                            "sort": 0,
-                            "status": 1,
-                            "is_show": 0
                         },
                         {
                             "menu_name": "商品删除",
@@ -287,7 +255,77 @@
                             "methods": "delete",
                             "sort": 0,
                             "status": 1,
-                            "is_show": 0
+                            "is_show": 0,
+                            "support_addon": "",
+                            "mount_key": ""
+                        },
+                        {
+                            "menu_name": "商品添加",
+                            "menu_short_name": "商品添加",
+                            "menu_key": "mall_goods_real_add",
+                            "parent_key": "mall_goods_manage",
+                            "menu_type": 1,
+                            "icon": "",
+                            "api_url": "",
+                            "router_path": "mall/goods/real_edit",
+                            "view_path": "site/goods/real_edit",
+                            "methods": "post",
+                            "sort": 0,
+                            "status": 1,
+                            "is_show": 0,
+                            "support_addon": "",
+                            "mount_key": ""
+                        },
+                        {
+                            "menu_name": "商品编辑",
+                            "menu_short_name": "商品编辑",
+                            "menu_key": "mall_goods_virtual_edit",
+                            "parent_key": "mall_goods_manage",
+                            "menu_type": 1,
+                            "icon": "",
+                            "api_url": "goods/<id>",
+                            "router_path": "mall/goods/virtual_edit",
+                            "view_path": "site/goods/virtual_edit",
+                            "methods": "put",
+                            "sort": 0,
+                            "status": 1,
+                            "is_show": 0,
+                            "support_addon": "",
+                            "mount_key": ""
+                        },
+                        {
+                            "menu_name": "商品编辑",
+                            "menu_short_name": "商品编辑",
+                            "menu_key": "mall_goods_real_edit",
+                            "parent_key": "mall_goods_manage",
+                            "menu_type": 1,
+                            "icon": "",
+                            "api_url": "goods/<id>",
+                            "router_path": "mall/goods/real_edit",
+                            "view_path": "site/goods/real_edit",
+                            "methods": "put",
+                            "sort": 0,
+                            "status": 1,
+                            "is_show": 0,
+                            "support_addon": "",
+                            "mount_key": ""
+                        },
+                        {
+                            "menu_name": "商品添加",
+                            "menu_short_name": "商品添加",
+                            "menu_key": "mall_goods_virtual_add",
+                            "parent_key": "mall_goods_manage",
+                            "menu_type": 1,
+                            "icon": "",
+                            "api_url": "",
+                            "router_path": "mall/goods/virtual_edit",
+                            "view_path": "site/goods/virtual_edit",
+                            "methods": "post",
+                            "sort": 0,
+                            "status": 1,
+                            "is_show": 0,
+                            "support_addon": "",
+                            "mount_key": ""
                         }
                     ]
                 },
@@ -305,6 +343,8 @@
                     "sort": 80,
                     "status": 1,
                     "is_show": 1,
+                    "support_addon": "",
+                    "mount_key": "",
                     "children": [
                         {
                             "menu_name": "订单列表",
@@ -320,51 +360,25 @@
                             "sort": 90,
                             "status": 1,
                             "is_show": 1,
+                            "support_addon": "",
+                            "mount_key": "",
                             "children": [
                                 {
-                                    "menu_name": "订单项发货",
-                                    "menu_short_name": "订单项发货",
-                                    "menu_key": "mall_order_goods_delivery",
+                                    "menu_name": "订单完成",
+                                    "menu_short_name": "订单完成",
+                                    "menu_key": "mall_order_shop_finish",
                                     "parent_key": "mall_order_list",
                                     "menu_type": 2,
                                     "icon": "",
-                                    "api_url": "mall/site/order/goods/delivery/<id>",
+                                    "api_url": "mall/site/order/finish/<id>",
                                     "router_path": "",
                                     "view_path": "",
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
-                                },
-                                {
-                                    "menu_name": "订单发货",
-                                    "menu_short_name": "订单发货",
-                                    "menu_key": "mall_order_delivery",
-                                    "parent_key": "mall_order_list",
-                                    "menu_type": 2,
-                                    "icon": "",
-                                    "api_url": "mall/site/order/delivery",
-                                    "router_path": "",
-                                    "view_path": "",
-                                    "methods": "put",
-                                    "sort": 12,
-                                    "status": 1,
-                                    "is_show": 1
-                                },
-                                {
-                                    "menu_name": "商家留言",
-                                    "menu_short_name": "商家留言",
-                                    "menu_key": "mall_order_shop_remark",
-                                    "parent_key": "mall_order_list",
-                                    "menu_type": 2,
-                                    "icon": "",
-                                    "api_url": "mall/site/order/shop_remark",
-                                    "router_path": "",
-                                    "view_path": "",
-                                    "methods": "put",
-                                    "sort": 12,
-                                    "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 },
                                 {
                                     "menu_name": "订单关闭",
@@ -379,28 +393,66 @@
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 },
                                 {
-                                    "menu_name": "订单完成",
-                                    "menu_short_name": "订单完成",
-                                    "menu_key": "mall_order_shop_finish",
+                                    "menu_name": "商家留言",
+                                    "menu_short_name": "商家留言",
+                                    "menu_key": "mall_order_shop_remark",
                                     "parent_key": "mall_order_list",
                                     "menu_type": 2,
                                     "icon": "",
-                                    "api_url": "mall/site/order/finish/<id>",
+                                    "api_url": "mall/site/order/shop_remark",
                                     "router_path": "",
                                     "view_path": "",
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
+                                },
+                                {
+                                    "menu_name": "订单项发货",
+                                    "menu_short_name": "订单项发货",
+                                    "menu_key": "mall_order_goods_delivery",
+                                    "parent_key": "mall_order_list",
+                                    "menu_type": 2,
+                                    "icon": "",
+                                    "api_url": "mall/site/order/goods/delivery/<id>",
+                                    "router_path": "",
+                                    "view_path": "",
+                                    "methods": "put",
+                                    "sort": 12,
+                                    "status": 1,
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
+                                },
+                                {
+                                    "menu_name": "订单发货",
+                                    "menu_short_name": "订单发货",
+                                    "menu_key": "mall_order_delivery",
+                                    "parent_key": "mall_order_list",
+                                    "menu_type": 2,
+                                    "icon": "",
+                                    "api_url": "mall/site/order/delivery",
+                                    "router_path": "",
+                                    "view_path": "",
+                                    "methods": "put",
+                                    "sort": 12,
+                                    "status": 1,
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 }
                             ]
                         },
                         {
-                            "menu_name": "退款维权",
-                            "menu_short_name": "退款维权",
+                            "menu_name": "退款售后",
+                            "menu_short_name": "退款售后",
                             "menu_key": "mall_order_refund",
                             "parent_key": "mall_order_manage",
                             "menu_type": 1,
@@ -412,6 +464,8 @@
                             "sort": 89,
                             "status": 1,
                             "is_show": 1,
+                            "support_addon": "",
+                            "mount_key": "",
                             "children": [
                                 {
                                     "menu_name": "订单维权审核",
@@ -426,7 +480,9 @@
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 },
                                 {
                                     "menu_name": "订单维权审核是否确认收货",
@@ -441,7 +497,9 @@
                                     "methods": "put",
                                     "sort": 12,
                                     "status": 1,
-                                    "is_show": 1
+                                    "is_show": 1,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 }
                             ]
                         },
@@ -458,7 +516,9 @@
                             "methods": "get",
                             "sort": 88,
                             "status": 1,
-                            "is_show": 1
+                            "is_show": 1,
+                            "support_addon": "",
+                            "mount_key": ""
                         },
                         {
                             "menu_name": "商品评价",
@@ -474,51 +534,25 @@
                             "sort": 87,
                             "status": 1,
                             "is_show": 1,
+                            "support_addon": "",
+                            "mount_key": "",
                             "children": [
                                 {
-                                    "menu_name": "添加评价",
-                                    "menu_short_name": "添加评价",
-                                    "menu_key": "mall_goods_evaluate_add",
+                                    "menu_name": "评价回复",
+                                    "menu_short_name": "评价回复",
+                                    "menu_key": "mall_goods_evaluate_reply",
                                     "parent_key": "mall_goods_evaluate",
                                     "menu_type": 2,
                                     "icon": "",
-                                    "api_url": "mall/site/goods/evaluate",
-                                    "router_path": "",
-                                    "view_path": "",
-                                    "methods": "post",
-                                    "sort": 0,
-                                    "status": 1,
-                                    "is_show": 0
-                                },
-                                {
-                                    "menu_name": "评价取消置顶",
-                                    "menu_short_name": "评价取消置顶",
-                                    "menu_key": "mall_goods_evaluate_cancel_topping",
-                                    "parent_key": "mall_goods_evaluate",
-                                    "menu_type": 2,
-                                    "icon": "",
-                                    "api_url": "mall/site/goods/evaluate/cancel_topping/<id>",
+                                    "api_url": "mall/site/goods/evaluate/reply/<id>",
                                     "router_path": "",
                                     "view_path": "",
                                     "methods": "put",
                                     "sort": 0,
                                     "status": 1,
-                                    "is_show": 0
-                                },
-                                {
-                                    "menu_name": "评价置顶",
-                                    "menu_short_name": "评价置顶",
-                                    "menu_key": "mall_goods_evaluate_topping",
-                                    "parent_key": "mall_goods_evaluate",
-                                    "menu_type": 2,
-                                    "icon": "",
-                                    "api_url": "mall/site/goods/evaluate/topping/<id>",
-                                    "router_path": "",
-                                    "view_path": "",
-                                    "methods": "put",
-                                    "sort": 0,
-                                    "status": 1,
-                                    "is_show": 0
+                                    "is_show": 0,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 },
                                 {
                                     "menu_name": "评价通过",
@@ -533,37 +567,9 @@
                                     "methods": "put",
                                     "sort": 0,
                                     "status": 1,
-                                    "is_show": 0
-                                },
-                                {
-                                    "menu_name": "评价回复",
-                                    "menu_short_name": "评价回复",
-                                    "menu_key": "mall_goods_evaluate_reply",
-                                    "parent_key": "mall_goods_evaluate",
-                                    "menu_type": 2,
-                                    "icon": "",
-                                    "api_url": "mall/site/goods/evaluate/reply/<id>",
-                                    "router_path": "",
-                                    "view_path": "",
-                                    "methods": "put",
-                                    "sort": 0,
-                                    "status": 1,
-                                    "is_show": 0
-                                },
-                                {
-                                    "menu_name": "删除评价",
-                                    "menu_short_name": "删除评价",
-                                    "menu_key": "mall_goods_evaluate_del",
-                                    "parent_key": "mall_goods_evaluate",
-                                    "menu_type": 2,
-                                    "icon": "",
-                                    "api_url": "mall/site/goods/evaluate/<id>",
-                                    "router_path": "",
-                                    "view_path": "",
-                                    "methods": "delete",
-                                    "sort": 0,
-                                    "status": 1,
-                                    "is_show": 0
+                                    "is_show": 0,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 },
                                 {
                                     "menu_name": "评价拒绝",
@@ -578,24 +584,96 @@
                                     "methods": "put",
                                     "sort": 0,
                                     "status": 1,
-                                    "is_show": 0
+                                    "is_show": 0,
+                                    "support_addon": "",
+                                    "mount_key": ""
+                                },
+                                {
+                                    "menu_name": "删除评价",
+                                    "menu_short_name": "删除评价",
+                                    "menu_key": "mall_goods_evaluate_del",
+                                    "parent_key": "mall_goods_evaluate",
+                                    "menu_type": 2,
+                                    "icon": "",
+                                    "api_url": "mall/site/goods/evaluate/<id>",
+                                    "router_path": "",
+                                    "view_path": "",
+                                    "methods": "delete",
+                                    "sort": 0,
+                                    "status": 1,
+                                    "is_show": 0,
+                                    "support_addon": "",
+                                    "mount_key": ""
+                                },
+                                {
+                                    "menu_name": "评价置顶",
+                                    "menu_short_name": "评价置顶",
+                                    "menu_key": "mall_goods_evaluate_topping",
+                                    "parent_key": "mall_goods_evaluate",
+                                    "menu_type": 2,
+                                    "icon": "",
+                                    "api_url": "mall/site/goods/evaluate/topping/<id>",
+                                    "router_path": "",
+                                    "view_path": "",
+                                    "methods": "put",
+                                    "sort": 0,
+                                    "status": 1,
+                                    "is_show": 0,
+                                    "support_addon": "",
+                                    "mount_key": ""
+                                },
+                                {
+                                    "menu_name": "评价取消置顶",
+                                    "menu_short_name": "评价取消置顶",
+                                    "menu_key": "mall_goods_evaluate_cancel_topping",
+                                    "parent_key": "mall_goods_evaluate",
+                                    "menu_type": 2,
+                                    "icon": "",
+                                    "api_url": "mall/site/goods/evaluate/cancel_topping/<id>",
+                                    "router_path": "",
+                                    "view_path": "",
+                                    "methods": "put",
+                                    "sort": 0,
+                                    "status": 1,
+                                    "is_show": 0,
+                                    "support_addon": "",
+                                    "mount_key": ""
+                                },
+                                {
+                                    "menu_name": "添加评价",
+                                    "menu_short_name": "添加评价",
+                                    "menu_key": "mall_goods_evaluate_add",
+                                    "parent_key": "mall_goods_evaluate",
+                                    "menu_type": 2,
+                                    "icon": "",
+                                    "api_url": "mall/site/goods/evaluate",
+                                    "router_path": "",
+                                    "view_path": "",
+                                    "methods": "post",
+                                    "sort": 0,
+                                    "status": 1,
+                                    "is_show": 0,
+                                    "support_addon": "",
+                                    "mount_key": ""
                                 }
                             ]
                         },
                         {
-                            "menu_name": "维权详情",
-                            "menu_short_name": "维权详情",
-                            "menu_key": "mall_order_refund_detail",
+                            "menu_name": "订单设置",
+                            "menu_short_name": "订单设置",
+                            "menu_key": "mall_order_setting",
                             "parent_key": "mall_order_manage",
                             "menu_type": 1,
-                            "icon": "iconfont iconshangpinguanli",
-                            "api_url": "",
-                            "router_path": "mall/order/refund/detail",
-                            "view_path": "site/order/refund_detail",
+                            "icon": "nc-iconfont nc-icon-dingdanshezhi",
+                            "api_url": "mall/site/order/config",
+                            "router_path": "mall/order/config",
+                            "view_path": "site/order/config",
                             "methods": "get",
                             "sort": 0,
                             "status": 1,
-                            "is_show": 0
+                            "is_show": 1,
+                            "support_addon": "",
+                            "mount_key": ""
                         },
                         {
                             "menu_name": "订单详情",
@@ -610,39 +688,28 @@
                             "methods": "get",
                             "sort": 0,
                             "status": 1,
-                            "is_show": 0
+                            "is_show": 0,
+                            "support_addon": "",
+                            "mount_key": ""
                         },
                         {
-                            "menu_name": "订单设置",
-                            "menu_short_name": "订单设置",
-                            "menu_key": "mall_order_setting",
+                            "menu_name": "维权详情",
+                            "menu_short_name": "维权详情",
+                            "menu_key": "mall_order_refund_detail",
                             "parent_key": "mall_order_manage",
                             "menu_type": 1,
-                            "icon": "nc-iconfont nc-icon-dingdanshezhi",
-                            "api_url": "invoice/setting",
-                            "router_path": "mall/order/config",
-                            "view_path": "site/order/config",
+                            "icon": "iconfont iconshangpinguanli",
+                            "api_url": "",
+                            "router_path": "mall/order/refund/detail",
+                            "view_path": "site/order/refund_detail",
                             "methods": "get",
                             "sort": 0,
                             "status": 1,
-                            "is_show": 1
+                            "is_show": 0,
+                            "support_addon": "",
+                            "mount_key": ""
                         }
                     ]
-                },
-                {
-                    "menu_name": "商品详情",
-                    "menu_short_name": "商品详情",
-                    "menu_key": "supply_select_goods_detail",
-                    "parent_key": "mall",
-                    "menu_type": 1,
-                    "icon": "",
-                    "api_url": "",
-                    "router_path": "supply/select/detail",
-                    "view_path": "site/select_goods/detail",
-                    "methods": "get",
-                    "sort": 0,
-                    "status": 1,
-                    "is_show": 0
                 },
                 {
                     "menu_name": "选品平台",
@@ -657,37 +724,9 @@
                     "methods": "get",
                     "sort": 0,
                     "status": 1,
-                    "is_show": 1
-                },
-                {
-                    "menu_name": "品牌供货商",
-                    "menu_short_name": "品牌供货商",
-                    "menu_key": "supply_select_goods_of_supply",
-                    "parent_key": "mall",
-                    "menu_type": 1,
-                    "icon": "",
-                    "api_url": "",
-                    "router_path": "supply/select/supply",
-                    "view_path": "site/select_goods/supply",
-                    "methods": "get",
-                    "sort": 0,
-                    "status": 1,
-                    "is_show": 0
-                },
-                {
-                    "menu_name": "品牌供应列表",
-                    "menu_short_name": "品牌供货商",
-                    "menu_key": "supply_select_goods_of_list",
-                    "parent_key": "mall",
-                    "menu_type": 1,
-                    "icon": "",
-                    "api_url": "",
-                    "router_path": "supply/select/goods",
-                    "view_path": "site/select_goods/index",
-                    "methods": "get",
-                    "sort": 0,
-                    "status": 1,
-                    "is_show": 0
+                    "is_show": 1,
+                    "support_addon": "[ \"supply\" ]",
+                    "mount_key": ""
                 },
                 {
                     "menu_name": "合作供货商",
@@ -702,7 +741,60 @@
                     "methods": "get",
                     "sort": 0,
                     "status": 1,
-                    "is_show": 1
+                    "is_show": 1,
+                    "support_addon": "[ \"supply\" ]",
+                    "mount_key": ""
+                },
+                {
+                    "menu_name": "品牌供货商",
+                    "menu_short_name": "品牌供货商",
+                    "menu_key": "supply_select_goods_of_supply",
+                    "parent_key": "mall",
+                    "menu_type": 1,
+                    "icon": "",
+                    "api_url": "",
+                    "router_path": "supply/select/supply",
+                    "view_path": "site/select_goods/supply",
+                    "methods": "get",
+                    "sort": 0,
+                    "status": 1,
+                    "is_show": 0,
+                    "support_addon": "[ \"supply\" ]",
+                    "mount_key": ""
+                },
+                {
+                    "menu_name": "选品详情",
+                    "menu_short_name": "选品详情",
+                    "menu_key": "supply_select_goods_detail",
+                    "parent_key": "mall",
+                    "menu_type": 1,
+                    "icon": "",
+                    "api_url": "",
+                    "router_path": "supply/select/detail",
+                    "view_path": "site/select_goods/detail",
+                    "methods": "get",
+                    "sort": 0,
+                    "status": 1,
+                    "is_show": 0,
+                    "support_addon": "[ \"supply\" ]",
+                    "mount_key": ""
+                },
+                {
+                    "menu_name": "供货平台",
+                    "menu_short_name": "供货平台",
+                    "menu_key": "supply_select_goods_of_list",
+                    "parent_key": "mall",
+                    "menu_type": 1,
+                    "icon": "",
+                    "api_url": "",
+                    "router_path": "supply/select/goods",
+                    "view_path": "site/select_goods/index",
+                    "methods": "get",
+                    "sort": 0,
+                    "status": 1,
+                    "is_show": 0,
+                    "support_addon": "[ \"supply\" ]",
+                    "mount_key": ""
                 }
             ]
         },
@@ -719,7 +811,9 @@
             "methods": "get",
             "sort": 99,
             "status": 1,
-            "is_show": 1
+            "is_show": 1,
+            "support_addon": "",
+            "mount_key": ""
         },
         {
             "menu_name": "优惠券",
@@ -734,12 +828,14 @@
             "methods": "get",
             "sort": 90,
             "status": 1,
-            "is_show": 1
+            "is_show": 1,
+            "support_addon": "",
+            "mount_key": ""
         },
         {
             "menu_name": "限时折扣",
             "menu_short_name": "限时折扣",
-            "menu_key": "mall_goods_discount",
+            "menu_key": "shop_goods_discount",
             "parent_key": "goods_marketing",
             "menu_type": 1,
             "icon": "nc-iconfont nc-icon-xianshizhekou",
@@ -750,12 +846,14 @@
             "sort": 89,
             "status": 1,
             "is_show": 1,
+            "support_addon": "",
+            "mount_key": "",
             "children": [
                 {
                     "menu_name": "活动列表",
                     "menu_short_name": "活动列表",
-                    "menu_key": "mall_goods_discount_list",
-                    "parent_key": "mall_goods_discount",
+                    "menu_key": "shop_goods_discount_list",
+                    "parent_key": "shop_goods_discount",
                     "menu_type": 1,
                     "icon": "nc-iconfont nc-icon-huodongliebiao",
                     "api_url": "active/discount",
@@ -765,27 +863,14 @@
                     "sort": 90,
                     "status": 1,
                     "is_show": 1,
+                    "support_addon": "",
+                    "mount_key": "",
                     "children": [
-                        {
-                            "menu_name": "活动删除",
-                            "menu_short_name": "活动删除",
-                            "menu_key": "shop_goods_discount_delete",
-                            "parent_key": "mall_goods_discount_list",
-                            "menu_type": 2,
-                            "icon": "",
-                            "api_url": "active/discount/<active_id>",
-                            "router_path": "",
-                            "view_path": "",
-                            "methods": "delete",
-                            "sort": 0,
-                            "status": 1,
-                            "is_show": 0
-                        },
                         {
                             "menu_name": "活动关闭",
                             "menu_short_name": "活动关闭",
                             "menu_key": "shop_goods_discount_close",
-                            "parent_key": "mall_goods_discount_list",
+                            "parent_key": "shop_goods_discount_list",
                             "menu_type": 2,
                             "icon": "",
                             "api_url": "active/discount/close/<active_id>",
@@ -794,45 +879,34 @@
                             "methods": "put",
                             "sort": 0,
                             "status": 1,
-                            "is_show": 0
+                            "is_show": 0,
+                            "support_addon": "",
+                            "mount_key": ""
+                        },
+                        {
+                            "menu_name": "活动删除",
+                            "menu_short_name": "活动删除",
+                            "menu_key": "shop_goods_discount_delete",
+                            "parent_key": "shop_goods_discount_list",
+                            "menu_type": 2,
+                            "icon": "",
+                            "api_url": "active/discount/<active_id>",
+                            "router_path": "",
+                            "view_path": "",
+                            "methods": "delete",
+                            "sort": 0,
+                            "status": 1,
+                            "is_show": 0,
+                            "support_addon": "",
+                            "mount_key": ""
                         }
                     ]
-                },
-                {
-                    "menu_name": "活动详情",
-                    "menu_short_name": "活动详情",
-                    "menu_key": "shop_goods_discount_detail",
-                    "parent_key": "mall_goods_discount",
-                    "menu_type": 1,
-                    "icon": "",
-                    "api_url": "active/discount/<active_id>",
-                    "router_path": "mall/marketing/discount/detail",
-                    "view_path": "site/marketing/discount/detail",
-                    "methods": "get",
-                    "sort": 0,
-                    "status": 1,
-                    "is_show": 0
-                },
-                {
-                    "menu_name": "编辑限时折扣",
-                    "menu_short_name": "编辑限时折扣",
-                    "menu_key": "shop_goods_discount_edit",
-                    "parent_key": "mall_goods_discount",
-                    "menu_type": 1,
-                    "icon": "",
-                    "api_url": "active/discount/<active_id>",
-                    "router_path": "mall/marketing/discount/edit",
-                    "view_path": "site/marketing/discount/edit",
-                    "methods": "put",
-                    "sort": 0,
-                    "status": 1,
-                    "is_show": 0
                 },
                 {
                     "menu_name": "添加限时折扣",
                     "menu_short_name": "添加限时折扣",
                     "menu_key": "shop_goods_discount_add",
-                    "parent_key": "mall_goods_discount",
+                    "parent_key": "shop_goods_discount",
                     "menu_type": 1,
                     "icon": "",
                     "api_url": "active/discount",
@@ -841,69 +915,45 @@
                     "methods": "post",
                     "sort": 0,
                     "status": 1,
-                    "is_show": 0
+                    "is_show": 0,
+                    "support_addon": "",
+                    "mount_key": ""
+                },
+                {
+                    "menu_name": "编辑限时折扣",
+                    "menu_short_name": "编辑限时折扣",
+                    "menu_key": "shop_goods_discount_edit",
+                    "parent_key": "shop_goods_discount",
+                    "menu_type": 1,
+                    "icon": "",
+                    "api_url": "active/discount/<active_id>",
+                    "router_path": "mall/marketing/discount/edit",
+                    "view_path": "site/marketing/discount/edit",
+                    "methods": "put",
+                    "sort": 0,
+                    "status": 1,
+                    "is_show": 0,
+                    "support_addon": "",
+                    "mount_key": ""
+                },
+                {
+                    "menu_name": "活动详情",
+                    "menu_short_name": "活动详情",
+                    "menu_key": "shop_goods_discount_detail",
+                    "parent_key": "shop_goods_discount",
+                    "menu_type": 1,
+                    "icon": "",
+                    "api_url": "active/discount/<active_id>",
+                    "router_path": "mall/marketing/discount/detail",
+                    "view_path": "site/marketing/discount/detail",
+                    "methods": "get",
+                    "sort": 0,
+                    "status": 1,
+                    "is_show": 0,
+                    "support_addon": "",
+                    "mount_key": ""
                 }
             ]
-        },
-        {
-            "menu_name": "优惠券删除",
-            "menu_short_name": "优惠券删除",
-            "menu_key": "mall_goods_coupon_delete",
-            "parent_key": "goods_marketing",
-            "menu_type": 2,
-            "icon": "",
-            "api_url": "mall/site/goods/coupon/<id>",
-            "router_path": "",
-            "view_path": "",
-            "methods": "delete",
-            "sort": 0,
-            "status": 1,
-            "is_show": 0
-        },
-        {
-            "menu_name": "优惠券领取记录",
-            "menu_short_name": "优惠券领取记录",
-            "menu_key": "mall_goods_coupon_collection",
-            "parent_key": "goods_marketing",
-            "menu_type": 1,
-            "icon": "",
-            "api_url": "",
-            "router_path": "mall/marketing/coupon/collection",
-            "view_path": "site/marketing/coupon/collection",
-            "methods": "get",
-            "sort": 0,
-            "status": 1,
-            "is_show": 0
-        },
-        {
-            "menu_name": "营销中心",
-            "menu_short_name": "营销中心",
-            "menu_key": "mall_goods_marketing_index",
-            "parent_key": "goods_marketing",
-            "menu_type": 1,
-            "icon": "iconfont iconyingxiaozhongxin",
-            "api_url": "",
-            "router_path": "mall/marketing/index",
-            "view_path": "site/marketing/index",
-            "methods": "get",
-            "sort": 0,
-            "status": 1,
-            "is_show": 0
-        },
-        {
-            "menu_name": "优惠券添加",
-            "menu_short_name": "优惠券添加",
-            "menu_key": "mall_goods_coupon_add",
-            "parent_key": "goods_marketing",
-            "menu_type": 1,
-            "icon": "",
-            "api_url": "mall/site/goods/coupon",
-            "router_path": "mall/marketing/coupon/add",
-            "view_path": "site/marketing/coupon/add",
-            "methods": "post",
-            "sort": 0,
-            "status": 1,
-            "is_show": 0
         },
         {
             "menu_name": "优惠券编辑",
@@ -918,7 +968,77 @@
             "methods": "put",
             "sort": 0,
             "status": 1,
-            "is_show": 0
+            "is_show": 0,
+            "support_addon": "",
+            "mount_key": ""
+        },
+        {
+            "menu_name": "优惠券添加",
+            "menu_short_name": "优惠券添加",
+            "menu_key": "mall_goods_coupon_add",
+            "parent_key": "goods_marketing",
+            "menu_type": 1,
+            "icon": "",
+            "api_url": "mall/site/goods/coupon",
+            "router_path": "mall/marketing/coupon/add",
+            "view_path": "site/marketing/coupon/add",
+            "methods": "post",
+            "sort": 0,
+            "status": 1,
+            "is_show": 0,
+            "support_addon": "",
+            "mount_key": ""
+        },
+        {
+            "menu_name": "营销中心",
+            "menu_short_name": "营销中心",
+            "menu_key": "mall_goods_marketing_index",
+            "parent_key": "goods_marketing",
+            "menu_type": 1,
+            "icon": "iconfont iconyingxiaozhongxin",
+            "api_url": "",
+            "router_path": "mall/marketing/index",
+            "view_path": "site/marketing/index",
+            "methods": "get",
+            "sort": 0,
+            "status": 1,
+            "is_show": 0,
+            "support_addon": "",
+            "mount_key": ""
+        },
+        {
+            "menu_name": "优惠券领取记录",
+            "menu_short_name": "优惠券领取记录",
+            "menu_key": "mall_goods_coupon_collection",
+            "parent_key": "goods_marketing",
+            "menu_type": 1,
+            "icon": "",
+            "api_url": "",
+            "router_path": "mall/marketing/coupon/collection",
+            "view_path": "site/marketing/coupon/collection",
+            "methods": "get",
+            "sort": 0,
+            "status": 1,
+            "is_show": 0,
+            "support_addon": "",
+            "mount_key": ""
+        },
+        {
+            "menu_name": "优惠券删除",
+            "menu_short_name": "优惠券删除",
+            "menu_key": "mall_goods_coupon_delete",
+            "parent_key": "goods_marketing",
+            "menu_type": 2,
+            "icon": "",
+            "api_url": "mall/site/goods/coupon/<id>",
+            "router_path": "",
+            "view_path": "",
+            "methods": "delete",
+            "sort": 0,
+            "status": 1,
+            "is_show": 0,
+            "support_addon": "",
+            "mount_key": ""
         }
     ],
     "delete": [

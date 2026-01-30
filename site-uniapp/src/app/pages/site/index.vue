@@ -4,7 +4,7 @@
             <view class="py-[20rpx] flex" @click="redirect({ url: '/app/pages/site/store'})">
                 <up-image  width="88rpx" height="88rpx" radius="16rpx" :src="img(siteInfo.front_end_logo)" model="aspectFill">
                     <template #error>
-                        <image class="w-[88rpx] h-[88rpx] align-middle rounded-[16rpx]" :src="img('addon/wuxinggou/default_shop.png')" mode="aspectFill" />
+                        <image class="w-[88rpx] h-[88rpx] align-middle rounded-[16rpx]" :src="img('addon/mall/site/default_store.png')" mode="aspectFill" />
                     </template>
                 </up-image>
                 <view class="flex-1 ml-[16rpx] flex flex-col justify-between box-border box-border">
@@ -14,7 +14,7 @@
                         <text class="flex-center text-[20rpx] bg-[#9098A3] text-[#fff] px-[8rpx] h-[34rpx] rounded-[6rpx]" v-else>已打烊</text>
                     </view>
                 </view>
-                <view>
+                <view class="self-center">
                     <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[#c4c4c4] font-500"></text>
                 </view>
             </view> 
@@ -62,10 +62,14 @@ const userStore = useUserStore()
 const siteInfo = computed(() => userStore.siteInfo)
 const userInfo = computed(() => userStore.userInfo)
 
-const centerList = ref([])
+const centerList = ref<any>([])
 const getSiteCenterFn = () => {
     getSiteCenter().then((res:any) => {
         centerList.value = res.data
+        centerList.value.push({
+            name: '素材设置',
+            page: '/app/pages/attachment/config'
+        })
     })
 
 }

@@ -26,6 +26,14 @@
                         <el-form-item :label="t('mobile')" prop="user_mobile">
                             <el-input v-model.trim="formData.user_mobile" clearable   :placeholder="t('mobilePlaceholder')"/>
                         </el-form-item>
+                        <el-form-item :label="t('验证码')" prop="mobile_code">
+                            <el-input v-model="formData.mobile_code" :placeholder="t('codePlaceholder')">
+								<template #suffix>
+									<sms-code :mobile="formData.user_mobile" type="merchant_settled" v-model="formData.mobile_key"
+										@click="sendSmsCode" ref="smsCodeRef"></sms-code>
+								</template>
+							</el-input>
+                        </el-form-item>
                         <el-form-item :label="t('shopCategory')" prop="category_id">
                             <el-select class="w-full" v-model="formData.category_id" clearable  :placeholder="t('shopCategoryPlaceholder')">
                                 <el-option v-for="(item, index) in shopCategoryList" :key="index" :label="item.category_name" :value="item.category_id"/>
@@ -36,12 +44,6 @@
                                 <el-option v-for="(item, index) in siteGroupList" :key="index" :label="item.group_name" :value="item.group_id"/>
                             </el-select>
                         </el-form-item >
-						<el-form-item :label="t('account')" prop="account">
-							<el-input v-model.trim="formData.account" clearable  :placeholder="t('accountPlaceholder')" maxlength="20" :inline-message="true" />
-						</el-form-item>
-						<el-form-item :label="t('password')" prop="password">
-							<el-input v-model.trim="formData.password" clearable  :placeholder="t('passwordPlaceholder')" maxlength="20" :show-password="true" />
-						</el-form-item>
                         <el-form-item :label="t('businessLicense')" prop="business_license">
                             <div>
                                 <div class="text-[12px] text-[#666] leading-[40px]">请上传营业执照及行业相关资质证明图片</div>
@@ -63,23 +65,8 @@
                 </div>
             </div>
         </div>
-		
-		
-		 <el-dialog
-		    v-model="dialogVisible"
-		    title="提示"
-		    width="500"
-		  >
-		    <span>当前登录账号已存在，是否继续使用当前账号进行商户入驻</span>
-		    <template #footer>
-		      <div class="dialog-footer">
-		        <el-button @click="closediaolog">取消</el-button>
-		        <el-button type="primary" @click="submitNest">
-		          确认
-		        </el-button>
-		      </div>
-		    </template>
-		  </el-dialog>
+        <!-- 验证组件 -->
+    	<verify @success="success"  :captchaType="configStore.login.captcha_type" :imgSize="{ width: '330px', height: '155px' }" ref="verifyRef"></verify>
     </div>
 </template>
 
@@ -88,11 +75,15 @@ import { ref, reactive, computed } from 'vue'
 import { getShopCategory, getSiteGroup, setShopApply,getShopApply, editShopApply,checkhaveAccount} from '@/addon/mall/api/merchant'
 import { useRouter,useRoute } from 'vue-router'
 import { ArrowRight } from '@element-plus/icons-vue'
+import { FormInstance } from 'element-plus'
+import useConfigStore from '@/stores/config'
+import verify from '@/components/verifition/Verify.vue'
+
+const configStore = useConfigStore()
 
 const router = useRouter()
 const route = useRoute()
 const loading = ref(false)
-const dialogVisible = ref(false)
 /**
  * 表单数据
  */
@@ -101,18 +92,18 @@ const dialogVisible = ref(false)
     site_name: '',
     user_name: '',
     user_mobile: '',
+    mobile_code: '',
+    mobile_key: '',
     category_id: '',
     group_id:'',
 	business_license:'',
     agree: false,
     refuse_reason:'',
-	account:'',
-	password:'',
 	uid:''
 }
 const formData = reactive({ ...initialFormData })
 
-const formRef = ref(null)
+const formRef = ref<FormInstance>()
 // 表单验证规则
 const formRules = computed(() => {
     return {
@@ -122,15 +113,12 @@ const formRules = computed(() => {
         user_name: [
             { required: true, message: t('userNamePlaceholder'), trigger: 'blur' }
         ],
-		account: [
-		    { required: true, message: t('accountPlaceholder'), trigger: 'blur' }
-		],
-		password: [
-		    { required: true, message: t('passwordPlaceholder'), trigger: 'blur' }
-		],
         user_mobile: [
             { required: true, message: t('mobilePlaceholder'), trigger: 'blur' },
             { required: true, validator: validatePhone, trigger: 'blur' }
+        ],
+        mobile_code: [
+            { required: true, message: t('请输入验证码'), trigger: 'blur' }
         ],
         category_id: [
             { required: true, message: t('shopCategoryPlaceholder'), trigger: 'blur' }
@@ -190,15 +178,8 @@ const getShopApplyFn = (id) =>{
 if(route.query.apply_id){
     getShopApplyFn(route.query.apply_id)
 }
-const closediaolog = () =>{
-	dialogVisible.value = false
-	formData.uid = 0
-	formData.account = ''
-	loading.value = false
-	formData.password = ''
-}
 // 提交申请
-const confirm = async (formEl) => {
+const confirm = async (formEl: any) => {
     if (loading.value || !formEl) return
     await formEl.validate(async (valid) => {
         if (valid) {
@@ -207,27 +188,18 @@ const confirm = async (formEl) => {
                 return
             }
             loading.value = true
-			checkhaveAccount({account:formData.account}).then((res)=>{
-				if(res.data.uid){
-					dialogVisible.value = true
-					formData.uid = res.data.uid
-				}else{
-					submitNest()
-				}
-			})
-           
+			submitNest()
         }
     })
 }
 
 const submitNest = () =>{
 	const api =  formData.apply_id ? editShopApply : setShopApply
-	formData.password = formData.uid ? '' : formData.password
 	api(formData).then(res => {
 	     loading.value = false
 	     for(let key in formData){
-	         if(formData[key] != undefined && key == 'agree') formData[key] = false
-	         formData[key] = ''
+	        if(formData[key] != undefined && key == 'agree') formData[key] = false
+	        formData[key] = ''
 	     }
 	     router.push({ path: '/member/merchant_record' })
 	 }).catch(() => {
@@ -242,6 +214,23 @@ const toLink = () =>{
         query: { key: 'shop_apply' }
     })
     window.open(url.href) 
+}
+
+
+// 验证码 - start
+const verifyRef = ref<any>(null)
+const success = (params: any) => {
+    smsCodeRef.value?.send({captcha_code: params.captchaVerification})
+}
+// 验证码 - end
+
+const smsCodeRef = ref<AnyObject | null>(null)
+const sendSmsCode = async () => {
+	await formRef.value?.validateField('user_mobile', async (valid, fields) => {
+		if (valid) {
+			verifyRef.value?.show()
+		}
+	})
 }
 </script>
 

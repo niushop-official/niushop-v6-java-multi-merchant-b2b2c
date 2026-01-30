@@ -22,6 +22,7 @@ import com.niu.core.service.core.notice.ICoreNoticeService;
 import com.niu.core.service.core.notice.vo.AddonNoticeListVo;
 import com.niu.core.service.core.notice.vo.NoticeInfoVo;
 import com.niu.core.service.core.site.ICoreSiteService;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 /**
  * 消息管理服务层
  */
+@Log4j2
 @Service
 public class CoreNoticeServiceImpl implements ICoreNoticeService {
 
@@ -63,7 +65,7 @@ public class CoreNoticeServiceImpl implements ICoreNoticeService {
 
     @Override
     public Map<String, NoticeInfoVo> getList(Integer siteId, String[] keys) {
-        QueryWrapper queryWrapper = new QueryWrapper<SysNotice>();
+        QueryWrapper<SysNotice> queryWrapper = new QueryWrapper<SysNotice>();
         queryWrapper.eq("site_id", siteId);
         if (ObjectUtil.isNotEmpty(keys)) queryWrapper.in("`key`", keys);
 
@@ -93,7 +95,6 @@ public class CoreNoticeServiceImpl implements ICoreNoticeService {
             if (notice.getSupport_type().contains("weapp")) vo.setWeapp(notice.getSupport_type_map().get("weapp"));
             list.put(noticeMap.getKey(), vo);
         }
-
         return list;
     }
 
@@ -171,7 +172,14 @@ public class CoreNoticeServiceImpl implements ICoreNoticeService {
         }
 
         noticeAddonList.sort((a, b) -> a.getKey().compareTo(b.getKey()));
-
+        //修改系统 配置放到第一位
+        for (int i = 0; i < list.size(); i++) {
+            if ("system".equals(noticeAddonList.get(i).getKey())) {
+                AddonNoticeListVo systemItem = noticeAddonList.remove(i);
+                noticeAddonList.add(0, systemItem);
+                break;
+            }
+        }
         return noticeAddonList;
     }
 

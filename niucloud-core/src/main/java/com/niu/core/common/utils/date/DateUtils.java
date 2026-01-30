@@ -12,6 +12,8 @@ import java.util.Date;
  */
 public class DateUtils {
 
+    public static final String STANDARD_DATE = "yyyy-MM-dd";
+
     /**
      * 时间戳转化成时间格式
      *
@@ -81,6 +83,14 @@ public class DateUtils {
     public static long currTime() {
 
         return System.currentTimeMillis() / 1000;
+    }
+
+    /**
+     * 将时间戳转为无时分秒的字符串
+     * @return
+     */
+    public static String timestampToNoHMS(long timestamp) {
+        return DateUtil.format(new Date(timestamp * 1000), STANDARD_DATE);
     }
 
     /**

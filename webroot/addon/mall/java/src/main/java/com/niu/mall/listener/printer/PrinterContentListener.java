@@ -95,7 +95,7 @@ public class PrinterContentListener extends AbstractPrinterContentCallbackListen
         Order order = new Order();
         BeanUtils.copyProperties(shopOrder, order);
         order.setMember(memberMapper.selectById(shopOrder.getMemberId()));
-        order.setStatusName(OrderStatusEnum.getNameByStatus(Integer.parseInt(shopOrder.getStatus())));
+        order.setStatusName(OrderStatusEnum.getNameByStatus(Integer.parseInt(shopOrder.getStatus()), shopOrder.getOrderType()));
 
         List<OrderGoods> orderGoodsList = mallOrderGoods.stream().map(goods -> {
             OrderGoods orderGoods = new OrderGoods();

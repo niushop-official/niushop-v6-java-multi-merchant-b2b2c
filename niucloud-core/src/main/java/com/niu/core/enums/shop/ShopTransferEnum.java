@@ -13,7 +13,7 @@ public enum ShopTransferEnum {
     BANK("bank", "银行卡", false,1),
     ALIPAY("alipay", "支付宝", false,2),
     WECHAT_CODE("wechat_code", "微信收款码", false,3),
-    WECHAT("wechat", "微信", true,4);
+    WECHAT("wechatpay", "微信", true,4);
 
     private final String key;
 
@@ -53,6 +53,12 @@ public enum ShopTransferEnum {
     public static String getNameByTag(Integer tag) {
         ShopTransferEnum anEnum = getMapByTag().get(tag);
         return anEnum != null ? anEnum.getName() : "未知";
+    }
+
+    // 按 tag 获取名称
+    public static String getKeyByTag(Integer tag) {
+        ShopTransferEnum anEnum = getMapByTag().get(tag);
+        return anEnum != null ? anEnum.getKey() : "";
     }
     // 按 tag 查询
     public static Map<Integer, ShopTransferEnum> getMapByTag() {

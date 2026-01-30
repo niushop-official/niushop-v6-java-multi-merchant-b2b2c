@@ -6,16 +6,19 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.niu.core.common.utils.CollectUtils;
 import com.niu.core.entity.site.SitePayment;
 import com.niu.core.entity.site.SitePaymentApply;
 import com.niu.core.enums.sys.SeparTypeEnum;
 import com.niu.core.mapper.site.SitePaymentApplyMapper;
 import com.niu.core.mapper.site.SitePaymentMapper;
 import com.niu.core.service.core.site_payment.ICoreSitePaymentService;
+import com.niu.core.service.core.site_payment.vo.SitePaymentListVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -46,6 +49,14 @@ public class CoreSitePaymentServiceImpl implements ICoreSitePaymentService {
             }
         }
         return paymentTypes;
+    }
+
+    @Override
+    public List<SitePaymentListVo> getList(Integer isSettle) {
+        QueryWrapper<SitePayment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("is_settle", isSettle) ;
+        queryWrapper.orderByDesc("id");
+        return CollectUtils.convert(sitePaymentMapper.selectList(queryWrapper), SitePaymentListVo.class);
     }
 
     @Override

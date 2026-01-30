@@ -18,8 +18,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Resource;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -65,22 +68,24 @@ public class CorePayChannelServiceImpl implements ICorePayChannelService {
         List<PayTypeVo> list = new LinkedList<>();
 
         List<PayChannel> payChannelList = payChannelMapper.selectList(new QueryWrapper<PayChannel>()
-                .select("site_id, type, config")
+                .select("site_id, type, config,channel")
                 .eq("status", 1)
                 .eq("channel", channel));
-
+        List<String> typeList = new ArrayList<>();
         for (PayChannel item : payChannelList) {
             if (item.getConfig().isEmpty()) continue;
             PayTypeVo type = corePayService.driver(channel, item.getType()).filterPayTypeByTradeType(tradeType);
-            if (type == null) {
-                throw new IllegalArgumentException("未找到对应的支付类型: channel=" + channel + ", type=" + item.getType() + ", tradeType=" + tradeType);
-            }
             if (type != null) {
                 type.setConfig(item.getConfig());
                 list.add(type);
             }
+            if (type == null){
+                typeList.add(item.getType());
+            }
         }
-
+        if (list.isEmpty()){
+            throw new IllegalArgumentException("未找到对应的支付类型: channel=" + channel + ", type=" + String.join(", ", typeList) + ", tradeType=" + tradeType);
+        }
         return list;
     }
 

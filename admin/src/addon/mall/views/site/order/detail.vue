@@ -89,7 +89,7 @@
 						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="finish" v-if="formData.status == 3">{{ t('finish') }}</span>
 						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="printTicketEvent" v-if="formData.delivery_type == 'virtual' && (formData.status == 2 || formData.status == 3 || formData.status == 5)">{{ t('printTicket') }}</span>
 						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="orderEditAddressFn" v-if="(formData.status == 1 || formData.status == 2) && formData.delivery_type != 'virtual' && formData.delivery_type!='store'">{{ t('editAddress') }}</span>
-						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="refundEvent" v-if="formData.is_refund_show && formData.status != 1 && formData.status != -1">{{ t('voluntaryRefund') }}</span>
+						<span class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#5c96fc] bg-[#ebf3ff] cursor-pointer" @click="refundEvent" v-if="formData.is_refund_show && formData.status != 1 && formData.status != -1 && formData.status != 6">{{ t('voluntaryRefund') }}</span>
 						<div class="flex" v-if="formData.order_delivery">
 							<template v-for="(item, index) in formData.order_delivery" :key="index">
 								<span v-if="item.delivery_type == 'express' && item.sub_delivery_type == 'express'" class="text-[14px] px-[15px] py-[5px] ml-[30px] text-[#ff7f5b] bg-[#fff0e5] cursor-pointer" @click="packageEvent(item.id, formData.taker_mobile)">{{ t('package') }}{{ index + 1 }}</span>
@@ -177,7 +177,7 @@
 					<el-table-column  v-if="formData.is_refund_status_show" :label="t('refundState')" min-width="50" align="left">
 						<template #default="{ row }">
 							<div class="cursor-pointer flex items-center flex-wrap"  v-if="row.status != 1" @click.stop="refundEventLink(row)" >
-								<span class="mr-[3px] text-[13px]">退款金额￥{{ row.apply_money }}</span>
+								<span class="mr-[3px] text-[13px]">退款金额￥{{ Number(row.refund_money) ? row.refund_money : row.apply_money }}</span>
 								<div class="text-[var(--el-color-primary)] text-[13px]">{{ row.status_name || '--' }}
 									<span class="iconfont iconxiangyoujiantou !text-[10px] text-[#888]"></span>
 								</div>

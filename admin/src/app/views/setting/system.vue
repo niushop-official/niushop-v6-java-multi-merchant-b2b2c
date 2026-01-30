@@ -42,8 +42,15 @@
                     <el-form-item :label="t('desc')">
                         <el-input v-model="formData.desc" type="textarea" rows="4" clearable :placeholder="t('descPlaceholder')" class="input-width" maxlength="100" show-word-limit />
                     </el-form-item>
-                    </el-card>
-                    <el-card class="box-card !border-none" shadow="never" v-if="appType == 'admin'">
+
+                    <el-form-item :label="t('siteDomain')">
+                        <div>
+                            <el-input v-model="formData.site_domain" :placeholder="t('siteDomainPlaceholder')" class="input-width" clearable  />
+                            <div class="text-[#999] text-[12px]">{{ t('siteDomainTips') }}</div>
+                        </div>
+                    </el-form-item>
+                </el-card>
+                <el-card class="box-card !border-none" shadow="never" v-if="appType == 'admin'">
                     <h3 class="panel-title !text-sm">{{ t('serviceInformation') }}</h3>
                     <el-form-item :label="t('contactsTel')">
                         <el-input v-model="formData.tel" :placeholder="t('contactsTelPlaceholder')" class="input-width" clearable maxlength="20" show-word-limit />
@@ -99,7 +106,8 @@ const formData = reactive<Record<string, string>>({
     icon: '',
     wechat_code: '',
     enterprise_wechat: '',
-    tel: ''
+    tel: '',
+    site_domain: ''
 })
 
 const setFormData = async (id: number = 0) => {

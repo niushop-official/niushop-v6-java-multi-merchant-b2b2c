@@ -36,10 +36,7 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -132,9 +129,14 @@ public class GoodsServiceServiceImpl implements IGoodsServiceService {
                     .or(j-> j.like("ns.keywords", searchParam.getKeyword()))
             );
         }
-        if(ObjectUtil.isNotEmpty(searchParam.getCategoryId()))
-        {
-            queryWrapper.in("nss.category_id", searchParam.getCategoryId());
+        if(ObjectUtil.isNotEmpty(searchParam.getCategoryId())) {
+            Integer[] categoryId = null;
+            if (searchParam.getCategoryId() instanceof Integer) {
+                categoryId = new Integer[]{(Integer) searchParam.getCategoryId()};
+            } else if (searchParam.getCategoryId() instanceof ArrayList) {
+                categoryId = ((ArrayList<?>) searchParam.getCategoryId()).toArray(new Integer[0]);
+            }
+            queryWrapper.in("nss.category_id", categoryId);
         }
         if(ObjectUtil.isNotEmpty(searchParam.getGroupId()))
         {
@@ -150,26 +152,39 @@ public class GoodsServiceServiceImpl implements IGoodsServiceService {
         queryWrapper.ne("ns.app_type", "admin");
 
         if (ObjectUtil.isNotEmpty(searchParam.getDeliveryType())){
-            if(searchParam.getDeliveryType().contains(DeliveryTypeEnum.EXPRESS.getType())){
+            List<String> deliveryType = new ArrayList<>();
+            if (searchParam.getDeliveryType() instanceof String) {
+                deliveryType.add(searchParam.getDeliveryType().toString());
+            } else if (searchParam.getDeliveryType() instanceof ArrayList) {
+                deliveryType = (List<String>) searchParam.getDeliveryType();
+            }
+            if(deliveryType.contains(DeliveryTypeEnum.EXPRESS.getType())){
                 queryWrapper.eq("ns.is_express","1");
             }
-            if(searchParam.getDeliveryType().contains(DeliveryTypeEnum.LOCAL_DELIVERY.getType())){
+            if(deliveryType.contains(DeliveryTypeEnum.LOCAL_DELIVERY.getType())){
                 queryWrapper.eq("ns.is_local_delivery", "1");
             }
-            if(searchParam.getDeliveryType().contains(DeliveryTypeEnum.STORE.getType())){
+            if(deliveryType.contains(DeliveryTypeEnum.STORE.getType())){
                 queryWrapper.eq("ns.is_store", "1");
             }
         }
 
-        List<String> orders = Arrays.asList("mall_sale_num", "distance");
+        //是否仅显示
+        if (searchParam.getIsOnlyArea() > 0 && ObjectUtil.isNotEmpty(searchParam.getPosition()) && searchParam.getPosition().getProvinceId() != null && searchParam.getPosition().getCityId() != null){
+            queryWrapper.eq("ns.province_id", searchParam.getPosition().getProvinceId());
+            queryWrapper.eq("ns.city_id", searchParam.getPosition().getCityId());
+        }
+
+        List<String> orders = Arrays.asList("mall_sale_num", "create_time", "distance");
         if (ObjectUtil.isNotEmpty(searchParam.getOrder()) && orders.contains(searchParam.getOrder())){
             switch (searchParam.getOrder()){
+                case "create_time":
                 case "mall_sale_num":
-                    queryWrapper.orderByDesc(searchParam.getOrder());
+                    queryWrapper.orderBy(true,"asc".equals(searchParam.getSort()), searchParam.getOrder());
                     break;
                 case "distance":
                     if(ObjectUtil.isNotEmpty(searchParam.getPosition()) && searchParam.getPosition().getLatitude() != null && searchParam.getPosition().getLongitude() != null && deliveryConfig.getIsShow() == 1){
-                        queryWrapper.orderByAsc("distance");
+                        queryWrapper.orderBy(true,"asc".equals(searchParam.getSort()),"distance");
                     }else{
                         queryWrapper.orderByDesc("nss.mall_up_num");
                         queryWrapper.orderByDesc("nss.follow_number");

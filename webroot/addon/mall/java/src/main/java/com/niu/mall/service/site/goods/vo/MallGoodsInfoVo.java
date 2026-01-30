@@ -27,7 +27,6 @@ public class MallGoodsInfoVo implements Serializable {
     private String unit;  // 单位
     private Integer stock;  // 商品库存（总和）
     private Integer saleNum;  // 销量
-    private Integer virtualSaleNum;  // 虚拟销量
     private Integer status;  // 商品状态（1.正常0下架）
     private Integer sort;  // 排序
     private String deliveryType;  // 支持的配送方式

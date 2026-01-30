@@ -9,6 +9,7 @@ import com.niu.core.service.admin.stat.param.SysStatSearchParam;
 import com.niu.core.service.admin.stat.vo.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import jdk.jfr.Description;
 
 import jakarta.annotation.Resource;
 
@@ -54,7 +55,16 @@ public class StatController {
         return Result.success(statService.financeAccountsTotal(param));
     }
 
-
+    /**
+     * 账单详情
+     * @param param 包含日期和类型参数（date: 日期，type: 账单类型 day 日账单 month 月账单）
+     * @return 账单详情数据
+     */
+    @Description("账单详情")
+    @GetMapping("/finance/accounts/detail")
+    public Result<SysStatListVo> financeAccountsDetail(@Validated SysStatSearchParam param) {
+        return Result.success(statService.financeAccountsDetail(param));
+    }
 
     /**
      * 详情

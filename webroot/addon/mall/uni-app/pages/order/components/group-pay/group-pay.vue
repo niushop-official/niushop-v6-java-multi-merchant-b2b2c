@@ -76,7 +76,7 @@ const open = (data,row) => {
 }
 const payRef = ref(null)
 const confirm = ()=>{
-    payRef.value?.open(orderData.value.order_type, currentData.value.group_id, `/addon/mall/pages/order/detail?order_id=${orderData.value.order_id}`);
+    payRef.value?.open('mall', currentData.value.group_id, `/addon/mall/pages/order/detail?order_id=${orderData.value.order_id}`);
 }
  defineExpose({
     open

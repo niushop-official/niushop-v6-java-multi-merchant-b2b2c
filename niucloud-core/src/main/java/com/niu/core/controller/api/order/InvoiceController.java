@@ -3,6 +3,9 @@ package com.niu.core.controller.api.order;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
+import com.niu.core.common.loader.pay.param.PayParam;
+import com.niu.core.enums.basic.InvoiceContentEnum;
+import com.niu.core.service.api.order.param.InvoiceApplyParam;
 import com.niu.core.service.api.order.param.InvoiceSearchParam;
 import com.niu.core.service.api.order.vo.InvoiceInfoVo;
 import com.niu.core.service.api.order.vo.InvoiceListVo;
@@ -46,6 +49,23 @@ public class InvoiceController {
         InvoiceInfoVo info = invoiceService.getInfo(id);
         return Result.success(info);
     }
+
+    /**
+     * 开票
+     */
+    @PostMapping("/invoice/apply")
+    public Result<Boolean> apply(@Validated @RequestBody InvoiceApplyParam param) {
+        invoiceService.apply(param);
+        return Result.success(true);
+    }
+
+    /**
+     * 发票内容列表
+     *
+     * @return
+     */
+    @GetMapping("/invoice/content/list")
+    public Result contentList() {  return Result.success(InvoiceContentEnum.getMap()); }
 
     /**
      * 发票详情

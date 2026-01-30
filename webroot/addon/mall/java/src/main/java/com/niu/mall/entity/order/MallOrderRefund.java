@@ -40,5 +40,5 @@ public class MallOrderRefund implements Serializable {
     private BigDecimal refundCommission; // 退还佣金
     private Integer supplyId; // 供应商id
     private Integer supplyRefundId; // 供应商退款id
-
+    private String weappVersion;//小程序类型，developer为开发版；trial为体验版；formal为正式版；默认为正式版
 }

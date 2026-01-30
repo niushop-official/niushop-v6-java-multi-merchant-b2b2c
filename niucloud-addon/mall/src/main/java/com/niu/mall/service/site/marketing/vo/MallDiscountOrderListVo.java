@@ -35,6 +35,7 @@ public class MallDiscountOrderListVo implements Serializable {
     private String takerFullAddress;
     private Map<String, Object> orderStatusData;
     private String type;
+    private String orderType;
     private String typeName;
     private Pay pay;
 
@@ -55,6 +56,6 @@ public class MallDiscountOrderListVo implements Serializable {
     }
 
     public Map<String, Object> getOrderStatusData() {
-        return OrderStatusEnum.getMapByStatus(this.status);
+        return OrderStatusEnum.getMapByStatus(this.status,this.orderType);
     }
 }

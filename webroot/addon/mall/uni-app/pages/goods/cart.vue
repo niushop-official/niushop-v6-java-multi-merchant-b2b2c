@@ -183,7 +183,7 @@ import { img, redirect } from '@/utils/common'
 import useCartStore from '@/addon/mall/stores/cart'
 import { getCartGoodsList } from '@/addon/mall/api/cart'
 import bindMobile from '@/components/bind-mobile/bind-mobile.vue';
-import {t} from "@/locale";
+import { t } from "@/locale";
 import { useGoods } from '@/addon/mall/hooks/useGoods'
 import nsGoodsRecommend from '@/addon/mall/components/ns-goods-recommend/ns-goods-recommend.vue';
 import { topTabar } from '@/utils/topTabbar';
@@ -230,6 +230,7 @@ const getCartGoodsListFn = () => {
 		})
         isSelectAll.value = false
         allChange()
+        cartStore.isAddCartRecommend = false
     }).catch((err)=>{
 		if(err.code==401){
 			cartList.value = []
@@ -531,7 +532,9 @@ const settlement = () => {
 	}
     let body: any = {}
 	cartList.value.forEach((item: any) => {
-        body[item.site_id] = {}
+        body[item.site_id] = {
+            order_type: 'mall'
+        }
 	})
     for(let key in body){
         cartList.value.forEach((item: any) => {
@@ -604,6 +607,14 @@ let goodsPrice = (data:any) =>{
 	price = data.goodsSku.show_price
 	return price;
 }
+
+watch(
+    () => cartStore.isAddCartRecommend,
+    (newValue, oldValue) => {
+        if(newValue){
+            getCartGoodsListFn()
+        }
+    })
 
 </script>
 <style lang="scss" scoped>

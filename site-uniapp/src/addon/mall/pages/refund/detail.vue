@@ -176,6 +176,8 @@
             </view>
         </u-popup>
         <loading-page :loading="loading"></loading-page>
+        <!-- 提示框 -->
+        <tips-popup ref="tipsRef" />
     </view>
 </template>
 
@@ -337,22 +339,16 @@ const getRefundAddress = () => {
 }
 
 // 确认收货
+const tipsRef = ref<any>(null)
 const deliverEvent = () => {
-    uni.showModal({
-        title: '提示',
-        content: '确定商品收到了吗？',
-        confirmColor: 'var(--primary-color)',
-        success: res => {
-            if (res.confirm) {
-                refundDelivery({
-                    order_refund_no: detail.value.order_refund_no,
-                    is_agree: 1
-                }).then(() => {
-                    orderRefundDetailFn(refundId.value);
-                })
-            }
-        }
-    })
+    tipsRef.value.open('确定商品收到了吗？', () => {
+		refundDelivery({
+            order_refund_no: detail.value.order_refund_no,
+            is_agree: 1
+        }).then(() => {
+            orderRefundDetailFn(refundId.value);
+        })
+	})
 }
 // 拒绝收货
 const deliveryRefuseFormRef = ref<any>(null)

@@ -12,6 +12,18 @@
                     <el-form-item :label="t('isCaptcha')" prop="formData.is_auth_register">
                         <el-switch v-model="formData.is_captcha"/>
                     </el-form-item>
+                    <el-form-item :label="t('验证类型')" prop="captcha_type">
+                        <el-radio-group v-model="formData.captcha_type">
+                            <el-popover placement="bottom" :width="180" trigger="hover" v-for="(item,key) in captchaType" :key="key">
+                                <template #reference>
+                                    <el-radio :label="key">{{ item.name }}</el-radio>
+                                </template>
+                                <div class="flex justify-center">
+                                    <img :src="img(item.example_img)" alt="" class="w-[150px] h-[150px]" />
+                                </div>
+                            </el-popover>
+                        </el-radio-group>
+                    </el-form-item>
 
                     <el-form-item :label="t('bgImg')">
                         <upload-image v-model="formData.bg" />
@@ -25,6 +37,19 @@
 
                     <el-form-item :label="t('isCaptcha')" prop="formData.is_auth_register">
                         <el-switch v-model="formData.is_site_captcha"/>
+                    </el-form-item>
+
+                    <el-form-item :label="t('验证类型')" prop="site_captcha_type">
+                        <el-radio-group v-model="formData.site_captcha_type">
+                            <el-popover placement="bottom" :width="180" trigger="hover" v-for="(item,key) in captchaType" :key="key">
+                                <template #reference>
+                                    <el-radio :label="key">{{ item.name }}</el-radio>
+                                </template>
+                                <div class="flex justify-center">
+                                    <img :src="img(item.example_img)" alt="" class="w-[150px] h-[150px]" />
+                                </div>
+                            </el-popover>
+                        </el-radio-group>
                     </el-form-item>
 
                     <el-form-item :label="t('bgImg')">
@@ -46,6 +71,8 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
+import { img } from '@/utils/common'
+import { getCaptchaType } from '@/app/api/notice'
 import { getConfigLogin, setConfigLogin } from '@/app/api/sys'
 import { FormInstance } from 'element-plus'
 import { useRoute } from 'vue-router'
@@ -59,7 +86,9 @@ const formData = reactive<Record<string, number | string>>({
     is_captcha: 0,
     is_site_captcha: 0,
     bg: '',
-    site_bg: ''
+    site_bg: '',
+    captcha_type: 'blockPuzzle',
+    site_captcha_type: 'blockPuzzle'
 })
 
 const getFormData = async (id: number = 0) => {
@@ -71,6 +100,14 @@ const getFormData = async (id: number = 0) => {
     loading.value = false
 }
 getFormData()
+
+const captchaType = ref()
+const getCaptchaTypeFn = () => {
+    getCaptchaType().then((res: any) => {
+        captchaType.value = res.data
+    })
+}
+getCaptchaTypeFn()
 
 const onSave = async (formEl: FormInstance | undefined) => {
     if (loading.value || !formEl) return

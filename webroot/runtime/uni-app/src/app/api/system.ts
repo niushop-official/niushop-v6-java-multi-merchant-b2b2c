@@ -180,3 +180,17 @@ export function getService() {
 export function getIsshow() {
     return request.get('isshow')
 }
+
+/**
+ * 获取版权信息
+ */
+export function getCopyRight() {
+    return request.get('copyright')
+}
+
+/**
+ * 获取悬浮按钮
+ */
+export function getFabNav() {
+    return request.get('fab/navs')
+}

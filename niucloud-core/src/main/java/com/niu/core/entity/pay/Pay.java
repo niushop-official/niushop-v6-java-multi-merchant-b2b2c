@@ -26,6 +26,9 @@ public class Pay implements Serializable {
     /** 支付会员id */
     private Integer mainId;
 
+    /** 发起支付会员id */
+    private Integer fromMainId;
+
     /** 支付流水号 */
     private String outTradeNo;
 

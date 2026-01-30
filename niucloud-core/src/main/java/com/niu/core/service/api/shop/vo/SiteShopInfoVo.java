@@ -131,10 +131,12 @@ public class SiteShopInfoVo implements Serializable {
     /** 状态名称 */
     private String statusName;
 
+    private String backgroundH5;
+    private String contactName;
     private SiteShop shop;
 
     private MemberInfo memberInfo;
-
+    private BigDecimal distance;
     public String getStatusName() {
         return SiteStatusEnum.getNameByCode(this.status);
     }
@@ -160,7 +162,8 @@ public class SiteShopInfoVo implements Serializable {
         private String categoryName;
 
         private String groupName;
-
+        private String backgroundH5;
+        private String contactName;
     }
 
     @Data

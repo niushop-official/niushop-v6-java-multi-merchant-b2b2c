@@ -2,6 +2,7 @@ package com.niu.core.service.adminapp;
 
 
 import cn.hutool.json.JSONArray;
+import com.niu.core.service.adminapp.param.PstarEditParam;
 
 public interface IAppsService {
 
@@ -22,4 +23,6 @@ public interface IAppsService {
      * @return JSONArray
      */
     JSONArray getAppOfUserCenter();
+
+    Boolean setAppsOfIndex(PstarEditParam param);
 }

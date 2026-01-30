@@ -20,16 +20,15 @@ public class MallRefundRefuse extends BaseNotice {
         MallOrderRefund refund = mallOrderRefundMapper.selectById(refundId);
         MallOrderMapper mallOrderMapper = SpringContext.bean(MallOrderMapper.class);
         MallOrder order = mallOrderMapper.selectById(refund.getOrderId());
-        ICoreSysConfigService coreSysConfigService = SpringContext.bean(ICoreSysConfigService.class);
-        String wapUrl = coreSysConfigService.getSceneDomain().getWapDomain();
+
         Map<String, Object> param = new HashMap<String, Object>();
-        param.put("wechat_page", wapUrl + "/addon/mall/pages/refund/detail?order_refund_no="+refund.getOrderRefundNo());
-        param.put("weapp_page", "/addon/mall/pages/refund/detail?order_refund_no="+refund.getOrderRefundNo());
+        param.put("wechat_page", "/addon/mall/pages/refund/detail?order_refund_no="+refund.getOrderRefundNo());
+        param.put("weapp_page", "addon/mall/pages/refund/detail?order_refund_no="+refund.getOrderRefundNo());
         param.put("order_refund_no", refund.getOrderRefundNo());
         param.put("order_no", order.getOrderNo());
         param.put("refund_money", refund.getApplyMoney());
         param.put("result", "未通过申请");
-        param.put("url",  wapUrl + "/addon/mall/pages/refund/detail?order_refund_no="+refund.getOrderRefundNo());
+        param.put("weapp_version", refund.getWeappVersion());
         NoticeDataVo vo = new NoticeDataVo();
         vo.setMemberId(refund.getMemberId());
         vo.setVars(param);

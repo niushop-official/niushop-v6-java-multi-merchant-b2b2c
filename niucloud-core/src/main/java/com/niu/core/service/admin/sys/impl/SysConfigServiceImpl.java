@@ -10,6 +10,7 @@ import com.niu.core.service.admin.sys.ISysConfigService;
 import com.niu.core.service.admin.sys.ISysUserService;
 import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.service.admin.sys.vo.*;
+import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import com.niu.core.service.core.sys.vo.CoreSysConfigVo;
 import com.niu.core.service.core.sys.vo.SceneDomainVo;
@@ -23,9 +24,8 @@ public class SysConfigServiceImpl implements ISysConfigService {
 
     @Resource
     ICoreSysConfigService coreSysConfigService;
-
-
-
+    @Resource
+    ICoreSiteService coreSiteService;
     @Resource
     ISysUserService sysUserService;
 
@@ -228,6 +228,12 @@ public class SysConfigServiceImpl implements ISysConfigService {
         JSONObject data = new JSONObject();
         data.put("is_open", param.getIsOpen());
         coreSysConfigService.setConfig(RequestUtils.defaultSiteId(), "WEAPP_LIST_SETTING", data);
+    }
+
+    @Override
+    public String getServerDomain() {
+        SiteInfoVo siteInfo = coreSiteService.getSiteCache(RequestUtils.defaultSiteId());
+        return siteInfo.getSiteDomain();
     }
 
 }

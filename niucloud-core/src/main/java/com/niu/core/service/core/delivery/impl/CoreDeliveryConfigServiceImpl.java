@@ -117,7 +117,7 @@ public class CoreDeliveryConfigServiceImpl implements ICoreDeliveryConfigService
         storeDelivery.setKey("store");
         defaultList.add(storeDelivery);
 
-        Map<String, DeliveryConfigVo> list = new HashMap<>();
+        Map<String, DeliveryConfigVo> list = new LinkedHashMap<>();
 
         if (StringUtils.isNotEmpty(site.getDeliveryConfig())) {
             // 获取默认列表和配置列表的key集合
@@ -170,8 +170,11 @@ public class CoreDeliveryConfigServiceImpl implements ICoreDeliveryConfigService
                 list.get(key).setStatus(status);
             }
         }
-        for (String key : list.keySet()) {
-            data.add(list.get(key));
+        //根据默认进行排序
+        for (DeliveryConfigVo obj : defaultList) {
+            if(ObjectUtil.isNotEmpty(list.get(obj.getKey())) ){
+                data.add(list.get(obj.getKey()));
+            }
         }
         return data;
     }

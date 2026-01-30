@@ -237,29 +237,29 @@ const saleInfoChange = (val: any) => {
 const goodsStyleDialog = ref(false)
 const goodsStyleList = reactive({
     'style-1': {
-        url: 'addon/shop/diy/goods_detail/style_01.jpg',
+        url: 'addon/mall/diy/goods_detail/style_01.jpg',
         title: '风格1',
         value: 'style-1'
     },
     'style-2': {
-        url: 'addon/shop/diy/goods_detail/style_02.jpg',
+        url: 'addon/mall/diy/goods_detail/style_02.jpg',
         title: '风格2',
         value: 'style-2'
     },
     'style-3': {
-        url: 'addon/shop/diy/goods_detail/style_03.jpg',
+        url: 'addon/mall/diy/goods_detail/style_03.jpg',
         title: '风格3',
         value: 'style-3'
     },
     'style-4': {
-        url: 'addon/shop/diy/goods_detail/style_04.jpg',
+        url: 'addon/mall/diy/goods_detail/style_04.jpg',
         title: '风格4',
         value: 'style-4'
     }
 })
 const selectGoodsStyle = reactive({
     title: '风格1',
-    url: 'addon/shop/diy/goods_detail/style_01.jpg',
+    url: 'addon/mall/diy/goods_detail/style_01.jpg',
     value: 'style-1'
 })
 
@@ -287,19 +287,19 @@ const confirmGoodsStyle = () => {
 const marketingStyleDialog = ref(false)
 const marketingGoodsStyleList = reactive({
     'style-1': {
-        url: 'addon/shop/diy/goods_detail/marketing_style_01.jpg',
+        url: 'addon/mall/diy/goods_detail/marketing_style_01.jpg',
         title: '风格1',
         value: 'style-1'
     },
     'style-2': {
-        url: 'addon/shop/diy/goods_detail/marketing_style_02.jpg',
+        url: 'addon/mall/diy/goods_detail/marketing_style_02.jpg',
         title: '风格2',
         value: 'style-2'
     }
 })
 const selectMarketingStyle = reactive({
     title: '风格1',
-    url: 'addon/shop/diy/goods_detail/marketing_style_01.jpg',
+    url: 'addon/mall/diy/goods_detail/marketing_style_01.jpg',
     value: 'style-1'
 })
 

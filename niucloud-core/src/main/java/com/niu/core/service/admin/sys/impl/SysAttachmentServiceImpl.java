@@ -20,8 +20,18 @@ import com.niu.core.service.admin.sys.ISysAttachmentService;
 import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.service.admin.sys.vo.AttachmentUploadVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentCategoryListVo;
+import com.niu.core.service.admin.sys.vo.SysAttachmentConfigVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentListVo;
 import com.niu.core.service.core.sys.ICoreUploadService;
+import com.niu.core.service.core.sys.ICoreConfigService;
+import com.niu.core.service.core.upload.ICoreStorageService;
+import com.niu.core.common.component.upload.IUploadProvider;
+import com.niu.core.common.component.upload.factory.UploadProviderFactory;
+import com.niu.core.common.component.upload.model.Base64Model;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.SecureUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +54,12 @@ public class SysAttachmentServiceImpl implements ISysAttachmentService {
 
     @Resource
     ICoreUploadService coreUploadService;
+
+    @Resource
+    ICoreConfigService coreConfigService;
+
+    @Resource
+    ICoreStorageService coreStorageService;
 
     /**
      * 附件管理列表
@@ -122,6 +138,22 @@ public class SysAttachmentServiceImpl implements ISysAttachmentService {
         param.setStorageType("local");
         param.setDir("attachment/document/" + param.getDocumentType() + "/" + param.getSiteId() + "/" + DateFormatUtils.getUploadFormat() + "/");
         return coreUploadService.upload(param);
+    }
+
+    /**
+     * base64图片上传
+     */
+    @Override
+    public AttachmentUploadVo base64(AttachmentUploadParam param) {
+        if (StrUtil.isBlank(param.getContent())) {
+            throw new CommonException("base图片资源不能为空");
+        }
+        param.setSiteId(RequestUtils.siteId());
+        param.setIsAttachment(1);
+        param.setAttType("image");
+        param.setStorageType("local");
+        param.setDir("attachment/image/" + param.getSiteId() + "/" + DateFormatUtils.getUploadFormat() + "/");
+        return coreUploadService.uploadBase64(param);
     }
 
     /**
@@ -225,6 +257,38 @@ public class SysAttachmentServiceImpl implements ISysAttachmentService {
                 .eq("id", id);
 
         sysAttachmentCategoryMapper.delete(queryWrapper);
+    }
+
+    /**
+     * 获取相册设置
+     *
+     * @return 相册配置
+     */
+    @Override
+    public SysAttachmentConfigVo getConfig() {
+        Integer siteId = RequestUtils.siteId();
+        JSONObject config = coreConfigService.getConfigValue(siteId, "ALBUM_CONFIG");
+        
+        SysAttachmentConfigVo vo = new SysAttachmentConfigVo();
+        if (config == null || config.isEmpty()) {
+            vo.setIsCropper(0);
+        } else {
+            vo.setIsCropper(config.getInt("is_cropper", 0));
+        }
+        return vo;
+    }
+
+    /**
+     * 设置相册设置
+     *
+     * @param param 配置参数
+     */
+    @Override
+    public void setConfig(SysAttachmentConfigParam param) {
+        Integer siteId = RequestUtils.siteId();
+        JSONObject configObject = new JSONObject();
+        configObject.set("is_cropper", param.getIsCropper() != null ? param.getIsCropper() : 0);
+        coreConfigService.setConfig(siteId, "ALBUM_CONFIG", configObject);
     }
 
 }

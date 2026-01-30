@@ -16,6 +16,7 @@ import com.niu.core.entity.member.MemberCashOut;
 import com.niu.core.entity.member.MemberCashOutAccount;
 import com.niu.core.enums.member.MemberCashOutStatusEnum;
 import com.niu.core.enums.pay.TransferTypeEnum;
+import com.niu.core.enums.shop.ShopTransferEnum;
 import com.niu.core.mapper.member.MemberCashOutAccountMapper;
 import com.niu.core.mapper.member.MemberCashOutMapper;
 import com.niu.core.service.admin.member.param.CashOutTransferParam;
@@ -110,7 +111,7 @@ public class MemberCashOutServiceImpl implements IMemberCashOutService {
      */
     @Override
     public Object transferMethod(MemberCashOutTransferMethodParam param) {
-        return TransferTypeEnum.getMap();
+        return ShopTransferEnum.getMap();
     }
 
     /**

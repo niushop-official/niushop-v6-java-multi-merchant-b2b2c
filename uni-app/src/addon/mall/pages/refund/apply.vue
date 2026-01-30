@@ -28,7 +28,7 @@
                             </view>
                             <text class="nc-iconfont nc-icon-youV6xx text-[28rpx] text-[var(--text-color-light9)]"></text>
                         </view>
-                        <view class="py-[var(--pad-top-m)] flex items-center border-0 !border-t !border-[#f5f5f5] border-solid" v-if="orderDetail.goods_type == 'real' && (!orderDetail.delivery_status || orderDetail.delivery_status != 'wait_delivery')" @click="selectRefundType(2)">
+                        <view class="py-[var(--pad-top-m)] flex items-center border-0 !border-t !border-[#f5f5f5] border-solid" v-if="orderDetail.goods_type == 'real' && (orderDetail.delivery_status != '' && orderDetail.delivery_status != 'wait_delivery')" @click="selectRefundType(2)">
                             <view class="flex-1">
                                 <view class="text-[30rpx]">退货退款</view>
                                 <view class="text-[24rpx] mt-[20rpx] text-[var(--text-color-light9)]">已收到货，需退还收到的货物</view>

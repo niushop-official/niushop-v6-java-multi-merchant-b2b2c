@@ -4,10 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.niu.core.common.domain.Result;
 import com.niu.core.service.api.login.vo.LoginVo;
 import com.niu.core.service.api.wechat.IWechatService;
-import com.niu.core.service.api.wechat.param.AuthRegisterParam;
-import com.niu.core.service.api.wechat.param.WechatAuthDataLoginParam;
-import com.niu.core.service.api.wechat.param.WechatAuthParam;
-import com.niu.core.service.api.wechat.param.WechatSyncParam;
+import com.niu.core.service.api.wechat.param.*;
 import com.niu.core.service.api.wechat.vo.WechatCodeUrlVo;
 import com.niu.core.service.api.wechat.vo.WechatScanLoginVo;
 import jakarta.annotation.Resource;
@@ -116,6 +113,16 @@ public class WechatController {
     @PutMapping("/update_openid")
     public Result updateOpenid(@Validated @RequestBody WechatAuthParam param) {
         wechatService.updateOpenid(param);
+        return Result.success();
+    }
+
+    /**
+     * 公众号更新用户openid
+     * @return
+     */
+    @PutMapping("/update_openid_h5")
+    public Result updateOpenidByH5(@Validated @RequestBody WechatH5OpenIdParam param) {
+        wechatService.updateOpenidByH5(param.getWxOpenid());
         return Result.success();
     }
 

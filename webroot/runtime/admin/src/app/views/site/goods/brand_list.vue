@@ -49,11 +49,19 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="brand_type_name" :label="t('brandType')" min-width="120" />
-                    <!-- <el-table-column prop="sort" :label="t('sort')" min-width="120" sortable="custom">
+                    <el-table-column prop="status_name" :label="t('显示状态')" min-width="120">
                         <template #default="{ row }">
-                            <el-input v-model.trim="row.sort" class="!w-[100px]" maxlength="8" @blur="sortInputListener(row.sort, row)" />
+                            <el-tag class="cursor-pointer" :type="row.status == 1 ? 'success' : 'danger'" @click="updateStatus(row)">{{ row.status == 1 ? '显示': '隐藏' }}</el-tag>
                         </template>
-                    </el-table-column> -->
+                    </el-table-column>
+                    <el-table-column :label="t('审核状态')" min-width="120">
+                        <template #default="{ row }">
+                            <div>
+                                <div>{{ row.audit_status_name }}</div>
+                                <div v-if="row.audit_status == -1">拒绝原因：{{ row.audit_reason }}</div>
+                            </div>
+                        </template>
+                    </el-table-column>
 
                     <el-table-column :label="t('operation')" fixed="right" align="right" min-width="120">
                         <template #default="{ row }">
@@ -80,7 +88,7 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { getBrandPageList, deleteBrand } from '@/app/api/basic_site'
+import { getBrandPageList, deleteBrand, updateBrandStatus } from '@/app/api/basic_site'
 import { debounce, img } from '@/utils/common'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import BrandEdit from '@/app/views/site/goods/components/brand-edit.vue'
@@ -174,6 +182,18 @@ const deleteEvent = (id: number) => {
             loadBrandList()
         }).catch(() => {
         })
+    })
+}
+
+// 更新状态
+const updateStatus = (row: any) => {
+    if (row.brand_type == 'admin') return false
+    row.status = row.status == 1 ? 2 : 1
+    updateBrandStatus({
+        brand_id: row.brand_id,
+        status: row.status
+    }).then(() => {
+
     })
 }
 

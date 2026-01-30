@@ -1,10 +1,12 @@
 package com.niu.core.common.component.job.quartz;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.niu.core.common.component.job.IJobProvider;
 import com.niu.core.common.component.job.factory.JobProviderFactory;
 import com.niu.core.common.component.context.SpringContext;
+import com.niu.core.common.component.job.listener.ScheduleJobListener;
 import com.niu.core.entity.sys.SysSchedule;
 import com.niu.core.service.admin.sys.ISysScheduleService;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,14 @@ public class QuartzJobManager {
      */
     public static void init() {
         QuartzManager.initSchedulerFactory();
+        try {
+            ScheduleJobListener listener = SpringContext.bean(ScheduleJobListener.class);
+            org.quartz.Scheduler scheduler = QuartzManager.schedulerFactory().getScheduler();
+            scheduler.getListenerManager().addJobListener(listener);
+            log.info("Quartz全局任务监听器注册成功");
+        } catch (Exception e) {
+            log.error("Quartz全局任务监听器注册失败", e);
+        }
         ISysScheduleService sysScheduleService = SpringContext.bean(ISysScheduleService.class);
         List<SysSchedule> sysScheduleList = sysScheduleService.getSysEnableList();
         if (sysScheduleList != null && sysScheduleList.size() > 0) {
@@ -98,13 +108,17 @@ public class QuartzJobManager {
      * @param timeMap
      * @return
      */
+    /**
+     * @param timeMap
+     * @return
+     */
     public static String toCronStr(Map<String, String> timeMap) {
-        String sec = timeMap.getOrDefault("sec", "1");
-        String min = timeMap.getOrDefault("min", "0");
-        String hour = timeMap.getOrDefault("hour", "0");
-        String day = timeMap.getOrDefault("day", "1");
-        String week = timeMap.getOrDefault("week", "*");
-        String type = timeMap.getOrDefault("type", "");
+        String sec = ObjectUtil.defaultIfEmpty(timeMap.get("sec"), "1");
+        String min = ObjectUtil.defaultIfEmpty(timeMap.get("min"), "0");
+        String hour = ObjectUtil.defaultIfEmpty(timeMap.get("hour"), "0");
+        String day = ObjectUtil.defaultIfEmpty(timeMap.get("day"), "1");
+        String week = ObjectUtil.defaultIfEmpty(timeMap.get("week"), "*");
+        String type = ObjectUtil.defaultIfEmpty(timeMap.get("type"), "");
 
         // 确保 day 是合法数字
         if (!day.matches("\\d+") || day.equals("0")) {

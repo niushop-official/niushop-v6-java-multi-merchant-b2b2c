@@ -1,6 +1,7 @@
 package com.niu.core.service.api.order.impl;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -10,15 +11,22 @@ import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.basic.Invoice;
+import com.niu.core.enums.basic.InvoiceContentEnum;
 import com.niu.core.enums.basic.InvoiceStatusEnum;
+import com.niu.core.enums.basic.InvoicingEnum;
+import com.niu.core.event.member.MemberAccountEvent;
+import com.niu.core.event.order.AfterInvoiceApplyEvent;
+import com.niu.core.event.order.GetInvoiceMoneyByTradeEventDefiner;
 import com.niu.core.event.order.OrderInvoiceEventDefiner;
 import com.niu.core.event.order.OrderPageEventDefiner;
 import com.niu.core.mapper.basic.InvoiceMapper;
 import com.niu.core.service.admin.order.param.MallOrderSearchParam;
 import com.niu.core.service.api.order.IInvoiceService;
+import com.niu.core.service.api.order.param.InvoiceApplyParam;
 import com.niu.core.service.api.order.param.InvoiceSearchParam;
 import com.niu.core.service.api.order.vo.InvoiceConfigVo;
 import com.niu.core.service.api.order.vo.InvoiceInfoVo;
@@ -29,7 +37,9 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -122,5 +132,60 @@ public class InvoiceServiceImpl implements IInvoiceService {
             invoiceInfoVo.setIsInvoice(ObjectUtil.isEmpty(invoiceConfig.getStr("is_invoice"))?"1": invoiceConfig.getStr("is_invoice"));
         }
         return null;
+    }
+
+    @Override
+    @Transactional(  rollbackFor = Exception.class)
+    public void apply(InvoiceApplyParam param) {
+        Integer memberId =  RequestUtils.memberId();
+
+        //查询发票金额
+        GetInvoiceMoneyByTradeEventDefiner.GetInvoiceMoneyByTradeEvent event = new GetInvoiceMoneyByTradeEventDefiner.GetInvoiceMoneyByTradeEvent();
+        event.setMemberId(memberId);
+        event.setTradeId(param.getTradeId());
+        event.setTradeType(param.getTradeType());
+        List<GetInvoiceMoneyByTradeEventDefiner.GetInvoiceMoneyByTradeResult> resultList = EventAndSubscribeOfPublisher.publishAndCallback(event);
+        BigDecimal invoiceMoney = BigDecimal.ZERO;
+        Integer siteId =  RequestUtils.siteId();
+        if(!resultList.isEmpty()){
+            for (GetInvoiceMoneyByTradeEventDefiner.GetInvoiceMoneyByTradeResult item : resultList){
+                if(item == null) continue;
+                if(ObjectUtil.isNotEmpty(item.getInvoiceMoney())){
+                    invoiceMoney =  item.getInvoiceMoney();
+                    siteId =  item.getSiteId();
+                }
+            }
+        }
+        if ( invoiceMoney.compareTo(BigDecimal.ZERO) <= 0){
+             throw new CommonException("开票申请失败");
+        }
+
+        QueryWrapper<Invoice> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("trade_id", param.getTradeId());
+        queryWrapper.eq("member_id", memberId);
+        queryWrapper.eq("trade_type",param.getTradeType());
+        Long count = invoiceMapper.selectCount(queryWrapper);
+        if(count>0){
+            throw new CommonException("该订单已申请开具发票");
+        }
+
+
+        Invoice model = new Invoice();
+        BeanUtil.copyProperties(param, model);
+        model.setSiteId(siteId);
+        model.setMemberId(memberId);;
+        model.setMoney(invoiceMoney);
+        model.setStatus(InvoiceStatusEnum.OPEN.getStatus());
+        model.setCreateTime(System.currentTimeMillis() / 1000);
+        model.setIsInvoice(InvoicingEnum.WAIT_INVOICE.getStatus());
+        model.setName(InvoiceContentEnum.getNameByType(param.getContentType()));
+        invoiceMapper.insert(model);
+
+        // 开票后的事件
+        AfterInvoiceApplyEvent invoiceApplyEvent = new AfterInvoiceApplyEvent();
+        invoiceApplyEvent.setTradeId(param.getTradeId());
+        invoiceApplyEvent.setTradeType(param.getTradeType());
+        invoiceApplyEvent.setInvoiceId(model.getId());
+        EventAndSubscribeOfPublisher.publishAll(invoiceApplyEvent);
     }
 }

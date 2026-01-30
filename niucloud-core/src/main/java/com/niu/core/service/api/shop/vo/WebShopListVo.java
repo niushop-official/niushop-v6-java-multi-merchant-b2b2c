@@ -15,7 +15,7 @@ public class WebShopListVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @JsonProperty("config")
-    private WebConfigVo webConfigVo;
+    private WebConfig webConfigVo;
 
     private List<SiteWithShopInfo> list;
 
@@ -33,4 +33,12 @@ public class WebShopListVo implements Serializable {
             private Integer isSelf;
         }
     }
+
+    @Data
+    public static class WebConfig{
+        private Integer isShowShop = 0;// 是否显示甄选好店模块
+        private String shopAdImage = "static/resource/images/web/shop_01.png";// 店铺广告图片
+        private String site_ids = "[]";// 选择展示的店铺id
+    }
+
 }

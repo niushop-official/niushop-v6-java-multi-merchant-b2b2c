@@ -6,12 +6,14 @@ import java.util.List;
 
 @Data
 public class WeappUploadShippingParam {
+    private String transactionId;
     private String outTradeNo;
     private Integer logisticsType;
     private Integer deliveryMode;
     private List<UploadShippingParam> shippingList;
     private String weappOpenid;
     private Boolean isAllDelivered;
+    private Integer orderNumberType;
 
     @Data
     public static class UploadShippingParam {

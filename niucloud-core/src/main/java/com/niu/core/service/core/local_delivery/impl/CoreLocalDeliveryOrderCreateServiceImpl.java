@@ -55,7 +55,7 @@ public class CoreLocalDeliveryOrderCreateServiceImpl implements ICoreLocalDelive
     private SiteAddressMapper siteAddressMapper;
     @Resource
     private ICoreLocalDeliveryOrderLogService coreLocalDeliveryOrderLogService;
-    @Autowired
+    @Resource
     private DeliveryStoreMapper deliveryStoreMapper;
 
     @Override
@@ -75,8 +75,8 @@ public class CoreLocalDeliveryOrderCreateServiceImpl implements ICoreLocalDelive
         save.setDeliveryNo(localDeliveryNo);
         save.setStatus(LocalDeliveryStatusEnum.ORDER_ACCEPTED.getStatus());
         save.setTradeId(orderData.getOrderId());
-        save.setTradeNo(orderData.getOrderNo());
-        save.setTradeType(orderData.getOrderType());
+        save.setTradeNo(param.getTradeNo());
+        save.setTradeType(param.getTradeType());
         save.setDeliveryEnd(orderData.getTakerFullAddress());
         save.setDeliveryEndProvinceId(orderData.getTakerProvinceId());
         save.setDeliveryEndCityId(orderData.getTakerCityId());
@@ -112,6 +112,8 @@ public class CoreLocalDeliveryOrderCreateServiceImpl implements ICoreLocalDelive
                 addShopDeliveryOrderParam.setBody(param.getBody());
                 addShopDeliveryOrderParam.setCreateParam(BeanUtil.beanToMap(param));
                 addShopDeliveryOrderParam.setNotifyUrl(coreLocalDeliveryService.buildNotifyUrl(siteId.toString(), deliveryService, localDeliveryNo, null));
+                addShopDeliveryOrderParam.setTradeNo(param.getTradeNo());
+                addShopDeliveryOrderParam.setTradeType(param.getTradeType());
                 ShopDeliveryOrderCreateVo responseData = driver.createOrder(addShopDeliveryOrderParam);
 
                 if(ObjectUtil.isEmpty( responseData)){
@@ -235,19 +237,15 @@ public class CoreLocalDeliveryOrderCreateServiceImpl implements ICoreLocalDelive
         if (ObjectUtil.isEmpty(store)) throw new CommonException("提货点不存在");
         if(!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryService)){
             String deliveryServiceName = LocalDeliveryTypeEnum.getName(deliveryService);
-            Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryService,siteId);
+            config = coreLocalDeliveryService.getConfig(deliveryService,siteId);
 
-            if (localDeliveryConfig.isEmpty() || (ObjectUtil.isNotEmpty(localDeliveryConfig) && !localDeliveryConfig.containsKey("config")))   throw new RuntimeException(deliveryServiceName + "未配置");
-            if (StringUtils.isEmpty(store.getSupportDelivery()) || !store.getSupportDelivery().contains(deliveryService)){
-                throw new CommonException("配送门店未开通"+deliveryServiceName);
-            }
             if(store.getSupportDelivery().contains(deliveryService) && store.getSupportDelivery().contains("open_status")){
                 String openStatus = JSONUtil.parseObj(store.getSupportDelivery()).getJSONObject(deliveryService).getStr("open_status");
                 if(!LocalDeliveryOpenEnum.OPEN_PASS.getStatus().toString().equals(openStatus)){
                     throw new CommonException("门店未开通"+deliveryServiceName);
                 }
             }
-            config = JSONUtil.parseObj(localDeliveryConfig.getOrDefault("config", new HashMap<>())) ;
+
         }
         config.put("shop_no", store.getStoreNo());
         return config;

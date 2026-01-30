@@ -31,6 +31,8 @@ import com.niu.core.service.admin.web.vo.WebConfigVo;
 import com.niu.core.service.api.shop.ISiteShopService;
 import com.niu.core.service.api.shop.param.SiteShopSearchParam;
 import com.niu.core.service.api.shop.param.SiteShopSelectParam;
+import com.niu.core.service.core.delivery.ICoreDeliveryConfigService;
+import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
 import com.niu.core.service.core.sys.ICoreConfigService;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import jakarta.annotation.Resource;
@@ -65,6 +67,8 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
     @Resource
     ICoreSysConfigService coreSysConfigService;
+    @Resource
+    ICoreDeliveryConfigService coreDeliveryConfigService;
 
     @Override
     public PageResult<SiteShopListVo> page(PageParam pageParam, SiteShopSearchParam searchParam) {
@@ -234,7 +238,12 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
 
     @Override
-    public SiteShopInfoVo info(Integer id) {
+    public SiteShopInfoVo info(Object id,Map<String, String> allParams) {
+        if (ObjectUtil.isNotEmpty( id)) {
+            if ("undefined".equals( id.toString())){
+                return  new SiteShopInfoVo();
+            }
+        }
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude," +
                         " ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours," +
@@ -243,13 +252,33 @@ public class SiteShopServiceImpl implements ISiteShopService {
                         " nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, " +
                         "nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, " +
                         "nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no," +
-                        " nss.wechat_payment_code, nss.business_license,nss.quality_score,nss.service_score,nss.logistics_score")
+                        " nss.wechat_payment_code, nss.business_license,nss.quality_score,nss.service_score,nss.logistics_score,nss.contact_name, nss.background_h5")
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
 
         queryWrapper.eq("ns.site_id", id);
+        //添加距离
+        AdminDeliveryConfigVo deliveryConfig = coreDeliveryConfigService.getAdminDeliveryConfig();
+        if (ObjectUtil.isNotEmpty(allParams) && allParams.containsKey("position[latitude]") && allParams.containsKey("position[longitude]")){
+
+            if(deliveryConfig.getIsShow() == 1){
+                String latitude = allParams.get("position[latitude]");
+                String longitude = allParams.get("position[longitude]");
+                String siteField = "ns.latitude,ns.longitude";
+                siteField += ", ROUND(6371 * acos( "+
+                        "cos(radians("+latitude+")) "+
+                        "        * cos(radians(ns.latitude)) "+
+                        "        * cos(radians(ns.longitude) - radians("+longitude+")) "+
+                        "        + sin(radians("+latitude+")) "+
+                        "        * sin(radians(ns.latitude)) "+
+                        "  ), 2) AS distance";
+                queryWrapper.select(siteField);
+            }
+        }
+
+
         SiteShopInfoVo model = siteMapper.selectJoinOne(SiteShopInfoVo.class, queryWrapper);
         Assert.notNull(model, "店铺扩展不存在");
         SiteShopInfoVo.SiteShop shop = new SiteShopInfoVo.SiteShop();
@@ -339,7 +368,9 @@ public class SiteShopServiceImpl implements ISiteShopService {
         }
 
         vo.setList(list);
-        vo.setWebConfigVo(webConfigVo);
+        WebShopListVo.WebConfig webConfig = new WebShopListVo.WebConfig();
+        BeanUtils.copyProperties(webConfigVo, webConfig);
+        vo.setWebConfigVo(webConfig);
         return vo;
     }
 

@@ -11,7 +11,7 @@
 				"link": {
 					"parent": "MALL_LINK",
 					"name": "MALL_INDEX",
-					"title": "get_lang ('dict_diy.mall_link_index')",
+					"title": "商城首页",
 					"url": "/app/pages/index/index"
 				},
 				"iconPath": "addon/mall/diy/tabbar/system-home.png",
@@ -55,7 +55,7 @@
 				"link": {
 					"parent": "MALL_LINK",
 					"name": "MALL_MEMBER_INDEX",
-					"title": "get_lang ('dict_diy.member_index')",
+					"title": "个人中心",
 					"url": "/app/pages/member/index"
 				},
 				"iconPath": "addon/mall/diy/tabbar/system-my.png",

@@ -174,34 +174,6 @@
 			}
 		},
 		{
-			"path": "app/pages/verify/index",
-			"style": {
-				"navigationBarTitleText": "%pages.verify.index%"
-			},
-			"needLogin": true
-		},
-		{
-			"path": "app/pages/verify/verify",
-			"style": {
-				"navigationBarTitleText": "%pages.verify.verify%"
-			},
-			"needLogin": true
-		},
-		{
-			"path": "app/pages/verify/detail",
-			"style": {
-				"navigationBarTitleText": "%pages.verify.detail%"
-			},
-			"needLogin": true
-		},
-		{
-			"path": "app/pages/verify/record",
-			"style": {
-				"navigationBarTitleText": "%pages.verify.record%"
-			},
-			"needLogin": true
-		},
-		{
 			"path": "app/pages/weapp/order_shipping",
 			"style": {
 				"navigationBarTitleText": "%pages.weapp.order_shipping%"
@@ -227,18 +199,6 @@
 			}
 		},
 		{
-			"path": "app/pages/article/list",
-			"style": {
-				"navigationBarTitleText": "%pages.article.list%"
-			}
-		},
-		{
-			"path": "app/pages/article/detail",
-			"style": {
-				"navigationBarTitleText": "%pages.article.detail%"
-			}
-		},
-		{
 			"path": "app/pages/auth/pc_login",
 			"style": {
 				"navigationBarTitleText": "%pages.auth.pc_login%"
@@ -253,10 +213,11 @@
 	],
 	"subPackages": [
 		// {{ PAGE_BEGAIN }}
-        // B2B2C_DADA_PAGE_BEGIN
-        // B2B2C_DADA_PAGE_END
-        // MALL_PAGE_BEGIN
-		{
+                // B2B2C_DADA_PAGE_BEGIN
+,
+                // B2B2C_DADA_PAGE_END
+                // MALL_PAGE_BEGIN
+{
 			"root": "addon/mall",
 			"pages": [
 				// *********************************** 商城 ***********************************
@@ -410,21 +371,7 @@
 						"navigationBarTitleText": "%mall.pages.collect.shop%"
 					},
 					"needLogin": true
-				},
-				{
-					"path": "pages/invoice/list",
-					"style": {
-						"navigationBarTitleText": "%mall.pages.invoice.list%"
-					},
-					"needLogin": true
-				},
-				{
-					"path": "pages/invoice/detail",
-					"style": {
-						"navigationBarTitleText": "%mall.pages.invoice.detail%"
-					},
-					"needLogin": true
-				},
+				},				
 				{
 					"path": "pages/shop/list",
 					"style": {
@@ -465,6 +412,9 @@
 				{
 					"path": "pages/order/list",
 					"style": {
+						// #ifndef H5
+                        "navigationStyle": "custom",
+                        // #endif
 						"navigationBarTitleText": "%mall.pages.order.list%"
 					},
 					"needLogin": true
@@ -472,6 +422,9 @@
 				{
 					"path": "pages/order/payment",
 					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
 						"navigationBarTitleText": "%mall.pages.order.payment%"
 					},
 					"needLogin": true
@@ -516,8 +469,9 @@
 				}
 			]
 		},
-		// MALL_PAGE_END
-       // {{ PAGE_END }}
+                // MALL_PAGE_END
+               
+// {{ PAGE_END }}
 		{
 			"root": "app/components",
 			"pages": []
@@ -559,20 +513,6 @@
 						"navigationStyle": "custom",
 						// #endif
 						"navigationBarTitleText": "%pages.member.level%"
-					},
-					"needLogin": true
-				},
-				{
-					"path": "recharge_record",
-					"style": {
-						"navigationBarTitleText": "%pages.member.recharge_record%"
-					},
-					"needLogin": true
-				},
-				{
-					"path": "recharge_record_detail",
-					"style": {
-						"navigationBarTitleText": "%pages.member.recharge_record_detail%"
 					},
 					"needLogin": true
 				},
@@ -688,12 +628,113 @@
                     }
                 }
 			]
+		},
+		{
+			"root": "app/pages/article",
+			"pages": [
+				{
+					"path": "list",
+					"style": {
+						"navigationBarTitleText": "%pages.article.list%"
+					}
+				},
+				{
+					"path": "detail",
+					"style": {
+						"navigationBarTitleText": "%pages.article.detail%"
+					}
+				}
+			]
+		},
+		{
+			"root": "app/pages/verify",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationBarTitleText": "%pages.verify.index%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "verify",
+					"style": {
+						"navigationBarTitleText": "%pages.verify.verify%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "detail",
+					"style": {
+						"navigationBarTitleText": "%pages.verify.detail%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "record",
+					"style": {
+						"navigationBarTitleText": "%pages.verify.record%"
+					},
+					"needLogin": true
+				}
+			]
+		},
+		{
+			"root": "app/pages/invoice",
+			"pages": [
+				{
+					"path": "list",
+					"style": {
+						"navigationBarTitleText": "%pages.invoice.list%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "detail",
+					"style": {
+						"navigationBarTitleText": "%pages.invoice.detail%"
+					},
+					"needLogin": true
+				},
+				{
+                    "path": "invoice",
+                    "style": {
+                        "navigationBarTitleText": "%pages.invoice.invoice%"
+                    }
+                }
+			]
+		},
+		{
+			"root": "app/pages/recharge",
+			"pages": [
+				{
+                    "path": "recharge",
+                    "style": {
+                        "navigationBarTitleText": "%pages.recharge.recharge%"
+                    },
+                    "needLogin": true
+                },
+				{
+					"path": "recharge_record",
+					"style": {
+						"navigationBarTitleText": "%pages.recharge.recharge_record%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "recharge_record_detail",
+					"style": {
+						"navigationBarTitleText": "%pages.recharge.recharge_record_detail%"
+					},
+					"needLogin": true
+				}
+			]
 		}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "",
-		"navigationBarBackgroundColor": "#ffffff",
+		"navigationBarBackgroundColor": "#F6F6F6",
 		"backgroundColor": "#F6F6F6",
 		"backgroundColorTop": "#F6F6F6",
 		"backgroundColorBottom": "#F6F6F6"

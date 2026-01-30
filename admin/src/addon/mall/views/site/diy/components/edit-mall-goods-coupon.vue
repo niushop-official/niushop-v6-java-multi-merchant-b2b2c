@@ -253,10 +253,10 @@ const initStyleFn = () => {
             diyStore.editComponent.ignore.splice(index, 1)
             diyStore.editComponent.titleColor = '#333'
 
-            diyStore.editComponent.couponItem.moneyColor = '#FF0000'
-            diyStore.editComponent.couponItem.textColor = '#FF0000'
+            diyStore.editComponent.couponItem.moneyColor = '#fff'
+            diyStore.editComponent.couponItem.textColor = '#fff'
             diyStore.editComponent.couponItem.bgColor = '#FFF7F6'
-            diyStore.editComponent.couponItem.btnColor = '#FF0000'
+            diyStore.editComponent.couponItem.btnColor = '#fff'
             diyStore.editComponent.couponItem.aroundRadius = 6
             diyStore.editComponent.componentStartBgColor = '#fff'
         }

@@ -57,7 +57,7 @@
                         </div>
                     </el-form-item>
                 </div>
-                <div v-show="type == 'username'">
+                <!-- <div v-show="type == 'username'">
                     <el-form-item prop="captcha_code">
                         <div class="flex-1 h-[50px] border-[1px] border-solid border-[#ccc] rounded-[8px] flex items-center">
                             <el-input v-model="formData.captcha_code" :placeholder="t('captchaPlaceholder')">
@@ -72,7 +72,7 @@
                             </el-input>
                         </div>
                     </el-form-item>
-                </div>
+                </div> -->
 
                 <div class="flex justify-end">
                     <el-button type="primary" link @click="typeChange" class="!text-[12px]">{{ t('haveAccount') }}，{{ t('toLogin') }}</el-button>
@@ -95,6 +95,8 @@
                  </div>
             </el-form>
         </div> 
+        <!-- 验证组件 -->
+    	<verify @success="success"   :captchaType="configStore.login.captcha_type" :imgSize="{ width: '330px', height: '155px' }" ref="verifyRef"></verify>
     </div>
 </template>
 <script lang="ts" setup>
@@ -103,10 +105,8 @@ import { usernameRegister, mobileRegister, wechatCheck } from '@/app/api/auth'
 import useMemberStore from '@/stores/member'
 import useConfigStore from '@/stores/config'
 import { FormInstance } from 'element-plus'
-
-definePageMeta({
-    layout: "container"
-});
+import verify from '@/components/verifition/Verify.vue'
+import test from '@/utils/test'
 
 const memberStore = useMemberStore()
 const configStore = useConfigStore()
@@ -134,6 +134,8 @@ const registerType = computed(() => {
     return value
 })
 
+
+
 const loading = ref(false)
 const formData = reactive({
     username: '',
@@ -143,66 +145,71 @@ const formData = reactive({
     mobile_code: '',
     mobile_key: '',
     captcha_key: '',
-    captcha_code: ''
+    captcha_code: '',
+    captcha_type: ''
 })
 
 const formRules = computed(() => {
     return {
-        'username': {
-            type: 'string',
-            required: type.value == 'username',
-            message: t('usernamePlaceholder'),
-            trigger: ['blur', 'change'],
-        },
-        'password': {
-            type: 'string',
-            required: type.value == 'username',
-            message: t('passwordPlaceholder'),
-            trigger: ['blur', 'change']
-        },
-        'confirm_password': [
+        username: [
             {
-                type: 'string',
                 required: type.value == 'username',
-                message: t('confirmPasswordPlaceholder'),
-                trigger: ['blur', 'change']
-            },
-            {
-                validator(rule: any, value: string, callback: any) {
-                    return value == formData.password
-                },
-                message: t('confirmPasswordError'),
-                trigger: ['change', 'blur'],
-            }
-        ],
-        'mobile': [
-            {
-                type: 'string',
-                required: type.value == 'mobile' || configStore.login.is_bind_mobile,
-                message: t('mobilePlaceholder'),
+                message: t('usernamePlaceholder'),
                 trigger: ['blur', 'change'],
-            },
+            }
+        ],
+        password: [
+            {
+                required: type.value == 'username',
+                message: t('passwordPlaceholder'),
+                trigger: ['blur', 'change']
+            }
+        ],
+        confirm_password: [
             {
                 validator(rule: any, value: string, callback: any) {
-                    if (type.value != 'mobile' && !configStore.login.is_bind_mobile) return true
-                    else return test.mobile(value)
+                    if(type.value == 'username'){
+                        if (value == '') {
+                            return callback(new Error(t('confirmPasswordPlaceholder')))
+                        } else if (value !== formData.password) {
+                            return callback(new Error(t('confirmPasswordError')))
+                        } else {
+                            return callback()
+                        }
+                    } else {
+                        callback()
+                    }
+                    
+                    return 
                 },
-                message: t('mobileError'),
                 trigger: ['change', 'blur'],
             }
         ],
-        'mobile_code': {
-            type: 'string',
-            required: type.value == 'mobile' || configStore.login.is_bind_mobile,
-            message: t('codePlaceholder'),
-            trigger: ['blur', 'change']
-        },
-        'captcha_code': {
-            type: 'string',
-            required: type.value == 'username',
-            message: t('captchaPlaceholder'),
-            trigger: ['blur', 'change'],
-        }
+        mobile: [
+            {
+                validator(rule: any, value: string, callback: any) {
+                    if (type.value == 'mobile' || configStore.login.is_bind_mobile){
+                        if (value == '') {
+                            return callback(new Error(t('mobilePlaceholder')))
+                        }else if (!test.mobile(value)) {
+                            return callback(new Error(t('mobileError')))
+                        } else {
+                            return callback()
+                        }
+                    } else {
+                        return callback()
+                    }
+                },
+                trigger: ['change', 'blur'],
+            }
+        ],
+        mobile_code: [
+            {
+                required: Boolean(type.value == 'mobile' || configStore.login.is_bind_mobile),
+                message: t('codePlaceholder'),
+                trigger: ['blur', 'change']
+            }
+        ]
     }
 })
 
@@ -225,15 +232,20 @@ const handleRegister = async () => {
             if (loading.value) return
             loading.value = true
 
-            const register = type.value == 'username' ? usernameRegister : mobileRegister
+            if(type.value == 'username') {
+                verifyRef.value?.show()
+            } else {
+                formData.captcha_type = configStore.login.captcha_type
+                mobileRegister(formData).then((res: any) => {
+                    memberStore.setToken(res.data.token)
+                    memberStore.logClose()
+                }).catch(() => {
+                    loading.value = false
+                    captcha?.refresh()
+                })
+            }
 
-            register(formData).then((res: any) => {
-                memberStore.setToken(res.data.token)
-                memberStore.logClose()
-            }).catch(() => {
-                loading.value = false
-                captcha.refresh()
-            })
+            
         }
     })
 }
@@ -245,6 +257,26 @@ const wechatCheckFn = () =>{
 }
 wechatCheckFn()
 
+// 验证码 - start
+const verifyRef = ref<any>(null)
+const success = (params: any) => {
+    if(type.value == 'username') {
+        formData.captcha_code = params.captchaVerification
+        formData.captcha_key = params.captcha_key
+        formData.captcha_type = configStore.login.captcha_type
+        usernameRegister(formData).then((res: any) => {
+            memberStore.setToken(res.data.token)
+            memberStore.logClose()
+        }).catch(() => {
+            loading.value = false
+            captcha?.refresh()
+        })
+    } else {
+        smsCodeRef.value?.send({captcha_code: params.captchaVerification})
+    }
+}
+// 验证码 - end
+
 // 验证码
 const captcha = useCaptcha(formData)
 captcha.refresh()
@@ -254,7 +286,7 @@ const smsCodeRef = ref<AnyObject | null>(null)
 const sendSmsCode = async () => {
     await formRef.value?.validateField('mobile', async (valid, fields) => {
         if (valid) {
-            smsCodeRef.value?.send()
+            verifyRef.value?.show()
         }
     })
 }

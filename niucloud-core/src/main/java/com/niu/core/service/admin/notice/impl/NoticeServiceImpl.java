@@ -1,5 +1,7 @@
 package com.niu.core.service.admin.notice.impl;
 
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -21,6 +23,7 @@ import com.niu.core.service.admin.pay.param.PayParam;
 import com.niu.core.service.admin.pay.param.PaySearchParam;
 import com.niu.core.service.admin.pay.vo.PayInfoVo;
 import com.niu.core.service.admin.pay.vo.PayListVo;
+import com.niu.core.service.admin.sms.INuiSmsService;
 import com.niu.core.service.core.notice.ICoreNoticeService;
 import com.niu.core.service.core.notice.vo.AddonNoticeListVo;
 import com.niu.core.service.core.notice.vo.NoticeInfoVo;
@@ -42,6 +45,8 @@ public class NoticeServiceImpl implements INoticeService {
 
     @Resource
     ICoreNoticeService coreNoticeService;
+    @Resource
+    INuiSmsService nuiSmsService;
 
     @Override
     public Map<String, NoticeInfoVo> getList(String[] keys) {
@@ -55,13 +60,27 @@ public class NoticeServiceImpl implements INoticeService {
 
     @Override
     public NoticeInfoVo getInfo(String key) {
-//        return coreNoticeService.getInfo(RequestUtils.defaultSiteId(), key);
-        return null;
+        return coreNoticeService.getInfo(RequestUtils.defaultSiteId(), key);
     }
 
     @Override
     public void edit(String key, JSONObject data) {
-        coreNoticeService.edit(RequestUtils.defaultSiteId(), key, data);
+        String type = ObjectUtil.isNotEmpty(data.getStr("type")) ? data.getStr("type") : "";
+        if (NoticeTypeEnum.getNameByType(type).isEmpty()) throw new CommonException("消息类型不存在");
+        if (!NoticeEnum.getNotice().containsKey(key)) throw new CommonException("消息类型不存在");
+        JSONObject saveData = new JSONObject();
+        saveData.set("is_"+data.getStr("type"), data.getStr("status"));
+        if(NoticeTypeEnum.SMS.getCode().equals( type)){
+            saveData.set("smsId", data.getStr("sms_id", ""));
+        }else if(NoticeTypeEnum.WECHAT.getCode().equals( type)){
+            saveData.set("wechatFirst", data.getStr("wechat_first", ""));
+            saveData.set("wechatRemark", data.getStr("wechat_remark", ""));
+        }else if(NoticeTypeEnum.WEAPP.getCode().equals( type)){
+        }
+        if(NoticeTypeEnum.SMS.getCode().equals( type) && data.getInt("status") == 1){
+            nuiSmsService.checkTemplateAudit(key, data.getStr("sms_id"));
+        }
+        coreNoticeService.edit(RequestUtils.defaultSiteId(), key, saveData);
     }
 
     /**

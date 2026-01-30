@@ -41,7 +41,7 @@
                                         </template>
                                     </up-image>
                                     <view class="relative min-h-[40rpx] px-[10rpx] pt-[16rpx] pb-[20rpx]">
-                                        <view class="text-[24rpx] text-[#333] truncate mb-[10rpx] ">{{ subItem.goods_name }}</view>
+                                        <view class="text-[24rpx] text-[#333] using-hidden mb-[10rpx] ">{{ subItem.goods_name }}</view>
                                         <view class="text-[var(--price-text-color)] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
                                             <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
                                             <text class="text-[32rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(subItem)).toFixed(2) }}</text>
@@ -81,7 +81,7 @@
                                 </template>
                             </up-image>
                             <view class="relative min-h-[40rpx] px-[10rpx] pt-[16rpx] pb-[20rpx]">
-                                <view class="text-[24rpx] text-[#333] truncate mb-[10rpx] ">{{ subItem.goods_name }}</view>
+                                <view class="text-[24rpx] text-[#333] using-hidden mb-[10rpx] ">{{ subItem.goods_name }}</view>
                                 <view class="text-[var(--price-text-color)] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
                                     <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
                                     <text class="text-[32rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(subItem)).toFixed(2) }}</text>

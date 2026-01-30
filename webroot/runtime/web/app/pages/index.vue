@@ -107,7 +107,7 @@
 						<div class="leading-[40px] h-[40px] text-[24px]  text-[#333]"> 甄选好店</div>
 					</div>
 					<div class="flex box-border">
-						<div class="w-[288px] h-[422px]">
+						<div class="w-[288px] h-[422px] cursor-pointer" @click="toShop">
 							<el-image :src="img(shopList.config.shop_ad_image)" fit="cover" class="w-[288px] h-[422px] rounded-tl-[16px] rounded-br-[16px]"/>
 						</div>
 						<div class="flex flex-wrap flex-1 w-[912px]">
@@ -322,7 +322,7 @@ const handleScroll = () => {
 
 		let scrollTop = document.getElementById('main').scrollTop
 		let height = document.getElementById('content').clientHeight - document.getElementById('main')?.clientHeight - 100
-		console.log(scrollTop, height)
+		// console.log(scrollTop, height)
 		if (scrollTop >= height) {
 			paginationObj.value.page++
 			getFloorFn()
@@ -361,6 +361,12 @@ const toLink = (url:string) =>{
     }else {
         router.push(url)
     }
+}
+
+const toShop = () =>{
+	if(shopList.value.config.shop_ad_link){
+		router.push(shopList.value.config.shop_ad_link.url)
+	}
 }
 // 商品详情
 const toDetail = (goods_id:number) =>{

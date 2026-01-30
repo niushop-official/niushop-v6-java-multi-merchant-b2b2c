@@ -27,4 +27,6 @@ public class MobileLoginParam implements Serializable {
     private String openid = "";
 
     private String unionid = "";
+
+    private String headimg = "";
 }

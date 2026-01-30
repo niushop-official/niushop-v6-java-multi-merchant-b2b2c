@@ -4,6 +4,7 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
 import com.niu.core.service.site.goods.param.EditGoodsBrandSortParam;
+import com.niu.core.service.site.goods.param.EditGoodsBrandStatusParam;
 import com.niu.core.service.site.goods.param.GoodsBrandParam;
 import com.niu.core.service.site.goods.param.GoodsBrandSearchParam;
 import com.niu.core.service.site.goods.vo.GoodsBrandInfoVo;
@@ -106,6 +107,17 @@ public class BrandController {
     @PutMapping("/sort")
     public Result<Object> modifySort(@Validated @RequestBody EditGoodsBrandSortParam editParam) {
         goodsBrandService.modifySort(editParam);
+        return Result.success();
+    }
+
+    /**
+     * 修改品牌状态
+     *
+     * @return
+     */
+    @PutMapping("/status")
+    public Result<Object> modifyStatus(@Validated @RequestBody EditGoodsBrandStatusParam editParam) {
+        goodsBrandService.modifyStatus(editParam);
         return Result.success();
     }
 

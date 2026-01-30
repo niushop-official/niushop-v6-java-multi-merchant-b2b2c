@@ -21,8 +21,12 @@ public class OrderHelperParam implements Serializable {
     @Data
     public static class SkuItem {
         private Long id;
+        private Integer goodsId;
+        private Integer siteId;
         private Integer skuId;
         private Integer num;
+        private String marketType;
+        private Integer marketTypeId;
     }
 
     @Data
@@ -40,6 +44,8 @@ public class OrderHelperParam implements Serializable {
         private String takerMobile = "";
 
         private String takerName = "";
+
+        private String buyerAskDeliveryTime = "";
     }
 
     @Data

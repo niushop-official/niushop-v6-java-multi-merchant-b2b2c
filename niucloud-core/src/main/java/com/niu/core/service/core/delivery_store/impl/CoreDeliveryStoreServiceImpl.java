@@ -10,6 +10,7 @@ import com.niu.core.common.loader.local_delivery.LocalDeliveryLoader;
 import com.niu.core.common.utils.CommonUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryService;
 import com.niu.core.entity.delivery.DeliveryStore;
+import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteAddress;
 import com.niu.core.enums.delivery.DeliveryStoreStatusEnum;
@@ -17,6 +18,7 @@ import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryServiceMapper;
 import com.niu.core.mapper.delivery.DeliveryStoreMapper;
+import com.niu.core.mapper.shop.SiteShopMapper;
 import com.niu.core.mapper.site.SiteAddressMapper;
 import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.core.delivery_store.ICoreDeliveryStoreService;
@@ -51,8 +53,10 @@ public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
     private DeliveryLocalDeliveryServiceMapper deliveryLocalDeliveryServiceMapper;
     @Resource
     private ICoreLocalDeliveryService coreLocalDeliveryService;
-    @Autowired
+    @Resource
     private SiteMapper siteMapper;
+    @Resource
+    private SiteShopMapper siteShopMapper;
 
     @Override
     public List<DeliveryStoreListVo> deliveryServiceList(Integer id) {
@@ -115,17 +119,12 @@ public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
             throw new RuntimeException("提货点不存在");
         }
         String deliveryType = param.getDeliveryType();
-        Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryType,info.getSiteId());
-        if (localDeliveryConfig.isEmpty()) {
-            String typeName = LocalDeliveryTypeEnum.getName(deliveryType) != null ? LocalDeliveryTypeEnum.getName(deliveryType) : deliveryType;
-            throw new RuntimeException(typeName + "未配置");
-        }
+        Map<String, Object> config = coreLocalDeliveryService.getConfig(deliveryType,info.getSiteId());
         try {
             Map<String, Object> requestData = new HashMap<>();
             requestData.put("delivery_type", deliveryType);
             requestData.put("business", param.getBusiness());
             requestData.put("delivery_store", info);
-            Map<String, Object>  config = JSONUtil.parseObj(localDeliveryConfig.get("config"));
             //第三方配送下单 驱动
             BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(deliveryType).init(JSONUtil.parseObj(config));
             Map<String, Object> responseData = driver.addShop(requestData);
@@ -170,12 +169,8 @@ public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
             throw new RuntimeException("提货点不存在");
         }
         String deliveryType = param.getDeliveryType();
-        Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryType,info.getSiteId());
-        if (localDeliveryConfig.isEmpty()) {
-            String typeName = LocalDeliveryTypeEnum.getName(deliveryType) != null ? LocalDeliveryTypeEnum.getName(deliveryType) : deliveryType;
-            throw new RuntimeException(typeName + "未配置");
-        }
-        Map<String, Object>  config = JSONUtil.parseObj(localDeliveryConfig.get("config"));
+        Map<String, Object> config = coreLocalDeliveryService.getConfig(deliveryType,info.getSiteId());
+
         Map<String, Object> requestData = new HashMap<>();
         requestData.put("delivery_type", deliveryType);
         requestData.put("business", param.getBusiness());
@@ -208,12 +203,7 @@ public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
                 if (!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryType) && ObjectUtil.isNotEmpty(supportDelivery.getStr(deliveryType)) && supportDelivery.getStr(deliveryType).contains("open_status")){
                     JSONObject supportDeliveryArray = JSONUtil.parseObj(supportDelivery.getStr(deliveryType));
                     if(DeliveryStoreStatusEnum.OPEN_PASS.getStatus().equals(supportDeliveryArray.getInt("open_status"))){
-                        Map<String, Object> localDeliveryConfig = coreLocalDeliveryService.getConfig(deliveryType,store.getSiteId());
-                        if (localDeliveryConfig.isEmpty()) {
-                            String typeName = LocalDeliveryTypeEnum.getName(deliveryType) != null ? LocalDeliveryTypeEnum.getName(deliveryType) : deliveryType;
-                            throw new RuntimeException(typeName + "未配置");
-                        }
-                        Map<String, Object>  config = JSONUtil.parseObj(localDeliveryConfig.get("config"));
+                        Map<String, Object> config = coreLocalDeliveryService.getConfig(deliveryType,store.getSiteId());
                         Map<String, Object> requestData = new HashMap<>();
                         requestData.put("delivery_type", deliveryType);
                         requestData.put("business", supportDeliveryArray.getStr("business"));
@@ -257,8 +247,10 @@ public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
     @Override
     public Integer editSysStore(Integer id) {
         Site site = siteMapper.selectById(id);
+        SiteShop siteShop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id",id).last("limit 1"));
         DeliveryStore data = new DeliveryStore();
         data.setStoreName(site.getSiteName());
+        data.setContactName(ObjectUtil.defaultIfEmpty(siteShop.getContactName(),""));
         data.setMobile(site.getPhone());
         data.setTradeTime(site.getBusinessHours());
         data.setProvinceId(site.getProvinceId());

@@ -76,7 +76,7 @@
                 <el-form-item label="附近店铺">
                     <div>
                         <el-switch v-model="diyStore.editComponent.position.control" />
-                        <div class="text-[12px] text-[#999] leading-[20px]">开启后将仅展示用户当前定位所在市的商铺</div>
+                        <div class="text-[12px] text-[#999] leading-[20px]">开启后将仅展示用户当前定位所在城市的商铺</div>
                     </div>
                 </el-form-item>
                 <el-form-item label="同城配送" v-if="diyStore.editComponent.position.control">

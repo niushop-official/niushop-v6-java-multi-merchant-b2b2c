@@ -109,11 +109,26 @@ public class CoreMemberConfigServiceImpl implements ICoreMemberConfigService {
     @Override
     public JSONObject getPointRuleConfig(Integer siteId) {
         JSONObject config = coreConfigService.getConfigValue(siteId, "POINT_RULE");
-        if (config != null) {
+        if (!config.isEmpty()) {
             JSONObject grant = config.get("grant") instanceof JSONObject ? config.getJSONObject("grant") : new JSONObject();
             if (grant != null && grant.size() > 0) config.set("grant", coreMemberService.getPointGrantRuleContent(siteId, grant, "admin"));
             JSONObject consume = config.get("consume") instanceof JSONObject ? config.getJSONObject("consume") : new JSONObject();
             if (consume != null && consume.size() > 0) config.set("consume", coreMemberService.getPointConsumeRuleContent(siteId, consume, "admin"));
+        }else{
+            JSONObject memberRegister = new JSONObject();
+            memberRegister.set("is_use", 0);
+            memberRegister.set("point", 0);
+            memberRegister.set("content", "");
+            JSONObject mallBuyGoods = new JSONObject();
+            mallBuyGoods.set("is_use", 0);
+            mallBuyGoods.set("money", 0);
+            mallBuyGoods.set("point", 0);
+            mallBuyGoods.set("content", "");
+            JSONObject grant = new JSONObject();
+            grant.set("member_register", memberRegister);
+            grant.set("mall_buy_goods", mallBuyGoods);
+            config.set("grant", grant);
+            config.set("consume", new JSONObject());
         }
         return config;
     }

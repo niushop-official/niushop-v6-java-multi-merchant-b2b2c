@@ -1,6 +1,7 @@
 package com.niu.mall.entity.order;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
@@ -93,4 +94,14 @@ public class MallOrder implements Serializable {
     /** 购买人要求的配送/发货/自提时间（文本） */
     private String buyerAskDeliveryTime;
 
+    @TableField(value = "extend_field_1")
+    private String extendField1; //扩展字段1
+    @TableField(value = "extend_field_2")
+    private String extendField2; //扩展字段2
+    private String extendData; //扩展数据
+    private Integer settlementTimer; //预计结算时间
+    private Integer perkStatus; //补贴状态
+    private Long perkTime; //补贴时间
+    private Long evaluateTimer; //自动好评时间，评价后重置为0
+    private String weappVersion;//小程序类型，developer为开发版；trial为体验版；formal为正式版；默认为正式版
 }

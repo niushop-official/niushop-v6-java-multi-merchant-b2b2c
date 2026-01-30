@@ -253,7 +253,8 @@ public class SiteShopServiceImpl implements ISiteShopService {
                         " ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, " +
                         "nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, " +
                         "nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, " +
-                        "nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license, nss.business_status, nss.supply_service_rate")
+                        "nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license, " +
+                        "nss.business_status, nss.supply_service_rate,nss.contact_name, nss.background_h5")
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
@@ -557,12 +558,12 @@ public class SiteShopServiceImpl implements ISiteShopService {
             dataShop.setBusinessLicense(editParam.getBusinessLicense());
             
             // 店铺抽成随之改变
-            if (editParam.getCommissionRate() != null && editParam.getCommissionRate() > 0) {
-                dataShop.setCommissionRate(new BigDecimal(editParam.getCommissionRate()));
-            } else {
-                dataShop.setCommissionRate(shopCategory.getCommissionRate());
-            }
-            
+//            if (editParam.getCommissionRate() != null && editParam.getCommissionRate() > 0) {
+//                dataShop.setCommissionRate(new BigDecimal(editParam.getCommissionRate()));
+//            } else {
+//                dataShop.setCommissionRate(shopCategory.getCommissionRate());
+//            }
+            dataShop.setCommissionRate(new BigDecimal(ObjectUtil.defaultIfNull(shopCategory.getCommissionRate(), 0).toString()));
             // 供应商手续费
             if (editParam.getSupplyServiceRate() != null) {
                 dataShop.setSupplyServiceRate(new BigDecimal(editParam.getSupplyServiceRate()));
@@ -656,6 +657,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
         SiteShop siteShop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id",model.getSiteId()).last("Limit 1"));
         if(ObjectUtil.isNotEmpty(siteShop)){
             siteShop.setBusinessStatus(editParam.getBusinessStatus());
+            siteShop.setContactName(editParam.getContactName());
             siteShopMapper.updateById(siteShop);
         }
 

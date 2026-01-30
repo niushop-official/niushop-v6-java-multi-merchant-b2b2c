@@ -48,4 +48,6 @@ public interface ICorePayService {
     void payEditHuifu(BigDecimal feeAmt, BigDecimal confirmedAmt,BigDecimal unconfirmAmt, Integer id);
 
     JSONObject getPayCashierUrl(String payType, String tradeType, Integer tradeId);
+
+    String create(Integer siteId,String mainType,Integer mainId,BigDecimal money,String tradeType,Integer tradeId,String body);
 }

@@ -39,7 +39,7 @@
 		"key": "CouponGoodsSyncJob",
 		"name": "优惠券适用商品信息同步",
 		"desc": "",
-		"time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
+		"time": "{\"type\":\"hour\",\"week\":\"\",\"day\":\"\",\"hour\":\"1\",\"min\":\"1\"}"
 	},
 	{
 		"key": "ActiveStartJob",
@@ -57,12 +57,24 @@
 		"key": "GoodsStatisticJob",
 		"name": "商品统计更新",
 		"desc": "",
-		"time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
+		"time": "{\"type\":\"day\",\"week\":\"\",\"day\":\"1\",\"hour\":\"\",\"min\":\"1\"}"
 	},
 	{
 		"key": "GoodsExpiredJob",
 		"name": "虚拟商品过期自动下架",
 		"desc": "",
 		"time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
+	},
+	{
+		"key": "OrderSettlementJob",
+		"name": "订单自动结算",
+		"desc": "",
+		"time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"5\"}"
+	},
+	{
+		"key": "OrderEvaluateJob",
+		"name": "订单自动好评",
+		"desc": "",
+		"time": "{\"type\":\"day\",\"week\":\"\",\"day\":\"1\",\"hour\":\"\",\"min\":\"1\"}"
 	}
 ]

@@ -29,6 +29,9 @@ class Request {
 
         try {
             this.config.header[import.meta.env.VITE_REQUEST_HEADER_CHANNEL_KEY] = getAppChannel()
+            // #ifdef MP-WEIXIN
+            this.config.header['weapp-version'] = __wxConfig.envVersion
+            // #endif
         } catch (e) {
         }
 
@@ -42,6 +45,9 @@ class Request {
         try {
             getToken() && (this.config.header[import.meta.env.VITE_REQUEST_HEADER_TOKEN_KEY] = getToken())
             this.config.header[import.meta.env.VITE_REQUEST_HEADER_CHANNEL_KEY] = getAppChannel()
+            // #ifdef MP-WEIXIN
+            this.config.header['weapp-version'] = __wxConfig.envVersion
+            // #endif
         } catch (e) {
         }
     }
@@ -142,19 +148,19 @@ class Request {
     }
 
     private handleAuthError(code: number) {
-		switch (code) {
-		    case 401:
-		        useMemberStore().logout()
-		        break;
-		    case 402:
-		        if (currRoute().indexOf('app/pages/index/close') != -1) return;
-		        redirect({ url: '/app/pages/index/close', mode: 'reLaunch' })
-		        break;
-		    case 403:
-		        if (currRoute().indexOf('app/pages/index/nosite') != -1) return;
-		        redirect({ url: '/app/pages/index/nosite', mode: 'switchTab' })
-		        break;
-		}
+        switch (code) {
+            case 401:
+                useMemberStore().logout()
+                break;
+            case 402:
+                if (currRoute().indexOf('app/pages/index/close') != -1) return;
+                redirect({ url: '/app/pages/index/close', mode: 'reLaunch' })
+                break;
+            case 403:
+                if (currRoute().indexOf('app/pages/index/nosite') != -1) return;
+                redirect({ url: '/app/pages/index/nosite', mode: 'switchTab' })
+                break;
+        }
     }
 
     private handleRequestFail(res) {

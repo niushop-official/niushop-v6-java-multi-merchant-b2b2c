@@ -1,18 +1,40 @@
 <template>
-    <view class="bg-[var(--page-bg-color)] min-h-[100vh] overflow-hidden" :style="themeColor()">
+    <view class="bg-[var(--page-bg-color)] min-h-[100vh]" :style="themeColor()">
         <view class="sidebar-margin  card-template !py-[20rpx] my-[20rpx]">
             <u-form labelPosition="left" :model="formData" :label-style="{'font-size':'28rpx'}"  class="pl-[15rpx]" labelWidth="150rpx" errorType='toast' :rules="rules" ref="baseFormRef">
                 <view class="form-wrap image-form">
                     <u-form-item label="商品图片" prop="goods_image" required>
-                        <view class="mt-[10rpx]">
-                            <upload-img  v-model="formData.goods_image" :max-count="9" :multiple="true" />
+                        <view class="mt-[10rpx] flex-1">
+                            <shmily-drag-image
+							ref="goodsShmilyDragImgRef"
+							v-model:list.sync="formData.goods_image"
+							:imageWidth="126"
+							:imageHeight="126"
+							:number="10"
+                            uploadMethod="image"
+							:isAWait="isAWait"
+						></shmily-drag-image>
                         </view>
                     </u-form-item>
                 </view>
                 <view class="form-wrap image-form" v-if="spread">
                     <u-form-item label="商品视频" prop="goods_video">
                         <view class="mt-[10rpx]">
-                            <upload-video v-model="formData.goods_video" :max-count="1"/>
+                            <view class="flex items-center justify-center w-[110rpx] h-[110rpx] border-[2rpx] border-dashed border-[#ddd] text-center text-[var(--text-color-light9)] rounded-[var(--goods-rounded-small)]" @click="addVideo" v-if="!formData.goods_video">
+                                <view>
+                                    <view class="nc-iconfont nc-icon-a-shipinV6xx-28-1 text-[50rpx] mb-[10rpx]"></view>
+                                    <view class="text-[22rpx] ">添加视频</view>
+                                </view>
+                            </view>
+                            <view class="relative flex items-center justify-center w-[110rpx] h-[110rpx] rounded-[var(--goods-rounded-small)] overflow-hidden" v-else>
+                                <view>
+                                   <video class="w-[110rpx] h-[110rpx] align-middle" :src="img(formData.goods_video)" @click="videoPreview"  objectFit="cover" :controls="false" :show-fullscreen-btn="false" :show-center-play-btn="false" :show-play-btn="false" :enable-progress-gesture="false" ></video>
+                                </view>
+                                <view class="absolute top-0 right-0 bg-[#373737] z-100 flex justify-end items-center h-[34rpx] w-[34rpx] rounded-bl-[20rpx]" @click.stop="deleteVideo">
+                                    <text class="nc-iconfont nc-icon-guanbiV6xx !text-[24rpx]  text-[#fff]"></text>
+                                </view>
+                            </view>
+
                         </view>
                     </u-form-item>
                 </view>
@@ -50,7 +72,7 @@
                     </u-form-item>
                 </view>
                 <view>
-                    <u-form-item label="商品分类" prop="goods_category" required>
+                    <u-form-item label="商品分类" prop="goods_category">
                         <view class="flex items-center flex-1" @click="handleGoodsCategory">
                             <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.goods_category.length }" >{{ formData.goods_category_name ? formData.goods_category_name : '请选择商品分类' }}</view>
                             <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
@@ -100,21 +122,13 @@
                             <u-input fontSize="28rpx" v-model.trim="formData.unit" border="none"  maxlength="80" placeholder="请输入单位，默认为：件" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" />
                         </u-form-item>
                     </view>
-                    <view>
-                        <u-form-item label="虚拟销量" prop="virtual_sale_num">
-                            <view class="flex-1 flex items-center">
-                                <u-input fontSize="28rpx" v-model.trim="formData.virtual_sale_num" border="none"  maxlength="80" placeholder="请输入虚拟销量" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" />
-                                <text class="leading-[1] ml-[10rpx]">{{ formData.unit ? formData.unit : '件' }}</text>
-                            </view>
-                        </u-form-item>
-                    </view>
                     <template v-if="formData.goods_type == 'virtual'">
                         <view class="status-wrap">
                             <u-form-item label="发货设置" prop="virtual_auto_delivery">
                                 <view class="flex-1 flex justify-end">
                                     <u-radio-group v-model="formData.virtual_auto_delivery" placement="row"  iconPlacement="left">
-                                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="自动发货" name="1"></u-radio>
-                                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="手动发货" name="0"></u-radio>
+                                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="自动发货" name="1" :disabled="isDisabledVirtual"></u-radio>
+                                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="手动发货" name="0" :disabled="isDisabledVirtual"></u-radio>
                                     </u-radio-group>
                                 </view>
                             </u-form-item>
@@ -126,6 +140,7 @@
                                     <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
                                 </view>
                             </u-form-item>
+                            <view class="text-[22rpx] text-[#999] mb-[10rpx]" v-show="formData.virtual_receive_type == 'verify'">当设置为店内核销时，若存在未完成的订单，则无法编辑</view>
                         </view>
                         <view v-if="formData.virtual_receive_type == 'verify'">
                             <u-form-item label="核销有效期" prop="virtual_verify_type" >
@@ -140,14 +155,14 @@
                                 <u-input fontSize="28rpx" v-model.trim="formData.virtual_indate_day" border="none"  maxlength="5" placeholder="请输入有效期" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" />
                             </u-form-item>
                         </view>
-                        <view v-if="formData.virtual_receive_type == 'verify' && formData.virtual_verify_type == 2" prop="virtual_indate">
-                            <u-form-item label="有效期" prop="virtual_indate_day" required>
+                        <view v-if="formData.virtual_receive_type == 'verify' && formData.virtual_verify_type == 2" >
+                            <u-form-item label="有效期" prop="virtual_indate" required>
                                 <view class="flex items-center flex-1" @click="virtualIndate  = true">
-                                    <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.virtual_indate }" >{{ formData.virtual_indate ?? '请选择有效期' }}</view>
+                                    <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.virtual_indate }">{{ timeStampTurnTime(formData.virtual_indate) ?? '请选择有效期' }}</view>
                                     <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
                                 </view>
                             </u-form-item>
-                            <up-datetime-picker :show="virtualIndate"  v-model="formData.virtual_indate"  mode="datetime"></up-datetime-picker>
+                            <u-datetime-picker v-model="formData.virtual_indate" :show="virtualIndate" mode="datetime" :minDate="new Date().valueOf()" @cancel="virtualIndate = false" @confirm="updateVirtualIndate"></u-datetime-picker>
                         </view>
                         <view class="status-wrap">
                             <u-form-item label="核销手机号" prop="virtual_verify_mobile">
@@ -240,7 +255,7 @@
                                                 <image class="w-[40rpx] h-[40rpx] rounded-[10rpx] overflow-hidden" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill"></image>
                                             </template>
                                         </up-image>
-                                        <text class="ml-[10rpx]">{{ item.spec_name }}</text>
+                                        <text class="ml-[10rpx]">{{ item.spec_name_show }}</text>
                                     </view>
                                     <text class="flex-shrink-0">共{{ Object.values(goodsSkuData).length }}个</text>
                                 </view>
@@ -349,7 +364,7 @@
         </view>
         <view class="my-[20rpx] sidebar-margin flex justify-center">
             <view @click="spread = !spread" class="p-[20rpx] rounded-[16rpx] flex justify-center leading-[1]">
-                <text class="mr-[10rpx]">{{ spread ? '收起' : '展开全部-填写更过参数'  }}</text>
+                <text class="mr-[10rpx]">{{ spread ? '收起' : '展开全部-填写更多参数'  }}</text>
                 <text class="nc-iconfont font-500" :class="{'nc-icon-xiaV6xx' :!spread , 'nc-icon-shangV6xx-1': spread}" ></text>
             </view>
             
@@ -456,9 +471,13 @@
             <view class="popup-common" @touchmove.prevent.stop>
                 <view class="title">运费模板</view>
                 <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
-                    <u-radio-group v-model="formData.delivery_template_id" placement="column" iconPlacement="right">
+                    <u-radio-group v-model="formData.delivery_template_id" placement="column" iconPlacement="right" v-if="deliveryTemplateOptions.length">
                        <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333"  :customStyle="{marginBottom: '30rpx'}" v-for="(item, index) in deliveryTemplateOptions" :key="index" :label="item.template_name" :name="item.template_id"></u-radio>
                     </u-radio-group>
+                    <view class="empty-page" v-else>
+                        <image class="img" :src="img('/static/resource/images/system/empty.png')" mode="aspectFill" />
+                        <view class="desc">暂无运费模板</view>
+                    </view>
                 </scroll-view>
                 <view class="btn-wrap">
                     <button class="primary-btn-bg btn" @click="changeDeliveryTemplate">确定</button>
@@ -471,9 +490,9 @@
                 <view class="title">收货设置</view>
                 <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
                     <u-radio-group v-model="formData.virtual_receive_type" placement="column" iconPlacement="right">
-                        <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" label="自动收货" name="auto"></u-radio>
-                        <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" label="买家确认收货" name="artificial"></u-radio>
-                        <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" label="到店核销" name="verify"></u-radio>
+                        <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" label="自动收货" name="auto" :disabled="isDisabledVirtual"></u-radio>
+                        <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" label="买家确认收货" name="artificial" :disabled="isDisabledVirtual"></u-radio>
+                        <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" label="到店核销" name="verify" :disabled="isDisabledVirtual"></u-radio>
                     </u-radio-group>
                 </scroll-view>
                 <view class="btn-wrap">
@@ -497,21 +516,27 @@
                 </view>
             </view>
         </u-popup>
+        <!-- 视频预览 -->
+        <u-popup :show="videoShow" @close="videoShow = false" zIndex="999999">
+            <view class="h-[100vh] w-[100vw] relative" @touchmove.prevent.stop>
+                <text class="fixed top-[20rpx] left-[20rpx]  nc-iconfont nc-icon-guanbiV6xx z-1000 text-[#fff] text-[40rpx]" @click="handleVideo"></text>
+                <video class="w-full h-full" ref="videoRef" :src="img(formData.goods_video)" controls autoplay></video>
+            </view>
+        </u-popup>
         <loading-page :loading="loading"></loading-page>
     </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, nextTick } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import { redirect, img, deepClone } from '@/utils/common';
-import { getGoodsType, getLabelList, addGoods, editGoods, getGoodsInit } from '@/addon/mall/api/goods'
+import { redirect, img, deepClone, timeStampTurnTime } from '@/utils/common';
+import { getGoodsType, getLabelList, addGoods, editGoods, getGoodsInit, getVirtualGoodsInit, addVirtualGoods, editVirtualGoods } from '@/addon/mall/api/goods'
 import { getMallCategoryTree } from '@/app/api/base_admin'
 import { getBrandList, getServeList, getCategoryTree } from '@/app/api/base_site'
 import { getShopDeliveryList, getShippingTemplateList } from '@/app/api/delivery_site'
-import uploadImg from '@/components/upload-img/upload-img.vue'
-import uploadVideo from '@/components/upload-video/upload-video.vue'
 import goodsCategoryPopup from './components/goods-category-popup.vue'
+import ShmilyDragImage from '@/components/shmily-drag-image/shmily-drag-image.vue'
 
 const loading = ref(true)
 const repeat = ref(false)
@@ -522,7 +547,7 @@ const formData = reactive<any>({
     goods_type_name: '',
     goods_name: '',
     sub_title: '',
-    goods_image: '',
+    goods_image: [],
     goods_video: '',
     goods_mall_category: [],
     goods_mall_category_name: '',
@@ -536,7 +561,6 @@ const formData = reactive<any>({
     service_name: [],
     status: 1,
     unit: '',
-    virtual_sale_num: '',
     shop_sort: '',
 
     spec_type: 'single',
@@ -568,11 +592,11 @@ const formData = reactive<any>({
     virtual_receive_type_name: '自动收货',
     virtual_verify_type: '0',
     virtual_verify_type_name: '永久',
-    virtual_indate: '0',
+    virtual_indate: '',
     virtual_indate_day: '0', // 几日有效的有效期
     virtual_verify_mobile: '0'
 })
-
+const isAWait = ref(false) 
 const supplyDisabled = ref(false);
 
 // 追加刷新商品sku数据
@@ -602,13 +626,21 @@ const priceStockFormRef = ref<any>()
 const deliveryFormRef = ref<any>()
 const goodsArgumentsFormRef = ref<any>()
 const detailFormRef = ref<any>()
+const goodsShmilyDragImgRef = ref<any>()
 
 onLoad(async (option: any) => {
     formData.goods_id = option.goods_id || ''
+    formData.goods_type = option.goods_type || 'real'
     clearStoreage()
     if(formData.goods_id){
-        await getGoodsInitFn()
+        isAWait.value = true;
+        if (formData.goods_type == 'real') {
+            await getGoodsInitFn()
+        } else {
+            await getGoodsVirtualInitFn()
+        }
     } else {
+        isAWait.value = false;
         loading.value = false
     }
     getGoodsTypeFn()
@@ -620,7 +652,6 @@ onLoad(async (option: any) => {
     getShopDeliveryListFn()
     refreshDeliveryTemplate()
     
-    
 })
 onShow(() => {
     refreshData()
@@ -631,9 +662,17 @@ const generateRandom = (len: number = 5) => {
     return Number(Math.random().toString().substr(3, len) + Date.now()).toString(36)
 }
 
-const getGoodsInitFn = async () => {
-    loading.value = true
-    let data = await (await getGoodsInit({goods_id: formData.goods_id})).data
+const orderGoodsCount = ref(0)
+
+const isDisabledVirtual = computed(() => {
+    if (formData.virtual_receive_type == 'verify' && orderGoodsCount.value > 0) {
+        // 虚拟商品，并且设置为店内核销，若存在订单，则禁用，无法编辑
+        return true
+    }
+    return false
+})
+
+const handleGoodsInit = (data: any) => {
     if (formData.goods_id && data.goods_info) {
 
         // 商品参与营销活动的数量
@@ -646,7 +685,7 @@ const getGoodsInitFn = async () => {
         formData.goods_name = data.goods_info.goods_name
         formData.sub_title = data.goods_info.sub_title
         formData.goods_type = data.goods_info.goods_type
-        formData.goods_image = data.goods_info.goods_image
+        formData.goods_image = data.goods_info.goods_image.split(',')
         formData.goods_video = data.goods_info.goods_video
         formData.goods_mall_category = data.goods_info.goods_mall_category
         formData.goods_category = data.goods_info.goods_category
@@ -658,13 +697,13 @@ const getGoodsInitFn = async () => {
         if (['1', '0'].indexOf(data.goods_info.status) != -1) {
             formData.status = Number(data.goods_info.status)
         } else {
-            formData.status = 1
+            formData.status = 0
         }
 
 
         // 价格库存
         formData.spec_type = data.goods_info.spec_type
-        formData.stock = data.goods_info.stock
+        formData.stock = data.goods_info.stock      
 
         if (formData.spec_type == 'single') {
             // 单规格
@@ -702,7 +741,7 @@ const getGoodsInitFn = async () => {
             for (let key in goodsSkuData) {
                 for (let i = 0; i < skuList.length; i++) {
                     let item = skuList[i];
-                    if (goodsSkuData[key].spec_name == item.sku_spec_format.replace(/,/g, '/')) {
+                    if (goodsSkuData[key].spec_name == item.sku_spec_format.replace(/,/g, ' ')) {
                         goodsSkuData[key].sku_id = item.sku_id;
                         goodsSkuData[key].sku_image = item.sku_image;
                         goodsSkuData[key].price = item.price;
@@ -733,7 +772,6 @@ const getGoodsInitFn = async () => {
         formData.member_discount_name = formData.member_discount === 'discount' ? '会员折扣' : formData.member_discount === 'fixed_price' ? '指定会员价' : '不参与'
         
         formData.unit = data.goods_info.unit
-        formData.virtual_sale_num = data.goods_info.virtual_sale_num
         formData.is_limit = data.goods_info.is_limit
         formData.limit_type = data.goods_info.limit_type
         formData.max_buy = data.goods_info.max_buy
@@ -748,9 +786,15 @@ const getGoodsInitFn = async () => {
 
         // 获取已选商品品牌
         brandOptions.splice(0, brandOptions.length, data.goods_info.brand_option)
-
-
     }
+}
+
+// 实物
+const getGoodsInitFn = async () => {
+    loading.value = true
+    let data = await (await getGoodsInit({goods_id: formData.goods_id})).data
+    handleGoodsInit(data)
+
     if (formData.goods_id && data.goods_info) {
         // 配送设置
         formData.delivery_type = data.goods_info.delivery_type
@@ -758,6 +802,42 @@ const getGoodsInitFn = async () => {
         formData.fee_type = data.goods_info.fee_type
         formData.delivery_money = data.goods_info.delivery_money
         formData.delivery_template_id = data.goods_info.delivery_template_id
+    }
+    loading.value = false
+}
+
+// 虚拟
+const getGoodsVirtualInitFn = async () => {
+    loading.value = true
+    let data = await (await getVirtualGoodsInit({goods_id: formData.goods_id})).data
+    handleGoodsInit(data)
+    if (formData.goods_id && data.goods_info) {
+        orderGoodsCount.value = data.goods_info.order_goods_count
+
+        formData.virtual_auto_delivery = String(data.goods_info.virtual_auto_delivery)
+        formData.virtual_receive_type = data.goods_info.virtual_receive_type
+        if (formData.virtual_receive_type == 'auto') {
+            formData.virtual_receive_type_name = '自动收货'
+        } else if (formData.virtual_receive_type == 'artificial') {
+            formData.virtual_receive_type_name = '买家确认收货'
+        } else {
+            formData.virtual_receive_type_name = '到店核销'
+        }
+        formData.virtual_verify_type = String(data.goods_info.virtual_verify_type)
+        if (formData.virtual_verify_type == '0') {
+            formData.virtual_verify_type_name = '永久'
+        }  else if (formData.virtual_verify_type == '1') {
+            formData.virtual_verify_type_name = '购买后几日有效'
+        }
+         else {
+            formData.virtual_verify_type_name = '指定过期日期'
+        }
+        formData.virtual_verify_mobile = String(data.goods_info.virtual_verify_mobile)
+        if (data.goods_info.virtual_receive_type == 'verify' && data.goods_info.virtual_verify_type == 2) {
+            formData.virtual_indate = data.goods_info.virtual_indate
+        } else if (data.goods_info.virtual_receive_type == 'verify' && data.goods_info.virtual_verify_type == 1) {
+            formData.virtual_indate_day = data.goods_info.virtual_indate
+        }
     }
     loading.value = false
 }
@@ -776,7 +856,8 @@ const refreshGoodsSkuData = () => {
                     if(ele_3.spec_value_name){
                         sku_spec.push(ele_3)
                         item_prop_arr['sku_' + tempIndex] = {
-                            spec_name: `${skuData[ele_2].spec_name}/${ele_3.spec_value_name}`,
+                            spec_name: `${skuData[ele_2].spec_name} ${ele_3.spec_value_name}`,
+                            spec_name_show: `${skuData[ele_2].spec_name}/${ele_3.spec_value_name}`,
                             sku_spec,
                             sku_image: '',
                             price: '',
@@ -805,6 +886,7 @@ const refreshGoodsSkuData = () => {
                 if(spec_name){
                     item_prop_arr['sku_' + tempIndex] = {
                         spec_name: spec_name,
+                        spec_name_show: spec_name,
                         sku_spec: [ele_1],
                         sku_image: '',
                         price: '',
@@ -876,6 +958,21 @@ const matchSkuSpecCount = (oVal: any, nVal: any) => {
     return count
 }
 const refreshData = () => {
+    // 商品图片
+
+    let selectedAlbumImg = uni.getStorageSync('selectedAlbumImg');
+    if (selectedAlbumImg) {
+        selectedAlbumImg = JSON.parse(selectedAlbumImg);
+        formData.goods_image = selectedAlbumImg.list;
+        goodsShmilyDragImgRef.value.refresh()
+    }
+    // 商品视频
+    let selectedAlbumVideo = uni.getStorageSync('selectedAlbumVideo');
+    if (selectedAlbumVideo) {
+        selectedAlbumVideo = JSON.parse(selectedAlbumVideo);
+        formData.goods_video = selectedAlbumVideo.list;
+    }
+
     // 规格项
 	let goodsSpec = uni.getStorageSync('editGoodsSpecFormat') ? JSON.parse(uni.getStorageSync('editGoodsSpecFormat')) : [];
     goodsSpecFormat.splice(0, goodsSpecFormat.length, ...goodsSpec);
@@ -891,6 +988,11 @@ const refreshData = () => {
     }
 }
 const clearStoreage = () => {
+    // 临时选择的商品图片
+    uni.removeStorageSync("selectedAlbumImg");
+    // 临时选择的商品视频
+    uni.removeStorageSync("selectedAlbumVideo");
+
     uni.removeStorageSync("editGoodsSkuData");
     uni.removeStorageSync("editGoodsSpecFormat");
     // 商品详情
@@ -1073,7 +1175,7 @@ const rules = computed(() => {
         ],
         'goods_image': [
             {
-                type:'string',
+                type:'array',
                 required: true,
                 message: '请上传商品主图',
                 trigger: ['blur', 'change']
@@ -1087,14 +1189,14 @@ const rules = computed(() => {
                 trigger: ['blur', 'change']
             }
         ],
-        'goods_category': [
-            {
-                type:'array',
-                required: true,
-                message: '请选择商品分类',
-                trigger: ['blur', 'change']
-            }
-        ],
+        // 'goods_category': [
+        //     {
+        //         type:'array',
+        //         required: true,
+        //         message: '请选择商品分类',
+        //         trigger: ['blur', 'change']
+        //     }
+        // ],
         'shop_sort': [
             {
                 trigger: 'blur',
@@ -1183,24 +1285,6 @@ const rules = computed(() => {
                 }
             }
         ],
-        'virtual_sale_num': [
-            {
-                trigger: 'blur',
-                validator: (rule: any, value: any, callback: any) => {
-                    if (formData.spec_type == 'single') {
-                        if (isNaN(value) || !regExp.number.test(value)) {
-                            callback(new Error('虚拟销量格式输入错误'))
-                        } else if (value < 0) {
-                            callback(new Error('虚拟销量不能小于0'))
-                        } else {
-                            callback()
-                        }
-                    } else {
-                        callback()
-                    }
-                }
-            }
-        ],
         'spec_type': [
             {
                 trigger: 'blur',
@@ -1244,6 +1328,38 @@ const rules = computed(() => {
                         } else {
                             callback()
                         }
+                    } else {
+                        callback()
+                    }
+                }
+            }
+        ],
+        'max_buy': [
+            {
+                trigger: ['blur', 'change'],
+                validator: (rule: any, value: any, callback: any) => {
+                    if (value === '') {
+                        callback(new Error('请输入限购数量'))
+                    } else if (isNaN(value) || !regExp.number.test(value)) {
+                        callback(new Error('限购数量格式输入错误'))
+                    } else if (value < 1) {
+                        callback(new Error('限购数量不能小于1'))
+                    } else {
+                        callback()
+                    }
+                }
+            }
+        ],
+        'min_buy': [
+            {
+            	trigger: ['blur', 'change'],
+                validator: (rule: any, value: any, callback: any) => {
+                    if (isNaN(value) || !regExp.number.test(value)) {
+                        callback(new Error('起购数量格式输入错误'))
+                    } else if (value < 0) {
+                        callback(new Error('起购数量不能小于0'))
+                    } else if (formData.is_limit == 1 && value > Number(formData.max_buy)) {
+                        callback(new Error('起购数量不能大于限购数量'))
                     } else {
                         callback()
                     }
@@ -1311,10 +1427,12 @@ const rules = computed(() => {
             }
         ],
         'virtual_indate_day': [
-            { required: true, message: '请输入有效期', trigger: 'blur' },
             {
                 trigger: 'blur',
                 validator: (rule: any, value: any, callback: any) => {
+                    if (formData.virtual_receive_type =='verify' && formData.virtual_verify_type == 1 && value == '') {
+                    	callback(new Error('请输入有效期'))
+                    }
                     if (formData.virtual_receive_type == 'verify' && formData.virtual_verify_type == 1 && value < 1) {
                         callback(new Error('核销有效期不能小于1天'))
                     }
@@ -1323,13 +1441,15 @@ const rules = computed(() => {
             }
         ],
         'virtual_indate': [
-            { required: true, message: '请输入有效期', trigger: 'blur' },
             {
                 trigger: 'blur',
                 validator: (rule: any, value: any, callback: any) => {
+                    if (formData.virtual_receive_type =='verify' && formData.virtual_verify_type == 2 && value == '') {
+                        callback(new Error('请输入有效期'))
+                    }
                     if (formData.virtual_receive_type == 'verify' && formData.virtual_verify_type == 2) {
                         const date = new Date(value)
-                        const time = date.getTime()
+                        const time = date.getTime() * 1000
                         const date1 = new Date()
                         const time1 = date1.getTime()
                         if (time <= time1) { callback(new Error('核销有效期不能小于等于当前时间')) }
@@ -1398,8 +1518,12 @@ const save = () => {
 
         if (repeat.value) return
         repeat.value = true
-
-        const api = formData.goods_id ? editGoods : addGoods
+        let api = null
+        if(formData.goods_id) {
+            api = formData.goods_type == 'real' ? editGoods : editVirtualGoods
+        } else {
+            api = formData.goods_type == 'real' ? addGoods : addVirtualGoods
+        }
         const data = deepClone(formData)
 
         if (data.spec_type == 'multi') {
@@ -1408,9 +1532,20 @@ const save = () => {
                 if (goodsSkuData[k].stock) data.stock += parseInt(goodsSkuData[k].stock)
             }
         }
+        // 收货设置
+        if (data.virtual_receive_type == 'verify' && data.virtual_verify_type == 2) {
+            const date = new Date(data.virtual_indate)
+            data.virtual_indate = Math.floor(date.getTime())
+        }
+        if (data.virtual_receive_type == 'verify' && data.virtual_verify_type == 1) {
+            data.virtual_indate = data.virtual_indate_day
+        }
+        if (data.virtual_receive_type == 'verify' && data.virtual_verify_type == 0) {
+            data.virtual_indate = 0
+        }
 
         const goodsCategory: any = []
-        data.goods_category.forEach((item: any) => {
+       data.goods_category.forEach((item: any) => {
             if (typeof item == 'object') {
                 item.forEach((second: any) => {
                     if (goodsCategory.indexOf(second) == -1) {
@@ -1438,7 +1573,7 @@ const save = () => {
         } else {
             data.goods_mall_category = ''
         }
-        
+        data.goods_image = formData.goods_image.join(',')
         data.goods_sku_data = goodsSkuData
         data.goods_spec_format = goodsSpecFormat
 
@@ -1451,6 +1586,41 @@ const save = () => {
             repeat.value = false
         })
     })
+}
+
+// 添加视频
+const addVideo = () => { 
+    if(formData.goods_video){
+        let temp = {
+            list: formData.goods_video.toString(),
+            index: 0
+        }
+        uni.setStorageSync('selectedAlbumVideo', JSON.stringify(temp));
+    }
+    redirect({url: '/addon/mall/pages/goods/album', param: {att_type: 'video', number: 1, checked: true }})
+}
+// 删除视频
+const deleteVideo = () => {
+    formData.goods_video = ''
+    uni.removeStorageSync('selectedAlbumVideo');
+}
+
+const videoShow = ref(false)
+// 视频预览
+const videoPreview = () => {
+    videoShow.value = true
+}
+// 关闭视频预览
+const videoRef = ref()
+const handleVideo = () => {
+    videoShow.value = false
+    try {
+        if (videoRef.value && typeof videoRef.value.pause === 'function') {
+            videoRef.value.pause()
+        }
+    } catch (error) {
+        console.error('Failed to pause video:', error)
+    }
 }
 // 商品类型
 const openGoodsType = () => {
@@ -1543,6 +1713,11 @@ const changeVirtualVerifyType = () => {
 }
 // 有效期
 const virtualIndate = ref(false)
+const  updateVirtualIndate = (e: any) => {
+    formData.virtual_indate = (e.value / 1000)
+    virtualIndate.value = false
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -1562,5 +1737,11 @@ const virtualIndate = ref(false)
 .footer {
     height: calc(120rpx + var(--top-m) + var(--top-m) + constant(safe-area-inset-bottom)) !important;
     height: calc(120rpx + var(--top-m) + var(--top-m) + env(safe-area-inset-bottom)) !important;
+}
+.empty-page{
+    padding-top: 0rpx;
+    margin-top: 0rpx;
+    height:  350rpx;
+    width: auto;
 }
 </style>

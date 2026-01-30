@@ -6,6 +6,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.batch.MybatisBatch;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,20 +15,19 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.QrcodeUtils;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.diy_form.*;
 import com.niu.core.enums.diy.PagesEnum;
 import com.niu.core.enums.diy_form.DiyFormComponentEnum;
 import com.niu.core.enums.diy_form.DiyFormTemplateEnum;
 import com.niu.core.enums.diy_form.DiyFormTypeEnum;
 import com.niu.core.event.diy.DiyFormDelBeforeEventDefiner;
+import com.niu.core.mapper.addon.AddonMapper;
 import com.niu.core.mapper.diy_form.*;
 import com.niu.core.service.admin.diy.IDiyService;
 import com.niu.core.service.admin.diy_form.IDiyFormService;
 import com.niu.core.service.admin.diy_form.param.*;
-import com.niu.core.service.admin.diy_form.vo.DiyFormFieldsListVo;
-import com.niu.core.service.admin.diy_form.vo.DiyFormInfoVo;
-import com.niu.core.service.admin.diy_form.vo.DiyFormInitVo;
-import com.niu.core.service.admin.diy_form.vo.DiyFormListVo;
+import com.niu.core.service.admin.diy_form.vo.*;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.diy_form.ICoreDiyFormConfigService;
 import com.niu.core.service.core.diy_form.ICoreDiyFormRecordsService;
@@ -44,6 +44,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -89,7 +90,8 @@ public class DiyFormServiceImpl implements IDiyFormService {
     @Resource
     SqlSessionFactory sqlSessionFactory;
 
-
+    @Resource
+    AddonMapper addonMapper;
     @Override
     public PageResult<DiyFormListVo> getPage(PageParam pageParam, DiyFormSearchParam searchParam) {
         Integer page  = pageParam.getPage();
@@ -736,5 +738,68 @@ public class DiyFormServiceImpl implements IDiyFormService {
         return result;
     }
 
+    @Override
+    public DiyFormSelectPageVo getSelectPage(PageParam pageParam, DiyFormSelectParam param) {
+        Integer page = pageParam.getPage();
+        Integer limit = pageParam.getLimit();
+        // 验证表单ID集合
+        List<Integer> verifyFormIds = new ArrayList<>();
+        if (param.getVerifyFormIds() != null && !param.getVerifyFormIds().isEmpty()) {
+            // 查询存在的表单ID
+            List<DiyForm> existForms = diyFormMapper.selectList(
+                    new QueryWrapper<DiyForm>()
+                            .select("form_id")
+                            .in("form_id", param.getVerifyFormIds())
+            );
+
+            verifyFormIds = existForms.stream()
+                    .map(DiyForm::getFormId)
+                    .collect(Collectors.toList());
+        }
+
+        // 构建查询条件
+        LambdaQueryWrapper<DiyForm> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(DiyForm::getSiteId, RequestUtils.siteId())
+                .eq(DiyForm::getStatus, 1)
+                .orderByDesc(DiyForm::getFormId);
+
+        // 添加搜索条件
+        if (StringUtils.hasText(param.getTitle())) {
+            queryWrapper.like(DiyForm::getTitle, param.getTitle());
+        }
+        if (StringUtils.hasText(param.getType())) {
+            queryWrapper.eq(DiyForm::getType, param.getType());
+        }
+        if (StringUtils.hasText(param.getAddon())) {
+            queryWrapper.eq(DiyForm::getAddon, param.getAddon());
+        }
+
+        // 分页查询
+        IPage<DiyForm> formPage = diyFormMapper.selectPage(new Page<>(page, limit), queryWrapper);
+
+        if (formPage.getTotal() == 0){
+            return new DiyFormSelectPageVo();
+        }
+        List<DiyFormInfoVo> resultList = new ArrayList<>();
+        formPage.getRecords().forEach(item -> {
+            DiyFormInfoVo diyFormInfoVo = new DiyFormInfoVo();
+            BeanUtils.copyProperties(item, diyFormInfoVo);
+            JSONObject currentType = new DiyFormTypeEnum().getType(item.getType());
+            String typeName = currentType.getStr("title");
+            diyFormInfoVo.setTypeName(typeName);
+            Addon addon = addonMapper.selectOne(new LambdaQueryWrapper<Addon>().eq(Addon::getKey, item.getAddon()));
+            String addonName =ObjectUtil.isNotEmpty(addon) ? addon.getTitle() : "";
+            diyFormInfoVo.setAddonName(addonName);
+            resultList.add(diyFormInfoVo);
+        });
+
+        DiyFormSelectPageVo result = new DiyFormSelectPageVo();
+        result.setData(resultList);
+        result.setCurrentPage(page);
+        result.setPerPage(limit);
+        result.setTotal(formPage.getTotal());
+        result.setVerifyFormIds(verifyFormIds);
+        return result;
+    }
 
 }

@@ -26,10 +26,7 @@ import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderRefund;
 import com.niu.mall.entity.order.MallOrderRefundLog;
-import com.niu.mall.enums.order.OrderLogMainTypeEnum;
-import com.niu.mall.enums.order.OrderRefundActionTypeEnum;
-import com.niu.mall.enums.order.OrderRefundStatusEnum;
-import com.niu.mall.enums.order.OrderRefundTypeEnum;
+import com.niu.mall.enums.order.*;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
 import com.niu.mall.mapper.order.MallOrderRefundLogMapper;
@@ -46,6 +43,7 @@ import com.niu.mall.service.core.refund.param.ActiveRefundParam;
 import com.niu.mall.service.core.refund.param.AddRefundLogParam;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -67,6 +65,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
     MallOrderRefundMapper mallOrderRefundMapper;
 
     @Resource
+    @Lazy
     ICoreRefundService coreRefundService;
 
     @Resource
@@ -331,6 +330,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
     public void shopActiveRefund(ActiveRefundParam param) {
         param.setMainType(OrderLogMainTypeEnum.STORE.getType());
         param.setMainId(RequestUtils.uid());
+        param.setSource(OrderRefundSourceEnum.ACTIVE_REFUND.getType().toString());
         coreRefundActionService.shopActiveRefund(param);
     }
 }

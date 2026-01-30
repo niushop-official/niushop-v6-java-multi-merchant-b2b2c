@@ -88,30 +88,16 @@ public class CoreOrderFinishServiceImpl implements ICoreOrderFinishService {
         //执行订单事件
         coreOrderEventService.orderFinishAfter(mallOrder, param);
 
-        //订单结算
-        coreShopSettlementService.settlement(mallOrder);
         //订单结算补贴
         coreShopPerkService.perk(mallOrder);
 
-        // 订单完成之后事件
         OrderFinishAfterEvent event = new OrderFinishAfterEvent();
         event.setOrder(mallOrder);
         event.setSiteId(mallOrder.getSiteId());
         event.addAppSign("mall");
         event.setName("OrderFinishAfterEvent");
         EventAndSubscribeOfPublisher.publishAll(event);
-        try{
-            SysPrinterPrintTicketParam printParam = new SysPrinterPrintTicketParam();
-            printParam.setSiteId(mallOrder.getSiteId());
-            printParam.setType("mallGoodsOrder");
-            printParam.setTrigger("take_delivery");
-            SysPrinterPrintTicketParam.Business business = new SysPrinterPrintTicketParam.Business();
-            business.setOrderId(mallOrder.getOrderId());
-            printParam.setBusiness(business);
-            corePrinterService.printTicket(printParam);
-        }catch (Exception e){
-            log.error(" 小票打印失败 - 堆栈信息:", e);
-        }
+        
         return true;
     }
 

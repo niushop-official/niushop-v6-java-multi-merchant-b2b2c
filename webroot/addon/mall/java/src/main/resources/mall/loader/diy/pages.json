@@ -95,7 +95,7 @@
                 "name": "MALL_GOODS_SEARCH",
                 "parent": "MALL_LINK",
                 "title": "商品搜索",
-                "url": "\/addon\/mall\/pages\/goods\/search",
+                "url": "/addon/mall/pages/goods/search",
                 "action": ""
               },
               "style": "style-2",
@@ -320,10 +320,10 @@
                   "name": "MEMBER_MY_SIGN_IN",
                   "parent": "MEMBER_LINK",
                   "title": "我的签到",
-                  "url": "\/app\/pages\/member\/sign_in",
+                  "url": "/app/pages/member/sign_in",
                   "action": ""
                 },
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_sign_in.png",
+                "imageUrl": "addon/mall/diy/index/style2/nav_sign_in.png",
                 "label": {
                   "control": false,
                   "text": "热门",
@@ -332,8 +332,8 @@
                   "bgColorEnd": "#FE3423"
                 },
                 "id": "1evjnc3zeb5s",
-                "imgWidth": 180,
-                "imgHeight": 180
+                "imgWidth": 135,
+                "imgHeight": 135
               },
               {
                 "title": "分销管理",
@@ -341,10 +341,10 @@
                   "name": "MALL_FENXIAO_INDEX",
                   "parent": "MALL_FENXIAO_LINK",
                   "title": "分销中心",
-                  "url": "\/addon\/mall_fenxiao\/pages\/index",
+                  "url": "/addon/mall_fenxiao/pages/index",
                   "action": ""
                 },
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_fenxiao.png",
+                "imageUrl": "addon/mall/diy/index/style2/nav_fenxiao.png",
                 "label": {
                   "control": false,
                   "text": "热门",
@@ -362,10 +362,10 @@
                   "name": "MALL_FENXIAO_ZONE",
                   "parent": "MALL_FENXIAO_LINK",
                   "title": "分销专区",
-                  "url": "\/addon\/mall_fenxiao\/pages\/zone",
+                  "url": "/addon/mall_fenxiao/pages/zone",
                   "action": "decorate"
                 },
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_fenxiao_zone.png",
+                "imageUrl": "addon/mall/diy/index/style2/nav_fenxiao_zone.png",
                 "label": {
                   "control": false,
                   "text": "热门",
@@ -378,37 +378,16 @@
                 "imgHeight": 180
               },
               {
-                "title": "领券中心",
-                "link": {
-                  "name": "MALL_COUPON_LIST",
-                  "parent": "MALL_LINK",
-                  "title": "优惠券列表",
-                  "url": "\/addon\/mall\/pages\/coupon\/list",
-                  "action": ""
-                },
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_coupon.png",
-                "label": {
-                  "control": false,
-                  "text": "热门",
-                  "textColor": "#FFFFFF",
-                  "bgColorStart": "#F83287",
-                  "bgColorEnd": "#FE3423"
-                },
                 "id": "3bmtyrslxxy0",
+                "title": "拼团",
+                "imageUrl": "addon/mall/diy/index/style2/nav_pintuan.png",
                 "imgWidth": 180,
-                "imgHeight": 180
-              },
-              {
-                "id": "7bqpc6bjha80",
-                "title": "积分商城",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_point_index.png",
-                "imgWidth": 135,
-                "imgHeight": 135,
+                "imgHeight": 180,
                 "link": {
-                  "name": "POINTS_MALL_INDEX",
-                  "parent": "POINTS_MALL_LINK",
-                  "title": "积分商城",
-                  "url": "\/addon\/points_mall\/pages\/index",
+                  "name": "PINTUAN_INDEX",
+                  "parent": "PINTUAN_LINK",
+                  "title": "拼团",
+                  "url": "/addon/pintuan/pages/index",
                   "action": ""
                 },
                 "label": {
@@ -422,14 +401,14 @@
               {
                 "id": "7bqpc6bjha80",
                 "title": "我的订单",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_my_order.png",
+                "imageUrl": "addon/mall/diy/index/style2/nav_my_order.png",
                 "imgWidth": 180,
                 "imgHeight": 180,
                 "link": {
                   "name": "MALL_ORDER_LIST",
                   "parent": "MALL_LINK",
                   "title": "订单列表",
-                  "url": "\/addon\/mall\/pages\/order\/list",
+                  "url": "/addon/mall/pages/order/list",
                   "action": ""
                 },
                 "label": {
@@ -446,10 +425,10 @@
                   "name": "MALL_MEMBER_INDEX",
                   "parent": "MALL_LINK",
                   "title": "商城个人中心",
-                  "url": "\/app\/pages\/member\/index",
+                  "url": "/app/pages/member/index",
                   "action": "decorate"
                 },
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_member.png",
+                "imageUrl": "addon/mall/diy/index/style2/nav_member.png",
                 "label": {
                   "control": false,
                   "text": "热门",
@@ -464,14 +443,14 @@
               {
                 "id": "tgo5qmjawnk",
                 "title": "种草社区",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_sow_community.png",
+                "imageUrl": "addon/mall/diy/index/style2/nav_sow_community.png",
                 "imgWidth": 180,
                 "imgHeight": 180,
                 "link": {
                   "name": "SOW_COMMUNITY_INDEX",
                   "parent": "SOW_COMMUNITY_LINK",
                   "title": "种草社区",
-                  "url": "\/addon\/sow_community\/pages\/index",
+                  "url": "/addon/sow_community/pages/index",
                   "action": ""
                 },
                 "label": {
@@ -483,16 +462,37 @@
                 }
               },
               {
-                "id": "1fprven2cqrk_shop",
+                "id": "2wggehpnako0",
+                "title": "积分商城",
+                "imageUrl": "addon/mall/diy/index/style2/nav_point_index.png",
+                "imgWidth": 180,
+                "imgHeight": 180,
+                "link": {
+                  "name": "POINTS_MALL_INDEX",
+                  "parent": "POINTS_MALL_LINK",
+                  "title": "积分商城",
+                  "url": "/addon/points_mall/pages/index",
+                  "action": ""
+                },
+                "label": {
+                  "control": false,
+                  "text": "热门",
+                  "textColor": "#FFFFFF",
+                  "bgColorStart": "#F83287",
+                  "bgColorEnd": "#FE3423"
+                }
+              },
+              {
+                "id": "1fprven2cqrk",
                 "title": "店铺街",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_shop_street.png",
+                "imageUrl": "addon/mall/diy/index/style2/nav_shop_street.png",
                 "imgWidth": 180,
                 "imgHeight": 180,
                 "link": {
                   "name": "MALL_SHOP_STREET",
                   "parent": "MALL_LINK",
                   "title": "店铺街",
-                  "url": "\/addon\/mall\/pages\/shop\/list",
+                  "url": "/addon/mall/pages/shop/list",
                   "action": ""
                 },
                 "label": {
@@ -504,16 +504,16 @@
                 }
               },
               {
-                "id": "2ktzer8wrnc0_apply",
+                "id": "2ktzer8wrnc0",
                 "title": "申请入驻",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_shop_apply.png",
+                "imageUrl": "addon/mall/diy/index/style2/nav_shop_apply.png",
                 "imgWidth": 180,
                 "imgHeight": 180,
                 "link": {
                   "name": "MALL_SHOP_APPLY",
                   "parent": "MALL_LINK",
                   "title": "申请入驻",
-                  "url": "\/addon\/mall\/pages\/member\/merchant_settled",
+                  "url": "/addon/mall/pages/member/merchant_settled",
                   "action": ""
                 },
                 "label": {
@@ -562,7 +562,7 @@
             "noticeType": "img",
             "imgType": "diy",
             "systemUrl": "style_1",
-            "imageUrl": "addon/mall/diy\/index\/style2\/notice.png",
+            "imageUrl": "addon/mall/diy/index/style2/notice.png",
             "showType": "popup",
             "scrollWay": "upDown",
             "fontSize": 12,
@@ -648,7 +648,7 @@
             "bottomElementRounded": 0,
             "margin": {
               "top": 10,
-              "bottom": 0,
+              "bottom": "",
               "both": 10
             },
             "pageStyle": "padding-top:20rpx;padding-bottom:0rpx;padding-right:20rpx;padding-left:20rpx;"
@@ -733,6 +733,7 @@
                 "id": "4v1bhzhxay60"
               }
             ],
+            "imgElementRounded": 10,
             "textColor": "#303133",
             "pageStartBgColor": "",
             "pageEndBgColor": "",
@@ -809,7 +810,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods1.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods1.png",
                 "id": "77tls7gaho80"
               },
               {
@@ -835,7 +836,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods2.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods2.png",
                 "id": "m4scwuc67do"
               },
               {
@@ -861,7 +862,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods3.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods3.png",
                 "id": "33nbfp8czea0"
               },
               {
@@ -887,7 +888,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods4.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods4.png",
                 "id": "49scoy4bgsg0"
               }
             ],
@@ -910,7 +911,7 @@
               "bottom": 0,
               "both": 10
             },
-            "textImg": "static\/resource\/images\/diy\/active_cube\/active_cube_text1.png",
+            "textImg": "static/resource/images/diy/active_cube/active_cube_text1.png",
             "contentBtnTextStyle": "italics",
             "pageStyle": "padding-top:20rpx;padding-bottom:0rpx;padding-right:20rpx;padding-left:20rpx;"
           },
@@ -923,7 +924,7 @@
             "ignore": [],
             "moduleOne": {
               "head": {
-                "textImg": "static\/resource\/images\/diy\/picture_show\/picture_show_head_text1.png",
+                "textImg": "static/resource/images/diy/picture_show/picture_show_head_text1.png",
                 "subText": "每日上新",
                 "subTextColor": "#666666"
               },
@@ -938,7 +939,7 @@
                   "link": {
                     "name": ""
                   },
-                  "imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_01.png"
+                  "imageUrl": "static/resource/images/diy/picture_show/picture_01.png"
                 },
                 {
                   "btnTitle": {
@@ -950,7 +951,7 @@
                   "link": {
                     "name": ""
                   },
-                  "imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_02.png"
+                  "imageUrl": "static/resource/images/diy/picture_show/picture_02.png"
                 }
               ],
               "listFrame": {
@@ -960,7 +961,7 @@
             },
             "moduleTwo": {
               "head": {
-                "textImg": "static\/resource\/images\/diy\/picture_show\/picture_show_head_text2.png",
+                "textImg": "static/resource/images/diy/picture_show/picture_show_head_text2.png",
                 "subText": "好物低至1折1",
                 "subTextColor": "#666666"
               },
@@ -975,7 +976,7 @@
                   "link": {
                     "name": ""
                   },
-                  "imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_03.png"
+                  "imageUrl": "static/resource/images/diy/picture_show/picture_03.png"
                 },
                 {
                   "btnTitle": {
@@ -987,7 +988,7 @@
                   "link": {
                     "name": ""
                   },
-                  "imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_04.png"
+                  "imageUrl": "static/resource/images/diy/picture_show/picture_04.png"
                 }
               ],
               "listFrame": {
@@ -1015,7 +1016,7 @@
             "bottomElementRounded": 0,
             "margin": {
               "top": 10,
-              "bottom": 0,
+              "bottom": "",
               "both": 10
             },
             "pageStyle": "padding-top:20rpx;padding-bottom:0rpx;padding-right:20rpx;padding-left:20rpx;"
@@ -1029,7 +1030,7 @@
             "ignore": [],
             "moduleOne": {
               "head": {
-                "textImg": "static\/resource\/images\/diy\/picture_show\/picture_show_head_text3.png",
+                "textImg": "static/resource/images/diy/picture_show/picture_show_head_text3.png",
                 "subText": "最高补1200元",
                 "subTextColor": "#666666"
               },
@@ -1044,7 +1045,7 @@
                   "link": {
                     "name": ""
                   },
-                  "imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_05.png"
+                  "imageUrl": "static/resource/images/diy/picture_show/picture_05.png"
                 },
                 {
                   "btnTitle": {
@@ -1056,7 +1057,7 @@
                   "link": {
                     "name": ""
                   },
-                  "imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_06.png"
+                  "imageUrl": "static/resource/images/diy/picture_show/picture_06.png"
                 }
               ],
               "listFrame": {
@@ -1066,7 +1067,7 @@
             },
             "moduleTwo": {
               "head": {
-                "textImg": "static\/resource\/images\/diy\/picture_show\/picture_show_head_text4.png",
+                "textImg": "static/resource/images/diy/picture_show/picture_show_head_text4.png",
                 "subText": "每日上新",
                 "subTextColor": "#666666"
               },
@@ -1081,7 +1082,7 @@
                   "link": {
                     "name": ""
                   },
-                  "imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_07.png"
+                  "imageUrl": "static/resource/images/diy/picture_show/picture_07.png"
                 },
                 {
                   "btnTitle": {
@@ -1093,7 +1094,7 @@
                   "link": {
                     "name": ""
                   },
-                  "imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_08.png"
+                  "imageUrl": "static/resource/images/diy/picture_show/picture_08.png"
                 }
               ],
               "listFrame": {
@@ -1121,62 +1122,7 @@
             "bottomElementRounded": 0,
             "margin": {
               "top": 10,
-              "bottom": 0,
-              "both": 10
-            },
-            "pageStyle": "padding-top:20rpx;padding-bottom:0rpx;padding-right:20rpx;padding-left:20rpx;"
-          },
-          {
-            "path": "edit-mall-newcomer",
-            "uses": 1,
-            "id": "2hjc1q7f7q80",
-            "componentName": "MallNewcomer",
-            "componentTitle": "新人专享",
-            "ignore": [],
-            "style": {
-              "title": "风格1",
-              "value": "style-1"
-            },
-            "textImg": "addon/mall/diy\/newcomer\/style_title_01.png",
-            "subTitle": {
-              "text": "查看更多",
-              "textColor": "#FFFFFF",
-              "startColor": "#FB792F",
-              "endColor": "#F91700",
-              "link": {
-                "name": ""
-              }
-            },
-            "countDown": {
-              "numberColor": "rgba(255, 0, 0, 1)",
-              "numberBg": {
-                "startColor": "rgba(255, 255, 255, 1)",
-                "endColor": ""
-              },
-              "otherColor": "rgba(255, 255, 255, 1)"
-            },
-            "source": "all",
-            "num": 10,
-            "goods_category": "",
-            "goods_category_name": "请选择",
-            "goods_ids": [],
-            "textColor": "#303133",
-            "pageStartBgColor": "",
-            "pageEndBgColor": "",
-            "pageGradientAngle": "to bottom",
-            "componentBgUrl": "",
-            "componentBgAlpha": 2,
-            "componentStartBgColor": "#ff6D1A",
-            "componentEndBgColor": "rgba(255, 70, 56, 1)",
-            "componentGradientAngle": "to right",
-            "topRounded": 12,
-            "bottomRounded": 12,
-            "elementBgColor": "",
-            "topElementRounded": 10,
-            "bottomElementRounded": 10,
-            "margin": {
-              "top": 10,
-              "bottom": 0,
+              "bottom": "",
               "both": 10
             },
             "pageStyle": "padding-top:20rpx;padding-bottom:0rpx;padding-right:20rpx;padding-left:20rpx;"
@@ -1191,7 +1137,7 @@
               "componentBgUrl"
             ],
             "titleStyle": {
-              "title": "风格 1",
+              "title": "风格1",
               "value": "style-1"
             },
             "textImg": "addon/mall/diy/mall_shop_list/index/title.png",
@@ -1261,7 +1207,7 @@
               "title": "风格1",
               "value": "style-1"
             },
-            "textImg": "addon/mall/diy\/index\/style2\/single_recommend_text1.png",
+            "textImg": "addon/mall/diy/index/style2/single_recommend_text1.png",
             "textLink": {
               "name": ""
             },
@@ -1279,7 +1225,7 @@
             "list": [
               {
                 "id": "18o4pyaufktc",
-                "imageUrl": "addon/mall/diy\/index\/style2\/single_recommend_banner1.jpg",
+                "imageUrl": "addon/mall/diy/index/style2/single_recommend_banner1.jpg",
                 "imgWidth": 345,
                 "imgHeight": 495,
                 "link": {
@@ -1290,7 +1236,7 @@
               },
               {
                 "id": "18o8pyaufktc",
-                "imageUrl": "addon/mall/diy\/index\/style2\/single_recommend_banner2.jpg",
+                "imageUrl": "addon/mall/diy/index/style2/single_recommend_banner2.jpg",
                 "imgWidth": 345,
                 "imgHeight": 495,
                 "link": {
@@ -1354,7 +1300,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "addon/mall/diy\/index\/style2\/discount_img.png",
+                "imageUrl": "addon/mall/diy/index/style2/discount_img.png",
                 "imgWidth": 710,
                 "imgHeight": 170,
                 "id": "6eo9vdo9xtc0",
@@ -1510,7 +1456,7 @@
     },
     "mall_index_style1": {
       "title": "商城首页2",
-      "cover": "addon/mall/diy\/template\/mall_index_one_cover.png",
+      "cover": "addon/mall/diy/template/mall_index_one_cover.png",
       "preview": "",
       "desc": "",
       "mode": "diy",
@@ -1597,13 +1543,13 @@
             "fixedBgColor": "",
             "bgGradient": true,
             "search": {
-              "logo": "addon/mall/diy\/index\/style2\/logo.png",
+              "logo": "addon/mall/diy/index/style1/logo.png",
               "text": "请输入搜索关键词",
               "link": {
                 "name": "MALL_GOODS_SEARCH",
                 "parent": "MALL_LINK",
                 "title": "商品搜索",
-                "url": "\/addon\/mall\/pages\/goods\/search",
+                "url": "/addon/mall/pages/goods/search",
                 "action": ""
               },
               "style": "style-1",
@@ -1700,29 +1646,31 @@
               "indicatorStyle": "style-1",
               "indicatorAlign": "center",
               "swiperStyle": "style-1",
-              "imageHeight": 158,
+              "imageHeight": 164,
               "topRounded": 10,
               "bottomRounded": 10,
               "list": [
                 {
-                  "imageUrl": "addon/mall/diy\/index\/style2\/banner1.png",
+                  "imageUrl": "addon/mall/diy/index/style1/banner.png",
                   "imgWidth": 630,
-                  "imgHeight": 290,
+                  "imgHeight": 300,
                   "link": {
                     "name": ""
                   },
                   "id": "2ywogh006ai0",
                   "width": 345,
-                  "height": 158.8095238095238
+                  "height": 164.28571428571428
                 },
                 {
-                  "id": "3p7wiewe0o00",
-                  "imageUrl": "addon/mall/diy\/index\/style2\/banner2.png",
-                  "imgWidth": 630,
-                  "imgHeight": 290,
+                  "imageUrl": "addon/mall/diy/index/style1/banner.png",
+                  "imgWidth": 690,
+                  "imgHeight": 300,
                   "link": {
                     "name": ""
-                  }
+                  },
+                  "id": "3ewogh006ai0",
+                  "width": 345,
+                  "height": 150
                 }
               ]
             },
@@ -1780,10 +1728,10 @@
                   "name": "MEMBER_MY_SIGN_IN",
                   "parent": "MEMBER_LINK",
                   "title": "我的签到",
-                  "url": "\/app\/pages\/member\/sign_in",
+                  "url": "/app/pages/member/sign_in",
                   "action": ""
                 },
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_sign_in.png",
+                "imageUrl": "addon/mall/diy/index/style1/nav_sign_in.png",
                 "label": {
                   "control": false,
                   "text": "热门",
@@ -1796,15 +1744,15 @@
                 "imgHeight": 135
               },
               {
-                "title": "分销管理",
+                "title": "商品分类",
                 "link": {
-                  "name": "MALL_FENXIAO_INDEX",
-                  "parent": "MALL_FENXIAO_LINK",
-                  "title": "分销中心",
-                  "url": "\/addon\/mall_fenxiao\/pages\/index",
+                  "name": "MALL_GOODS_CATEGORY",
+                  "parent": "MALL_LINK",
+                  "title": "商品分类",
+                  "url": "/addon/mall/pages/goods/category",
                   "action": ""
                 },
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_fenxiao.png",
+                "imageUrl": "addon/mall/diy/index/style1/nav_goods_category.png",
                 "label": {
                   "control": false,
                   "text": "热门",
@@ -1812,30 +1760,9 @@
                   "bgColorStart": "#F83287",
                   "bgColorEnd": "#FE3423"
                 },
-                "id": "2ktzer8wrnc0",
+                "id": "1evjnc3zeb5s",
                 "imgWidth": 180,
                 "imgHeight": 180
-              },
-              {
-                "title": "分销专区",
-                "link": {
-                  "name": "MALL_FENXIAO_ZONE",
-                  "parent": "MALL_FENXIAO_LINK",
-                  "title": "分销专区",
-                  "url": "\/addon\/mall_fenxiao\/pages\/zone",
-                  "action": "decorate"
-                },
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_fenxiao_zone.png",
-                "label": {
-                  "control": false,
-                  "text": "热门",
-                  "textColor": "#FFFFFF",
-                  "bgColorStart": "#F83287",
-                  "bgColorEnd": "#FE3423"
-                },
-                "id": "4aixr8qu5ek0",
-                "imgWidth": 135,
-                "imgHeight": 135
               },
               {
                 "title": "领券中心",
@@ -1843,10 +1770,10 @@
                   "name": "MALL_COUPON_LIST",
                   "parent": "MALL_LINK",
                   "title": "优惠券列表",
-                  "url": "\/addon\/mall\/pages\/coupon\/list",
+                  "url": "/addon/mall/pages/coupon/list",
                   "action": ""
                 },
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_coupon.png",
+                "imageUrl": "addon/mall/diy/index/style1/nav_coupon.png",
                 "label": {
                   "control": false,
                   "text": "热门",
@@ -1859,33 +1786,37 @@
                 "imgHeight": 180
               },
               {
-                "id": "6iux9g1aojo0",
-                "title": "新闻资讯",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_news_info.png",
-                "imgWidth": 180,
-                "imgHeight": 180,
+                "title": "会员中心",
                 "link": {
-                  "name": ""
+                  "name": "MALL_MEMBER_INDEX",
+                  "parent": "MALL_LINK",
+                  "title": "商城个人中心",
+                  "url": "/app/pages/member/index",
+                  "action": "decorate"
                 },
+                "imageUrl": "addon/mall/diy/index/style1/nav_member_index.png",
                 "label": {
                   "control": false,
                   "text": "热门",
                   "textColor": "#FFFFFF",
                   "bgColorStart": "#F83287",
                   "bgColorEnd": "#FE3423"
-                }
+                },
+                "id": "4aixr8qu5ek0",
+                "imgWidth": 180,
+                "imgHeight": 180
               },
               {
                 "id": "7jggy5euv3w0",
-                "title": "限时折扣",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_discount.png",
-                "imgWidth": 135,
-                "imgHeight": 135,
+                "title": "购物车",
+                "imageUrl": "addon/mall/diy/index/style1/nav_cart.png",
+                "imgWidth": 180,
+                "imgHeight": 180,
                 "link": {
-                  "name": "MALL_DISCOUNT_LIST",
+                  "name": "MALL_GOODS_CART",
                   "parent": "MALL_LINK",
-                  "title": "限时折扣列表",
-                  "url": "\/addon\/mall\/pages\/discount\/list",
+                  "title": "购物车",
+                  "url": "/addon/mall/pages/goods/cart",
                   "action": ""
                 },
                 "label": {
@@ -1898,15 +1829,15 @@
               },
               {
                 "id": "7bqpc6bjha80",
-                "title": "积分商城",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_point_index.png",
-                "imgWidth": 135,
-                "imgHeight": 135,
+                "title": "我的订单",
+                "imageUrl": "addon/mall/diy/index/style1/nav_my_order.png",
+                "imgWidth": 180,
+                "imgHeight": 180,
                 "link": {
-                  "name": "MALL_POINT_INDEX",
+                  "name": "MALL_ORDER_LIST",
                   "parent": "MALL_LINK",
-                  "title": "积分商城",
-                  "url": "\/addon\/mall\/pages\/point\/index",
+                  "title": "订单列表",
+                  "url": "/addon/mall/pages/order/list",
                   "action": ""
                 },
                 "label": {
@@ -1919,15 +1850,15 @@
               },
               {
                 "id": "tgo5qmjawnk",
-                "title": "礼品卡",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_giftcard.png",
+                "title": "我的积分",
+                "imageUrl": "addon/mall/diy/index/style1/nav_my_point.png",
                 "imgWidth": 180,
                 "imgHeight": 180,
                 "link": {
-                  "name": "MALL_GIFTCARD_INDEX",
-                  "parent": "MALL_GIFTCARD_LINK",
-                  "title": "礼品卡",
-                  "url": "\/addon\/mall_giftcard\/pages\/index",
+                  "name": "MEMBER_POINT",
+                  "parent": "MEMBER_LINK",
+                  "title": "我的积分",
+                  "url": "/app/pages/member/point",
                   "action": ""
                 },
                 "label": {
@@ -1941,14 +1872,14 @@
               {
                 "id": "1fprven2cqrk",
                 "title": "我的余额",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_my_balance.png",
+                "imageUrl": "addon/mall/diy/index/style1/nav_my_balance.png",
                 "imgWidth": 180,
                 "imgHeight": 180,
                 "link": {
                   "name": "MEMBER_BALANCE",
                   "parent": "MEMBER_LINK",
                   "title": "我的余额",
-                  "url": "\/app\/pages\/member\/balance",
+                  "url": "/app/pages/member/balance",
                   "action": ""
                 },
                 "label": {
@@ -1962,14 +1893,35 @@
               {
                 "id": "2wggehpnako0",
                 "title": "地址管理",
-                "imageUrl": "addon/mall/diy\/index\/style2\/nav_my_address.png",
+                "imageUrl": "addon/mall/diy/index/style1/nav_my_address.png",
                 "imgWidth": 180,
                 "imgHeight": 180,
                 "link": {
                   "name": "MEMBER_ADDRESS",
                   "parent": "MEMBER_LINK",
                   "title": "收货地址",
-                  "url": "\/app\/pages\/member\/address",
+                  "url": "/app/pages/member/address",
+                  "action": ""
+                },
+                "label": {
+                  "control": false,
+                  "text": "热门",
+                  "textColor": "#FFFFFF",
+                  "bgColorStart": "#F83287",
+                  "bgColorEnd": "#FE3423"
+                }
+              },
+              {
+                "id": "2ktzer8wrnc0",
+                "title": "申请入驻",
+                "imageUrl": "addon/mall/diy/index/style1/nav_fenxiao.png",
+                "imgWidth": 180,
+                "imgHeight": 180,
+                "link": {
+                  "name": "MALL_SHOP_APPLY",
+                  "parent": "MALL_LINK",
+                  "title": "申请入驻",
+                  "url": "/addon/mall/pages/member/merchant_settled",
                   "action": ""
                 },
                 "label": {
@@ -1981,12 +1933,6 @@
                 }
               }
             ],
-            "swiper": {
-              "indicatorColor": "rgba(0, 0, 0, 0.3)",
-              "indicatorActiveColor": "#FF0E0E",
-              "indicatorStyle": "style-1",
-              "indicatorAlign": "center"
-            },
             "textColor": "#303133",
             "pageStartBgColor": "",
             "pageEndBgColor": "",
@@ -2060,7 +2006,7 @@
             }
           },
           {
-            "path": "edit-goods-coupon",
+            "path": "edit-mall-goods-coupon",
             "uses": 0,
             "id": "52ldidxgpcg0",
             "componentName": "MallGoodsCoupon",
@@ -2121,7 +2067,7 @@
             "textLink": {
               "name": ""
             },
-            "textImg": "static\/resource\/images\/diy\/active_cube\/active_cube_text1.png",
+            "textImg": "static/resource/images/diy/active_cube/active_cube_text1.png",
             "titleColor": "#F91700",
             "subTitle": {
               "text": "为您精选爆款",
@@ -2162,7 +2108,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods1.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods1.png",
                 "id": "bvn98cr8j1s"
               },
               {
@@ -2188,7 +2134,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods2.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods2.png",
                 "id": "6u24tqbyc780"
               },
               {
@@ -2214,7 +2160,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods3.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods3.png",
                 "id": "6dn1yt1j0as0"
               },
               {
@@ -2240,7 +2186,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods4.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods4.png",
                 "id": "4q9zphidqtm0"
               }
             ],
@@ -2276,7 +2222,7 @@
               "value": "style-4"
             },
             "text": "数码产品",
-            "textImg": "static\/resource\/images\/diy\/active_cube\/active_cube_text1.png",
+            "textImg": "static/resource/images/diy/active_cube/active_cube_text1.png",
             "textLink": {
               "name": ""
             },
@@ -2320,7 +2266,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods5.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods5.png",
                 "id": "5am2l07pkr00"
               },
               {
@@ -2346,7 +2292,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods6.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods6.png",
                 "id": "2v4zusih9u80"
               },
               {
@@ -2372,7 +2318,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods7.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods7.png",
                 "id": "va5dyomnq68"
               },
               {
@@ -2398,7 +2344,7 @@
                 "link": {
                   "name": ""
                 },
-                "imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods8.png",
+                "imageUrl": "static/resource/images/diy/active_cube/active_cube_goods8.png",
                 "id": "4h16lw3ntsw0"
               }
             ],
@@ -2406,7 +2352,7 @@
             "pageStartBgColor": "",
             "pageEndBgColor": "",
             "pageGradientAngle": "to bottom",
-            "componentBgUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_bg.png",
+            "componentBgUrl": "static/resource/images/diy/active_cube/active_cube_bg.png",
             "componentBgAlpha": 7,
             "componentStartBgColor": "",
             "componentEndBgColor": "",
@@ -2920,6 +2866,12 @@
             "headStyle": "style-2",
             "aroundRadius": 25,
             "source": "custom",
+            "position": {
+              "control": false
+            },
+            "localDelivery": {
+              "control": false
+            },
             "goodsNameStyle": {
               "color": "#303133",
               "control": true,
@@ -2940,6 +2892,11 @@
               "control": true,
               "isShow": true
             },
+            "distanceStyle": {
+              "control": true,
+              "isShow": true
+            },
+            "imgElementRounded": 12,
             "btnStyle": {
               "fontWeight": false,
               "padding": 0,
@@ -3447,10 +3404,10 @@
                 "imgWidth": 88,
                 "imgHeight": 88,
                 "link": {
-                  "name": "MALL_INVOICE",
-                  "parent": "MALL_LINK",
+                  "name": "MEMBER_INVOICE",
+                  "parent": "MEMBER_LINK",
                   "title": "发票管理",
-                  "url": "/addon/mall/pages/invoice/list",
+                  "url": "/app/pages/invoice/list",
                   "action": ""
                 },
                 "label": {
@@ -3565,6 +3522,48 @@
                   "bgColorStart": "#F83287",
                   "bgColorEnd": "#FE3423"
                 }
+              },
+              {
+                "id": "92mj3i9ia5vr",
+                "title": "积分商城",
+                "imageUrl": "addon/mall/diy/member/style1/nav_points_mall.png",
+                "imgWidth": 88,
+                "imgHeight": 88,
+                "link": {
+                  "name": "POINTS_MALL_INDEX",
+                  "parent": "POINTS_MALL_LINK",
+                  "title": "积分商城",
+                  "url": "/addon/points_mall/pages/index",
+                  "action": ""
+                },
+                "label": {
+                  "control": false,
+                  "text": "热门",
+                  "textColor": "#FFFFFF",
+                  "bgColorStart": "#F83287",
+                  "bgColorEnd": "#FE3423"
+                }
+              },
+              {
+                "id": "7dpefp0s9ew0",
+                "title": "分销中心",
+                "imageUrl": "addon/mall/diy/member/style1/nav_promote.png",
+                "imgWidth": 88,
+                "imgHeight": 88,
+                "link": {
+                  "name": "MALL_FENXIAO_INDEX",
+                  "parent": "MALL_FENXIAO_LINK",
+                  "title": "分销中心",
+                  "url": "/addon/mall_fenxiao/pages/index",
+                  "action": ""
+                },
+                "label": {
+                  "control": false,
+                  "text": "热门",
+                  "textColor": "#FFFFFF",
+                  "bgColorStart": "#F83287",
+                  "bgColorEnd": "#FE3423"
+                }
               }
             ]
           }
@@ -3573,7 +3572,7 @@
     }
   },
   "DIY_SITE_INDEX": {
-    "mall_site_index_style2": {
+    "mall_site_index_style1": {
       "title": "店铺首页",
       "cover": "",
       "preview": "",
@@ -3582,6 +3581,9 @@
       "data": {
         "global": {
           "title": "商家首页",
+          "completeLayout": "style-1",
+          "completeAlign": "left",
+          "borderControl": true,
           "pageStartBgColor": "rgba(246, 246, 246, 1)",
           "pageEndBgColor": "",
           "pageGradientAngle": "to bottom",
@@ -3590,19 +3592,20 @@
           "imgWidth": "",
           "imgHeight": "",
           "topStatusBar": {
+            "control": true,
             "isShow": true,
             "bgColor": "#ffffff",
-            "isTransparent": false,
+            "rollBgColor": "#ffffff",
             "style": "style-1",
             "styleName": "风格1",
             "textColor": "#333333",
+            "rollTextColor": "#333333",
             "textAlign": "center",
             "inputPlaceholder": "请输入搜索关键词",
             "imgUrl": "",
             "link": {
               "name": ""
-            },
-            "rollBgColor": "#ffffff"
+            }
           },
           "bottomTabBar": {
             "control": true,
@@ -3612,7 +3615,7 @@
             "imgUrl": "",
             "imgWidth": "",
             "imgHeight": "",
-            "count": -1,
+            "count": "once",
             "show": 0,
             "link": {
               "name": ""
@@ -3637,7 +3640,8 @@
               "top": 0,
               "bottom": 0,
               "both": 0
-            }
+            },
+            "isHidden": false
           }
         },
         "value": [
@@ -3645,7 +3649,7 @@
             "path": "edit-mall-shop-info",
             "uses": 1,
             "position": "top_fixed",
-            "id": "27ge9umz4k2s",
+            "id": "2qy5dz8vxre0",
             "componentName": "MallShopInfo",
             "componentTitle": "商家信息",
             "ignore": [
@@ -3659,10 +3663,10 @@
               "marginBoth"
             ],
             "positionWay": "fixed",
-            "fixedBgColor": "",
+            "fixedBgColor": "rgba(255, 255, 255, 1)",
             "bgGradient": true,
             "bgImg": "/addon/mall/diy/site_index/style2/header_bg.jpg",
-            "bgOpacity": 70,
+            "bgOpacity": 80,
             "search": {
               "text": "请输入搜索关键词",
               "link": {
@@ -3677,30 +3681,34 @@
               "bgColor": "rgba(255, 255, 255, 0.2)",
               "btnBgColor": "#ffffff"
             },
-            "tab": {
+            "fixedSearch": {
+              "color": "#333",
+              "btnColor": "#333",
+              "bgColor": "rgba(245, 245, 245, 1)",
+              "btnBgColor": "rgba(245, 245, 245, 1)"
+            },
+            "swiper": {
               "control": true,
-              "noColor": "#ffffff",
-              "selectColor": "#EF000C ",
-              "noBgColor": "transparent",
-              "selectBgColor": "#ffffff",
+              "interval": 5,
+              "indicatorColor": "rgba(0, 0, 0, 0.3)",
+              "indicatorActiveColor": "#FF0E0E",
+              "indicatorStyle": "style-1",
+              "indicatorAlign": "center",
+              "swiperStyle": "style-2",
+              "imageHeight": 165,
+              "topRounded": 12,
+              "bottomRounded": 12,
               "list": [
                 {
-                  "text": "新品",
-                  "source": "diy_page",
-                  "diy_id": "",
-                  "diy_title": ""
-                },
-                {
-                  "text": "热卖",
-                  "source": "diy_page",
-                  "diy_id": "",
-                  "diy_title": ""
-                },
-                {
-                  "text": "领券",
-                  "source": "diy_page",
-                  "diy_id": "",
-                  "diy_title": ""
+                  "imageUrl": "addon/mall/diy/site_index/style1/banner1.jpg",
+                  "imgWidth": 710,
+                  "imgHeight": 330,
+                  "link": {
+                    "name": ""
+                  },
+                  "id": "441ktsuva0i0",
+                  "width": 355,
+                  "height": 165
                 }
               ]
             },
@@ -3725,89 +3733,13 @@
               "top": 0,
               "bottom": 0,
               "both": 0
-            }
-          },
-          {
-            "path": "edit-image-ads",
-            "uses": 0,
-            "id": "5u0a3bgovrk0",
-            "componentName": "ImageAds",
-            "componentTitle": "图片广告",
-            "ignore": [
-              "componentBgUrl"
-            ],
-            "imageHeight": 475,
-            "isSameScreen": false,
-            "list": [
-              {
-                "link": {
-                  "name": ""
-                },
-                "imageUrl": "/addon/mall/diy/site_index/style2/banner_01.jpg",
-                "imgWidth": 710,
-                "imgHeight": 900,
-                "id": "304artzi99a0",
-                "width": 375,
-                "height": 475.3521126760564
-              }
-            ],
-            "textColor": "#303133",
-            "pageStartBgColor": "",
-            "pageEndBgColor": "",
-            "pageGradientAngle": "to bottom",
-            "componentBgUrl": "",
-            "componentBgAlpha": 2,
-            "componentStartBgColor": "",
-            "componentEndBgColor": "",
-            "componentGradientAngle": "to bottom",
-            "topRounded": 12,
-            "bottomRounded": 12,
-            "elementBgColor": "",
-            "topElementRounded": 0,
-            "bottomElementRounded": 0,
-            "margin": {
-              "top": -5,
-              "bottom": 10,
-              "both": 10
-            }
-          },
-          {
-            "path": "edit-hot-area",
-            "uses": 0,
-            "id": "15mcdpx0uqlc",
-            "componentName": "HotArea",
-            "componentTitle": "热区",
-            "ignore": [
-              "componentBgUrl"
-            ],
-            "imageUrl": "/addon/mall/diy/site_index/style2/category.jpg",
-            "imgWidth": 710,
-            "imgHeight": 224,
-            "heatMapData": [],
-            "textColor": "#303133",
-            "pageStartBgColor": "",
-            "pageEndBgColor": "",
-            "pageGradientAngle": "to bottom",
-            "componentBgUrl": "",
-            "componentBgAlpha": 2,
-            "componentStartBgColor": "",
-            "componentEndBgColor": "",
-            "componentGradientAngle": "to bottom",
-            "topRounded": 12,
-            "bottomRounded": 12,
-            "elementBgColor": "",
-            "topElementRounded": 0,
-            "bottomElementRounded": 0,
-            "margin": {
-              "top": 0,
-              "bottom": 10,
-              "both": 10
-            }
+            },
+            "isHidden": false
           },
           {
             "path": "edit-mall-goods-coupon",
             "uses": 0,
-            "id": "5ho3xjjulw00",
+            "id": "3ivd9tsi9ru0",
             "componentName": "MallGoodsCoupon",
             "componentTitle": "优惠券",
             "ignore": [
@@ -3819,17 +3751,17 @@
             "num": 6,
             "couponIds": [],
             "btnText": "立即领取",
-            "couponTitle": "畅享礼券",
+            "couponTitle": "先领券 再购物",
             "couponSubTitle": "领券下单 享购物优惠",
             "titleColor": "#333",
             "subTitleColor": "#ffffff",
             "couponItem": {
               "bgColor": "#FFF7F6",
-              "bgUrl": "/addon/mall/diy/site_index/style2/coupon_bg.png",
-              "textColor": "#FF0000",
+              "bgUrl": "/addon/mall/diy/goods_coupon/style5_bg.png",
+              "textColor": "#fff",
               "subTextColor": "#666666",
-              "moneyColor": "#FF0000",
-              "btnColor": "#FF0000",
+              "moneyColor": "#fff",
+              "btnColor": "#fff",
               "aroundRadius": 6
             },
             "textColor": "#303133",
@@ -3850,212 +3782,66 @@
               "top": 10,
               "bottom": 10,
               "both": 10
-            }
-          },
-          {
-            "path": "edit-image-ads",
-            "uses": 0,
-            "id": "3cl72uurex40",
-            "componentName": "ImageAds",
-            "componentTitle": "图片广告",
-            "ignore": [
-              "componentBgUrl"
-            ],
-            "imageHeight": 63,
-            "isSameScreen": false,
-            "list": [
-              {
-                "link": {
-                  "name": ""
-                },
-                "imageUrl": "/addon/mall/diy/site_index/style2/title_01.png",
-                "imgWidth": 710,
-                "imgHeight": 120,
-                "id": "icbejonzj2w",
-                "width": 375,
-                "height": 63.38028169014084
-              }
-            ],
-            "textColor": "#303133",
-            "pageStartBgColor": "",
-            "pageEndBgColor": "",
-            "pageGradientAngle": "to bottom",
-            "componentBgUrl": "",
-            "componentBgAlpha": 2,
-            "componentStartBgColor": "",
-            "componentEndBgColor": "",
-            "componentGradientAngle": "to bottom",
-            "topRounded": 12,
-            "bottomRounded": 12,
-            "elementBgColor": "",
-            "topElementRounded": 0,
-            "bottomElementRounded": 0,
-            "margin": {
-              "top": 0,
-              "bottom": 10,
-              "both": 10
-            }
-          },
-          {
-            "path": "edit-image-ads",
-            "uses": 0,
-            "id": "5qv8rsa23cs0",
-            "componentName": "ImageAds",
-            "componentTitle": "图片广告",
-            "ignore": {
-              "0": "componentBgUrl"
             },
-            "imageHeight": 422,
-            "isSameScreen": false,
-            "list": [
-              {
-                "link": {
-                  "name": ""
-                },
-                "imageUrl": "/addon/mall/diy/site_index/style2/banner_02.jpg",
-                "imgWidth": 710,
-                "imgHeight": 800,
-                "id": "atxn9ughunk",
-                "width": 375,
-                "height": 422.53521126760563
-              }
-            ],
-            "textColor": "#303133",
-            "pageStartBgColor": "",
-            "pageEndBgColor": "",
-            "pageGradientAngle": "to bottom",
-            "componentBgUrl": "",
-            "componentBgAlpha": 2,
-            "componentStartBgColor": "",
-            "componentEndBgColor": "",
-            "componentGradientAngle": "to bottom",
-            "topRounded": 12,
-            "bottomRounded": 12,
-            "elementBgColor": "",
-            "topElementRounded": 0,
-            "bottomElementRounded": 0,
-            "margin": {
-              "top": 0,
-              "bottom": 10,
-              "both": 10
-            },
-            "pageStyle": "padding-top:2rpx;padding-bottom:0rpx;padding-right:0rpx;padding-left:0rpx;"
+            "isHidden": false
           },
           {
-            "path": "edit-image-ads",
+            "path": "edit-mall-goods-list",
             "uses": 0,
-            "id": "2hhd5q4p2bi0",
-            "componentName": "ImageAds",
-            "componentTitle": "图片广告",
-            "ignore": [
-              "componentBgUrl"
-            ],
-            "imageHeight": 29,
-            "isSameScreen": false,
-            "list": [
-              {
-                "link": {
-                  "name": ""
-                },
-                "imageUrl": "/addon/mall/diy/site_index/style2/title_02.png",
-                "imgWidth": 710,
-                "imgHeight": 56,
-                "id": "47njtuj2sa00",
-                "width": 375,
-                "height": 29.577464788732396
-              }
-            ],
-            "textColor": "#303133",
-            "pageStartBgColor": "",
-            "pageEndBgColor": "",
-            "pageGradientAngle": "to bottom",
-            "componentBgUrl": "",
-            "componentBgAlpha": 2,
-            "componentStartBgColor": "",
-            "componentEndBgColor": "",
-            "componentGradientAngle": "to bottom",
-            "topRounded": 0,
-            "bottomRounded": 0,
-            "elementBgColor": "",
-            "topElementRounded": 0,
-            "bottomElementRounded": 0,
-            "margin": {
-              "top": 0,
-              "bottom": 10,
-              "both": 0
-            }
-          },
-          {
-            "path": "edit-image-ads",
-            "uses": 0,
-            "id": "49q6pqggzrs0",
-            "componentName": "ImageAds",
-            "componentTitle": "图片广告",
-            "ignore": [
-              "componentBgUrl"
-            ],
-            "imageHeight": 52,
-            "isSameScreen": false,
-            "list": [
-              {
-                "link": {
-                  "name": ""
-                },
-                "imageUrl": "/addon/mall/diy/site_index/style2/title_03.png",
-                "imgWidth": 710,
-                "imgHeight": 100,
-                "id": "4p457xnmu8a0",
-                "width": 375,
-                "height": 52.816901408450704
-              }
-            ],
-            "textColor": "#303133",
-            "pageStartBgColor": "",
-            "pageEndBgColor": "",
-            "pageGradientAngle": "to bottom",
-            "componentBgUrl": "",
-            "componentBgAlpha": 2,
-            "componentStartBgColor": "",
-            "componentEndBgColor": "",
-            "componentGradientAngle": "to bottom",
-            "topRounded": 0,
-            "bottomRounded": 0,
-            "elementBgColor": "",
-            "topElementRounded": 0,
-            "bottomElementRounded": 0,
-            "margin": {
-              "top": 0,
-              "bottom": 10,
-              "both": 0
-            }
-          },
-          {
-            "path": "edit-rubik-cube",
-            "uses": 0,
-            "id": "3jac25jefu40",
-            "componentName": "RubikCube",
-            "componentTitle": "魔方",
+            "id": "6w52d5vhx940",
+            "componentName": "MallGoodsList",
+            "componentTitle": "商品列表",
             "ignore": [],
-            "mode": "row1-of2",
-            "imageGap": 10,
-            "list": [
-              {
-                "imageUrl": "/addon/mall/diy/site_index/style2/cube_01.jpg",
-                "imgWidth": 345,
-                "imgHeight": 470,
-                "link": {
-                  "name": ""
-                }
-              },
-              {
-                "imageUrl": "/addon/mall/diy/site_index/style2/cube_02.jpg",
-                "imgWidth": 345,
-                "imgHeight": 470,
-                "link": {
-                  "name": ""
-                }
-              }
-            ],
+            "style": "style-1",
+            "source": "all",
+            "num": 10,
+            "goods_category": "",
+            "goods_category_name": "请选择",
+            "goods_ids": [],
+            "position": {
+              "control": false
+            },
+            "localDelivery": {
+              "control": false
+            },
+            "sortWay": "default",
+            "goodsNameStyle": {
+              "color": "#303133",
+              "control": true,
+              "fontWeight": "normal",
+              "isShow": true
+            },
+            "priceStyle": {
+              "color": "#FF4142",
+              "control": true,
+              "isShow": true
+            },
+            "saleStyle": {
+              "color": "#999999",
+              "control": true,
+              "isShow": true
+            },
+            "labelStyle": {
+              "control": true,
+              "isShow": true
+            },
+            "distanceStyle": {
+              "control": true,
+              "isShow": true
+            },
+            "btnStyle": {
+              "fontWeight": false,
+              "padding": 0,
+              "aroundRadius": 25,
+              "cartEvent": "detail",
+              "text": "购买",
+              "textColor": "#FFFFFF",
+              "startBgColor": "#FF4142",
+              "endBgColor": "#FF4142",
+              "style": "button",
+              "control": true
+            },
+            "imgElementRounded": 10,
             "textColor": "#303133",
             "pageStartBgColor": "",
             "pageEndBgColor": "",
@@ -4068,91 +3854,14 @@
             "topRounded": 0,
             "bottomRounded": 0,
             "elementBgColor": "",
-            "topElementRounded": 12,
-            "bottomElementRounded": 12,
-            "margin": {
-              "top": 0,
-              "bottom": 10,
-              "both": 10
-            }
-          },
-          {
-            "path": "edit-image-ads",
-            "uses": 0,
-            "id": "70vzyp69npc0",
-            "componentName": "ImageAds",
-            "componentTitle": "图片广告",
-            "ignore": {
-              "0": "componentBgUrl"
-            },
-            "imageHeight": 369,
-            "isSameScreen": false,
-            "list": [
-              {
-                "link": {
-                  "name": ""
-                },
-                "imageUrl": "/addon/mall/diy/site_index/style2/banner_03.jpg",
-                "imgWidth": 710,
-                "imgHeight": 700,
-                "id": "4jsj852xf200",
-                "width": 375,
-                "height": 369.71830985915494
-              }
-            ],
-            "textColor": "#303133",
-            "pageStartBgColor": "",
-            "pageEndBgColor": "",
-            "pageGradientAngle": "to bottom",
-            "componentBgUrl": "",
-            "componentBgAlpha": 2,
-            "componentStartBgColor": "",
-            "componentEndBgColor": "",
-            "componentGradientAngle": "to bottom",
-            "topRounded": 12,
-            "bottomRounded": 12,
-            "elementBgColor": "",
-            "topElementRounded": 0,
-            "bottomElementRounded": 0,
-            "margin": {
-              "top": 0,
-              "bottom": 10,
-              "both": 10
-            },
-            "pageStyle": "padding-top:2rpx;padding-bottom:0rpx;padding-right:0rpx;padding-left:0rpx;"
-          },
-          {
-            "path": "edit-hot-area",
-            "uses": 0,
-            "id": "5fitc7c3ris0",
-            "componentName": "HotArea",
-            "componentTitle": "热区",
-            "ignore": [
-              "componentBgUrl"
-            ],
-            "imageUrl": "/addon/mall/diy/site_index/style2/banner_04.jpg",
-            "imgWidth": 710,
-            "imgHeight": 829,
-            "heatMapData": [],
-            "textColor": "#303133",
-            "pageStartBgColor": "",
-            "pageEndBgColor": "",
-            "pageGradientAngle": "to bottom",
-            "componentBgUrl": "",
-            "componentBgAlpha": 2,
-            "componentStartBgColor": "",
-            "componentEndBgColor": "",
-            "componentGradientAngle": "to bottom",
-            "topRounded": 12,
-            "bottomRounded": 12,
-            "elementBgColor": "",
-            "topElementRounded": 0,
-            "bottomElementRounded": 0,
+            "topElementRounded": 10,
+            "bottomElementRounded": 10,
             "margin": {
               "top": 0,
               "bottom": 0,
               "both": 10
-            }
+            },
+            "isHidden": false
           }
         ]
       }

@@ -2,17 +2,15 @@
     <view :style="warpCss">
         <view :style="maskLayer"></view>
         <view class="diy-active relative">
-            <view v-for="(item,index) in articleList" :key="item.id"
-                  class="item flex align-center px-[var(--pad-sidebar-m)] py-[var(--pad-top-m)]"
-                  @click="toLink(item.id)" :style="itemCss">
-                <view class="w-[260rpx] h-[210rpx] rounded-[var(--goods-rounded-big)] overflow-hidden">
+            <view v-for="(item,index) in articleList" :key="item.id"  class="item flex px-[var(--pad-sidebar-m)] py-[var(--pad-top-m)] box-border"  @click="toLink(item.id)" :style="itemCss">
+                <view class="w-[260rpx] h-[210rpx] rounded-[var(--goods-rounded-big)] flex-shrink-0 overflow-hidden">
                     <up-image width="260rpx" height="210rpx" :radius="'var(--goods-rounded-big)'" :src="img(item.image)" v-if="item.image" model="aspectFill">
                         <template #error>
                             <u-icon name="photo" color="var(--text-color-light9)" size="50"></u-icon>
                         </template>
                     </up-image>
                 </view>
-                <view class="flex-1 flex flex-col justify-between ml-[20rpx] py-[4rpx]">
+                <view class="width-wrap  flex flex-col justify-between ml-[20rpx] py-[4rpx] box-border">
                     <view class="text-[28rpx] leading-[36rpx] text-[#333] multi-hidden" :style="{ color: diyComponent.textColor }">{{ item.title }}</view>
                     <view class="text-[24rpx] truncate mb-[auto] mt-[14rpx] text-[#999]">{{ item.summary }}</view>
                     <view class="text-[22rpx] text-[#999] flex items-center mt-[10rpx]">
@@ -163,4 +161,7 @@ const toLink = (id: string) => {
 </script>
 
 <style lang="scss" scoped>
+.width-wrap{
+    width: calc(100vw - 68rpx - 260rpx);
+}
 </style>

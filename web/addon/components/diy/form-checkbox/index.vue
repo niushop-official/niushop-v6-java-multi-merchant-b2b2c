@@ -31,9 +31,7 @@
                 <div class="layout-two-content" v-if="diyComponent.style == 'style-2'">
                     <div class="justify-end w-full">
                         <el-checkbox-group v-model="selectValue" placement="column" @change="checkboxChange" iconPlacement="left">
-                            <div v-for="(item, index) in diyComponent.options" :key="index" @click="selectRadio(item)"
-                                  class="border-solid border-[1px] border-[#e6e6e6] rounded-[5px] flex items-center h-[40px] mb-[8px] px-[8px] box-border !w-[200px] cursor-pointer"
-                                  :class="{'!mb-[0]': diyComponent.options.length == (index+1)}">
+                            <div v-for="(item, index) in diyComponent.options" :key="index" @click="selectRadio(item)" class="border-solid border-[1px] border-[#e6e6e6] rounded-[5px] flex items-center h-[40px] mb-[8px] px-[8px] box-border !w-[200px] cursor-pointer"  :class="{'!mb-[0]': diyComponent.options.length == (index + 1)}">
                                 <el-checkbox class="!m-[0]" :label="item.id">{{ item.text }}</el-checkbox>
                             </div>
                         </el-checkbox-group>
@@ -44,16 +42,6 @@
                     <el-select v-model="selectValue" :placeholder="checkboxPlaceholder" class="w-[250px]"  :style="{'font-size': diyComponent.fontSize + 'px'}" multiple @change="pullDownConfirmFn">
                         <el-option v-for="item in diyComponent.options" :key="item.value" :style="{'font-size': diyComponent.fontSize + 'px'}" :label="item.text" :value="item.id" />
                     </el-select>
-                    <!-- <div @click="openPicker" class="px-[8px] box-border h-[40px] flex items-center justify-between border-solid border-[1px] border-[#e6e6e6] rounded-[5px] w-[100%]">
-                        <div v-if="diyComponent.field.value && diyComponent.field.value.length">
-                            <span class="mr-[5px] text-[14px]"
-                                  v-for="(item,index) in diyComponent.field.value">{{ item.text }}
-                                <span v-if="index !== diyComponent.field.value.length - 1">,</span>
-                            </span>
-                        </div>
-                        <span v-else class="text-[14px] text-[#999]" :style="{'font-size': diyComponent.fontSize + 'px'}">{{ checkboxPlaceholder }}</span>
-                        <span class="nc-iconfont nc-icon-xiaV6xx pull-down-arrow text-[#666]" :class="{'selected': selectShow}" :style="{'font-size': (diyComponent.fontSize+1) + 'px !important'}"></span>
-                    </div> -->
                 </div>
             </div>
             <div class="layout-two-error-message" v-if="errorInfo && !errorInfo.code">{{ errorInfo.message }}</div>

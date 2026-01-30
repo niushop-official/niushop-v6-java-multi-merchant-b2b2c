@@ -11,6 +11,8 @@ import com.niu.mall.service.site.stat.vo.StatArticleInfoVo;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 
 /**
@@ -47,14 +49,23 @@ public class MallStatController {
         }
         Long startTime = 0L;
         Long endTime = 0L;
+        
+        LocalDate today = LocalDate.now();
+        ZoneId zoneId = ZoneId.systemDefault();
+        
         if(date.equals("today")){
-            startTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), 0)).getTime() / 1000;
+  
+            startTime = today.atStartOfDay(zoneId).toInstant().toEpochMilli() / 1000;
+            endTime = 0L;
         }else if(date.equals("7days")){
-            startTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), -6)).getTime() / 1000;
-            endTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), 1)).getTime() / 1000;
+
+            LocalDate startDate = today.minusDays(7);
+            startTime = startDate.atStartOfDay(zoneId).toInstant().toEpochMilli() / 1000;
+            endTime = today.atStartOfDay(zoneId).toInstant().toEpochMilli() / 1000;
         }else if(date.equals("30days")){
-            startTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), -29)).getTime() / 1000;
-            endTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), 1)).getTime() / 1000;
+            LocalDate startDate = today.minusDays(30);
+            startTime = startDate.atStartOfDay(zoneId).toInstant().toEpochMilli() / 1000;
+            endTime = today.atStartOfDay(zoneId).toInstant().toEpochMilli() / 1000;
         }
         return Result.success(iMallStatService.getStatDate(startTime,endTime));
     }

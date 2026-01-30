@@ -8,6 +8,7 @@ import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.exception.ApiException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
@@ -16,6 +17,7 @@ import com.niu.core.entity.sys.SysUser;
 import com.niu.core.enums.shop.ShopApplyEnum;
 import com.niu.core.mapper.shop.SiteShopApplyMapper;
 import com.niu.core.mapper.sys.SysUserMapper;
+import com.niu.core.service.api.login.IRegisterService;
 import com.niu.core.service.api.shop.ISiteShopApplyService;
 import com.niu.core.service.api.shop.param.SiteShopApplyParam;
 import com.niu.core.service.api.shop.param.SiteShopApplySearchParam;
@@ -42,6 +44,8 @@ public class SiteShopApplyServiceImpl implements ISiteShopApplyService {
     SiteShopApplyMapper siteShopApplyMapper;
     @Resource
     private SysUserMapper  sysUserMapper;
+    @Resource
+    private IRegisterService registerService;
 
     @Override
     public PageResult<SiteShopApplyListVo> page(PageParam pageParam, SiteShopApplySearchParam searchParam) {
@@ -91,7 +95,7 @@ public class SiteShopApplyServiceImpl implements ISiteShopApplyService {
         MPJQueryWrapper<SiteShopApply> queryWrapper = new MPJQueryWrapper<>();
 
         //sql语句
-        queryWrapper.select("nm.nickname, nsg.group_name, nssa.apply_id, nssa.site_id, nssa.member_id, nssa.site_name, nssa.user_name, nssa.user_mobile, nssa.category_id, nssa.group_id, nssa.business_license, nssa.status, nssa.create_time, nssa.update_time, nssa.audit_time, nssa.refuse_reason, nssa.open_status, nssa.account, nssa.password, nssc.category_name")
+        queryWrapper.select("nm.nickname, nsg.group_name, nssa.apply_id, nssa.site_id, nssa.member_id, nssa.site_name, nssa.user_name, nssa.user_mobile, nssa.category_id, nssa.group_id, nssa.business_license, nssa.status, nssa.create_time, nssa.update_time, nssa.audit_time, nssa.refuse_reason, nssa.open_status, nssc.category_name")
                 .setAlias("nssa")
                 .leftJoin("?_site_group nsg ON nssa.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_shop_category nssc ON nssa.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix))
@@ -122,36 +126,45 @@ public class SiteShopApplyServiceImpl implements ISiteShopApplyService {
 
     @Override
     public void add(SiteShopApplyParam addParam) {
+        registerService.checkMobileCode(addParam.getUserMobile(), addParam.getMobileKey(), addParam.getMobileCode());
+        //查询会员信息
+        SiteShopApply apply = siteShopApplyMapper.selectOne(new QueryWrapper<SiteShopApply>().eq("mobile", RequestUtils.memberId())
+                .in("status", ShopApplyEnum.WAIT_AUDIT.getValue(), ShopApplyEnum.PASS.getValue()).last("limit 1")
+        );
+        if (apply != null){
+            throw new ApiException("用户名重复");
+        }
 
         SiteShopApply model = new SiteShopApply();
-
-        model.setAuditTime(addParam.getAuditTime());
-        model.setBusinessLicense(addParam.getBusinessLicense());
-        model.setCategoryId(addParam.getCategoryId());
-        model.setGroupId(addParam.getGroupId());
-        model.setMemberId(addParam.getMemberId());
-        model.setOpenStatus(addParam.getOpenStatus());
-        model.setRefuseReason(addParam.getRefuseReason());
         model.setSiteName(addParam.getSiteName());
-        model.setStatus(addParam.getStatus());
         model.setUserMobile(addParam.getUserMobile());
         model.setUserName(addParam.getUserName());
+        model.setCategoryId(addParam.getCategoryId());
+        model.setGroupId(addParam.getGroupId());
+        model.setBusinessLicense(addParam.getBusinessLicense());
+
+
+        model.setMemberId(RequestUtils.memberId());
+        model.setOpenStatus(addParam.getOpenStatus());
+        model.setRefuseReason(addParam.getRefuseReason());
+
+        model.setStatus(addParam.getStatus());
+
         model.setCreateTime(System.currentTimeMillis() / 1000);
         model.setUpdateTime(System.currentTimeMillis() / 1000);
-        model.setSiteId(RequestUtils.siteId());
 
         siteShopApplyMapper.insert(model);
     }
 
     @Override
     public void edit(Integer id, SiteShopApplyParam editParam) {
-        // 检查是否有待审核或已通过的申请（同一会员）
-        QueryWrapper<SiteShopApply> checkWrapper = new QueryWrapper<>();
-        checkWrapper.eq("member_id", RequestUtils.memberId())
-                .in("status", Arrays.asList(ShopApplyEnum.WAIT_AUDIT.getStatus(), ShopApplyEnum.PASS.getStatus()));
-        SiteShopApply existingApply = siteShopApplyMapper.selectOne(checkWrapper);
-        if (ObjectUtil.isNotEmpty(existingApply)) {
-            throw new RuntimeException("SHOP_APPLY_PASS_OR_WAIT_AUDIT");
+        registerService.checkMobileCode(editParam.getUserMobile(), editParam.getMobileKey(), editParam.getMobileCode());
+        //查询会员信息
+        SiteShopApply apply = siteShopApplyMapper.selectOne(new QueryWrapper<SiteShopApply>().eq("mobile", RequestUtils.memberId())
+                .in("status", ShopApplyEnum.WAIT_AUDIT.getValue(), ShopApplyEnum.PASS.getValue()).last("limit 1")
+        );
+        if (apply != null){
+            throw new ApiException("用户名重复");
         }
 
         // 检查申请是否存在
@@ -159,7 +172,7 @@ public class SiteShopApplyServiceImpl implements ISiteShopApplyService {
                 new QueryWrapper<SiteShopApply>()
                         .eq("apply_id", id));
 
-        Assert.notNull(model, "SHOP_APPLY_NOT_EXIT");
+        Assert.notNull(model, "申请记录不存在");
 
         // 更新字段
         model.setSiteName(editParam.getSiteName());
@@ -171,14 +184,13 @@ public class SiteShopApplyServiceImpl implements ISiteShopApplyService {
         model.setStatus(editParam.getStatus() != null ? editParam.getStatus() : 1);
         model.setUpdateTime(DateUtils.currTime());
         model.setRefuseReason(""); // 清空拒绝原因
-
-        // 如果有 uid，则不设置 account 和 password
-        if (ObjectUtil.isNotEmpty(editParam.getUid())) {
-            model.setUid(editParam.getUid());
-        } else {
-            model.setAccount(editParam.getAccount());
-            model.setPassword(editParam.getPassword());
-        }
+//        // 如果有 uid，则不设置 account 和 password
+//        if (ObjectUtil.isNotEmpty(editParam.getUid())) {
+//            model.setUid(editParam.getUid());
+//        } else {
+//            model.setAccount(editParam.getAccount());
+//            model.setPassword(editParam.getPassword());
+//        }
 
         siteShopApplyMapper.updateById(model);
     }
@@ -191,12 +203,14 @@ public class SiteShopApplyServiceImpl implements ISiteShopApplyService {
     @Override
     public Integer shopApply(SiteShopApplyParam addParam) {
 
+        //添加校验手机验证码
+        registerService.checkMobileCode(addParam.getUserMobile(), addParam.getMobileKey(), addParam.getMobileCode());
         QueryWrapper<SiteShopApply> checkWrapper = new QueryWrapper<>();
         checkWrapper.eq("member_id", RequestUtils.memberId())
-                .in("status", Arrays.asList(ShopApplyEnum.WAIT_AUDIT.getStatus(), ShopApplyEnum.PASS.getStatus()));
+                .in("status", Arrays.asList(ShopApplyEnum.WAIT_AUDIT.getValue(), ShopApplyEnum.PASS.getValue()));
         SiteShopApply existingApply = siteShopApplyMapper.selectOne(checkWrapper);
         if (ObjectUtil.isNotEmpty(existingApply)) {
-            throw new RuntimeException ("SHOP_APPLY_PASS_OR_WAIT_AUDIT");
+            throw new RuntimeException ("已入驻商户或审核中");
         }
 
         SiteShopApply model = new SiteShopApply();
@@ -208,17 +222,18 @@ public class SiteShopApplyServiceImpl implements ISiteShopApplyService {
         model.setUserName(addParam.getUserName());
         model.setMemberId(RequestUtils.memberId());
         model.setCreateTime(DateUtils.currTime());
-        model.setAccount(addParam.getAccount());
-        model.setPassword(addParam.getPassword());
+//        model.setAccount(addParam.getAccount());
+//        model.setPassword(addParam.getPassword());
         model.setUpdateTime(DateUtils.currTime());
+        model.setUid(addParam.getUid());
         //待审核
         model.setStatus(1);
-        if (ObjectUtil.isNotEmpty(addParam.getUid())) {
-            model.setUid(addParam.getUid());
-        } else {
-            model.setAccount(addParam.getAccount());
-            model.setPassword(addParam.getPassword());
-        }
+//        if (ObjectUtil.isNotEmpty(addParam.getUid())) {
+//            model.setUid(addParam.getUid());
+//        } else {
+//            model.setAccount(addParam.getAccount());
+//            model.setPassword(addParam.getPassword());
+//        }
         
         siteShopApplyMapper.insert(model);
         return model.getApplyId();
@@ -237,6 +252,8 @@ public class SiteShopApplyServiceImpl implements ISiteShopApplyService {
         QueryWrapper<SiteShopApply> siteShopApplyQueryWrapper = new QueryWrapper<>();
         siteShopApplyQueryWrapper.eq("member_id", RequestUtils.memberId());
         siteShopApplyQueryWrapper.in("status", 1, 2);
+        siteShopApplyQueryWrapper.orderByDesc("create_time");
+        siteShopApplyQueryWrapper.last("limit 1");
         SiteShopApply siteShopApply = siteShopApplyMapper.selectOne(siteShopApplyQueryWrapper);
         if (siteShopApply != null){
             return true;

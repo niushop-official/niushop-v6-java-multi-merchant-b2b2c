@@ -28,4 +28,10 @@ public class GoodsBrand implements Serializable {
     private Long updateTime; // 更新时间
     private Long deleteTime; // 删除时间
 
+    private Integer auditStatus; // 审核状态 1待审核 2已通过 -1已拒绝
+    private String auditReason; // 审核拒绝原因
+    private Long auditTime; // 审核时间
+    private Integer status; // 显示状态 1显示 2隐藏
+    private Integer isHot; // 是否热门 1是 2否
+
 }

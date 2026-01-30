@@ -2,7 +2,7 @@
     <view  class="bg-[var(--page-bg-color)] min-h-[100vh] overflow-hidden" :style="themeColor()" v-if="Object.keys(shopDetail).length">
         <view class="px-[var(--sidebar-m)] top-mar">
             <view class="card-template mb-[var(--top-m)]">
-                <view class="flex items-center justify-between">
+                <view class="flex items-center justify-between mb-[20rpx]">
 					<view class="flex items-center">
 						<view class="w-[100rpx] h-[100rpx] overflow-hidden">
                             <image v-if="shopDetail.front_end_logo" :src="img(shopDetail.front_end_logo)" class="w-[100rpx] h-[100rpx] rounded-full"></image>
@@ -28,6 +28,20 @@
                         </view>
                     </view>
 				</view>
+                <view class="flex items-center justify-between">
+                    <view class="flex items-center">
+                        <text class="text-[24rpx] text-[var(--text-color-light9)] mr-[6rpx]">商品质量</text>
+                        <text class="text-[26rpx] text-[#FD3B1F]">{{ shopDetail.quality_score }}</text>
+                    </view>
+                    <view class="flex items-center">
+                        <text class="text-[24rpx] text-[var(--text-color-light9)] mr-[6rpx]">商家服务</text>
+                        <text class="text-[26rpx] text-[#FD3B1F]">{{ shopDetail.service_score }}</text>
+                    </view>
+                    <view class="flex items-center">
+                        <text class="text-[24rpx] text-[var(--text-color-light9)] mr-[6rpx]">发货物流</text>
+                        <text class="text-[26rpx] text-[#FD3B1F]">{{ shopDetail.logistics_score }}</text>
+                    </view>
+                </view>
             </view>
             <view class="card-template mb-[var(--top-m)]">
                 <view class="card-template-item justify-between" @click="storePic = true">

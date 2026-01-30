@@ -170,7 +170,9 @@ public class SiteShopInfoVo implements Serializable {
     /** 供应商手续费 */
     @JsonProperty("supply_service_rate")
     private BigDecimal supplyServiceRate;
+    private String contactName;
 
+    private String backgroundH5;
     public String getStatusName() {
         return SiteStatusEnum.getNameByCode(this.status);
     }
@@ -273,7 +275,9 @@ public class SiteShopInfoVo implements Serializable {
 
         /** 供应商商品数量 */
         private Integer supplyGoodsNum;
+        private String contactName;
 
+        private String backgroundH5;
 
     }
 

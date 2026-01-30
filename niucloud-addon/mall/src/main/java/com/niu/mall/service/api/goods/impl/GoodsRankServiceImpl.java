@@ -158,7 +158,7 @@ public class GoodsRankServiceImpl implements IGoodsRankService {
                 .orderByDesc("create_time")
                 .groupBy("goods.goods_id, goods.sort, goods.create_time")
                 .leftJoin(("?_mall_goods_stat stat on goods.goods_id = stat.goods_id and date_time BETWEEN " + dateStart + " AND " + dateEnd).replace("?_", GlobalConfig.tablePrefix))
-                .select("goods.site_id,goods.goods_id,goods_name,goods_cover,unit,goods.sale_num + goods.virtual_sale_num as sale_num,member_discount,sum(stat.sale_num)+ goods.virtual_sale_num as stat_sale_num,sum(stat.collect_num) as stat_collect_num,sum(stat.evaluate_num) as stat_evaluate_num,sum(stat.access_num) as stat_access_num,goods.create_time,goods.sort as goods_sort");
+                .select("goods.site_id,goods.goods_id,goods_name,goods_cover,unit,goods.sale_num,member_discount,sum(stat.sale_num)+ goods.virtual_sale_num as stat_sale_num,sum(stat.collect_num) as stat_collect_num,sum(stat.evaluate_num) as stat_evaluate_num,sum(stat.access_num) as stat_access_num,goods.create_time,goods.sort as goods_sort");
 
         if (limit > 0) {
             goodsMPJQueryWrapper.last("limit " + limit);

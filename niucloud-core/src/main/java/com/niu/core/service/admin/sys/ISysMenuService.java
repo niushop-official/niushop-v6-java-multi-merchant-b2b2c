@@ -103,7 +103,7 @@ public interface ISysMenuService {
      * @param addon
      * @return
      */
-    List<SysMenu> getAdminMenuListByMenuKeys(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon);
+    List<SysMenu> getAdminMenuListByMenuKeys(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon,Integer showMount);
 
     /**
      * 获取站点菜单
@@ -115,7 +115,7 @@ public interface ISysMenuService {
      * @param addon
      * @return
      */
-    List<SysMenu> getSiteMenuListByMenuKeys(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon);
+    List<SysMenu> getSiteMenuListByMenuKeys(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon,Integer showMount);
 
     /**
      * 获取平台所有接口菜单权限
@@ -124,7 +124,7 @@ public interface ISysMenuService {
      * @param status
      * @return
      */
-    List<SysMenu> getAdminAllMenuList(String appType, Integer status, Boolean isButton);
+    List<SysMenu> getAdminAllMenuList(String appType, Integer status, Boolean isButton,Integer showMount);
 
     /**
      * 获取站点所有接口菜单权限
@@ -133,7 +133,7 @@ public interface ISysMenuService {
      * @param status
      * @return
      */
-    List<SysMenu> getSiteAllMenuList(String appType, Integer siteId, Integer status, Boolean isButton);
+    List<SysMenu> getSiteAllMenuList(String appType, Integer siteId, Integer status, Boolean isButton,Integer showMount);
     /**
      * 通过条件查询菜单
      *
@@ -195,4 +195,9 @@ public interface ISysMenuService {
      * @return
      */
     List<SysMenuTreeVo> getSystemMenu(String status, Integer isTree, Integer isButton);
+
+    /**
+     * 清除缓存
+     */
+    void clear();
 }

@@ -10,11 +10,15 @@ import { redirect } from '@/utils/common';
 import { onLoad } from '@dcloudio/uni-app'
 import { getMsgJumpPath } from '@/app/api/system'
 
-const outTradeNo = ref('')
+const transactionId = ref('') //微信订单号
+const merchantId = ref('')  //支付下单商户的商户号
+const outTradeNo = ref('') //商户系统内部订单号
 const errorMsg = ref('')
 
 onLoad((options: any) => {
-    if (options.merchant_trade_no) {
+    if (options.transaction_id || options.merchant_trade_no || options.merchant_id) {
+        transactionId.value = options.transaction_id;
+        merchantId.value = options.merchant_id;
         outTradeNo.value = options.merchant_trade_no;
         getMsgJumpPathFn();
     } else {
@@ -25,6 +29,8 @@ onLoad((options: any) => {
 const getMsgJumpPathFn = () => {
     getMsgJumpPath({
         out_trade_no: outTradeNo.value,
+        transaction_id: transactionId.value,
+        merchant_id: merchantId.value,
     }).then((res: any) => {
         if (res.data && res.data.path) {
             // 跳转到设置的页面

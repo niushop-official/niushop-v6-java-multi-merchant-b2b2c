@@ -40,5 +40,6 @@ public class Invoice implements Serializable {
     private Long createTime; // 申请时间
     private Long invoiceTime; // 开票时间
     private Integer status; // 是否生效
+    private String contentType; // 内容类型
 
 }

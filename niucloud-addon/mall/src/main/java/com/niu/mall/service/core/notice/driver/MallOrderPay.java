@@ -16,18 +16,15 @@ public class MallOrderPay extends BaseNotice {
     public NoticeDataVo noticeData(Map<String, Object> vars) {
         MallOrder order = (MallOrder) vars.get("order");
 
-        ICoreSysConfigService coreSysConfigService = SpringContext.bean(ICoreSysConfigService.class);
-
         Map<String, Object> param = new HashMap<String, Object>();
         param.put("body", StringUtils.substring(order.getBody(), 0, 10) + "...");
         param.put("order_no", order.getOrderNo());
         param.put("order_money", order.getOrderMoney());
         param.put("create_time", DateUtil.date(order.getCreateTime() * 1000));
         param.put("pay_time", DateUtil.date(order.getPayTime() * 1000));
-        param.put("wechat_page", coreSysConfigService.getSceneDomain().getWapDomain()+ "/addon/mall/pages/order/detail?order_id=" + order.getOrderId());
+        param.put("wechat_page", "/addon/mall/pages/order/detail?order_id=" + order.getOrderId());
         param.put("weapp_page", "addon/mall/pages/order/detail?order_id=" + order.getOrderId());
-        param.put("url", coreSysConfigService.getSceneDomain().getWapUrl() + "/addon/mall/pages/order/detail?order_id=" + order.getOrderId());
-
+        param.put("weapp_version", order.getWeappVersion());
         NoticeDataVo vo = new NoticeDataVo();
         vo.setMemberId(order.getMemberId());
         vo.setVars(param);

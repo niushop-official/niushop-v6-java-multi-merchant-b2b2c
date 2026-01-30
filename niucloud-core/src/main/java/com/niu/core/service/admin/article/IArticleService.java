@@ -6,6 +6,7 @@ import com.niu.core.service.admin.article.param.ArticeSearchParam;
 import com.niu.core.service.admin.article.param.ArticleParam;
 import com.niu.core.service.admin.article.vo.ArticleInfoVo;
 import com.niu.core.service.admin.article.vo.ArticleListVo;
+import com.niu.core.service.admin.article.vo.ArticlePageVo;
 
 import java.util.List;
 
@@ -57,4 +58,13 @@ public interface IArticleService {
      * @param id 主键ID
      */
     void del(Integer id);
+
+    /**
+     * 文章选择
+     *
+     * @param pageParam   分页参数
+     * @param searchParam 搜索参数
+     * @return PageResult<ArticleListVo>
+     */
+    PageResult<ArticlePageVo> pageList(PageParam pageParam, ArticeSearchParam searchParam);
 }

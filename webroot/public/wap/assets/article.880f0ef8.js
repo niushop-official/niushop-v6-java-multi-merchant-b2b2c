@@ -1,1 +1,0 @@
-import{B as t}from"./index-a206b603.js";function e(){return t.get("article/category")}function r(e){return t.get("article/list",e)}function i(e){return t.get(`article/${e}`)}function n(e){return t.get("article/all",e)}function s(e){return t.put(`article/incVisit/${e}`,{},{showErrorMessage:!1,showSuccessMessage:!1})}export{r as a,i as b,n as c,e as g,s as i};

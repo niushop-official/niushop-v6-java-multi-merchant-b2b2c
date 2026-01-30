@@ -153,6 +153,18 @@ public class RequestUtils {
     }
 
     /**
+     * request请求后台获取 weapp_version
+     * @return
+     */
+    public static String weappVersion(){
+        HttpServletRequest request = RequestUtils.handler();
+        if (request != null) {
+            return request.getHeader("weapp-version");
+        }
+        return "";
+    }
+
+    /**
      * request前端请求来源ip
      * @return
      */
@@ -348,11 +360,12 @@ public class RequestUtils {
 
     /**
      * 获取请求域名
-     *
+     * 2026-01-15 修改 如果是定时任务发起退款，获取不到请求域名，则使用系统配置的域名
      * @param isScheme
      * @return
      */
     public static String getDomain(Boolean isScheme) {
-        return isScheme ? getRequestSecure() + "://" + getRequestDomain() : getRequestDomain();
+        String url = isScheme ? getRequestSecure() + "://" + getRequestDomain() : getRequestDomain();
+        return StringUtils.isNotEmpty(getRequestDomain()) ? url : CommonUtils.getServerDomain();
     }
 }

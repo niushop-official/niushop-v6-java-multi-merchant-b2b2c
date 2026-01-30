@@ -20,7 +20,7 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="t('businessLicense')" prop="business_license">
-                    <upload-image v-model="formData.business_license" />
+                    <upload-image v-model="formData.business_license" :limit="10" />
                 </el-form-item>
                 <el-form-item :label="t('manager')" prop="uid">
                     <el-select v-model="formData.uid" :placeholder="t('managerPlaceholder')" class="input-width" filterable>

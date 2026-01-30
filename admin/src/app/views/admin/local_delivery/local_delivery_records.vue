@@ -6,11 +6,11 @@
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
                 <el-form :inline="true" :model="localRecordTable.searchParam" ref="searchFormRef">
-                    <el-form-item :label="t('orderNo')" prop="template_name">
-                        <el-input v-model.trim="localRecordTable.searchParam.template_name" :placeholder="t('orderNoPlaceholder')" />
+                    <el-form-item :label="t('交易单号')" prop="trade_no">
+                        <el-input v-model.trim="localRecordTable.searchParam.trade_no" :placeholder="t('请输入交易单号')" />
                     </el-form-item>
-                    <el-form-item :label="t('deliveryNo')" prop="template_name">
-                        <el-input v-model.trim="localRecordTable.searchParam.template_name" :placeholder="t('deliveryNoPlaceholder')" />
+                    <el-form-item :label="t('deliveryNo')" prop="delivery_no">
+                        <el-input v-model.trim="localRecordTable.searchParam.delivery_no" :placeholder="t('deliveryNoPlaceholder')" />
                     </el-form-item>
                     <el-form-item :label="t('交易类型')" prop="trade_type">
                         <el-select v-model="localRecordTable.searchParam.trade_type" :placeholder="t('请选择交易类型')" clearable>
@@ -104,8 +104,8 @@ const localRecordTable = reactive({
     loading: true,
     data: [],
     searchParam: {
-        template_name: '',
-        support_trade: '',
+        trade_no: '',
+        delivery_no: '',
         trade_type: '',
     }
 })

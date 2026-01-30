@@ -4,6 +4,8 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.service.admin.site.param.SiteFinanceLogParam;
 import com.niu.core.service.admin.site.vo.SiteFinanceLogVo;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,4 +17,9 @@ public interface ISiteFinanceLogService {
      * @return 分页数据
      */
     PageResult<SiteFinanceLogVo> getPage(PageParam pageParam ,SiteFinanceLogParam siteFinanceLogParam);
+
+    /**
+     * 获取最近10条的资金流水
+     */
+    List<SiteFinanceLogVo> getLatest();
 }

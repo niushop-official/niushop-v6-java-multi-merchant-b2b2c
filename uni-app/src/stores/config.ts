@@ -13,7 +13,8 @@ interface loginConfig {
     agreement_show: number | boolean,
     bg_url: string,
     logo: string,
-    desc: string
+    desc: string,
+    captcha_type: string
 }
 interface tabbarConfig {
     backgroundColor: string,
@@ -44,7 +45,8 @@ const useConfigStore = defineStore('config', {
                 agreement_show: 0,
                 bg_url: '',
                 logo: '',
-                desc: ''
+                desc: '',
+                captcha_type: 'blockPuzzle'
             },
             tabbarList: {},
             tabbar: null,
@@ -73,6 +75,7 @@ const useConfigStore = defineStore('config', {
                 this.login.bg_url = res.data.bg_url // 背景图
                 this.login.logo = res.data.logo //logo
                 this.login.desc = res.data.desc // 描述
+                this.login.captcha_type = res.data.captcha_type // 验证码类型
             })
         },
         // 获取主色调

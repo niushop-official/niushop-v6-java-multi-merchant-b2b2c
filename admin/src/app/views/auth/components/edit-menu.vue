@@ -17,7 +17,7 @@
             </el-form-item>
 
             <el-form-item :label="t('addon')" prop="addon" v-show="formData.app_type == 'site'">
-                <el-select v-model="formData.addon" placeholder="Select" class="input-width" @change="addonChange">
+                <el-select v-model="formData.addon" :placeholder="t('addonPlaceholder')" class="input-width" @change="addonChange">
                     <el-option v-for="(item, index) in addonLst" :label="item.title" :value="item.key" :key="index" />
                 </el-select>
             </el-form-item>

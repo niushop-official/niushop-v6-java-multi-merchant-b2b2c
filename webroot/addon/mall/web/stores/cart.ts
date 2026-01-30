@@ -21,7 +21,15 @@ const useCartStore = defineStore('cart', {
 	actions: {
 		// 查询购物车列表
 		getList() {
-			if (!getToken()) return;
+			if (!getToken()){
+				// 每次查询清空
+                for (let k in this.cartList) {
+                    delete this.cartList[k];
+                }
+                this.totalNum = 0;
+                this.totalMoney = 0;
+                return;
+			}
 			getCartList({}).then(res => {
 				let data = res.data;
 
@@ -32,21 +40,16 @@ const useCartStore = defineStore('cart', {
 				if (Object.values(data).length) {
 					Object.values(data).forEach((item:any) => {
 						item.goods_list.forEach((subItem:any)=>{
-							if (subItem.goods.status == 1 && subItem.goods.delete_time == 0) {
+							if (subItem.goods.status == 1 && subItem.goods.delete_time == 0 && subItem.goodsSku) {
 								let cart = {
 									id: subItem.id,
 									goods_id: subItem.goods_id,
 									sku_id: subItem.sku_id,
 									stock: subItem.goodsSku.stock,
 									num: subItem.num,
-									sale_price: subItem.goodsSku.sale_price,
+									sale_price: subItem.goodsSku.show_price, // 折扣价
 									site_id: subItem.site_id
 								}
-								if (subItem.goods.is_discount && subItem.goodsSku.sale_price != subItem.goodsSku.price) {
-                                    cart.sale_price = subItem.goodsSku.sale_price ? subItem.goodsSku.sale_price : subItem.goodsSku.price // 折扣价
-                                } else if (subItem.goods.member_discount && getToken() && subItem.goodsSku.member_price != subItem.goodsSku.price) {
-                                    cart.sale_price = subItem.goodsSku.member_price ? subItem.goodsSku.member_price : subItem.goodsSku.price // 会员价
-                                }
 								
 								if (!this.cartList['goods_' + cart.goods_id]) {
 									this.cartList['goods_' + cart.goods_id] = {};

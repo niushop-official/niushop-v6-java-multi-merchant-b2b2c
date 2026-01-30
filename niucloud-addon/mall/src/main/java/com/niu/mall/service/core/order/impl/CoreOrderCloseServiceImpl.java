@@ -4,33 +4,28 @@ package com.niu.mall.service.core.order.impl;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
-import com.niu.core.common.utils.RequestUtils;
-import com.niu.core.common.utils.object.ObjectUtils;
-import com.niu.core.event.common.CommonEvent;
-import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
-import com.niu.core.service.core.delivery.ICoreDeliveryConfigService;
 import com.niu.core.service.core.pay.ICorePayService;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderRefund;
 import com.niu.mall.enums.order.*;
+import com.niu.mall.event.marketing.GoodsMarketCalculateEventDefiner;
 import com.niu.mall.event.order.OrderCloseAfterEvent;
+import com.niu.mall.event.pintuan.MallSetOrderCloseTimeoutEventDefiner;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
 import com.niu.mall.mapper.order.MallOrderRefundMapper;
-import com.niu.mall.service.core.order.ICoreOrderCloseService;
-import com.niu.mall.service.core.order.ICoreOrderEventService;
-import com.niu.mall.service.core.order.ICoreOrderFinishService;
-import com.niu.mall.service.core.order.ICoreOrderGroupService;
+import com.niu.mall.service.core.order.*;
 import com.niu.mall.service.core.order.param.OrderCloseParam;
 import com.niu.mall.service.core.order.param.OrderFinishParam;
+import com.niu.mall.service.core.order.vo.MallOrderCloseVo;
+import com.niu.mall.service.core.order.vo.OrderConfigVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Service
 public class CoreOrderCloseServiceImpl implements ICoreOrderCloseService {
@@ -55,6 +50,9 @@ public class CoreOrderCloseServiceImpl implements ICoreOrderCloseService {
 
     @Resource
     ICoreOrderGroupService coreOrderGroupService;
+
+    @Resource
+    ICoreOrderConfigService coreOrderConfigService;
 
     /**
      * 订单关闭
@@ -134,6 +132,39 @@ public class CoreOrderCloseServiceImpl implements ICoreOrderCloseService {
                 finishParam.setMainType(OrderLogMainTypeEnum.SYSTEM.getType());
                 finishParam.setMainId(0);
                 coreOrderFinishService.finish(finishParam);
+            }
+        }
+    }
+
+    @Override
+    public void setOrderCloseTimeout(Integer orderId, Long timeout) {
+        MallOrder order = mallOrderMapper.selectById(orderId);
+        MallSetOrderCloseTimeoutEventDefiner.MallSetOrderCloseTimeoutEvent event = new MallSetOrderCloseTimeoutEventDefiner.MallSetOrderCloseTimeoutEvent();
+        event.setSiteId(order.getSiteId());
+        event.setOrderData( order);
+        event.setTime( timeout);
+        List<MallSetOrderCloseTimeoutEventDefiner.MallSetOrderCloseTimeoutResult> marketData = EventAndSubscribeOfPublisher.publishAndCallback(event);
+        Boolean er = false;
+        if(!marketData.isEmpty()){
+            for (MallSetOrderCloseTimeoutEventDefiner.MallSetOrderCloseTimeoutResult result : marketData){
+                if(ObjectUtil.isNotEmpty(result) && ObjectUtil.isNotEmpty(result.getEr())){
+                    er = result.getEr();
+                }
+            }
+        }
+        if(!er){
+            // 订单关闭任务
+            OrderConfigVo orderConfig = coreOrderConfigService.getConfig();
+            if (orderConfig != null && orderConfig.getCloseOrderInfo() != null) {
+                com.niu.mall.entity.order.config.MallOrderClose closeOrderInfo = orderConfig.getCloseOrderInfo();
+                Boolean isCloseEr = closeOrderInfo.getIsCloseEr();
+                Integer closeLength = closeOrderInfo.getCloseLength();
+                if (Boolean.TRUE.equals(isCloseEr) && closeLength != null && closeLength > 0) {
+                    MallOrder orderClass = new MallOrder();
+                    orderClass.setOrderId(orderId);
+                    orderClass.setTimeout(timeout + closeLength * 60);
+                    mallOrderMapper.updateById(order);
+                }
             }
         }
     }

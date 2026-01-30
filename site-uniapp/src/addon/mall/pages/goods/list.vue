@@ -130,9 +130,9 @@
             </view>
         </view>
         <!-- 改价 -->
-        <goods-price-edit-popup ref="goodsPriceEditPopupRef" @load="getGoodsList"></goods-price-edit-popup>
+        <goods-price-edit-popup ref="goodsPriceEditPopupRef" @load="loadGoodsList"></goods-price-edit-popup>
         <!-- 改库存 -->
-        <goods-stock-edit-popup ref="goodsStockEditPopupRef" @load="getGoodsList"></goods-stock-edit-popup>
+        <goods-stock-edit-popup ref="goodsStockEditPopupRef" @load="loadGoodsList"></goods-stock-edit-popup>
         <!-- 每个更多 -->
         <u-popup :show="showMoreDialog" @close="showMoreDialog=false" mode="bottom" zIndex="99">
             <view @touchmove.prevent.stop class="popup-common">
@@ -173,6 +173,8 @@
          </u-popup>
         <!-- 分享 -->
         <share-popup ref="shareRef" :copyUrl="copyUrl"  :copyUrlParam="copyUrlParam" />
+        <!-- 提示 -->
+        <tips-popup ref="tipsRef" />
     </view>
 </template>
 <script setup lang="ts">
@@ -263,6 +265,11 @@ const getAllAppListFn = (mescroll: any) => {
 }
 
 const  getGoodsList = () => {
+    getMescroll().resetUpScroll();
+}
+
+const loadGoodsList = () => {
+    getMescroll().scrollTo(0,50);
     getMescroll().resetUpScroll();
 }
 
@@ -357,8 +364,9 @@ const addEvent = () => {
 }
 // 编辑商品
 const editEvent = (item: any) => { 
-    redirect({ url: '/addon/mall/pages/goods/edit', param: {goods_id: item.goods_id }})
+    redirect({ url: '/addon/mall/pages/goods/edit', param: {goods_id: item.goods_id, goods_type: item.goods_type }})
 }
+const tipsRef = ref()
 // 上架/下架
 let statusRepeat = false
 const statusChange = (row: any, value: any) => {
@@ -376,20 +384,13 @@ const statusChange = (row: any, value: any) => {
             statusRepeat = false
         })
     } else {
-        uni.showModal({
-            title: '提示',
-            content: '您确定要下架该商品吗？',
-            confirmColor: 'var(--primary-color)',
-            success: res => {
-                if (res.confirm) {
-                    editGoodsStatus({
-                        goods_ids: row.goods_id,
-                        status: value
-                    }).then((res) => {
-                        getMescroll().resetUpScroll();
-                    })
-                }
-            }
+        tipsRef.value.open('您确定要下架该商品吗？', () => {
+            editGoodsStatus({
+                goods_ids: row.goods_id,
+                status: value
+            }).then((res) => {
+                getMescroll().resetUpScroll();
+            })
         })
     }
 }
@@ -412,20 +413,13 @@ const handleMore = (data: any) => {
 // 删除
 const deleteEvent = () => {
     showMoreDialog.value = false
-    uni.showModal({
-        title: '提示',
-        content: '您确定要删除该商品吗？',
-        confirmColor: 'var(--primary-color)',
-        success: res => {
-            if (res.confirm) {
-                deleteGoods({
-                    goods_ids: curGoodsData.value.goods_id
-                }).then(() => {
-                    getMescroll().resetUpScroll();
-                }).catch(() => {
-                })
-            }
-        }
+    tipsRef.value.open('您确定要删除该商品吗？', () => {
+        deleteGoods({
+            goods_ids: curGoodsData.value.goods_id
+        }).then(() => {
+            getMescroll().resetUpScroll();
+        }).catch(() => {
+        })
     })
 }
 // 复制
@@ -460,23 +454,16 @@ const batchDeleteGoods = () => {
     }
     let ids = []
     ids = selectData.checkList.map((item: any) => item.goods_id)
-    uni.showModal({
-        title: '提示',
-        content: '您确定要批量删除吗？',
-        confirmColor: 'var(--primary-color)',
-        success: res => {
-            if (res.confirm) {
-                deleteGoods({
-                    is_all: 0,
-                    goods_ids: ids
-                }).then(() => {
-                    getMescroll().resetUpScroll();
-                    selectData.checkList = []
-                    selectData.isShow = false
-                }).catch(() => {
-                })
-            }
-        }
+    tipsRef.value.open('您确定要批量删除吗？', () => {
+        deleteGoods({
+            is_all: 0,
+            goods_ids: ids
+        }).then(() => {
+            getMescroll().resetUpScroll();
+            selectData.checkList = []
+            selectData.isShow = false
+        }).catch(() => {
+        })
     })
 }
 // 批量上下架
@@ -484,6 +471,7 @@ const showbatchMoreDialog = ref(false)
 const batchMore = () => {
     showbatchMoreDialog.value = true
 }
+
 const repeat = ref(false)
 const batchGoodsStatus = (status: any) => {
     if (selectData.checkList.length == 0) {
@@ -504,6 +492,8 @@ const batchGoodsStatus = (status: any) => {
         selectData.checkList = []
         selectData.isShow = false
         showbatchMoreDialog.value = false
+    }).catch(() => {
+        repeat.value = false
     })
 }
 

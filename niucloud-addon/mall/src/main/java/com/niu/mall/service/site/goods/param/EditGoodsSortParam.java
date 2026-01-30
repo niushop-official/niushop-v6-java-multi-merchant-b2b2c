@@ -16,6 +16,5 @@ public class EditGoodsSortParam implements Serializable {
     @NotNull(message = "goods_id参数缺失")
     private Integer goodsId;
 
-    @NotNull(message = "status参数缺失")
     private Integer shopSort;
 }

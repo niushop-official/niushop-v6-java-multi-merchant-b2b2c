@@ -9,6 +9,8 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.config.GlobalConfig;
@@ -25,6 +27,7 @@ import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.entity.site.Site;
 import com.niu.core.enums.shop.ShopStatusEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
+import com.niu.core.event.common.CommonEventDefiner;
 import com.niu.core.event.shop.MallShopGoodsListEventDefiner;
 import com.niu.core.mapper.goods.GoodsBrandMapper;
 import com.niu.core.mapper.goods.GoodsServiceMapper;
@@ -35,9 +38,12 @@ import com.niu.core.service.api.diy.IDiyService;
 import com.niu.core.service.api.diy.param.DiyInfoParam;
 import com.niu.core.service.api.member.IMemberLevelService;
 import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.delivery.ICoreConfigService;
 import com.niu.core.service.core.delivery.ICoreDeliveryConfigService;
 import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
+import com.niu.core.service.core.diy_form.ICoreDiyFormRecordsService;
+import com.niu.core.service.core.diy_form.param.DiyFormRecordsParam;
 import com.niu.core.service.core.goods.ICoreGoodsCategoryService;
 import com.niu.mall.entity.coupon.MallCoupon;
 import com.niu.mall.entity.coupon.MallCouponGoods;
@@ -78,10 +84,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -165,6 +168,8 @@ public class GoodsServiceImpl implements IGoodsService {
 
     @Resource
     ICoreLocalDeliveryService coreLocalDeliveryService;
+    @Resource
+    ICoreDiyFormRecordsService coreDiyFormRecordsService;
 
     /**
      * 查询商品列表
@@ -185,7 +190,7 @@ public class GoodsServiceImpl implements IGoodsService {
                 .leftJoin("?_site ns ON g.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_shop nss ON g.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix));
 
-        queryWrapper.select("g.goods_id,g.site_id,goods_name,goods_type,goods_cover,g.stock,g.sale_num + g.virtual_sale_num as sale_num," +
+        queryWrapper.select("g.goods_id,g.site_id,goods_name,goods_type,goods_cover,g.stock,g.sale_num," +
                 "g.status,g.sort,g.create_time,member_discount,virtual_verify_type,unit," +
                 "is_discount,label_ids,g.brand_id,sgb.brand_name,sgb.logo, ns.site_name,nss.is_self,g.max_buy,g.min_buy,g.is_limit,g.limit_type");
         AdminDeliveryConfigVo deliveryConfig = coreDeliveryConfigService.getAdminDeliveryConfig();
@@ -805,7 +810,7 @@ public class GoodsServiceImpl implements IGoodsService {
                 .leftJoin("?_site ns ON goods.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_shop shop ON goods.site_id = shop.site_id".replace("?_", GlobalConfig.tablePrefix));
         
-        queryWrapper.select("goods.goods_id, goods.site_id, goods.goods_name, goods.sub_title, goods.goods_mall_category, goods.goods_category, goods.goods_type, goods.goods_cover, goods.unit, goods.status, goods.sale_num + goods.virtual_sale_num as sale_num, goods.is_discount, goods.member_discount, goods.label_ids, goods.brand_id, shop.is_self, goodsSku.price,goods.max_buy,goods.min_buy,goods.is_limit,goods.limit_type");
+        queryWrapper.select("goods.goods_id, goods.site_id, goods.goods_name, goods.sub_title, goods.goods_mall_category, goods.goods_category, goods.goods_type, goods.goods_cover, goods.unit, goods.status, goods.sale_num + goods.virtual_sale_num as sale_num, goods.is_discount, goods.member_discount, goods.label_ids, goods.brand_id, shop.is_self, goodsSku.price,goods.max_buy,goods.min_buy,goods.is_limit,goods.limit_type,goods.virtual_receive_type");
 
         if (ObjectUtil.isNotEmpty(allParams) && allParams.containsKey("position[latitude]") && allParams.containsKey("position[longitude]")){
             AdminDeliveryConfigVo deliveryConfig = coreDeliveryConfigService.getAdminDeliveryConfig();
@@ -984,7 +989,7 @@ public class GoodsServiceImpl implements IGoodsService {
         if (ObjectUtil.isEmpty(goodsVo.getUnit())){
             goodsVo.setUnit("件");
         }
-        goodsVo.setSaleNum(goods.getSaleNum() + goods.getVirtualSaleNum());
+        goodsVo.setSaleNum(goods.getSaleNum());
 
         vo.setType(param.getType());
         vo.setTypeName(ActiveTypeEnum.getNameByType(param.getType()));
@@ -1096,24 +1101,46 @@ public class GoodsServiceImpl implements IGoodsService {
             vo.setDiscountInfo(mallDiscountService.getInfoByGoods(goodsVo.getGoodsId()));
         }
 
+        GoodsAddStatParam addStatParam = new GoodsAddStatParam();
+        addStatParam.setGoodsId(goods.getGoodsId());
+        addStatParam.setSiteId(vo.getSiteId());
+        addStatParam.setAccessNum(1);
+        coreGoodsStatService.addStat(addStatParam);
+
+        //种草秀数据查询
+        CommonEventDefiner.CommonEvent event = new CommonEventDefiner.CommonEvent();
+        Map<String, Object> eventMap = new HashMap<>();
+        eventMap.put("relate_id", vo.getGoodsId());
+        eventMap.put("relate_type", "mall");
+        eventMap.put("limit", 3);
+        event.setEventName("SowShowData");
+        event.setData(eventMap);
+        event.setSiteId(RequestUtils.siteId());
+        List<CommonEventDefiner.CommonEventResult> sowShowDataResult = EventAndSubscribeOfPublisher.publishAndCallback(event);
+        if (CollectionUtils.isNotEmpty(sowShowDataResult) && ObjectUtils.isNotEmpty(sowShowDataResult.get(0).getResult())){
+            vo.setSowShowList(sowShowDataResult.get(0).getResult());
+        }
+
+
         // 自定义详情
         DiyInfoParam diyInfoParam = new DiyInfoParam();
         diyInfoParam.setName("DIY_MALL_GOODS_DETAIL");
         diyInfoParam.setId(goods.getDiyDetailId());
         vo.setDiyDetailInfo(diyService.info(diyInfoParam));
 
+        //商品校验
+        DiyFormRecordsParam diyRecordsParam = new DiyFormRecordsParam();
+        diyRecordsParam.setFormId(vo.getGoods().getFormId());
+        diyRecordsParam.setMemberId(RequestUtils.memberId());
+        List<String> error = coreDiyFormRecordsService.check(diyRecordsParam);
+        if (!error.isEmpty()) {
+            vo.getGoods().setFormId(0);
+        }
+
         // 获取商品主图第一张图片宽高
         ImageUtils.ImageSize firstImageSize = ImageUtils.getFirstImageSize(goods.getGoodsImage());
         vo.getImageSize().setWidth(firstImageSize.getWidth().toString());
         vo.getImageSize().setHeight(firstImageSize.getHeight().toString());
-        MallOrderEvaluate orderEvaluate = coreOrderConfigService.getEvaluateConfig();
-        vo.setEvaluateIsShow(orderEvaluate.getEvaluateIsShow());
-
-        GoodsAddStatParam addStatParam = new GoodsAddStatParam();
-        addStatParam.setGoodsId(goods.getGoodsId());
-        addStatParam.setSiteId(vo.getSiteId());
-        addStatParam.setAccessNum(1);
-        coreGoodsStatService.addStat(addStatParam);
 
         return vo;
     }

@@ -11,7 +11,7 @@ public class SysCopyRightVo {
     private String govUrl = "";
     private String marketSupervisionUrl = "";
     private String logo = "";
-    private String companyName = "";
-    private String copyrightLink = "";
-    private String copyrightDesc = "";
+    private String companyName = "牛之云科技";
+    private String copyrightLink = "https://www.niushop.com";
+    private String copyrightDesc = "niushop版权所有";
 }

@@ -40,7 +40,7 @@
                     <el-table-column prop="header_type_name" :label="t('headerTypeName')" min-width="120" />
                     <el-table-column prop="type_name" :label="t('typeName')" min-width="120" />
                     <el-table-column prop="tax_number" :label="t('taxNumber')" min-width="180" />
-                    <el-table-column prop="name" :label="t('name')" min-width="120" />
+                    <el-table-column prop="content_type_name" :label="t('name')" min-width="120" />
                     <el-table-column prop="money" :label="t('money')" min-width="120" align="right" />
                     <el-table-column :label="t('createTime')" min-width="180" >
                         <template #default="{ row }">

@@ -98,7 +98,7 @@
 						<view class="goods-list mt-[20rpx]" v-if="item.goods.length">
 							<view class="goods-item" v-for="(subItem,suIndex) in item.goods" :key="suIndex" @click="toGoodsDetail(subItem.goods_id)">
 								<view class="bg-[#fff] w-[210rpx]">
-									<up-image radius="var(--goods-rounded-big)" width="212rpx" height="212rpx" :src="img(subItem.goods_cover ? subItem.goods_cover : '')" mode="aspectFill">
+									<up-image radius="var(--goods-rounded-big)" width="212rpx" height="212rpx" :src="img(subItem.goods_cover_thumb_mid ? subItem.goods_cover_thumb_mid : '')" mode="aspectFill">
 										<template #error>
 											<image :src="img('static/resource/images/diy/shop_default.jpg')" class="w-[212rpx] h-[212rpx] rounded-[var(--goods-rounded-big)]"></image>
 										</template>

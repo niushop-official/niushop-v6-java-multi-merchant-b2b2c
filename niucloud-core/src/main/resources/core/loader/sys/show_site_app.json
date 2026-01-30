@@ -1,4 +1,6 @@
 {
+  "app": [
+  ],
   "tool": [
     {
       "title": "万能表单",
@@ -29,7 +31,7 @@
       "url": "/adminapp"
     }
   ],
-  "addon": [
+  "promotion": [
 
   ]
 

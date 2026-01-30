@@ -5,22 +5,29 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
+import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.exception.ApiException;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.entity.shop.SiteShopCashOut;
+import com.niu.core.enums.shop.ShopCashOutEnum;
+import com.niu.core.enums.shop.ShopTransferEnum;
 import com.niu.core.mapper.shop.SiteShopCashOutMapper;
 import com.niu.core.mapper.shop.SiteShopMapper;
 import com.niu.core.service.api.shop.ISiteShopCashOutService;
 import com.niu.core.service.api.shop.param.SiteShopCashOutAuditParam;
 import com.niu.core.service.api.shop.param.SiteShopCashOutParam;
 import com.niu.core.service.api.shop.param.SiteShopCashOutSearchParam;
-import com.niu.core.service.api.shop.param.SiteShopCashOutTransferParam;
+import com.niu.core.service.api.shop.vo.SiteShopCashOutInfoNewVo;
 import com.niu.core.service.api.shop.vo.SiteShopCashOutInfoVo;
 import com.niu.core.service.api.shop.vo.SiteShopCashOutListVo;
+import com.niu.core.service.core.shop.ICoreShopCashOutService;
+import com.niu.core.service.core.shop.param.ShopTransferParam;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,10 +47,12 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
         
     @Resource
     SiteShopCashOutMapper siteShopCashOutMapper;
-
+    @Resource
+    ICoreShopCashOutService coreShopCashOutService;
     @Resource
     SiteShopMapper siteShopMapper;
-
+    @Resource
+    private Cached cached;
     @Override
     public PageResult<SiteShopCashOutListVo> page(PageParam pageParam, SiteShopCashOutSearchParam searchParam) {
         Integer page  = pageParam.getPage();
@@ -106,13 +115,61 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
 
 
         MPJQueryWrapper<SiteShopCashOut> queryWrapper = new MPJQueryWrapper<>();
-
-        //sql语句
-        queryWrapper.select("nssco.id, nssco.site_id, nssco.cash_out_no, nssco.account_type, nssco.transfer_type, nssco.transfer_realname, nssco.transfer_mobile, nssco.transfer_bank, nssco.transfer_account, nssco.transfer_payee, nssco.transfer_payment_code, nssco.transfer_fail_reason, nssco.transfer_status, nssco.transfer_time, nssco.apply_money, nssco.rate, nssco.service_money, nssco.money, nssco.audit_time, nssco.status, nssco.remark, nssco.create_time, nssco.refuse_reason, nssco.update_time, nssco.transfer_no, nssco.transfer_voucher, nssco.cancel_time, nssco.final_transfer_type, ns.site_name, ns.logo")
+        queryWrapper.select("nssco.id, nssco.site_id, nssco.apply_money, nssco.money, nssco.service_money, " +
+                        "nssco.status, nssco.create_time, nssco.audit_time, nssco.transfer_type, nssco.transfer_time, " +
+                        // 前端页面需要字段
+                        "nssco.account_type, nssco.cash_out_no, nssco.transfer_realname, nssco.transfer_mobile, " +
+                        "nssco.transfer_bank, nssco.transfer_account, nssco.transfer_payment_code, " +
+                        "nssco.transfer_fail_reason, nssco.transfer_status, nssco.rate, nssco.refuse_reason, " +
+                        "nssco.remark, nssco.update_time, nssco.transfer_no, nssco.transfer_voucher, " +
+                        "nssco.cancel_time, nssco.final_transfer_type, nssco.transfer_payee")
                 .setAlias("nssco")
-                .leftJoin("?_site ns ON nssco.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix));
+                // 2. 关联站点表
+                .leftJoin("?_site ns ON nssco.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix))
+                .select("ns.site_id as 'siteInfo.siteId', ns.site_name as 'siteInfo.siteName', " +
+                        "ns.phone as 'siteInfo.phone', ns.logo as 'siteInfo.logo', " +
+                        "ns.group_id as 'siteInfo.groupId', ns.keywords as 'siteInfo.keywords', " +
+                        "ns.app_type as 'siteInfo.appType', ns.addons as 'siteInfo.addons', " +
+                        "ns.address as 'siteInfo.address', ns.app as 'siteInfo.app', " +
+                        "ns.business_hours as 'siteInfo.businessHours', ns.city_id as 'siteInfo.cityId', " +
+                        "ns.create_time as 'siteInfo.createTime', ns.desc as 'siteInfo.desc', " +
+                        "ns.district_id as 'siteInfo.districtId', ns.expire_time as 'siteInfo.expireTime', " +
+                        "ns.front_end_logo as 'siteInfo.frontEndLogo', ns.front_end_name as 'siteInfo.frontEndName', " +
+                        "ns.full_address as 'siteInfo.fullAddress', ns.icon as 'siteInfo.icon', " +
+                        "ns.latitude as 'siteInfo.latitude', ns.longitude as 'siteInfo.longitude', " +
+                        "ns.member_no as 'siteInfo.memberNo', ns.province_id as 'siteInfo.provinceId', " +
+                        "ns.site_domain as 'siteInfo.siteDomain', ns.status as 'siteInfo.status'")
+                .eq("nssco.id", id) .or()
+                .eq("nssco.cash_out_no", id);
+        queryWrapper.eq("nssco.site_id", RequestUtils.siteId());
+        SiteShopCashOutInfoVo infoVo = siteShopCashOutMapper.selectJoinOne(SiteShopCashOutInfoVo.class, queryWrapper);
+        if (infoVo == null) {
+            return new SiteShopCashOutInfoVo();
+        }
+        // 设置状态名称
+        infoVo.setStatusName(ShopCashOutEnum.getStatus().get(infoVo.getStatus()));
+        if (infoVo.getTransferType() != null) {
+            infoVo.setTransferTypeName(ShopTransferEnum.getNameByTag(
+                    Integer.parseInt(infoVo.getTransferType())));
+        }
+        if (infoVo.getSiteInfo() == null) {
+            SiteShopCashOutInfoVo.SiteInfoVO siteInfo = new SiteShopCashOutInfoVo.SiteInfoVO();
+            QueryWrapper<SiteShop> siteQueryWrapper = new QueryWrapper<>();
+            siteQueryWrapper.eq("site_id", infoVo.getSiteId());
+            SiteShop siteShop = siteShopMapper.selectOne(siteQueryWrapper);
 
-        return siteShopCashOutMapper.selectJoinOne(SiteShopCashOutInfoVo.class, queryWrapper);
+            if (siteShop != null) {
+                // 手动设置站点的基本信息
+                siteInfo.setSiteId(siteShop.getSiteId());
+                siteInfo.setSiteName(infoVo.getSiteInfo().getSiteName());
+                siteInfo.setPhone(infoVo.getSiteInfo().getPhone());
+                siteInfo.setLogo(infoVo.getSiteInfo().getLogo());
+            }
+
+            infoVo.setSiteInfo(siteInfo);
+        }
+
+        return infoVo;
     }
 
     @Override
@@ -122,8 +179,21 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
     }
 
     @Override
-    public void transfer(Integer id, SiteShopCashOutTransferParam transferParam) {
+    public void transfer(Integer id, ShopTransferParam transferParam) {
+        transferParam.setChannel(RequestUtils.channel());
+        coreShopCashOutService.transfer(id, transferParam);
+    }
 
+    @Override
+    public Object checkTransfer(String code) {
+        if (StringUtils.isEmpty( code)){
+            throw new ApiException("转账二维码已过期");
+        }
+        Object id =  cached.get( code);
+        if (ObjectUtil.isEmpty(id)){
+            throw new ApiException("转账二维码已过期");
+        }
+        return id;
     }
 
     @Override

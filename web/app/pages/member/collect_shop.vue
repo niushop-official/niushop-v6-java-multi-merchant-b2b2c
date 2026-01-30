@@ -9,7 +9,7 @@
                             <div class="w-[228px] flex flex-col items-center box-border border-[1px] border-solid border-[#eee] pb-[20px] bg-[#fff] rounded-[var(--rounded-big)] cursor-pointer" @click="toShopDetail(item.site.site_id)">
                                 <el-image class="w-[228px] h-[228px] rounded-t-[var(--rounded-big)]" :src="img(item.site.logo ? item.site.logo : '')" fit="cover">
                                     <template #error>
-                                        <img src="" class="w-[228px] h-[228px] rounded-t-[var(--rounded-big)]">
+                                        <img :src="img(`static/resource/images/site/back0${ Math.floor(Math.random() * 4) + 1}.jpg`)" class="w-[228px] h-[228px] rounded-t-[var(--rounded-big)]">
                                     </template>
                                 </el-image>
                                 <div class="w-[80px] h-[80px] mt-[-36px] mb-[18px] box-border border-[1px] border-solid border-[#eee] rounded-full">

@@ -1,6 +1,7 @@
 package com.niu.mall.entity.order;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import java.io.Serializable;
@@ -23,6 +24,8 @@ public class MallOrderDelivery implements Serializable {
     private String subDeliveryType; // 详细配送方式
     private Integer expressCompanyId; // 快递公司id
     private String expressNumber; // 配送单号
+    @TableField(exist = false)
+    private String expressNo; // 配送单号
     private Integer localDeliverId; // 同城配送员
     private Integer status; // 配送状态
     private Long createTime; // 创建时间

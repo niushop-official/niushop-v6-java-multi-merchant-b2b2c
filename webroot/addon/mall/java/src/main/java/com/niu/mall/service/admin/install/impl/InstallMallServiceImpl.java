@@ -44,11 +44,11 @@ public class InstallMallServiceImpl implements IInstallMallService {
 
         Integer siteId = RequestUtils.defaultSiteId();
         //初始化系统首页微页面
-        diyService.initDefaultPage(0, "DIY_INDEX", null);
+        diyService.initDefaultPage(0, "DIY_INDEX", "mall");
         //初始化系统个人中心微页面
-        diyService.initDefaultPage(0, "DIY_MEMBER_INDEX", null);
-        //创建默认找朋友帮忙付海报
-        corePosterService.initDefaultPoster(0, "friendspay", null);
+        diyService.initDefaultPage(0, "DIY_MEMBER_INDEX", "mall");
+        //初始化系统个人中心微页面
+        diyService.initDefaultPage(0, "DIY_MALL_GOODS_DETAIL", "mall");
         corePosterService.initDefaultPoster(siteId, "shop_goods", "mall");
         coreDiyService.initDefaultDiyTheme();
         JsonModuleLoader jsonModuleLoader = new JsonModuleLoader();

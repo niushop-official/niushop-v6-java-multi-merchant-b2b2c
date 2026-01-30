@@ -57,10 +57,10 @@ const useDiyStore = defineStore('diy', {
 
                 // 顶部导航栏
                 topStatusBar: {
+                    control: true, // 是否允许展示编辑
                     isShow: true, // 是否显示
                     bgColor: "#ffffff", // 头部背景颜色
                     rollBgColor: "#ffffff", // 滚动时，头部背景颜色
-                    isTransparent: false, // 是否透明
                     style: 'style-1', // 导航栏风格样式（style-1：文字，style-2：图片+文字，style-3：图片+搜索，style-4：定位）
                     styleName: '风格1',
                     textColor: "#333333", // 文字颜色
@@ -84,7 +84,7 @@ const useDiyStore = defineStore('diy', {
                     imgUrl: "",
                     imgWidth: '',
                     imgHeight: '',
-                    count: -1,
+                    count: 'once', // 'once'（仅一次） | 'always'（每次）
                     show: 0,
                     link: {
                         name: ""
@@ -151,10 +151,10 @@ const useDiyStore = defineStore('diy', {
 
                 // 顶部导航栏
                 topStatusBar: {
+                    control: true, // 是否允许展示编辑
                     isShow: true, // 是否显示
                     bgColor: "#ffffff", // 头部背景颜色
                     rollBgColor: "#ffffff", // 滚动时，头部背景颜色
-                    isTransparent: false, // 是否透明
                     style: 'style-1', // 导航栏风格样式（style-1：文字，style-2：图片+文字，style-3：图片+搜索，style-4：定位）
                     styleName: '风格1',
                     textColor: "#333333", // 文字颜色
@@ -178,7 +178,7 @@ const useDiyStore = defineStore('diy', {
                     imgUrl: "",
                     imgWidth: '',
                     imgHeight: '',
-                    count: -1,
+                    count: 'once', // 'once'（仅一次） | 'always'（每次）
                     show: 0,
                     link: {
                         name: ""
@@ -399,9 +399,9 @@ const useDiyStore = defineStore('diy', {
         },
         // 上移组件
         moveUpComponent() {
-            var temp = cloneDeep(this.value[this.currentIndex]); // 当前选中组件
+            const temp = cloneDeep(this.value[this.currentIndex]); // 当前选中组件
             let prevIndex = this.currentIndex - 1;
-            var temp2 = cloneDeep(this.value[prevIndex]); // 上个组件
+            const temp2 = cloneDeep(this.value[prevIndex]); // 上个组件
 
             if ((this.currentIndex - 1) < 0 || temp2.position && this.position.indexOf(temp2.position) != -1) return; // 从0开始
 
@@ -425,12 +425,12 @@ const useDiyStore = defineStore('diy', {
         moveDownComponent() {
             if (this.currentIndex < -1 || (this.currentIndex + 1) >= this.value.length) return; // 最后一个不能下移
 
-            var nextIndex = this.currentIndex + 1;
+            const nextIndex = this.currentIndex + 1;
 
-            var temp = cloneDeep(this.value[this.currentIndex]); // 当前选中组件
+            const temp = cloneDeep(this.value[this.currentIndex]); // 当前选中组件
             temp.id = this.generateRandom(); // 更新id，刷新组件数据
 
-            var temp2 = cloneDeep(this.value[nextIndex]); // 下个组件
+            const temp2 = cloneDeep(this.value[nextIndex]); // 下个组件
             temp2.id = this.generateRandom(); // 更新id，刷新组件数据
 
             if (temp2.position && this.position.indexOf(temp2.position) != -1) return;
@@ -472,7 +472,7 @@ const useDiyStore = defineStore('diy', {
                 return;
             }
 
-            var index = this.currentIndex + 1;
+            const index = this.currentIndex + 1;
             this.value.splice(index, 0, component);
 
             this.changeCurrentIndex(index, component);
@@ -484,10 +484,10 @@ const useDiyStore = defineStore('diy', {
             //为0时不处理
             if (component.uses === 0) return true;
 
-            var count = 0;
+            let count = 0;
 
             //遍历已添加的自定义组件，检测是否超出数量
-            for (var i in this.value) if (this.value[i].componentName === component.componentName) count++;
+            for (let i in this.value) if (this.value[i].componentName === component.componentName) count++;
 
             if (count >= component.uses) return false;
             else return true;
@@ -538,10 +538,18 @@ const useDiyStore = defineStore('diy', {
             //     return false;
             // }
 
-            for (var i = 0; i < this.value.length; i++) {
+            if (this.global.popWindow.show && !this.global.popWindow.imgUrl) {
+                ElMessage({
+                    message: '请上传弹窗图片',
+                    type: 'warning'
+                })
+                return false;
+            }
+
+            for (let i = 0; i < this.value.length; i++) {
                 try {
                     if (this.value[i].verify) {
-                        var res = this.value[i].verify(i);
+                        const res = this.value[i].verify(i);
                         if (!res.code) {
                             this.changeCurrentIndex(i, this.value[i])
                             ElMessage({

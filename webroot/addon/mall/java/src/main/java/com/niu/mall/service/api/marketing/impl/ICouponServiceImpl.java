@@ -280,7 +280,7 @@ public class ICouponServiceImpl implements ICouponService {
             if (mallCoupon.getStartTime() > time) throw new ApiException("优惠券未开始");
             if (mallCoupon.getEndTime() < time) throw new ApiException("优惠券已过期");
         }
-        if (mallCoupon.getValidEndTime() > 0) {
+        if (mallCoupon.getValidEndTime() > 0 && mallCoupon.getValidType().equals(2)) {
             if (mallCoupon.getValidStartTime() > time) throw new ApiException("优惠券未开始");
             if (mallCoupon.getValidEndTime() < time) throw new ApiException("优惠券已过期");
         }
@@ -333,13 +333,36 @@ public class ICouponServiceImpl implements ICouponService {
         queryWrapper.orderByDesc("id");
 
         IPage<MallCouponMember> iPage = mallCouponMemberMapper.selectPage(new Page<>(page, limit), queryWrapper);
+
+        List<MallCoupon> couponsList = new ArrayList<>();
+        List<Site> siteList = new ArrayList<>();
+        List<Integer> couponIds = iPage.getRecords().stream().map(MallCouponMember::getCouponId).toList();
+        if (!couponIds.isEmpty()){
+            couponsList = mallCouponMapper.selectByIds(couponIds);
+            List<Integer> siteIds = new ArrayList<>();
+            if (!couponsList.isEmpty()){
+                for (MallCoupon item : couponsList){
+                    if(!CouponIsAllSiteEnum.ALL_SITE_JOIN.getType().equals(item.getIsAllSiteJoin())){
+                        JSONArray jsonArray = JSONUtil.parseArray(item.getJoinSiteIds());
+                        for (Object siteId : jsonArray) {
+                            siteIds.add(Integer.parseInt(siteId.toString()));
+                        }
+                    }
+                    siteIds.add(item.getSiteId());
+                }
+            }
+            if (!siteIds.isEmpty()){
+                siteList = siteMapper.selectList(new QueryWrapper<Site>().in("site_id", siteIds));
+            }
+        }
         List<MallCouponMemberListVo> list = new LinkedList<>();
         for (MallCouponMember item : iPage.getRecords()) {
             MallCouponMemberListVo vo = new MallCouponMemberListVo();
             BeanUtils.copyProperties(item, vo);
             if(RequestUtils.defaultSiteId().equals(item.getSiteId())){
-                MallCoupon coupon = mallCouponMapper.selectOne(new QueryWrapper<MallCoupon>().eq("id", item.getCouponId()));
-                if(coupon != null){
+                List<MallCoupon> coupons = couponsList.stream().filter(coupon -> coupon.getId().equals(item.getCouponId())).toList();
+                if(!coupons.isEmpty()){
+                    MallCoupon coupon = coupons.get(0);
                     if(CouponIsAllSiteEnum.ALL_SITE_JOIN.getType().equals(coupon.getIsAllSiteJoin())){
                         vo.setSiteName("全部店铺");
                     }else{
@@ -349,9 +372,9 @@ public class ICouponServiceImpl implements ICouponService {
                             siteIds.add(Integer.parseInt(siteId.toString()));
                         }
                         if(!siteIds.isEmpty()){
-                            List<Site> siteList = siteMapper.selectList(new QueryWrapper<Site>().in("site_id", siteIds));
-                            if(!siteList.isEmpty()){
-                                vo.setSiteName(siteList.stream().map(Site::getSiteName).collect(Collectors.joining("、")));
+                            List<Site> siteListThis = siteList.stream().filter(site -> siteIds.contains(site.getSiteId())).toList();
+                            if(!siteListThis.isEmpty()){
+                                vo.setSiteName(siteListThis.stream().map(Site::getSiteName).collect(Collectors.joining("、")));
                             }
                         }
                     }
@@ -360,8 +383,11 @@ public class ICouponServiceImpl implements ICouponService {
                 }
             }else {
                 //则显示该站点名称
-                SiteInfoVo siteInfoVo = siteService.info(vo.getSiteId());
-                vo.setSiteName(siteInfoVo.getSiteName());
+                List<Site> siteListThis = siteList.stream().filter(site -> site.getSiteId().equals(vo.getSiteId())).toList();
+                if(!siteListThis.isEmpty()){
+                    vo.setSiteName(siteListThis.get(0).getSiteName());
+                }
+
             }
             list.add(vo);
         }

@@ -55,7 +55,7 @@
                 </template>
             </el-dialog>
               <!-- 更改手机号码 -->
-              <el-dialog v-model="updateMobileDialog" :title="t('updateMobile')" width="420">
+              <el-dialog v-model="updateMobileDialog" :title="t('updateMobile')" width="420" zIndex="100">
                 <el-form :model="formData" ref="formRef" :rules="formRules" :validate-on-rule-change="false">
                     <el-form-item prop="mobile">
                             <el-input v-model="formData.mobile" :placeholder="t('mobilePlaceholder')" clearable>
@@ -77,6 +77,8 @@
                 </template>
             </el-dialog>
         </div>
+        <!-- 验证组件 -->
+    	<verify @success="success"   :captchaType="configStore.login.captcha_type" :imgSize="{ width: '330px', height: '155px' }" ref="verifyRef"></verify>
     </div>
 </template>
 
@@ -89,6 +91,10 @@ import { ElMessage, ElMessageBox, UploadFile, UploadFiles } from 'element-plus'
 import request from '@/utils/request'
 import storage from '@/utils/storage'
 import { getToken } from '@/utils/common'
+import useConfigStore from '@/stores/config'
+import verify from '@/components/verifition/Verify.vue'
+
+const configStore = useConfigStore()
 
 const memberStore = useMemberStore()
 const loading = ref(true)
@@ -197,11 +203,18 @@ const formRules = computed(() => {
     }
 })
 
+// 验证码 - start
+const verifyRef = ref<any>(null)
+const success = (params: any) => {
+    smsCodeRef.value?.send({captcha_code: params.captchaVerification})
+}
+// 验证码 - end
+
 const smsCodeRef = ref<AnyObject | null>(null)
 const sendSmsCode = async () => {
     await formRef.value?.validateField('mobile', async (valid, fields) => {
         if (valid) {
-            smsCodeRef.value?.send()
+            verifyRef.value?.show()
         }
     })
 }

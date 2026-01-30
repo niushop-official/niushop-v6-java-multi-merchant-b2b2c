@@ -77,3 +77,7 @@
 .el-dropdown .el-tooltip__trigger {
     outline: none!important;
 }
+
+.el-tabs__item:focus-visible{
+    box-shadow: none !important;
+}

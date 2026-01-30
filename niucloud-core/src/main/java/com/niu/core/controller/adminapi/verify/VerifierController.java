@@ -61,6 +61,27 @@ public class VerifierController {
     }
 
     /**
+     * 核销员编辑
+     * @param id 参数
+     * @return Result<Object>
+     */
+    @PostMapping("/{id}")
+    public Result<Object> edit(@PathVariable("id") Integer id,@Validated @RequestBody VerifierParam addParam) {
+        verifierService.edit(id,addParam);
+        return Result.success();
+    }
+
+    /**
+     * 核销员详情
+     * @param id 参数
+     * @return Result<Object>
+     */
+    @GetMapping("/{id}")
+    public Result<Object> detail(@PathVariable("id") Integer id) {
+        return Result.success(verifierService.detail(id));
+    }
+
+    /**
      * 核销员删除
      * @param id 参数
      * @return Result<Object>

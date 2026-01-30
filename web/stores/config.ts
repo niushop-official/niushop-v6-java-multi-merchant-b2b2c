@@ -6,13 +6,13 @@ interface loginConfig {
     is_mobile: number | boolean,
     is_auth_register: number | boolean,
     is_bind_mobile: number | boolean,
-    agreement_show: number | boolean
+    agreement_show: number | boolean,
+    captcha_type: string
 }
 
 
 interface Config {
-    login: loginConfig,
-    weappOpen: any
+    login: loginConfig
 }
 
 
@@ -24,9 +24,9 @@ const useConfigStore = defineStore('config', {
                 is_mobile: 0,
                 is_auth_register: 0,
                 is_bind_mobile: 0,
-                agreement_show: 0
-            },
-            weappOpen: null,
+                agreement_show: 0,
+                captcha_type: 'blockPuzzle'
+            }
         }
     },
     actions: {
@@ -37,15 +37,9 @@ const useConfigStore = defineStore('config', {
                 this.login.is_auth_register = parseInt(data.is_auth_register)
                 this.login.is_bind_mobile = parseInt(data.is_bind_mobile)
                 this.login.agreement_show = parseInt(data.agreement_show)
+                this.login.captcha_type = data.captcha_type
             }).catch(() => {
 
-            })
-        },
-        async getWeappConfig() {
-            await weappCheck().then((res: any) => {
-                this.weappOpen = res.data
-            }).catch(() => {
-                
             })
         }
     }

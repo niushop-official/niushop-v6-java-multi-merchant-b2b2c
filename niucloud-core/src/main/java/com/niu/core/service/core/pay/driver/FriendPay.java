@@ -71,6 +71,8 @@ public class FriendPay extends BasePay {
 
     @Override
     public PayTypeVo filterPayTypeByTradeType(String tradeType) {
-        return JSONUtil.toBean(PayTypeEnum.getType().getJSONObject("friendspay"), PayTypeVo.class);
+        PayTypeVo vo = JSONUtil.toBean(PayTypeEnum.getType().getJSONObject("friendspay"), PayTypeVo.class);
+        if (tradeType.equals("recharge") || tradeType.equals("points_mall")) return null;
+        return vo;
     }
 }

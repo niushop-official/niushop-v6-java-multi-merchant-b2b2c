@@ -167,24 +167,37 @@ public class MallOrderServiceImpl implements IMallOrderService {
         MPJQueryWrapper<MallOrder> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("o")
                 .leftJoin("?_member m ON o.member_id = m.member_id".replace("?_", GlobalConfig.tablePrefix))
+                .leftJoin("?_mall_order_goods g ON o.order_id = g.order_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_pay p ON o.out_trade_no = p.out_trade_no".replace("?_", GlobalConfig.tablePrefix));
-        queryWrapper.select("order_id,o.site_id,order_no,order_type,order_from,o.out_trade_no,o.status,o.member_id,ip,goods_money,delivery_money,order_money,o.create_time,o.pay_time,delivery_type,taker_name,taker_mobile,taker_full_address,take_store_id,is_enable_refund,member_remark,shop_remark,close_remark,o.mall_discount_money,o.mall_money,o.mall_refund_money,o.refund_money,o.shop_money,o.shop_refund_money,o.supply_id,o.supply_money,o.supply_refund_money,o.mall_coupon_money,o.mall_refund_coupon_money");
+        queryWrapper.select("o.order_id,o.site_id,o.order_no,o.order_type,o.order_from,o.out_trade_no,o.status,o.member_id,o.ip,o.goods_money,o.delivery_money,o.order_money,o.create_time,o.pay_time,o.delivery_type,o.taker_name,o.taker_mobile,o.taker_full_address,o.take_store_id,o.is_enable_refund,o.member_remark,o.shop_remark,o.close_remark,o.mall_discount_money,o.mall_money,o.mall_refund_money,o.refund_money,o.shop_money,o.shop_refund_money,o.supply_id,o.supply_money,o.supply_refund_money,o.mall_coupon_money,o.mall_refund_coupon_money");
         queryWrapper.eq("o.site_id", RequestUtils.siteId());
+        queryWrapper.groupBy("o.order_id");
         queryWrapper.orderByDesc("o.create_time");
 
         if (ObjectUtil.isNotEmpty(searchParam.getSearchType()) && ObjectUtil.isNotEmpty(searchParam.getSearchName())) {
-            queryWrapper.like("o." + searchParam.getSearchType(), searchParam.getSearchName());
+            if(searchParam.getSearchType().equals("goods_name")){
+                queryWrapper.like("g." + searchParam.getSearchType(), searchParam.getSearchName());
+            }else{
+                queryWrapper.like("o." + searchParam.getSearchType(), searchParam.getSearchName());
+            }
+
         }
         if (ObjectUtil.isNotEmpty(searchParam.getStatus())) queryWrapper.eq("o.status", searchParam.getStatus());
         if (ObjectUtil.isNotEmpty(searchParam.getOrderFrom())) queryWrapper.eq("o.order_from", searchParam.getOrderFrom());
         if (ObjectUtil.isNotEmpty(searchParam.getPayType())) queryWrapper.eq("p.type", searchParam.getPayType());
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) QueryMapperUtils.buildByTime(queryWrapper, "o.create_time", searchParam.getCreateTime());
         if (ObjectUtil.isNotEmpty(searchParam.getPayTime())) QueryMapperUtils.buildByTime(queryWrapper, "p.pay_time", searchParam.getPayTime());
+        if (ObjectUtil.isNotEmpty(searchParam.getExtendField1())) queryWrapper.eq("o.extend_field_1", searchParam.getExtendField1());
+        if (ObjectUtil.isNotEmpty(searchParam.getExtendField2())) queryWrapper.eq("o.extend_field_2", searchParam.getExtendField2());
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())){
             queryWrapper.and(i -> i.like("m.member_no", searchParam.getKeyword()).or()
                     .like("m.nickname", searchParam.getKeyword()).or()
                     .like("m.username", searchParam.getKeyword()).or()
                     .like("m.mobile", searchParam.getKeyword()));
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getOrderKeyword())){
+            queryWrapper.and(i -> i.like("o.order_no", searchParam.getOrderKeyword()).or()
+                    .like("o.body", searchParam.getOrderKeyword()));
         }
         if (ObjectUtil.isNotEmpty(searchParam.getOrderNo())){
             queryWrapper.like("o.order_no", searchParam.getOrderNo());
@@ -209,9 +222,13 @@ public class MallOrderServiceImpl implements IMallOrderService {
                     .leftJoin("?_delivery_local_delivery_order dldo ON od.local_delivery_order_id = dldo.delivery_no ".replace("?_", GlobalConfig.tablePrefix))
             ;
             orderGoodsWra.select("o.*");
-            orderGoodsWra.select("r.refund_id,r.apply_money");
+            orderGoodsWra.select("r.refund_id,r.apply_money,r.money refund_money");
             orderGoodsWra.select("od.delivery_type,od.express_company_id,od.express_number,od.local_deliver_id,od.local_delivery_order_id,dc.company_name as express_company_name,dldo.status localDeliveryStatus,od.status orderDeliveryStatus");
             orderGoodsWra.eq("o.order_id", vo.getOrderId());
+            if(StringUtils.isNotEmpty(searchParam.getSearchType()) && searchParam.getSearchType().equals("goods_name")){
+                orderGoodsWra.like("o.goods_name", searchParam.getSearchName());
+            }
+
             List<MallOrderListVo.OrderGoods> orderGoods = mallOrderGoodsMapper.selectJoinList(MallOrderListVo.OrderGoods.class,orderGoodsWra);
 
             for (MallOrderListVo.OrderGoods orderGoodsItem : orderGoods) {
@@ -290,7 +307,7 @@ public class MallOrderServiceImpl implements IMallOrderService {
         orderGoodsWra.setAlias("o")
                 .leftJoin("?_mall_order_refund r ON o.order_goods_id = r.order_goods_id ".replace("?_", GlobalConfig.tablePrefix));
         orderGoodsWra.select("o.*");
-        orderGoodsWra.select("r.refund_id,r.apply_money");
+        orderGoodsWra.select("r.refund_id,r.apply_money,r.money refund_money");
         orderGoodsWra.eq("o.order_id", vo.getOrderId());
         List<MallOrderInfoVo.OrderGoods> orderGoods = mallOrderGoodsMapper.selectJoinList(MallOrderInfoVo.OrderGoods.class,orderGoodsWra);
 
@@ -387,10 +404,10 @@ public class MallOrderServiceImpl implements IMallOrderService {
         //查询店铺信息
         SiteInfoVo siteInfoVo = siteService.info(vo.getSiteId());
         vo.setSiteName(siteInfoVo.getSiteName());
-        if(ObjectUtil.isNotEmpty(vo.getShopCommission())){
+        if(ObjectUtil.isEmpty(vo.getShopCommission())){
             vo.setShopCommission(BigDecimal.ZERO);
         }
-        if(ObjectUtil.isNotEmpty(vo.getShopRefundCommission())){
+        if(ObjectUtil.isEmpty(vo.getShopRefundCommission())){
             vo.setShopRefundCommission(BigDecimal.ZERO);
         }
         //获取店铺信息
@@ -433,11 +450,8 @@ public class MallOrderServiceImpl implements IMallOrderService {
         }
 
         boolean isInstallFenxiao = false;
-        if (siteInfoVo != null && siteInfoVo.getSiteGroup() != null) {
-            String addons = siteInfoVo.getSiteGroup().getAddon();
-            if (ObjectUtil.isNotEmpty(addons)) {
-                isInstallFenxiao = addons.contains("mall_fenxiao");
-            }
+        if (siteInfoVo != null && ObjectUtil.isNotEmpty(siteInfoVo.getAddons())) {
+            isInstallFenxiao = siteInfoVo.getAddons().contains("mall_fenxiao");
         }
         vo.setIsInstallFenxiao(isInstallFenxiao);
 
@@ -699,16 +713,23 @@ public class MallOrderServiceImpl implements IMallOrderService {
     }
 
     private void checkLocationInArea(EditDeliveryVo result, EditDeliveryParam param) {
-        List<DeliveryLocalDelivery> localConfig = deliveryLocalDeliveryMapper.selectList(new LambdaQueryWrapper<DeliveryLocalDelivery>().eq(DeliveryLocalDelivery::getSiteId, RequestUtils.siteId()));
-        if (localConfig.isEmpty()){
+        //配送门店
+        DeliveryStore store = deliveryStoreMapper.selectOne(new LambdaQueryWrapper<DeliveryStore>()
+                .eq(DeliveryStore::getStoreId, param.getTakeStoreId()));
+        if (ObjectUtil.isEmpty(store)){
             result.setErrorCode(-1);
-            result.setErrorMsg("商家未配置同城配送");
+            result.setErrorMsg("提货点不存在");
+            return;
+        }
+        if (ObjectUtil.isNotEmpty(store) && StringUtils.isEmpty(store.getArea())){
+            result.setErrorCode(-1);
+            result.setErrorMsg("该门店未配置配送区域");
             return;
         }
 
         // 判断所在区域
         LocalInfoVo.Area locatedInArea = null;
-        List<LocalInfoVo.Area> areaList = JSONUtil.toList(JSONUtil.parseArray(localConfig.get(0).getArea()), LocalInfoVo.Area.class);
+        List<LocalInfoVo.Area> areaList = JSONUtil.toList(JSONUtil.parseArray(store), LocalInfoVo.Area.class);
         for (LocalInfoVo.Area area : areaList) {
             if ("radius".equals(area.getAreaType())) {
                 // 圆形区域判断
@@ -733,7 +754,7 @@ public class MallOrderServiceImpl implements IMallOrderService {
 
         if (locatedInArea == null) {
             result.setErrorCode(-1);
-            result.setErrorMsg("不支持配送地址");
+            result.setErrorMsg("所选的收货地址不支持配送");
         }
     }
 
@@ -741,14 +762,17 @@ public class MallOrderServiceImpl implements IMallOrderService {
 
     @Override
     public BigDecimal getSelectOrderGoodsWeight(MallOrderGoodsWeightParam param) {
-        List<MallOrderGoods> list = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>()
-                .in("order_id", param.getOrder_goods_ids()).eq("site_id", RequestUtils.siteId()));
+        // 与PHP逻辑一致：where([['order_goods_id', 'in', $data['order_goods_ids']], ['site_id', '=', $this->site_id]])
         BigDecimal weight = BigDecimal.ZERO;
-        if (!list.isEmpty()){
-            for (MallOrderGoods item : list){
-                MallGoodsSku sku = mallGoodsSkuMapper.selectById(item.getSkuId());
-                if(ObjectUtil.isNotEmpty(sku.getWeight()) && sku.getWeight().compareTo(BigDecimal.ZERO) >0){
-                    weight = weight.add(sku.getWeight().multiply(new BigDecimal(item.getNum())));
+        if (param.getOrder_goods_ids() != null && !param.getOrder_goods_ids().isEmpty()) {
+            List<MallOrderGoods> list = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>()
+                    .in("order_goods_id", param.getOrder_goods_ids()).eq("site_id", RequestUtils.siteId()));
+            if (!list.isEmpty()){
+                for (MallOrderGoods item : list){
+                    MallGoodsSku sku = mallGoodsSkuMapper.selectById(item.getSkuId());
+                    if(ObjectUtil.isNotEmpty(sku) && ObjectUtil.isNotEmpty(sku.getWeight()) && sku.getWeight().compareTo(BigDecimal.ZERO) > 0){
+                        weight = weight.add(sku.getWeight().multiply(new BigDecimal(item.getNum())));
+                    }
                 }
             }
         }

@@ -29,8 +29,9 @@
     "pages.member.detailed_account": "流水明细",
     "pages.member.index": "",
     "pages.member.personal": "个人资料",
-    "pages.member.recharge_record": "充值记录",
-    "pages.member.recharge_record_detail": "充值记录详情",
+    "pages.recharge.recharge": "充值",
+    "pages.recharge.recharge_record": "充值记录",
+    "pages.recharge.recharge_record_detail": "充值记录详情",
     "pages.pay.browser": "支付",
     "pages.pay.result": "支付结果",
     "pages.setting.index": "设置",
@@ -105,5 +106,10 @@
     "points_mall.pages.refund.detail": "退款详情",
     "points_mall.pages.refund.apply": "申请退款",
     "points_mall.pages.refund.edit_apply": "编辑退款信息",
-    "points_mall.pages.refund.log": "协商记录"
+    "points_mall.pages.refund.log": "协商记录",
+    "pintuan.pages.index": "拼团首页",
+    "pintuan.pages.goods.list": "商品列表",
+    "pintuan.pages.goods.detail": "商品详情",
+    "pintuan.pages.share": "拼团分享页面",
+    "pintuan.pages.order.detail": "拼团详情"
 }

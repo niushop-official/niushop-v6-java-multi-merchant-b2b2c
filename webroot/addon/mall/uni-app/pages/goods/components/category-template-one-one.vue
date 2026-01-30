@@ -2,8 +2,8 @@
 	<view class="min-h-screen bg-[var(--page-bg-color)] overflow-hidden">
 		<view class="mescroll-box bg-[var(--page-bg-color)]" :class="{ 'cart': config.cart.control && config.cart.event === 'cart', 'detail': !(config.cart.control && config.cart.event === 'cart') }" v-if="tabsData.length">
 			<mescroll-body ref="mescrollRef" :down="{ use: false }" @init="mescrollInit" @up="getListFn">
-				<view v-if="config.search.control" class="search-box z-10 bg-[#fff] fixed top-0 left-0 right-0 h-[100rpx] box-border" :style="{'top': systemStore.topTabbarInfo.fullHeight || 0}">
-					<view class="flex-1 search-input">
+				<view v-if="config.search.control" class="search-box z-10 bg-[var(--page-bg-color)] fixed top-0 left-0 right-0 h-[100rpx] box-border" :style="{'top': systemStore.topTabbarInfo.fullHeight || 0}">
+					<view class="flex-1 search-input bg-[#fff]">
 						<text @click.stop="searchNameFn" class="nc-iconfont nc-icon-sousuo-duanV6xx1 btn"></text>
 						<input class="input" type="text" v-model.trim="searchName" :placeholder="config.search.title" @confirm="searchNameFn"  placeholderClass="text-[var(--text-color-light9)]">
 						<text v-if="searchName" class="nc-iconfont nc-icon-cuohaoV6xx clear" @click="searchName=''"></text>
@@ -33,7 +33,7 @@
 					</scroll-view>
 				</view>
 				<!--  #endif -->
-				<view class="flex justify-center flex-wrap pl-[188rpx] pb-[20rpx]" :class="{ 'pt-[120rpx]': config.search.control, ' pt-[20rpx]': !(config.search.control) }">
+				<view class="flex justify-center flex-wrap pl-[188rpx] pb-[20rpx]" :class="{ 'pt-[100rpx]': config.search.control, ' pt-[20rpx]': !(config.search.control) }">
 					<template v-for="(item, index) in list" :key="item.goods_id">
 						<view class="box-border bg-white w-full flex mr-[20rpx] py-[24rpx] px-[20rpx] rounded-[var(--rounded-small)]" :class="{ 'mt-[16rpx]': index }" @click.stop="toLink(item.goods_id)">
 							<view class="w-[168rpx] h-[168rpx] flex items-center justify-center rounded-[var(--goods-rounded-small)] overflow-hidden">
@@ -567,7 +567,8 @@ const settlement = () => {
 	const body:any = {}
 	Object.values(cartList.value).forEach(item => {
 		body[item.site_id] = {
-			cart_ids: []
+			cart_ids: [],
+			order_type: 'mall'
 		}
 	})
 	for(let key in body){
@@ -699,7 +700,7 @@ const goodsPrice = (data:any) =>{
 .tabs-box .tab-item-active {
 	position: relative;
 	color: var(--primary-color);
-	background-color:var(--temp-bg);
+	// background-color:var(--temp-bg);
 	&::before {
 		display: inline-block;
 		position: absolute;

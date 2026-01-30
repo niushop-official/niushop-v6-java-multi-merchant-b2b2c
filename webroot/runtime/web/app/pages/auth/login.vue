@@ -73,6 +73,8 @@
                 <div class="mt-[60px] text-base cursor-pointer leading-none" @click="handleChange">账号登录</div>
             </div>
         </div>
+        <!-- 验证组件 -->
+    	<verify @success="success"   :captchaType="configStore.login.captcha_type" :imgSize="{ width: '330px', height: '155px' }" ref="verifyRef"></verify>
     </div>
 </template>
 
@@ -84,6 +86,7 @@ import { useRouter } from 'vue-router'
 import useMemberStore from '@/stores/member'
 import useConfigStore from '@/stores/config'
 import QRCode from "qrcode";
+import verify from '@/components/verifition/Verify.vue'
 
 let router = useRouter()
 
@@ -242,11 +245,18 @@ const handleLogin = async () => {
     })
 }
 
+// 验证码 - start
+const verifyRef = ref<any>(null)
+const success = (params: any) => {
+    smsCodeRef.value?.send({captcha_code: params.captchaVerification})
+}
+// 验证码 - end
+
 const smsCodeRef = ref<AnyObject | null>(null)
 const sendSmsCode = async () => {
     await formRef.value?.validateField('mobile', async (valid, fields) => {
         if (valid) {
-            smsCodeRef.value?.send()
+            verifyRef.value?.show()
         }
     })
 }

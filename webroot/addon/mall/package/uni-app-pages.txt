@@ -152,21 +152,7 @@
 						"navigationBarTitleText": "%mall.pages.collect.shop%"
 					},
 					"needLogin": true
-				},
-				{
-					"path": "pages/invoice/list",
-					"style": {
-						"navigationBarTitleText": "%mall.pages.invoice.list%"
-					},
-					"needLogin": true
-				},
-				{
-					"path": "pages/invoice/detail",
-					"style": {
-						"navigationBarTitleText": "%mall.pages.invoice.detail%"
-					},
-					"needLogin": true
-				},
+				},				
 				{
 					"path": "pages/shop/list",
 					"style": {
@@ -207,6 +193,9 @@
 				{
 					"path": "pages/order/list",
 					"style": {
+						// #ifndef H5
+                        "navigationStyle": "custom",
+                        // #endif
 						"navigationBarTitleText": "%mall.pages.order.list%"
 					},
 					"needLogin": true

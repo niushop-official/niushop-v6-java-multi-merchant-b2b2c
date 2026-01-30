@@ -13,7 +13,6 @@ import java.util.Optional;
 public enum GoodsBatchTypeEnum {
     LABEL("label", "商品标签"),
     SERVICE("service", "商品服务"),
-    VIRTUAL_SALE_NUM("virtual_sale_num", "虚拟销量"),
     PLAT_CATEGORY("plat_category", "商品类目"),
     CATEGORY("category", "商品分类"),
     BRAND("brand", "商品品牌"),

@@ -1,12 +1,16 @@
 package com.niu.core.service.site.shop.impl;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.shop.SiteShopAccountLog;
 import com.niu.core.mapper.shop.SiteShopAccountLogMapper;
@@ -15,11 +19,14 @@ import com.niu.core.service.admin.shop.param.SiteShopAccountLogParam;
 import com.niu.core.service.admin.shop.param.SiteShopAccountLogSearchParam;
 import com.niu.core.service.admin.shop.vo.SiteShopAccountLogInfoVo;
 import com.niu.core.service.admin.shop.vo.SiteShopAccountLogListVo;
+import com.niu.core.service.site.shop.vo.SiteShopAccountLogVo;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -94,6 +101,36 @@ public class SiteShopAccountLogServiceImpl implements ISiteShopAccountLogService
         SiteShopAccountLogInfoVo vo = new SiteShopAccountLogInfoVo();
         BeanUtils.copyProperties(model, vo);
         return vo;
+    }
+
+    @Override
+    public BigDecimal getIncomeByDateRange(String type) {
+        QueryWrapper<SiteShopAccountLog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("site_id", RequestUtils.siteId());
+        queryWrapper.in("from_type", "site_separate", "supply_separate");
+        switch ( type){
+            //最近一个月收入
+            case "lastmonth":
+                Long startTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), -29)).getTime() / 1000;
+                Long endTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), 1)).getTime() / 1000;
+                queryWrapper.between("create_time", startTime, endTime);
+                break;
+            case "lastyear":
+                Long startTimeDay = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), -365)).getTime() / 1000;
+                Long endTimeDay = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), 1)).getTime() / 1000;
+                queryWrapper.between("create_time", startTimeDay, endTimeDay);
+                break;
+
+        }
+        queryWrapper.select("IFNULL(SUM(money), 0) AS money");
+        SiteShopAccountLog sum = siteShopAccountLogMapper.selectOne(queryWrapper);
+
+        if (sum == null || sum.getMoney() == null) {
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        }
+        
+        BigDecimal money = sum.getMoney();
+        return money.setScale(2, RoundingMode.HALF_UP);
     }
 
 

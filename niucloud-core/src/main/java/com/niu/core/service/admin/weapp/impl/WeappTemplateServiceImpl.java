@@ -1,5 +1,6 @@
 package com.niu.core.service.admin.weapp.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.niu.core.common.exception.CommonException;
@@ -10,6 +11,7 @@ import com.niu.core.service.admin.weapp.param.WeappTemplateSyncParam;
 import com.niu.core.service.core.notice.ICoreNoticeService;
 import com.niu.core.service.core.notice.vo.AddonNoticeListVo;
 import com.niu.core.service.core.notice.vo.NoticeInfoVo;
+import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,7 @@ import java.util.Map;
 /**
  * 微信小程序订阅消息
  */
+@Slf4j
 @Service
 public class WeappTemplateServiceImpl implements IWeappTemplateService {
 
@@ -51,8 +54,8 @@ public class WeappTemplateServiceImpl implements IWeappTemplateService {
         Map<String, NoticeInfoVo> list = coreNoticeService.getList(RequestUtils.siteId(), param.getKeys());
 
         for (NoticeInfoVo item : list.values()) {
-            if (item.getWeapp() != null) {
-                if (item.getWeappTemplateId().length() > 0) {
+            if (item.getWeapp() != null && !item.getWeapp().isEmpty()) {
+                if (!item.getWeappTemplateId().isEmpty()) {
                     deleteTemplate(item.getWeappTemplateId());
                 }
                 String templateId = addTemplate(item.getWeapp().get("tid").toString(), item.getWeapp().getJSONArray("kid_list").toList(Integer.class), item.getWeapp().get("scene_desc").toString());

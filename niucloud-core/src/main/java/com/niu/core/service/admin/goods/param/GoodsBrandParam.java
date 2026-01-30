@@ -1,4 +1,5 @@
 package com.niu.core.service.admin.goods.param;
+import cn.hutool.json.JSONObject;
 import lombok.Data;
 import java.io.Serializable;
 import jakarta.validation.constraints.*;
@@ -24,4 +25,7 @@ public class GoodsBrandParam implements Serializable {
     @NotNull(message = "sort参数缺失")
     private String sort;
 
+    private Integer status; // 显示状态 1显示 2隐藏
+    private Integer isHot; // 是否热门 1是 2否
+    private JSONObject colorJson; // 颜色配置
 }

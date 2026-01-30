@@ -55,16 +55,4 @@ public interface ICoreOrderDeliveryService {
      * @return
      */
     boolean finish(OrderDeliveryParam orderDeliveryParam);
-
-    /**
-     * 微信小程序发货入口
-     * @return
-     */
-    void orderShippingUploadShippingInfo(MallOrder order);
-
-    /**
-     * 确认收货提醒接口
-     * @return
-     */
-    void orderShippingNotifyConfirmReceive(MallOrder order);
 }

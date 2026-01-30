@@ -53,20 +53,21 @@ getAddressList({}).then(({ data }) => {
 
 const selectAddress = (index: number = 0) => {
     let data = addressList.value[index];
-    if (propData.value.delivery == 'local_delivery' && !data.lat && !data.lng) {
-        // 待支付订单-同城配送，选择的地址没有经纬度的情况，会直接跳转到地图界面进行选择
-        // 参数二，表示是否直接跳转到地图界面, 1跳转到地图界面，2表示不跳
-        uni.showToast({
-            title: '缺少经纬度，请在地图上重新选点',
-            icon: 'none'
-        });
-    } else {
-        if (data) {
-            let obj: any = {}
-            obj.address_id = addressList.value[index].id
-            obj.delivery = propData.value.delivery
-            emits('confirm', obj)
-        }
+    // if (propData.value.delivery == 'local_delivery' && !data.lat && !data.lng) {
+    //     // 待支付订单-同城配送，选择的地址没有经纬度的情况，会直接跳转到地图界面进行选择
+    //     // 参数二，表示是否直接跳转到地图界面, 1跳转到地图界面，2表示不跳
+    //     uni.showToast({
+    //         title: '缺少经纬度，请在地图上重新选点',
+    //         icon: 'none'
+    //     });
+    // } else {
+        
+    // }
+    if (data) {
+        let obj: any = {}
+        obj.address_id = addressList.value[index].id
+        obj.delivery = propData.value.delivery
+        emits('confirm', obj)
     }
     show.value = false;
 }

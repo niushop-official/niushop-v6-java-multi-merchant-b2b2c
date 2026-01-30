@@ -10,6 +10,7 @@ import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.utils.NoticeUtils;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.basic.Invoice;
+import com.niu.core.enums.basic.InvoiceContentEnum;
 import com.niu.core.enums.basic.InvoiceStatusEnum;
 import com.niu.core.mapper.basic.InvoiceMapper;
 import com.niu.core.service.core.addon.ICoreAddonService;
@@ -29,11 +30,17 @@ import com.niu.mall.entity.cart.MallCart;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderDiscount;
 import com.niu.mall.entity.order.MallOrderGoods;
+import com.niu.mall.entity.order.config.MallOrderDelaySpear;
+import com.niu.mall.entity.order.config.MallOrderEvaluate;
 import com.niu.mall.entity.order.config.MallOrderFinish;
 import com.niu.mall.entity.order.config.MallOrderInvoice;
 import com.niu.mall.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.*;
+import com.niu.mall.event.order.MallOrderSettlementEvent;
+import com.niu.mall.event.order.MallOrderSettlementFinishEvent;
 import com.niu.mall.event.order.OrderCloseStockEvent;
+import com.niu.mall.event.order.OrderCreateAfterEvent;
+import com.niu.mall.event.order.SyncSupplyGoodsStockDecEvent;
 import com.niu.mall.mapper.cart.MallCartMapper;
 import com.niu.mall.mapper.order.MallOrderDiscountMapper;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
@@ -124,6 +131,14 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
     ICoreGoodsStatNumService coreGoodsStatNumService;
     @Resource
     ICorePrinterService corePrinterService;
+    @Resource
+    @Lazy
+    ICoreOrderCloseService coreOrderCloseService;
+    @Resource
+    ICoreOrderWeappDeliveryService coreOrderWeappDeliveryService;
+    @Resource
+    @Lazy
+    ICoreOrderSettlementService coreOrderSettlementService;
 
     /**
      * 订单关闭之后
@@ -258,10 +273,10 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
      * @param vo
      */
     @Override
-    @Async
     public void orderCreateAfter(OrderCreateDataVo vo) {
         log.info("订单AfterShopOrderCreate 订单id:" + vo.getOrderId());
         try {
+            long time = System.currentTimeMillis()/1000;
             // 创建发票
             this.createInvoice(vo);
 
@@ -286,14 +301,15 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
                         .eq("member_id", vo.getMemberId()));
             }
 
-            // 订单关闭任务
-            OrderConfigVo orderConfig = coreOrderConfigService.getConfig();
-            if (orderConfig.getCloseOrderInfo().getIsCloseEr() && orderConfig.getCloseOrderInfo().getCloseLength() > 0) {
-                MallOrder order = new MallOrder();
-                order.setOrderId(vo.getOrderId());
-                order.setTimeout(System.currentTimeMillis() / 1000 + orderConfig.getCloseOrderInfo().getCloseLength() * 60);
-                mallOrderMapper.updateById(order);
+
+            //同步供货库存和销量(减/增)
+            if(ObjectUtil.isNotEmpty(vo.getSupplyId()) && vo.getSupplyId() > 0){
+                SyncSupplyGoodsStockDecEvent event = new SyncSupplyGoodsStockDecEvent();
+                event.setSiteId(vo.getSiteId());
+                event.setOrderId(vo.getOrderId());
+                EventAndSubscribeOfPublisher.publishAll(event);
             }
+
             // 添加订单日志
             AddOrderLogParam logParam = new AddOrderLogParam();
             logParam.setOrderId(vo.getOrderId());
@@ -303,15 +319,16 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
             logParam.setType(OrderLogActionEnum.ORDER_CREATE_ACTION.getAction());
             coreOrderLogService.add(logParam);
 
+            //创建定时关闭任务
+            coreOrderCloseService. setOrderCloseTimeout(vo.getOrderId(),time);
+
             // 添加统计
             SysDataAddParam statParam = new SysDataAddParam();
             statParam.setOrderNum(1);
             statParam.setSiteId(vo.getSiteId());
             coreSysStatService.addStat(statParam);
-
-
         } catch (Exception e) {
-            log.error("订单AfterShopOrderCreate失败{}", e.getMessage());
+            log.error("订单AfterShopOrderCreate失败 - orderId: {}, 错误: {}", vo.getOrderId(), e.getMessage(), e);
             e.printStackTrace();
         }
     }
@@ -330,10 +347,11 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
             model.setSiteId(vo.getSiteId());
             model.setMemberId(vo.getMemberId());
             model.setTradeId(vo.getOrderId());
-            model.setTradeType(vo.getOrderType());
+            model.setTradeType("mall");
             model.setMoney(vo.getBasic().getOrderMoney());
             model.setStatus(InvoiceStatusEnum.WAIT_OPEN.getStatus());
             model.setCreateTime(System.currentTimeMillis() / 1000);
+            model.setName(InvoiceContentEnum.getNameByType(vo.getInvoice().getContentType()));
             invoiceMapper.insert(model);
 
             MallOrder order = new MallOrder();
@@ -352,6 +370,7 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
     @Override
     @Async
     public void orderPayAfter(MallOrder order, OrderPayParam param) {
+
         // 发票改变状态
         if (order.getInvoiceId() > 0) coreInvoiceService.open(order.getInvoiceId());
 
@@ -376,6 +395,20 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         BeanUtils.copyProperties(order, financeParam);
         financeService.orderPay(financeParam);
 
+        //修改店铺卖家消费时间
+        coreShopMemberService.setConsum(order.getSiteId(), order.getMemberId(), 1, order.getOrderMoney());
+
+        // 发送消息
+        Map<String, Object> noticeParam = new HashMap<String, Object>();
+        noticeParam.put("order", order);
+        NoticeUtils.send(order.getSiteId(), "mall_order_pay", noticeParam);
+
+
+        //商品支付数量 金额统计数据
+        coreGoodsStatService.saveGoodsPayNumAndMoneyByOrderId(order.getOrderId());
+        //商城商品销量统计
+        coreGoodsStatNumService.updateMallSaleNum(order.getOrderId());
+
         // 虚拟商品自动发货
         MPJQueryWrapper<MallOrderGoods> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("og")
@@ -396,24 +429,14 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
             deliveryParam.setSiteId(order.getSiteId());
             deliveryParam.setOrderId(order.getOrderId());
             deliveryParam.setDeliveryType(OrderDeliveryTypeEnum.VIRTUAL.getType());
-            deliveryParam.setOrderGoodsIds(orderGoods.stream().map(i -> i.getOrderGoodsId()).toArray(Integer[]::new));
+            deliveryParam.setOrderGoodsIds(orderGoods.stream().map(OrderGoodsVo::getOrderGoodsId).toArray(Integer[]::new));
             coreOrderDeliveryService.delivery(deliveryParam);
         }
-
-        //修改店铺卖家消费时间
-        coreShopMemberService.setConsum(order.getSiteId(), order.getMemberId(), 1, order.getOrderMoney());
-
-        // 发送消息
-        Map<String, Object> noticeParam = new HashMap<String, Object>();
-        noticeParam.put("order", order);
-        NoticeUtils.send(order.getSiteId(), "mall_order_pay", noticeParam);
-
         //限时折扣活动数据累计
         mallDiscountService.orderPayAfter(order);
-        //商品支付数量 金额统计数据
-        coreGoodsStatService.saveGoodsPayNumAndMoneyByOrderId(order.getOrderId());
-        //商城商品销量统计
-        coreGoodsStatNumService.updateMallSaleNum(order.getOrderId());
+
+
+
         //小票打印，订单付款之后
         try{
             SysPrinterPrintTicketParam printTicketParam = new SysPrinterPrintTicketParam();
@@ -486,7 +509,7 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         coreOrderLogService.add(logParam);
 
         // 物流信息上传
-        coreOrderDeliveryService.orderShippingUploadShippingInfo(order);
+        coreOrderWeappDeliveryService.orderShippingUploadShippingInfo( order.getOrderId(), order.getSiteId());
 
         // 发送消息
         Map<String, Object> noticeParam = new HashMap<String, Object>();
@@ -515,13 +538,8 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         logParam.setType(OrderLogActionEnum.ORDER_FINISH_ACTION.getAction());
         coreOrderLogService.add(logParam);
 
-        //订单完成 资金流水统计/账单统计
-        OrderFinanceParam financeParam = new OrderFinanceParam();
-        BeanUtils.copyProperties(order, financeParam);
-        financeService.orderFinish(financeParam);
-
         // 微信小程序 发送 确认收货提醒消息
-        coreOrderDeliveryService.orderShippingNotifyConfirmReceive(order);
+        coreOrderWeappDeliveryService.orderShippingNotifyConfirmReceive( order.getOutTradeNo(), order.getDeliveryType());
 
         // 订单完成发放积分成长值
         Map<String, Object> data = new HashMap<>();
@@ -532,7 +550,32 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         coreMemberService.sendGrowth(RequestUtils.defaultSiteId(), order.getMemberId(), "mall_buy_order", new HashMap<>());
         coreMemberService.sendPoint(RequestUtils.defaultSiteId(), order.getMemberId(), "mall_buy_goods", data);
 
-        //小票打印，订单付款之后
+        //设置订单自动好评时间
+        MallOrderEvaluate evaluateConfig = coreOrderConfigService.getEvaluateConfig();
+        if (evaluateConfig.getIsAutoGoodEvaluate() == 1){
+            if (evaluateConfig.getGoodEvaluateDays() > 0){
+                mallOrderMapper.update(new MallOrder(),new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
+                        .set("evaluate_timer", order.getFinishTime()+evaluateConfig.getGoodEvaluateDays()*86400)
+                );
+            }
+        }
+        //设置自动结算时间
+        MallOrderDelaySpear orderConfig = coreOrderConfigService.orderDelaySpear();
+        if (orderConfig.getIsDelaySpear() == 1){
+            if(orderConfig.getDelayDays() > 0){
+                mallOrderMapper.update(new MallOrder(),new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
+                        .set("settlement_timer", order.getFinishTime()+orderConfig.getDelayDays()*86400)
+                );
+            }
+        }else{
+            coreOrderSettlementService.settlement( order);
+        }
+        
+  
+        OrderFinanceParam financeParam = new OrderFinanceParam();
+        BeanUtils.copyProperties(order, financeParam);
+        financeService.orderFinish(financeParam);
+        
         try{
             SysPrinterPrintTicketParam printTicketParam = new SysPrinterPrintTicketParam();
             printTicketParam.setSiteId(order.getSiteId());
@@ -545,5 +588,35 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         }catch (Exception e){
             log.error(" 小票打印失败 - 堆栈信息:", e);
         }
+    }
+
+    /**
+     * 订单结算
+     *
+     * @param order 订单信息
+     */
+    @Override
+    public void orderSettlement(MallOrder order) {
+        MallOrderSettlementEvent event = new MallOrderSettlementEvent();
+        event.setSiteId(order.getSiteId());
+        event.addAppSign("mall");
+        event.setName("MallOrderSettlement");
+        event.setOrder(order);
+        EventAndSubscribeOfPublisher.publishAll(event);
+    }
+
+    /**
+     * 订单结算完成
+     *
+     * @param order 订单信息
+     */
+    @Override
+    public void orderSettlementFinish(MallOrder order) {
+        MallOrderSettlementFinishEvent event = new MallOrderSettlementFinishEvent();
+        event.setSiteId(order.getSiteId());
+        event.addAppSign("mall");
+        event.setName("MallOrderSettlementFinish");
+        event.setOrder(order);
+        EventAndSubscribeOfPublisher.publishAll(event);
     }
 }

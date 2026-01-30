@@ -2,10 +2,7 @@ package com.niu.core.controller.adminapi.goods;
 
 import com.niu.core.common.domain.Result;
 import com.niu.core.common.domain.PageResult;
-import com.niu.core.service.admin.goods.param.EditGoodsBrandSortParam;
-import com.niu.core.service.admin.goods.param.GoodsBrandMoveParam;
-import com.niu.core.service.admin.goods.param.GoodsBrandParam;
-import com.niu.core.service.admin.goods.param.GoodsBrandSearchParam;
+import com.niu.core.service.admin.goods.param.*;
 import com.niu.core.service.admin.goods.IGoodsBrandService;
 import com.niu.core.service.admin.goods.vo.GoodsBrandInfoVo;
 import com.niu.core.service.admin.goods.vo.GoodsBrandListVo;
@@ -36,6 +33,19 @@ public class BrandController {
     @GetMapping("")
     public Result<PageResult<GoodsBrandListVo>> page(@Validated PageParam pageParam, @Validated GoodsBrandSearchParam searchParam) {
         PageResult<GoodsBrandListVo> list = goodsBrandService.page(pageParam, searchParam);
+        return Result.success(list);
+    }
+
+    /**
+     * 商品品牌审核分页列表
+     *
+     * @param pageParam 分页
+     * @param searchParam 搜索条件
+     * @return Result<PageResult<ShopGoodsBrandListVo>>
+     */
+    @GetMapping("/audit")
+    public Result<PageResult<GoodsBrandListVo>> pageAudit(@Validated PageParam pageParam, @Validated GoodsBrandSearchParam searchParam) {
+        PageResult<GoodsBrandListVo> list = goodsBrandService.getAuditPage(pageParam, searchParam);
         return Result.success(list);
     }
 
@@ -111,6 +121,40 @@ public class BrandController {
     }
 
     /**
+     * 商品品牌审核
+     *
+     * @return
+     */
+    @PutMapping("/audit")
+    public Result<Object> audit(@Validated @RequestBody GoodsBrandAuditParam editParam) {
+        goodsBrandService.audit(editParam);
+        return Result.success();
+    }
+
+    /**
+     * 修改商品品牌是否热门
+     *
+     * @return
+     */
+    @PutMapping("/hot")
+    public Result<Object> hot(@Validated @RequestBody GoodsBrandIsHotParam editParam) {
+        goodsBrandService.modifyHot(editParam);
+        return Result.success();
+    }
+
+    /**
+     * 修改品牌状态
+     *
+     * @return
+     */
+    @PutMapping("/status")
+    public Result<Object> modifyStatus(@Validated @RequestBody GoodsBrandStatusParam editParam) {
+        goodsBrandService.modifyStatus(editParam);
+        return Result.success();
+    }
+
+
+    /**
      * 转到平台
      *
      * @return
@@ -120,4 +164,12 @@ public class BrandController {
         goodsBrandService.move(moveParam.getBrandId());
         return Result.success();
     }
+
+    /**
+     * 获取商品品牌字典
+     *
+     * @return
+     */
+    @GetMapping("/init")
+    public Result init() { return Result.success(goodsBrandService.init());  }
 }

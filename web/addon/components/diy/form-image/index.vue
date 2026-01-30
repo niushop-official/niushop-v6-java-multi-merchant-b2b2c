@@ -23,28 +23,18 @@
                 <div class="layout-two-content flex-wrap gap-[8px]">
                     <div class="relative border-box w-[90px] !h-[90px] border-box border-[1px] border-solid border-[#e6e6e6] rounded-[5px] flex items-center"
                         v-for="(item,index) in diyComponent.field.value" :key="index">
-                        <el-image class="w-[100%] h-[100%]" :src="img(item)" fit="fill" />
+                        <el-image class="w-[100%] h-[100%]" :src="img(item)" :preview-src-list="[img(item)]" fit="fill" />
                         <div class="absolute top-0 right-[0] bg-[#373737] flex justify-end h-[14px] w-[14px] rounded-bl-[20px] cursor-pointer" @click="deleteImage(index)">
                             <span class="iconfont icon-a-guanbi34 !text-[10px] mt-[1px] mr-[1px] text-[#fff]"></span>
                         </div>
                     </div>
                     <div class="items-start border-box border-[1px] border-solid border-[#e6e6e6] rounded-[5px]">
                         <el-upload class="avatar-uploader" :show-file-list="false" v-bind="upload" ref="uploadRef" v-if="diyComponent.field.value.length < Number(diyComponent.limit)" :limit="Number(diyComponent.limit)" multiple>
-                            <!-- <span class="cursor-pointer text-primary">{{ t('edit') }}</span> -->
                             <div class="flex flex-col items-center justify-center min-w-[90px] min-h-[90px]">
                                 <span class="iconfont !text-[20px] mb-[8px] icon-jiahao"></span>
                                 <span class="text-[14px] ml-[5px] text-[12px]">上传</span>
-                                <!-- {{ t('diyForm.uploadTips') }} -->
                             </div>
                         </el-upload>
-                        <!-- <u-upload accept="image" v-if="diyComponent.field.value.length < Number(diyComponent.limit)"
-                                  @afterRead="afterRead" multiple :capture="uploadType"
-                                  :maxCount="Number(diyComponent.limit)">
-                            <div class="flex flex-col items-center justify-center min-w-[90px] min-h-[90px]">
-                                <span class="nc-iconfont !text-[20px] mb-[8px] nc-icon-jiahaoV6xx"></span>
-                                <span class="text-[14px] ml-[5px] text-[12px]"> {{ t('diyForm.uploadTips') }}</span>
-                            </div>
-                        </u-upload> -->
                     </div>
                 </div>
             </div>
@@ -59,7 +49,7 @@
 
 <script setup lang="ts">
 // 表单 图片组件
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { img } from '@/utils/common';
 import { fetchImage } from '@/app/api/system'
 import { ElMessage, ElMessageBox, UploadFile, UploadFiles } from 'element-plus'
@@ -93,13 +83,6 @@ const upload = computed(() => {
             console.log('onSuccess - 上传', img, response)
             if (response.code == 200 || response.code == 1) {
                 diyComponent.value.field.value.push(img)
-            //     modifyMember({
-            //         field: 'headimg',
-            //         value: img
-            //     }).then(() => {
-            //         memberStore.info.headimg = img
-            //         uploadRef.value.clearFiles()
-            //     })
             } else {
                 uploadFile.status = 'fail'
                 ElMessage({ message: response.msg, type: 'error' })
@@ -107,21 +90,6 @@ const upload = computed(() => {
         }
     }
 })
-
-// 上传方式
-const uploadType = computed(() => {
-    let type = [];
-    if (diyComponent.value && diyComponent.value.uploadMode) {
-        diyComponent.value.uploadMode.forEach((item, index) => {
-            if (item == 'take_pictures' && diyComponent.value.uploadMode.indexOf('camera') == -1) {
-                type.push('camera');
-            } else if (item == 'select_from_album' && diyComponent.value.uploadMode.indexOf('album') == -1) {
-                type.push('album');
-            }
-        })
-    }
-    return type;
-});
 
 // input属性
 const inputAttribute = () => {
@@ -148,33 +116,6 @@ const eventFn = (type: any) => {
 
 }
 
-const handleImg = (url: any, index: number) => {
-    let tmp = [];
-    if (diyComponent.value.field.value) {
-        tmp = Object.values(diyComponent.value.field.value).map((item: any) => {
-            return img(item);
-        });
-    }
-    uni.previewImage({
-        current: index,
-        urls: tmp,
-        indicator: "number",
-        loop: true
-    })
-
-}
-
-// 关闭预览图片
-onUnmounted(() => {
-    // #ifdef  H5 || APP
-    try {
-        uni.closePreviewImage()
-    } catch (e) {
-
-    }
-    // #endif
-})
-
 const warpCss = computed(() => {
     var style = '';
     style += 'position:relative;';
@@ -199,38 +140,6 @@ onMounted(() => {
     refresh();
 });
 
-const imgListPreview = computed(() => {
-    return diyComponent.value.field.value.map(item => {
-        return { url: img(item) }
-    })
-})
-
-const afterRead = (event) => {
-    uni.setStorageSync('sku_form_refresh', true);
-    event.file.forEach(item => {
-        upload(item);
-    })
-}
-
-// const upload = (data: any) => {
-//     if (diyComponent.value.field.value.length > Number(diyComponent.value.limit)) {
-//         uni.showToast({ title: `最多允许上传${ diyComponent.value.limit }张图片`, icon: 'none' })
-//         return false
-//     }
-
-//     fetchImage({
-//         filePath: data.url,
-//         name: 'file'
-//     }).then(res => {
-//         if (diyComponent.value.field.value.length < Number(diyComponent.value.limit)) {
-//             diyComponent.value.field.value.push(res.data.url)
-//         }
-//     }).catch((err) => {
-//         if(err.code == 401) {
-//             uni.showToast({ title: err.msg, icon: 'none' })
-//         }
-//     })
-// }
 
 const deleteImage = (event) => {
     diyComponent.value.field.value.splice(event.index, 1)

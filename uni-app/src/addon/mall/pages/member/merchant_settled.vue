@@ -5,14 +5,14 @@
         <!-- #endif -->
         <!-- #ifdef MP-WEIXIN -->
         <view class="bg-img min-h-[100vh] overflow-hidden relative" :style="{background: 'url(' + img('addon/mall/member/enter_uniapp.png') + ')  left top /cover no-repeat'}">
-            <top-tabbar :data="param" class="top-header" />
+            <top-tabbar :data="param"  :scrollBool="topTabarObj.getScrollBool()"   />
             <!-- #endif -->
             <view class="side-tab" :style="{top: topStyle}"
                 @click="redirect({url:'/addon/mall/pages/member/merchant_record'})">
                 <text class="nc-iconfont nc-icon-shenheV6xx icon"></text>
                 <text class="desc">申请记录</text>
             </view>
-            <view class="mt-[317rpx] mx-[var(--sidebar-m)]  card-template mb-[40rpx] merchant-settled">
+            <view class="mt-[280rpx] mx-[30rpx]  card-template !px-[40rpx] mb-[40rpx] merchant-settled">
                 <u-form labelPosition="left" :model="formData" :label-style="{'font-size':'28rpx'}"  class="pl-[15rpx]"
                     labelWidth="150rpx" errorType='toast' :rules="rules" ref="formRef">
                     <view>
@@ -22,21 +22,30 @@
                                 placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" />
                         </u-form-item>
                     </view>
-                    <view class="mt-[16rpx]">
+                    <view>
                         <u-form-item :label="t('userName')" prop="user_name" required  >
                             <u-input fontSize="28rpx" v-model.trim="formData.user_name" border="none" clearable
                                 maxlength="20" :placeholder="t('userNamePlaceholder')"
                                 placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" />
                         </u-form-item>
                     </view>
-                    <view class="mt-[16rpx]">
+                    <view>
                         <u-form-item :label="t('userMobile')" prop="user_mobile" required  >
-                            <u-input fontSize="28rpx" v-model="formData.user_mobile" border="none" clearable
+                            <u-input fontSize="28rpx" v-model.trim="formData.user_mobile" border="none" clearable
                                 :placeholder="t('useMobilePlaceholder')"
                                 placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" />
                         </u-form-item>
                     </view>
-                    <view class="mt-[16rpx]">
+                    <view>
+                        <u-form-item :label="t('mobileCode')" prop="mobile_code" required>
+                            <u-input v-model="formData.mobile_code" type="number" maxlength="4" border="none" :placeholder="t('mobileCodePlaceholder')"  placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]">
+                                <template #suffix>
+                                    <sms-code :mobile="formData.user_mobile" type="merchant_settled" v-model="formData.mobile_key"></sms-code>
+                                </template>
+                            </u-input>
+                        </u-form-item>
+                    </view>
+                    <view>
                         <u-form-item :label="t('categoryId')" prop="category_id" required  >
                             <view class="flex items-center flex-1" @click="showPicker  = true">
                                 <view class="flex-1">
@@ -49,7 +58,7 @@
                             </view>
                         </u-form-item>
                     </view>
-                    <view class="mt-[16rpx]">
+                    <view>
                         <u-form-item :label="t('groupId')" prop="group_id" required  >
                             <view class="flex items-center flex-1" @click="siteGroupPopup = true">
                                 <view class="flex-1">
@@ -62,25 +71,7 @@
                             </view>
                         </u-form-item>
                     </view>
-                    <view class="mt-[16rpx]">
-                        <u-form-item :label="t('account')" prop="account" required  >
-                            <u-input fontSize="28rpx" v-model.trim="formData.account" border="none" clearable
-                                maxlength="20" :placeholder="t('accountPlaceholedr')"
-                                placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" />
-                        </u-form-item>
-                    </view>
-                    <view class="mt-[16rpx]">
-                        <u-form-item :label="t('password')" prop="password" :border-bottom="false" required>
-                            <u-input v-model="formData.password" border="none" :password="isPassword" maxlength="40" :placeholder="t('passwordPlaceholedr')" autocomplete="new-password" class="!bg-transparent" :disabled="real_name_input" fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]">
-                                <template #suffix>
-                                    <view @click="changePassword" v-if="formData.password">
-                                        <u-icon :name="isPassword?'eye-off':'eye-fill'" color="#b9b9b9" size="20"></u-icon>
-                                    </view>
-                                </template>
-                            </u-input>
-                        </u-form-item>
-                    </view>
-                    <view class="mt-[16rpx]">
+                    <view>
                         <u-form-item :label="t('businessLicense')" labelWidth="640rpx" prop="business_license" required  
                             class="business_license !flex-col">
                             <view>
@@ -94,7 +85,7 @@
                         </u-form-item>
                     </view>
                 </u-form>
-                <view class="text-[22rpx]  text-[#666] mt-[40rpx] mb-[20rpx] flex items-center w-full"
+                <view class="text-[22rpx]  text-[#666] mt-[30rpx] mb-[20rpx] flex items-center w-full"
                     @click="isAgree = !isAgree">
                     <text class="text-[var(--primary-color)] text-[32rpx] mr-[12rpx]"
                         :class="isAgree ? 'iconfont iconxuanze1' : 'nc-iconfont nc-icon-yuanquanV6xx'"></text>
@@ -129,43 +120,9 @@
                     @click="siteGroupPopupFn">{{ t('save') }}</button>
             </view>
         </u-popup>
-            
-            
-        <u-popup :show="registerPopup" @close="registerPopup = false" round="10" mode="center" :closeOnClickOverlay="false">
-            <view class="w-[80vw] px-[30rpx] py-[50rpx]" v-if="accountInfo && accountInfo.uid">
-                <view class="flex border-1 border-[#efefef] border-solid p-[20rpx] rounded-[20rpx]">
-                    <view class="mr-[30rpx]" >
-                        <u-avatar :src="img(accountInfo.head_img)" size="55" leftIcon="none" :default-url="img('static/resource/images/default_headimg.png')"  />
-                    </view>
-                    <view class="flex flex-col py-[2rpx]">
-                        <view class="text-[32rpx]">
-                            {{accountInfo.username}}
-                        </view>
-                        <view class="text-[#999999] flex-1 flex justify-end items-end" v-if="accountInfo.mobile">
-                            {{accountInfo.mobile}}
-                        </view>
-                        <view v-else class="text-[#999999] flex-1 flex justify-end items-end text-[24rpx] pb-[10rpx]">
-                            暂未绑定手机号
-                        </view>
-                    </view>
-                </view>
-                <view class="leading-[1.4] my-[30rpx]">
-                    该账号已存在，是否继续使用该账号并将该账号作为店铺的登录账号
-                </view>
-                <view class="text-[#999] leading-[1.2] text-[24rpx]">
-                    注：如继续使用该账号，登录密码则为该账号的原密码！
-                </view>
-                <view class="flex">
-                    <button
-                        class="mt-[40rpx] w-full border-1 border-solid border-[#efefef] bg-[#fff] h-[80rpx] mr-[15rpx] leading-[80rpx] rounded-[100rpx] text-[26rpx] font-500"
-                        @click="cancelAccount">取消</button>
-                    <button
-                        class="mt-[40rpx] w-full ml-[15rpx] primary-btn-bg text-[#fff] h-[80rpx] leading-[80rpx] rounded-[100rpx] text-[26rpx] font-500"
-                        @click="registerPopupFn">确定</button>
-                </view>
-            </view>
-        </u-popup>
-        </view>
+
+        <fab-float :layout="'circle'" :draggable="true" :autosorption="true" :position="[350, 999]"></fab-float>
+    </view>
 </template>
 
 <script setup>
@@ -173,15 +130,12 @@ import { ref, computed, reactive } from 'vue'
 import { img, redirect, pxToRpx } from '@/utils/common'
 import { t } from '@/locale'
 import { uploadImage } from '@/app/api/system'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onPageScroll } from '@dcloudio/uni-app'
 import { topTabar } from '@/utils/topTabbar'
 import { getShopCategory, getSiteGroup, setShopApply, editShopApply, getShopApply, checkShopStatus, checkhaveAccount } from '@/addon/mall/api/merchant'
 import useSystemStore from '@/stores/system'
-const isPassword = ref(true)
-const registerPopup = ref(false)
-const changePassword = () => {
-    isPassword.value = !isPassword.value
-}
+import FabFloat from '@/components/fab-float/index.vue'
+
 const systemStore = useSystemStore()
 
 /********* 自定义头部 - start ***********/
@@ -192,39 +146,16 @@ const topStyle = computed(() => {
     let style = Object.keys(systemStore.menuButtonInfo).length ? pxToRpx(Number(systemStore.menuButtonInfo.height) + systemStore.menuButtonInfo.top + 8) + 50 + 'rpx' : '50rpx'
     return style
 })
-const registerPopupFn = () =>{
-    loading.value = true
-    const api = formData.apply_id ? editShopApply : setShopApply
-    formData.business_license = formData.business_license.join(',')
-    formData.uid =accountInfo.value.uid
-    formData.password = ''
-    api(formData).then(res => {
-        registerPopup.value = false
-        setTimeout(() => {
-            redirect({
-                url: '/addon/mall/pages/member/merchant_record'
-            })
-        }, 100)
-        loading.value = false
-    }).catch(() => {
-        loading.value = false
-    })
-}
-const cancelAccount = () =>{
-    formData.account = ''
-    formData.password = ''
-    formData.uid  = 0
-    loading.value = false
-    registerPopup.value = false
-}
-// 审核
 
+// 审核
 const showPicker = ref(false)
 const formData = reactive({
     apply_id: '',
     site_name: '',
     user_name: '',
     user_mobile: '',
+    mobile_code: '',
+    mobile_key: '',
     category_id: '',
     category_name: '',
     group_id: '',
@@ -232,8 +163,6 @@ const formData = reactive({
     business_license: [],
     agree: false,
     refuse_reason: '',
-    account:'',
-    password:'',
     uid:0
 })
 onLoad((option) => {
@@ -320,12 +249,7 @@ const getShopCategoryFn = () => {
     })
 }
 getShopCategoryFn()
-const categoryPopupFn = () => {
-    formData.category_id = curCategoryId.value;
-    let data = shopCategoryList.value.find(item => item.category_id === curCategoryId.value)
-    formData.category_name = data.category_name
-    categoryPopup.value = false;
-}
+
 // 店铺套餐
 const siteGroupPopup = ref(false)
 const curSiteGroupId = ref('')
@@ -393,25 +317,18 @@ const rules = computed(() => {
             message: t('businessLicensePlaceholder'),
             trigger: ['blur', 'change'],
         },
-        'account': {
-            type: 'string',
+        'mobile_code': {
+            type: 'number',
             required: true,
-            message: t('accountPlaceholedr'),
-            trigger: ['blur', 'change']
-        },
-        'password': {
-            type: 'string',
-            required: true,
-            message: t('passwordPlaceholedr'),
-            trigger: ['blur', 'change']
-        },
+            message: t('mobileCodePlaceholder'),
+            trigger: ['blur', 'change'],
+        }
     }
 })	
 
 const isAgree = ref(false)
 const formRef = ref(null)
 const loading = ref(false)
-const accountInfo = ref({})
 const save = () => {
     formRef.value.validate().then(() => {
         if (!isAgree.value) {
@@ -422,58 +339,57 @@ const save = () => {
             return false;
         }
         if (loading.value) return
-        checkhaveAccount({account:formData.account}).then((requestData)=>{
-            if(requestData.data.uid){
-                registerPopup.value = true
-                accountInfo.value = requestData.data
-            }else{
-                loading.value = true
-                const api = formData.apply_id ? editShopApply : setShopApply
-                formData.business_license = formData.business_license.join(',')
-                api(formData).then(res => {
-                    setTimeout(() => {
-                        redirect({
-                            url: '/addon/mall/pages/member/merchant_record'
-                        })
-                    }, 100)
-                    loading.value = false
-                }).catch(() => {
-                    loading.value = false
+        loading.value = true
+        const api = formData.apply_id ? editShopApply : setShopApply
+        formData.business_license = formData.business_license.join(',')
+        api(formData).then(res => {
+            setTimeout(() => {
+                redirect({
+                    url: '/addon/mall/pages/member/merchant_record'
                 })
-            }
+            }, 100)
+            loading.value = false
+        }).catch(() => {
+            loading.value = false
         })
-        
-        
     })
 }
 </script>
 
 <style lang="scss" scoped>
-    :deep(.business_license .u-form-item__body) {
-        display: flex;
-        flex-direction: column !important;
-    }
+:deep(.business_license .u-form-item__body) {
+    display: flex;
+    flex-direction: column !important;
+}
 
-    /*  #ifndef  H5  */
-    :deep(.merchant-settled .u-form .u-form-item) {
-        &:last-child {
-            .u-form-item__body {
-                flex-direction: column !important;
-            }
+/*  #ifndef  H5  */
+:deep(.merchant-settled .u-form .u-form-item) {
+    &:last-child {
+        .u-form-item__body {
+            flex-direction: column !important;
+            padding-bottom: 10rpx !important;
+        }
+        .u-form-item__body__right{
+            margin-top: 20rpx !important;
         }
     }
+}
 
-    /*  #endif  */
-    :deep(.u-upload__button) {
-        width: 120rpx !important;
-        height: 120rpx !important;
-        border: 2rpx dashed #ddd;
-        border-radius: 20rpx !important;
-        background-color: transparent !important;
-    }
+/*  #endif  */
+:deep(.u-upload__button) {
+    width: 120rpx !important;
+    height: 120rpx !important;
+    border: 2rpx dashed #ddd;
+    border-radius: 20rpx !important;
+    background-color: transparent !important;
+}
 
-    :deep(.u-upload__wrap__preview__image) {
-        width: 120rpx !important;
-        height: 120rpx !important;
-    }
+:deep(.u-upload__wrap__preview__image) {
+    width: 120rpx !important;
+    height: 120rpx !important;
+}
+:deep(.u-action-sheet){
+    max-height: 600rpx !important;
+    overflow-y: auto!important;
+}
 </style>

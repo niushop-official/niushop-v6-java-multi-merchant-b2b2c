@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -17,6 +18,7 @@ import com.niu.core.entity.pay.PayTransfer;
 import com.niu.core.enums.member.MemberCashOutStatusEnum;
 import com.niu.core.enums.pay.TransferStatusEnum;
 import com.niu.core.enums.pay.TransferTypeEnum;
+import com.niu.core.enums.shop.ShopTransferEnum;
 import com.niu.core.event.pay.PayCloseEvent;
 import com.niu.core.event.pay.TransferSuccessEvent;
 import com.niu.core.mapper.pay.PayTransferMapper;
@@ -106,13 +108,14 @@ public class CoreTransferServiceImpl implements ICoreTransferService {
         transfer.setTransferMobile((String) data.getOrDefault("transfer_mobile", ""));
         transfer.setTransferAccount((String) data.getOrDefault("transfer_account", ""));
         transfer.setOpenid((String) data.getOrDefault("openid", ""));
-        transfer.setTransferPayee((String) data.getOrDefault("transfer_payee", ""));
+        Object transferPayee = ObjectUtil.isNotEmpty(data.get("transfer_payee")) ? data.get("transfer_payee") : "{}";
+        transfer.setTransferPayee(JSONUtil.toJsonStr(transferPayee));
         payTransferMapper.updateById(transfer);
 
-        Map transferTypeEnum = TransferTypeEnum.getMap().get(transferType);
+        ShopTransferEnum transferTypeEnum = ShopTransferEnum.getMap().get(transferType);
         if (transferTypeEnum == null) throw new CommonException("不支持的转账方式");
 
-        if ((Boolean) transferTypeEnum.get("is_online")) {
+        if (transferTypeEnum.getIsOnline()) {
             TransferParam param = new TransferParam();
             param.setTransfer(transfer);
             param.setNotifyUrl(corePayService.buildNotifyUrl("transfer", transferType, "transfer"));

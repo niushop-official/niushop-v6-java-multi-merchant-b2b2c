@@ -20,6 +20,10 @@
                             <el-input v-model.trim="formData.site_name" :placeholder="t('siteNamePlaceholder')" class="input-width" clearable :disabled="true" maxlength="20" show-word-limit />
                         </el-form-item>
 
+                        <el-form-item :label="t('联系人姓名')" prop="contact_name">
+                            <el-input v-model.trim="formData.contact_name" :placeholder="t('请输入联系人姓名')" class="input-width" clearable maxlength="50" />
+                        </el-form-item>
+
                         <el-form-item :label="t('contactMobile')" prop="phone">
                             <div>
                                 <el-input v-model="formData.phone" clearable :placeholder="t('contactMobilePlaceholder')" class="input-width" />
@@ -89,6 +93,12 @@
                                 <p class="text-[12px] text-[#a9a9a9]">{{ t('logoPlaceholder') }}</p>
                             </div>
                         </el-form-item>
+                        <el-form-item :label="t('H5商户背景图')" prop="background_h5">
+                            <div>
+                                <upload-image v-model="formData.background_h5" />
+                                <p class="text-[12px] text-[#a9a9a9]">建议图片尺寸：375*180像素；图片格式：jpg、png、jpeg。</p>
+                            </div>
+                        </el-form-item>
                         <!-- <el-form-item :label="t('frontEndName')">
                             <el-input v-model="formData.front_end_name" :placeholder="t('frontEndNamePlaceholder')" class="input-width" clearable maxlength="20" show-word-limit />
                         </el-form-item> -->
@@ -135,55 +145,6 @@
 						</el-form-item>
                     </el-card>
                 </el-form>
-                 <!-- 结算账户 -->
-                <!-- <el-form :model="formBrank" label-width="150px" ref="formBrankRef" :rules="formBrankRules"  class="page-form" v-if="activeName == 'settlement'">
-                    <el-card class="box-card !border-none relative" shadow="never" >
-                        <el-form-item :label="t('accountType')">
-                            <el-radio-group v-model="formBrank.bank_type" class="ml-4">
-                                <el-radio :label="1">银行卡</el-radio>
-                                <el-radio :label="2">支付宝</el-radio>
-                                <el-radio :label="3">微信</el-radio>
-                                <el-radio :label="4">微信零钱</el-radio>
-                            </el-radio-group>
-                        </el-form-item>
-                        <div v-if="formBrank.bank_type == 1">
-                            <el-form-item :label="t('bankAccountName')" prop="bank_account_name">
-                                <el-input v-model="formBrank.bank_account_name" clearable :placeholder="t('bankAccountNamePlaceholder')" class="input-width" maxlength="20" />
-                            </el-form-item>
-                            <el-form-item :label="t('companyBankAccountNumber')" prop="bank_account_no">
-                                <el-input v-model="formBrank.bank_account_no" clearable :placeholder="t('companyBankPlaceholder')" class="input-width" @keyup="filterNumber($event)" maxlength="40" />
-                            </el-form-item>
-                            <el-form-item :label="t('bankBranchName')" prop="bank_name">
-                                <el-input v-model="formBrank.bank_name" clearable :placeholder="t('bankBranchNamePlaceholder')" class="input-width" maxlength="20" />
-                            </el-form-item>
-                            <el-form-item :label="t('bankAddress')" prop="bank_address">
-                                <el-input v-model="formBrank.bank_address" clearable :placeholder="t('bankAddressPlaceholder')" class="input-width" />
-                            </el-form-item>
-                        </div>
-                        <div v-else-if="formBrank.bank_type == 2">
-                            <el-form-item :label="t('alipayAccountName')" prop="alipay_name">
-                                <el-input v-model="formBrank.alipay_name" clearable :placeholder="t('alipayAccountNamePlaceholder')" class="input-width" maxlength="20" />
-                            </el-form-item>
-                            <el-form-item :label="t('alipayBankAccountNumber')" prop="alipay_account_no">
-                                <el-input v-model="formBrank.alipay_account_no" clearable :placeholder="t('alipayBankPlaceholder')" class="input-width" maxlength="40" />
-                            </el-form-item>
-                            <el-form-item :label="t('alipayCode')" prop="alipay_payment_code">
-                                <upload-image v-model="formBrank.alipay_payment_code" :limit="1" />
-                            </el-form-item>
-                        </div>
-                        <div v-else-if="formBrank.bank_type == 3">
-                            <el-form-item :label="t('wechatName')" prop="wechat_name">
-                                <el-input v-model="formBrank.wechat_name" clearable :placeholder="t('wechatNamePlaceholder')" class="input-width" maxlength="20" />
-                            </el-form-item>
-                            <el-form-item :label="t('wechatAccountNo')" prop="wechat_account_no">
-                                <el-input v-model="formBrank.wechat_account_no" clearable :placeholder="t('wechatAccountNoPlaceholder')" class="input-width" maxlength="40" />
-                            </el-form-item>
-                            <el-form-item :label="t('wechatCode')" prop="wechat_payment_code">
-                                <upload-image v-model="formBrank.wechat_payment_code" :limit="1" />
-                            </el-form-item>
-                        </div>
-                    </el-card>
-                </el-form> -->
             </div>
         </el-card>
         <div class="fixed-footer-wrap" v-if="activeName == 'basic'|| activeName == 'messageReceiver'">
@@ -203,10 +164,9 @@ import { setNoticeRecipient, getNoticeRecipient } from '@/app/api/notice'
 import { getAllSiteUserList } from '@/app/api/user'
 import { getMap, getAreaListByPid, getAreaByCode } from '@/app/api/sys'
 import { createMarker, latLngToAddress, addressToLatLng } from '@/utils/qqmap'
-import { ElMessageBox, FormInstance, FormRules } from 'element-plus'
-import { getAppType, filterNumber, debounce } from '@/utils/common'
+import { FormInstance, FormRules } from 'element-plus'
+import { img, getAppType, debounce } from '@/utils/common'
 import { useRoute, useRouter } from 'vue-router'
-import { img } from '@/utils/common'
 import useUserStore from '@/stores/modules/user'
 import useSystemStore from '@/stores/modules/system'
 
@@ -219,11 +179,13 @@ const activeName = ref('basic')
 const shopBaseInfo = ref<any>({})
 const formData = reactive<Record<string, any>>({
     site_name: '',
+    contact_name: '',
     phone: '',
     business_hours: '',
     business_status: 1,
     logo: '',
     icon: '',
+    background_h5: '',
     keywords: '',
     desc: '',
     front_end_name: '',
@@ -289,6 +251,9 @@ const formRef = ref<FormInstance>()
 const formRules = reactive<FormRules>({
     site_name: [
         { required: true, message: t('siteNamePlaceholder'), trigger: 'blur' }
+    ],
+    contact_name: [
+        { required: true, message: t('请输入联系人姓名'), trigger: 'blur' }
     ],
     phone: [
         { required: true, message: t('contactMobilePlaceholder'), trigger: 'blur' },

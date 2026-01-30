@@ -97,12 +97,12 @@ public class LoginServiceImpl implements ILoginService {
         }
         SysUserInfoVo userInfo=sysUserService.getUserInfoByUserName(userName);
         if(ObjectUtil.isNull(userInfo)){
-            throw new AuthException("账号密码错误");
+            throw new AuthException("账号密码错误", 0);
         }
 
         //检测密码加密是否正确
         if(!PasswordEncipher.matche(passWord, userInfo.getPassword())){
-            throw new AuthException("账号密码错误");
+            throw new AuthException("账号密码错误", 0);
         }
         return login(userInfo,appType);
     }
@@ -110,7 +110,7 @@ public class LoginServiceImpl implements ILoginService {
     @Override
     public LoginResultVo mobile(UserMobileLoginParam param) {
         checkMobileCode(param, param.getAppType());
-        SysUserInfoVo userInfo = sysUserService.getUserInfoByUserName(param.getMobile());
+        SysUserInfoVo userInfo = sysUserService.getUserInfoByMobileInfo(param.getMobile());
         if (ObjectUtil.isNull(userInfo)){
             throw new AuthException("手机号填写错误");
         }

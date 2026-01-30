@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getInitInfo, getSiteInfo, getMemberMobileExist, getIsshow } from '@/app/api/system'
+import { getInitInfo, getSiteInfo, getMemberMobileExist, getIsshow, getCopyRight } from '@/app/api/system'
 import { getTabbarList } from '@/app/api/diy'
 import useConfigStore from '@/stores/config'
 import useMemberStore from '@/stores/member'
@@ -25,8 +25,13 @@ interface System {
     topTabbarInfo: {
         height: number
         fullHeight: string
-    }
-    auditFlag: boolean // 审核开关
+    },
+    auditFlag: boolean, // 审核开关
+    shareOptions: {
+        wechatOptions: any
+        weappOptions: any
+    },
+    copyright:any
 }
 
 const useSystemStore = defineStore('system', {
@@ -59,7 +64,12 @@ const useSystemStore = defineStore('system', {
                 height: 0,
                 fullHeight: ''
             },
-            auditFlag: true // 审核开关 默认开启
+            auditFlag: true, // 审核开关 默认开启
+            shareOptions: {
+                wechatOptions: {},
+                weappOptions: {}
+            },
+            copyright:null
         }
     },
     actions: {
@@ -109,6 +119,7 @@ const useSystemStore = defineStore('system', {
                     configStore.login.bg_url = data.login_config.bg_url // 背景图
                     configStore.login.logo = data.login_config.logo //logo
                     configStore.login.desc = data.login_config.desc // 描述
+                    configStore.login.captcha_type = data.login_config.captcha_type // 验证码类型
                     uni.setStorageSync('login_config', configStore.login)
 
                     // 如果会员已存在则小程序端快捷登录时不再弹出授权弹框
@@ -122,7 +133,7 @@ const useSystemStore = defineStore('system', {
                     if (callback) callback()
                 }
             })
-
+            this.getCopyRightFn()
             this.getMenuButtonInfoFn();
             this.getIsshowFn()
         },
@@ -197,6 +208,11 @@ const useSystemStore = defineStore('system', {
             } catch (error) {
                 
             }
+        },
+        getCopyRightFn() {
+            getCopyRight().then((res: any) => {
+                this.copyright = res.data
+            })
         }
     }
 })

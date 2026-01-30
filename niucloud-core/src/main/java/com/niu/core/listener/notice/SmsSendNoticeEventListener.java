@@ -49,7 +49,7 @@ public class SmsSendNoticeEventListener extends SendNoticeEventDefiner {
             String mobile = ObjectUtil.defaultIfNull(noticeData.getMobile(), "");
 
             if (mobile.isEmpty() && noticeData.getMemberId() > 0) {
-                Member member = memberMapper.selectOne(new QueryWrapper<Member>().select("mobile,nickname").eq("site_id", event.getSiteId()).eq("member_id", noticeData.getMemberId()));
+                Member member = memberMapper.selectOne(new QueryWrapper<Member>().select("mobile,nickname").eq("member_id", noticeData.getMemberId()));
                 if (member != null && !member.getMobile().isEmpty()) {
                     noticeData.setMobile(member.getMobile());
                     mobile = member.getMobile();

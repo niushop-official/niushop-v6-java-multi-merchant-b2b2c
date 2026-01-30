@@ -70,12 +70,10 @@
 								</u-form-item>
 							</view>
 							<view class="mt-[10rpx]" v-if="currentConfig && currentConfig.config && currentConfig.config.invoice && currentConfig.config.invoice.invoice_content">
-								<u-form-item label="发票内容" prop="name">
+								<u-form-item label="发票内容" prop="content_type">
 									<view class="flex flex-wrap" >
-										<block v-for="(item,index) in currentConfig.config.invoice.invoice_content">
-											<view class="h-[60rpx] box-border rounded px-[30rpx] leading-[56rpx] border-[2rpx] border-[var(--temp-bg)] border-solid text-[24rpx] bg-[var(--temp-bg)] mb-[20rpx]" 
-												:class="{'!bg-[var(--primary-color-light)] !text-[var(--primary-color)] !border-primary': formData.name == item,'mr-[20rpx]': (currentConfig.config.invoice.invoice_content - 1) != index}"
-												@click="formData.name = item">{{ item  }}</view>
+										<block v-for="(item,key) in currentConfig.config.invoice.invoice_content" :key="key">
+											<view class="h-[60rpx] box-border rounded px-[30rpx] leading-[56rpx] border-[2rpx] border-[var(--temp-bg)] border-solid text-[24rpx] bg-[var(--temp-bg)] mr-[20rpx]" :class="{'!bg-[var(--primary-color-light)] !text-[var(--primary-color)] !border-primary': formData.content_type == key}" @click="formData.content_type = key">{{ item  }}</view>
 										</block>
 									</view>
 								</u-form-item>
@@ -142,7 +140,7 @@ const formData = ref<any>({
 	header_type: 1,
 	header_name: '',
 	type: 1,
-	name: '',
+	content_type: '',
 	tax_number: '',
 	telephone: '',
 	address: '',

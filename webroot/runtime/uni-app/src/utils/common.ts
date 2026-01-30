@@ -13,6 +13,20 @@ export const redirect = (redirect: any) => {
     if (useDiyStore().mode == 'decorate') return
 
     let { url, mode, param, success, fail, complete } = redirect
+    // 新增：判断是否为外部链接
+    if (url && (url.indexOf('https') != -1 || url.indexOf('http') != -1)) {
+
+        // #ifdef H5
+        window.location.href = url;
+        // #endif
+
+        // #ifdef MP
+        redirect({
+            url: '/app/pages/webview/index',
+            param: { src: encodeURIComponent(url) }
+        });
+        // #endif
+    }
     let originalUrl = url; // 原始地址
     let newLogin = false; // 是否需要登录
 
@@ -719,8 +733,8 @@ export function getValidTime(minutes: any = 1) {
  */
 export function setThemeColor (path: string) {
     let pathArr = path.split('/')
-	let index = !pathArr[0] ? 1 : 0;
-    let route = pathArr[index] == 'addon' ? pathArr[(index+1)] : 'app';
+    let index = !pathArr[0] ? 1 : 0;
+    let route = pathArr[index] == 'addon' ? pathArr[(index + 1)] : 'app';
 
     // 设置底部导航
     const configStore = useConfigStore()
@@ -734,29 +748,29 @@ export function setThemeColor (path: string) {
 	let currTheme = {};
     if (route != 'app') {
         try {
-			currTheme = theme_color_list[route];
-			if(currTheme && currTheme.theme){
-				configStore.themeColor = themeColorToHex(currTheme.theme)
-				uni.setStorageSync('current_theme_color', JSON.stringify(themeColorToHex(currTheme.theme)));
-			}else if( !currTheme && current_theme_color){
-				configStore.themeColor = ''
-			}else{
-				currTheme = theme_color_list.app || Object.values(theme_color_list)[0];
-				configStore.themeColor = themeColorToHex(currTheme.theme)
-				uni.setStorageSync('current_theme_color', JSON.stringify(themeColorToHex(currTheme.theme)));
-			}
+            currTheme = theme_color_list[route];
+            if(currTheme && currTheme.theme){
+                configStore.themeColor = themeColorToHex(currTheme.theme)
+                uni.setStorageSync('current_theme_color', JSON.stringify(themeColorToHex(currTheme.theme)));
+            }else if( !currTheme && current_theme_color){
+                configStore.themeColor = ''
+            }else{
+                currTheme = theme_color_list.app || Object.values(theme_color_list)[0];
+                configStore.themeColor = themeColorToHex(currTheme.theme)
+                uni.setStorageSync('current_theme_color', JSON.stringify(themeColorToHex(currTheme.theme)));
+            }
         } catch (e) {
             // 设置插件应用的主色调发生错误，若不存在则使用最后有效的主色调
-			if(!current_theme_color && theme_color_list  && Object.keys(theme_color_list).length > 0){
-				currTheme = theme_color_list.app || Object.values(theme_color_list)[0];
-				configStore.themeColor = themeColorToHex(currTheme.theme)
-				uni.setStorageSync('current_theme_color', JSON.stringify(themeColorToHex(currTheme.theme)));
-			}else{
-				configStore.themeColor = '';
-			}
+            if (!current_theme_color && theme_color_list && Object.keys(theme_color_list).length > 0) {
+                currTheme = theme_color_list.app || Object.values(theme_color_list)[0];
+                configStore.themeColor = themeColorToHex(currTheme.theme)
+                uni.setStorageSync('current_theme_color', JSON.stringify(themeColorToHex(currTheme.theme)));
+            } else {
+                configStore.themeColor = '';
+            }
         }
 
-    }else if (!current_theme_color && theme_color_list && Object.keys(theme_color_list).length > 0) {
+    } else if (!current_theme_color && theme_color_list && Object.keys(theme_color_list).length > 0) {
       currTheme = theme_color_list.app || Object.values(theme_color_list)[0]
       configStore.themeColor = themeColorToHex(currTheme.theme)
       uni.setStorageSync("current_theme_color", JSON.stringify(themeColorToHex(currTheme.theme)))
@@ -766,7 +780,7 @@ export function setThemeColor (path: string) {
 export function themeColorToHex (param: any) {
     const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
     const rgbaRegex = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(,\s*\d*\.?\d+)?\)$/
-    for(let key in param){
+    for (let key in param) {
         if (rgbaRegex.test(param[key])) {
             const values = param[key].replace('rgba(', '').replace(')', '').split(',');
             // 提取 r, g, b, a 值，并将它们转换为合适的类型
@@ -774,14 +788,14 @@ export function themeColorToHex (param: any) {
             const g = parseInt(values[1].trim(), 10); // Green 分量
             const b = parseInt(values[2].trim(), 10); // Blue 分量
             const a = parseFloat(values[3].trim());   // Alpha 分量
-            param[key] = rgbaToHex(r,g,b,a)
+            param[key] = rgbaToHex(r, g, b, a)
         }
     }
     return param
 }
 
 // rgba转十六进制颜色
-export function rgbaToHex (r, g, b, a) {
+export function rgbaToHex(r, g, b, a) {
     // 计算混合后的RGB值，假设背景是白色 (255, 255, 255)
     let rBlend = Math.round((1 - a) * 255 + a * r)
     let gBlend = Math.round((1 - a) * 255 + a * g)
@@ -810,5 +824,5 @@ export function getTopFixedStatusName(data: any = {}) {
 export function distance(distance: string | number): string {
     const dist = typeof distance === 'string' ? parseFloat(distance) : distance;
     if (isNaN(dist)) return distance.toString();
-    return dist < 1 ? (dist * 1000).toFixed(2) + 'm' : dist.toFixed(2) + 'km'
+    return dist < 1 ? parseInt((dist * 1000).toString()) + 'm' : dist.toFixed(1) + 'km'
 }

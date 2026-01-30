@@ -43,6 +43,34 @@ export function getGoodsInit(params: Record<string, any>) {
     return request.get(`mall/site/goods/init`, params);
 }
 
+/**
+ * 添加虚拟商品
+ * @param params
+ * @returns
+ */
+export function addVirtualGoods(params: Record<string, any>) {
+    return request.post('mall/site/goods/virtual', params, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
+ * 编辑虚拟商品
+ * @param params
+ */
+export function editVirtualGoods(params: Record<string, any>) {
+    return request.put(`mall/site/goods/virtual/${params.goods_id}`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+
+
+/**
+ * 获取虚拟商品添加/编辑初始化数据
+ * @param params
+ */
+export function getVirtualGoodsInit(params: Record<string, any>) {
+    return request.get(`mall/site/goods/virtual/init`, params);
+}
 
 /**
  * 获取商品类型

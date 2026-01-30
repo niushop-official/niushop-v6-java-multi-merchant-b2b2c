@@ -12,93 +12,73 @@ import java.math.BigDecimal;
 public class SysStat  {
 
     private static final long serialVersionUID = 1L;
-
-
-    /** 访问数 */
-    private Integer accessSum;
-
-    /** 日期 */
-    private String date;
-
-    /** 时间戳 */
-    private Long dateTime;
-
-    /** 支付运费 */
-    private BigDecimal deliveryMoney;
-
     /**  */
     @TableId(value="id", type= IdType.AUTO)
     private Integer id;
-
-    /** 平台优惠补贴 */
-    private BigDecimal mallCouponMoney;
-
-    /** 返还平台优惠券补贴 */
-    private BigDecimal mallRefundCouponMoney;
-
-    /** 退还手续费 */
-    private BigDecimal mallRefundServiceMoney;
-
-    /** 支付手续费 */
-    private BigDecimal mallServiceMoney;
-
+    /** 站点id */
+    private Integer siteId;
     /** 月 */
     private String month;
-
-    /** 订单实收 */
-    private BigDecimal orderActualMoney;
-
-    /** 订单实退 */
-    private BigDecimal orderActualRefundMoney;
-
+    /** 日期 */
+    private String date;
+    /** 时间戳 */
+    private Long dateTime;
     /** 订单总数 */
     private Integer orderNum;
-
+    /** 销售总额 */
+    private BigDecimal saleMoney;
+    /** 退款总额 */
+    private BigDecimal refundMoney;
+    /** 访问数 */
+    private Integer accessSum;
+    /** 访客数 */
+    private Integer visitNum;
     /** 订单应收 */
     private BigDecimal orderReceivableMoney;
-
+    /** 订单实收 */
+    private BigDecimal orderActualMoney;
+    /** 平台优惠补贴 */
+    private BigDecimal mallCouponMoney;
+    /** 返还平台优惠券补贴 */
+    private BigDecimal mallRefundCouponMoney;
     /** 订单应退 */
     private BigDecimal orderRefundMoney;
-
+    /** 订单实退 */
+    private BigDecimal orderActualRefundMoney;
+    /** 商家支付分账 */
+    private BigDecimal shopSeparateMoney;
+    /** 商家退款分账 */
+    private BigDecimal shopRefundSeparateMoney;
+    /** 支付佣金 */
+    private BigDecimal shopCommission;
+    /** 退还佣金 */
+    private BigDecimal shopRefundCommission;
+    /** 支付运费 */
+    private BigDecimal deliveryMoney;
+    /** 退还运费 */
+    private BigDecimal refundDeliveryMoney;
+    /** 支付手续费 */
+    private BigDecimal mallServiceMoney;
+    /** 退还手续费 */
+    private BigDecimal mallRefundServiceMoney;
     /** 充值金额 */
     private BigDecimal rechargeMoney;
 
     /** 充值消费金额 */
     private BigDecimal rechargePayMoney;
 
-    /** 退还运费 */
-    private BigDecimal refundDeliveryMoney;
+    /** 充值消费金额 */
+    private BigDecimal rechargeOrderMoney;
 
-    /** 退款总额 */
-    private BigDecimal refundMoney;
-
-    /** 销售总额 */
-    private BigDecimal saleMoney;
-
-    /** 支付佣金 */
-    private BigDecimal shopCommission;
-
-    /** 退还佣金 */
-    private BigDecimal shopRefundCommission;
-
-    /** 商家退款分账 */
-    private BigDecimal shopRefundSeparateMoney;
-
-    /** 商家支付分账 */
-    private BigDecimal shopSeparateMoney;
-
-    /** 站点id */
-    private Integer siteId;
-
+    /** 充值消费金额 */
+    private BigDecimal rechargeGiveMoney;
+    /** 支付供应商货款 */
+    private BigDecimal supplyMoney;
+    /** 退还供应商货款 */
+    private BigDecimal supplyRefundMoney;
     /** 供应商支付分账 */
     private BigDecimal supplySeparateMoney;
-
     /** 供应商退款分账 */
     private BigDecimal supplyRefundSeparateMoney;
 
-    /** 支付供应商货款 */
-    private BigDecimal supplyMoney;
-
-    /** 退还供应商货款 */
-    private BigDecimal supplyRefundMoney;
 }

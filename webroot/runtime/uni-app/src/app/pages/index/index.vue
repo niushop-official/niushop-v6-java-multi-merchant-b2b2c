@@ -14,9 +14,10 @@
 
         </view>
 
+        <!-- #ifdef MP-WEIXIN -->
         <!-- 小程序隐私协议 -->
         <wx-privacy-popup ref="wxPrivacyPopupRef"></wx-privacy-popup>
-      
+        <!-- #endif -->
 
     </view>
 </template>
@@ -67,7 +68,6 @@ diy.onShow((data: any) => {
     // #ifdef MP
     nextTick(() => {
         if (wxPrivacyPopupRef.value) wxPrivacyPopupRef.value.proactive();
-        if (collectTipRef.value) collectTipRef.value.show();
     })
     // #endif
 });
@@ -97,4 +97,14 @@ diy.onPageScroll()
 
     /* #endif */
 }
+</style>
+<style>
+/*  #ifdef MP  */   
+.many-shop-list .mescroll-body{
+    min-height: auto !important;
+}
+.many-shop-list .mescroll-upwarp{
+    display: none !important;
+} 
+/*  #endif  */
 </style>

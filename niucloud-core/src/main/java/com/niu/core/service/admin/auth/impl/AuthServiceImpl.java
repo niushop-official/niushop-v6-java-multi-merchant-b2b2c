@@ -100,7 +100,7 @@ public class AuthServiceImpl implements IAuthService {
         if (!isSuperAdmin() && ObjectUtil.isNotNull(uid) && uid > 0) {
             SysUserRoleInfoVo sysUserRoleInfoVo = sysUserRoleService.getUserRole(siteId, uid);
             if (sysUserRoleInfoVo == null) {
-                throw new AuthException("NO_SITE_PERMISSION", 400);
+                throw new AuthException("您没有当前店铺的访问权限", 400);
             }
         }
         RequestUtils.setAppType(siteinfo.getAppType());
@@ -286,11 +286,11 @@ public class AuthServiceImpl implements IAuthService {
             isAdmin = sysUserRoleInfoVo.getIsAdmin();//是否是超级管理员
         }
         if (isAdmin > 0) {
-            menuList = sysMenuService.getAdminAllMenuList(appType, 1, false);
+            menuList = sysMenuService.getAdminAllMenuList(appType, 1, false,1);
         } else {
             List<String> roleIdList = JSONUtil.toList(JSONUtil.parseArray(sysUserRoleInfoVo.getRoleIds()), String.class);
             List<String> menuKeyList = sysRoleService.getMenuIdsByRoleIds(siteId, roleIdList);
-            menuList = sysMenuService.getAdminMenuListByMenuKeys(appType, siteId, 100, 0, menuKeyList, addon);
+            menuList = sysMenuService.getAdminMenuListByMenuKeys(appType, siteId, 100, 0, menuKeyList, addon,1);
         }
 
         JSONArray jsonArray = JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(menuList));
@@ -317,11 +317,11 @@ public class AuthServiceImpl implements IAuthService {
             isAdmin = sysUserRoleInfoVo.getIsAdmin();//是否是超级管理员
         }
         if (isAdmin > 0) {
-            menuList = sysMenuService.getSiteAllMenuList(appType,siteId, 1, false);
+            menuList = sysMenuService.getSiteAllMenuList(appType,siteId, 1, false,1);
         } else {
             List<String> roleIdList = JSONUtil.toList(JSONUtil.parseArray(sysUserRoleInfoVo.getRoleIds()), String.class);
             List<String> menuKeyList = sysRoleService.getMenuIdsByRoleIds(siteId, roleIdList);
-            menuList = sysMenuService.getSiteMenuListByMenuKeys(appType, siteId, 100, 0, menuKeyList, addon);
+            menuList = sysMenuService.getSiteMenuListByMenuKeys(appType, siteId, 100, 0, menuKeyList, addon,1);
         }
         //未安装供应商去除商城选货平台
         Addon checkAddon = coreAddonService.getInfoByKey("supply");

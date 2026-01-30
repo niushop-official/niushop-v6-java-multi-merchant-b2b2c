@@ -37,6 +37,14 @@
                         <u-input fontSize="28rpx" v-model.trim="formData.taker_address" border="none" clearable maxlength="120" placeholder="请输入详细地址" placeholderStyle="color: #888" />
                     </u-form-item>
                 </view>
+                <view class="mt-[16rpx]" v-if="formData.delivery_type == 'store' || formData.delivery_type == 'local_delivery'">
+                    <u-form-item :label="formData.delivery_type == 'local_delivery' ? '配送门店' : '提货门店'" prop="take_store_id" labelWidth="180rpx">
+                        <view class="flex items-center flex-1" @click="showTakeStoreIdPopup = true">
+                            <view class="flex-1" :class="{'text-[var(--text-color-light9)]': !formData.take_store_id }" >{{ formData.take_store_name ? formData.take_store_name : '请选择门店' }}</view>
+                            <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
+                        </view>
+                    </u-form-item>
+                </view>
             </view>
         </u-form>
         <view class="w-full footer">
@@ -45,6 +53,20 @@
             </view>
         </view>
         <area-select ref="areaRef" @complete="areaSelectComplete" :area-id="formData.taker_district || formData.taker_city" />
+        <!-- 配送门店 -->
+        <u-popup :show="showTakeStoreIdPopup" @close="showTakeStoreIdPopup = false">
+            <view class="popup-common" @touchmove.prevent.stop>
+                <view class="title">{{ formData.delivery_type == 'local_delivery' ? '配送门店' : '提货门店' }}</view>
+                <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
+                    <u-radio-group v-model="formData.take_store_id" placement="column" iconPlacement="right">
+                       <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333"  :customStyle="{marginBottom: '30rpx'}" v-for="(item, index) in deliveryList" :key="index" :label="item.store_name" :name="item.store_id"></u-radio>
+                    </u-radio-group>
+                </scroll-view>
+                <view class="btn-wrap">
+                    <button class="primary-btn-bg btn" @click="handleTakeStoreId">确定</button>
+                </view>
+            </view>
+        </u-popup>
     </view>
 </template>
 
@@ -53,6 +75,7 @@ import { ref, reactive, computed, nextTick } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import manifestJson from '@/manifest.json';
 import { redirect } from '@/utils/common'
+import { getDeliveryStoreListAll } from '@/app/api/delivery_site'
 import { getOrderEditAddress, orderEditAddress } from '@/addon/mall/api/order'
 import { getAddressByLatlng } from '@/app/api/system';
 
@@ -69,13 +92,16 @@ const formData = reactive<any>({
     taker_city: 0,
     taker_district: 0,
     area: '',
-    address_name: ''
+    address_name: '',
+    take_store_id: '',
+    take_store_name: ''
 })
 const orderId = ref('')
 const isSelectAddress = ref(false)
 const areaRef = ref()
 const formRef: any = ref(null)
 const isSelectMap = ref(2) // 值为1，该地址需要有经纬度，反之不需要
+const deliveryList = ref([])
 
 const wxPrivacyPopupRef: any = ref(null)
 
@@ -104,12 +130,33 @@ const  getOrderEditAddressFn = (params: any) => {
 		Object.keys(formData).forEach((key: string) => {
             if (res.data[key] != undefined) formData[key] = res.data[key]
         })
+        getDeliveryStoreListAllFn({ pick_up_type: formData.delivery_type });
         isSelectMap.value = formData.delivery_type == 'express' ? 2 : 1;
 	}).catch(() => {
 
 	})
 }
 
+// 门店自提列表
+const showTakeStoreIdPopup = ref(false)
+const getDeliveryStoreListAllFn = (data: any) => {
+    getDeliveryStoreListAll(data).then((res: any) => {
+        deliveryList.value = res.data
+        formData.take_store_name = deliveryList.value.find((item: any) => item.store_id == formData.take_store_id).store_name
+    })
+}
+const handleTakeStoreId = () => {
+		if (!formData.take_store_id) {
+        uni.showToast({
+            title: '请选择门店',
+            icon: 'none'
+        })
+        return
+    }
+    const store = deliveryList.value.find((item: any) => item.store_id == formData.take_store_id)
+    formData.take_store_name = store.store_id
+    showTakeStoreIdPopup.value = false
+}
 const rules = computed(() => {
     return {
         'taker_name': {
@@ -201,7 +248,6 @@ const selectArea = () => {
 }
 
 const areaSelectComplete = (event: any) => {
-    console.log(event);
     if (isSelectAddress.value && (formData.taker_province == event.province?.id || formData.taker_city != event.city?.id || formData.taker_district != event.district?.id)) {
         formData.taker_latitude = '';
         formData.taker_longitude = '';

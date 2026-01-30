@@ -3,6 +3,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { useCssVar, useTitle } from '@vueuse/core'
 import colorFunction from 'css-color-function'
 import storage from './storage'
+import { ElMessage } from 'element-plus'
 
 /**
  * 全局注册element-icon
@@ -274,6 +275,26 @@ export function mobileHide(mobile: string) {
 }
 
 /**
+ * 获取当前日期时间
+ */
+export function getCurrentDataTime(timeStamp: any) {
+    const addZero = (t) => {
+        return t < 10 ? '0' + t : t;
+    }
+    const time = new Date(timeStamp);
+    let Y = time.getFullYear(), // 年
+        M = time.getMonth() + 1, // 月
+        D = time.getDate(), // 日
+        h = time.getHours(), // 时
+        m = time.getMinutes(), // 分
+        s = time.getSeconds(); // 秒
+    if (M > 12) {
+        M = M - 12;
+    }
+    return `${Y}-${addZero(M)}-${addZero(D)} ${addZero(h)}:${addZero(m)}:${addZero(s)}`
+}
+
+/**
  * 日期格式转时间戳
  * @param {Object} date
  */
@@ -375,7 +396,7 @@ export function getTablePageStorage(where: any = {}) {
 export function distance(distance: string | number): string {
     const dist = typeof distance === 'string' ? parseFloat(distance) : distance;
     if (isNaN(dist)) return distance.toString();
-    return dist < 1 ? (dist * 1000).toFixed(2) + 'm' : dist.toFixed(2) + 'km'
+    return dist < 1 ? parseInt((dist * 1000).toString()) + 'm' : dist.toFixed(1) + 'km'
 }
 
 /**
@@ -396,6 +417,6 @@ export function copy(value: any, callback: any = null) {
     ElMessage({
         message: '复制成功',
         type: 'success',
-    })
+      })
     typeof callback == 'function' && callback();
 }
