@@ -1,0 +1,630 @@
+<template>
+    <el-dialog v-model="showDialog" :title="t('batchSetting')" width="700px" class="diy-dialog-wrap" :destroy-on-close="true">
+        <el-alert :title="t('batchSettingTip')" type="info" :closable="false" />
+        <el-form :model="formData" label-width="120px" ref="formRef" :rules="formRules" class="mt-[10px] page-form" v-loading="loading">
+            <el-row>
+                <!-- 左侧菜单栏 -->
+                <el-col :span="4" class="menu-column">
+                    <el-menu :default-active="activeMenu" @select="handleMenuSelect">
+                        <el-menu-item v-for="([key, value]) in Object.entries(setTypeList)" :key="key" :index="key">{{ value }}</el-menu-item>
+                    </el-menu>
+                </el-col>
+
+                <!-- 右侧内容展示 -->
+                <el-col :span="20" class="content-column p-[5px]">
+                    <!-- 商品服务 -->
+                    <el-form-item v-if="activeMenu === 'service'" :label="t('goodsService')">
+                        <el-checkbox-group v-model="formData.service_ids">
+                            <el-checkbox :label="item.service_id" v-for="(item, index) in serviceOptions" :key="index">{{ item.service_name }}</el-checkbox>
+                        </el-checkbox-group>
+                    </el-form-item>
+                    <!-- 商品类目 -->
+                     <el-form-item v-if="activeMenu === 'plat_category'" prop="mall_goods_category" :label="t('goodsMallCategory')">
+                        <el-cascader v-model="formData.mall_goods_category" :options="goodsMallCategoryOptions"
+                            :placeholder="t('mallGoodsCategoryPlaceholder')" :props="goodsMallCategoryProps" clearable
+                            filterable  />
+                    </el-form-item>
+                    <!-- 商品分类 -->
+                    <el-form-item v-if="activeMenu === 'category'" prop="goods_category" :label="t('goodsCategory')">
+                        <el-cascader v-model="formData.goods_category" :options="goodsCategoryOptions"
+                            :placeholder="t('productClassificationPlaceholder')" :props="goodsCategoryProps" clearable
+                            filterable @change="categoryHandleChange" />
+                        <div class="ml-[10px]">
+                            <span class="cursor-pointer text-primary mr-[10px]" @click="refreshGoodsCategory(true)">{{ t('refresh') }}</span>
+                            <span class="cursor-pointer text-primary" @click="toGoodsCategoryEvent">{{ t('addGoodsCategory') }}</span>
+                        </div>
+                    </el-form-item>
+                    <!-- 商品品牌 -->
+                    <el-form-item v-if="activeMenu === 'brand'" :label="t('goodsBrand')">
+                        <el-select v-model="formData.brand_id" :placeholder="t('brandPlaceholder')" clearable>
+                            <el-option v-for="item in brandOptions" :key="item.brand_id" :label="item.brand_name" :value="item.brand_id" />
+                        </el-select>
+                        <div class="ml-[10px]">
+                            <span class="cursor-pointer text-primary mr-[10px]" @click="refreshGoodsBrand(true)">{{ t('refresh') }}</span>
+                            <span class="cursor-pointer text-primary" @click="toGoodsBrandEvent">{{ t('addGoodsBrand') }}</span>
+                        </div>
+                    </el-form-item>
+                    <!-- 配送设置 -->
+                    <div v-if="activeMenu === 'delivery'">
+                        <el-form-item :label="t('deliveryType')" prop="delivery_type">
+                            <div>
+                                <el-checkbox-group v-model="formData.delivery_type">
+                                    <el-checkbox v-for="(item, index) in deliveryTypeCheckBox" :key="index" :label="item.key">{{ item.name }}</el-checkbox>
+                                </el-checkbox-group>
+                                <div v-if="deliveryTypeCheckBox && deliveryTypeCheckBox.length" class="text-[12px] text-[#999] leading-[20px]">只针对实物商品有效</div>
+                                <div v-if="deliveryTypeFlag" class="text-[12px] text-[#999] leading-[20px]">请先在配置设置中设置配送方式</div>
+                            </div>
+                        </el-form-item>
+
+                        <el-form-item :label="t('isFreeShipping')" v-show="formData.delivery_type.indexOf('express') != -1">
+                            <el-switch v-model="formData.is_free_shipping" :active-value="1" :inactive-value="0" />
+                        </el-form-item>
+
+                        <el-form-item :label="t('feeType')" prop="fee_type" v-show="formData.delivery_type.indexOf('express') != -1 && formData.is_free_shipping == 0">
+                            <el-radio-group v-model="formData.fee_type">
+                                <el-radio label="template">{{ t('selectTemplate') }}</el-radio>
+                                <el-radio label="fixed">{{ t('fixedShipping') }}</el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item :label="t('deliveryMoney')" prop="delivery_money"
+                            v-show="formData.delivery_type.indexOf('express') != -1 && formData.is_free_shipping == 0 && formData.fee_type == 'fixed'">
+                            <el-input v-model.trim="formData.delivery_money" clearable placeholder="0.00" class="input-width-short" maxlength="8">
+                                <template #append>{{ t('yuan') }}</template>
+                            </el-input>
+                        </el-form-item>
+                        <el-form-item :label="t('deliveryTemplateId')" prop="delivery_template_id"
+                            v-show="formData.delivery_type.indexOf('express') != -1 && formData.is_free_shipping == 0 && formData.fee_type == 'template'">
+                            <el-select v-model="formData.delivery_template_id" :placeholder="t('deliveryTemplateIdPlaceholder')" filterable autocomplete="off" clearable>
+                                <el-option v-for="item in deliveryTemplateOptions" :key="item.template_id" :label="item.template_name" :value="item.template_id" />
+                            </el-select>
+                            <div class="ml-[10px]">
+                                <span class="cursor-pointer text-primary mr-[10px]" @click="refreshDeliveryTemplate">{{ t('refresh') }}</span>
+                                <span class="cursor-pointer text-primary" @click="toDeliveryTemplateEvent">{{ t('addDeliveryTemplateId') }}</span>
+                            </div>
+                        </el-form-item>
+                    </div>
+                    <!-- 库存设置 -->
+                    <div v-if="activeMenu === 'stock'">
+                        <el-form-item :label="t('setStock')" prop="stock_type">
+                            <el-radio-group v-model="formData.stock_type">
+                                <el-radio label="inc">{{ t('addStock') }}</el-radio>
+                                <el-radio label="dec">{{ t('reduceStock') }}</el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item :label="t('stockNum')" prop="">
+                            <el-input v-model.trim="formData.stock" clearable placeholder="0" class="input-width-short"
+                                show-word-limit maxlength="8" @keyup="filterNumber($event)"
+                                @blur="formData.stock = $event.target.value" />
+                        </el-form-item>
+                        <div class="mt-[10px] ml-[120px] text-[12px] text-[#999] leading-[20px]">{{ t('stockNumTips') }}
+                        </div>
+                    </div>
+                    <!-- 万能表单 -->
+                    <el-form-item v-if="activeMenu === 'diy_form'" :label="t('diyForm')">
+                        <el-select v-model="formData.form_id" :placeholder="t('diyFormPlaceholder')" clearable>
+                            <el-option v-for="item in diyFormOptions" :key="item.form_id" :label="item.page_title" :value="item.form_id" />
+                        </el-select>
+                        <div class="ml-[10px]">
+                            <span class="cursor-pointer text-primary mr-[10px]" @click="refreshDiyForm(true)">{{ t('refresh') }}</span>
+                            <span class="cursor-pointer text-primary" @click="toDiyFormEvent">{{ t('addDiyForm') }}</span>
+                        </div>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+        </el-form>
+
+        <template #footer>
+            <span class="dialog-footer">
+                <el-button @click="showDialog = false">{{ t('cancel') }}</el-button>
+                <el-button type="primary" :loading="loading" @click="confirm(formRef)">{{ t('confirm') }}</el-button>
+            </span>
+        </template>
+    </el-dialog>
+</template>
+
+<script lang="ts" setup>
+import { ref, reactive } from 'vue'
+import { t } from '@/lang'
+import { ElMessage, FormInstance } from 'element-plus'
+import { useRouter } from 'vue-router'
+import { filterNumber } from '@/utils/common'
+import { getBrandList, getServeList, getCategoryTree } from '@/app/api/basic_site'
+import { getShopDeliveryList, getShippingTemplateList } from '@/app/api/delivery_site'
+import { getCategoryTree as getMallCategoryTree} from '@/app/api/basic_admin'
+import { getGoodsBatchSetDict, goodsBatchSet } from '@/addon/supply/api/site/goods'
+import { getPosterList } from '@/app/api/poster'
+import { getDiyFormList } from '@/app/api/diy_form_site'
+
+const emit = defineEmits(['load'])
+const showDialog = ref(false)
+const loading = ref(false)
+const activeMenu = ref('label')
+const router = useRouter()
+
+/**
+ * 表单数据
+ */
+const initialFormData = {
+    label_ids: [],
+    service_ids: [],
+    poster_id: '',
+    form_id: '',
+    brand_id: '',
+    goods_category: [],
+    mall_goods_category: [],
+    virtual_sale_num: 0,
+    delivery_template_id: '',
+    delivery_money: 0,
+    fee_type: 'template',
+    delivery_type: [],
+    stock_type: 'inc',
+    member_discount: '',
+    is_free_shipping: 1,
+    stock: ''
+}
+
+const formData: Record<string, any> = reactive({ ...initialFormData })
+// 正则表达式
+const regExp: any = {
+    required: /[\S]+/,
+    number: /^\d{0,10}$/,
+    digit: /^\d{0,10}(.?\d{0,2})$/,
+    special: /^\d{0,10}(.?\d{0,3})$/
+}
+const formRef = ref<FormInstance>()
+const formRules = reactive({
+    virtual_sale_num: [
+        {
+            trigger: 'blur',
+            validator: (rule: any, value: any, callback: any) => {
+                if (activeMenu.value == 'virtual_sale_num') {
+                    if (isNaN(value) || !regExp.number.test(value)) {
+                        callback(new Error(t('virtualSaleNumTips')))
+                    } else if (value < 0) {
+                        callback(new Error(t('virtualSaleNumNotZeroTips')))
+                    } else {
+                        callback()
+                    }
+                } else {
+                    callback()
+                }
+            }
+        }
+    ],
+    delivery_type: [
+        { required: true, message: t('deliveryTypePlaceholder'), trigger: 'blur' }
+    ],
+    goods_category: [
+        { required: true, message: t('goodsCategoryPlaceholderTwo'), trigger: 'blur' }
+    ],
+    mall_goods_category: [
+        { required: true, message: t('mallGoodsCategoryPlaceholder'), trigger: 'blur' }
+    ],
+    delivery_money: [
+        {
+            trigger: 'blur',
+            validator: (rule: any, value: any, callback: any) => {
+                if (activeMenu.value == 'delivery') {
+                    if (formData.delivery_type.indexOf('express') != -1 && formData.is_free_shipping == 0 && formData.fee_type == 'fixed') {
+                        if (formData.delivery_template_id.length == 0 && value === '') {
+                            callback(new Error(t('deliveryMoneyPlaceholder')))
+                        } else if (isNaN(value) || !regExp.digit.test(value)) {
+                            callback(new Error(t('deliveryMoneyTips')))
+                        } else if (value < 0) {
+                            callback(new Error(t('deliveryMoneyNotZeroTips')))
+                        } else {
+                            callback()
+                        }
+                    } else {
+                        callback()
+                    }
+                } else {
+                    callback()
+                }
+            }
+        }
+    ],
+    delivery_template_id: [
+        {
+            trigger: 'blur',
+            validator: (rule: any, value: any, callback: any) => {
+                if (activeMenu.value == 'delivery') {
+                    if (formData.delivery_type.indexOf('express') != -1 && formData.is_free_shipping == 0 && formData.fee_type == 'template') {
+                        if (formData.delivery_money.length == 0 && value === '') {
+                            callback(new Error(t('deliveryTemplateIdPlaceholder')))
+                        } else {
+                            callback()
+                        }
+                    } else {
+                        callback()
+                    }
+                } else {
+                    callback()
+                }
+            }
+        }
+    ]
+})
+
+const goods_ids = ref([])
+const is_all = ref(null)
+const where = ref({})
+const show = (info: any) => {
+    goods_ids.value = info.ids
+    is_all.value = info.is_all
+    where.value = info.where
+    showDialog.value = true
+}
+
+const confirm = async (formEl: FormInstance | undefined) => {
+    if (loading.value || !formEl) return
+    await formEl.validate(async (valid) => {
+        if (valid) {
+            loading.value = true
+            const goodsCategory: any = []
+            formData.goods_category.forEach((item: any) => {
+                if (typeof item == 'object') {
+                    item.forEach((second: any) => {
+                        if (goodsCategory.indexOf(second) == -1) {
+                            goodsCategory.push(second)
+                        }
+                    })
+                } else {
+                    if (goodsCategory.indexOf(item) == -1) {
+                        goodsCategory.push(item)
+                    }
+                }
+            })
+
+            formData.goods_category = goodsCategory
+            const mallGoodsCategory: any = []
+            formData.mall_goods_category.forEach((item: any) => {
+                if (typeof item == 'object') {
+                    item.forEach((second: any) => {
+                        if (mallGoodsCategory.indexOf(second) == -1) {
+                            mallGoodsCategory.push(second)
+                        }
+                    })
+                } else {
+                    if (mallGoodsCategory.indexOf(item) == -1) {
+                        mallGoodsCategory.push(item)
+                    }
+                }
+            })
+            formData.mall_goods_category = mallGoodsCategory
+            const data = {
+                is_all: is_all.value,
+                where: where.value,
+                goods_ids: goods_ids.value,
+                set_type: activeMenu.value,
+                set_value: formData
+            }
+            goodsBatchSet(data).then((res) => {
+                if (['stock'].indexOf(activeMenu.value) != -1) {
+                    activeMenu.value = 'label'
+                    showDialog.value = false
+                    goods_ids.value.splice(0, goods_ids.value.length)
+                    Object.assign(formData, {
+                        label_ids: [],
+                        service_ids: [],
+                        poster_id: '',
+                        form_id: '',
+                        brand_id: '',
+                        goods_category: [],
+                        virtual_sale_num: '',
+                        delivery_template_id: '',
+                        delivery_money: '',
+                        fee_type: 'template',
+                        delivery_type: [],
+                        is_free_shipping: 1
+                    })
+                }
+                emit('load')
+                loading.value = false
+            }).catch(() => {
+                loading.value = false
+            })
+        }
+    })
+}
+
+const handleMenuSelect = (index: string) => {
+    activeMenu.value = index
+}
+
+const setTypeList = reactive([])
+const getGoodsTypeList = () => {
+    getGoodsBatchSetDict().then((res) => {
+        Object.assign(setTypeList, res.data)
+    })
+}
+getGoodsTypeList()
+
+
+/** ***************** 商品服务-start *************************/
+// 商品服务列表复选框
+const serviceOptions = reactive([])
+// 跳转到商品服务，添加服务
+const toGoodsServiceEvent = () => {
+    const url = router.resolve({
+        path: '/shop/goods/service'
+    })
+    window.open(url.href)
+}
+
+// 商品服务
+const refreshGoodsService = (bool = false) => {
+    getServeList({}).then((res) => {
+        const data = res.data
+        if (data) {
+            serviceOptions.splice(0, serviceOptions.length, ...data)
+            if (bool) {
+                ElMessage({
+                    message: t('refreshSuccess'),
+                    type: 'success'
+                })
+            }
+        }
+    })
+}
+
+refreshGoodsService()
+/** *****************商品服务-end *************************/
+
+/** ***************** 商品类目-start *************************/
+
+// 平台商品分类
+const goodsMallCategoryOptions = reactive([])
+const goodsMallCategoryProps = {
+    multiple: true
+}
+
+// 刷新平台商品分类
+const refreshMallGoodsCategory = () => {
+    getMallCategoryTree().then((res: any) => {
+        const data = res.data
+        if (data) {
+            const goodsCategoryTree: any = []
+            data.forEach((item: any) => {
+                const children: any = []
+                if (item.child_list) {
+                    item.child_list.forEach((childItem: any) => {
+                        const grandson: any = []
+                        if (childItem.child_list) {
+                            childItem.child_list.forEach((grandsonItem: any) => {
+                                grandson.push({
+                                    label: grandsonItem.category_name,
+                                    value: grandsonItem.category_id
+                                })
+                            })
+                        }
+                        children.push({
+                            label: childItem.category_name,
+                            value: childItem.category_id,
+                            children: grandson
+                        })
+                    })
+                }
+                goodsCategoryTree.push({
+                    value: item.category_id,
+                    label: item.category_name,
+                    children
+                })
+            })
+            goodsMallCategoryOptions.splice(0, goodsMallCategoryOptions.length, ...goodsCategoryTree)
+        }
+    })
+}
+
+refreshMallGoodsCategory()
+
+/** *****************商品类目-end *************************/
+
+/** ***************** 商品分类-start *************************/
+// 商品分类
+const goodsCategoryOptions = reactive([])
+const goodsCategoryProps = {
+    multiple: true
+}
+const categoryHandleChange = (value: any) => {
+    // console.log(value, goodsEdit.formData.goods_category, goodsEdit.formData.goods_category.toString())
+}
+
+// 跳转到商品分类，添加分类
+const toGoodsCategoryEvent = () => {
+    const url = router.resolve({
+        path: '/site/goods/category'
+    })
+    window.open(url.href)
+}
+
+// 刷新商品分类
+const refreshGoodsCategory = (bool = false) => {
+    getCategoryTree().then((res) => {
+        const data = res.data
+        if (data) {
+            const goodsCategoryTree: any = []
+            data.forEach((item: any) => {
+                const children: any = []
+                if (item.child_list) {
+                    item.child_list.forEach((childItem: any) => {
+                        children.push({
+                            value: childItem.category_id,
+                            label: childItem.category_name
+                        })
+                    })
+                }
+                goodsCategoryTree.push({
+                    value: item.category_id,
+                    label: item.category_name,
+                    children
+                })
+            })
+            goodsCategoryOptions.splice(0, goodsCategoryOptions.length, ...goodsCategoryTree)
+            if (bool) {
+                ElMessage({
+                    message: t('refreshSuccess'),
+                    type: 'success'
+                })
+            }
+        }
+    })
+}
+
+refreshGoodsCategory()
+/** *****************商品分类-end *************************/
+
+/** ***************** 商品品牌-start *************************/
+// 品牌列表下拉框
+const brandOptions = reactive([])
+
+// 跳转到商品品牌，添加品牌
+const toGoodsBrandEvent = () => {
+    const url = router.resolve({
+        path: '/site/goods/brand'
+    })
+    window.open(url.href)
+}
+
+// 商品品牌
+const refreshGoodsBrand = (bool = false) => {
+    getBrandList({}).then((res) => {
+        const data = res.data
+        if (data) {
+            brandOptions.splice(0, brandOptions.length, ...data)
+            if (bool) {
+                ElMessage({
+                    message: t('refreshSuccess'),
+                    type: 'success'
+                })
+            }
+        }
+    })
+}
+
+refreshGoodsBrand()
+/** *****************商品品牌-end *************************/
+
+/** *****************商品海报-start *************************/
+// 海报列表下拉框
+const posterOptions = reactive([])
+// 跳转到海报列表，添加海报
+const toPosterEvent = () => {
+    const url = router.resolve({
+        path: '/poster/list'
+    })
+    window.open(url.href)
+}
+
+// 商品海报
+const refreshGoodsPoster = (bool = false) => {
+    getPosterList({
+        type: 'shop_goods'
+    }).then((res) => {
+        const data = res.data
+        if (data) {
+            posterOptions.splice(0, posterOptions.length, ...data)
+            if (bool) {
+                ElMessage({
+                    message: t('refreshSuccess'),
+                    type: 'success'
+                })
+            }
+        }
+    })
+}
+
+refreshGoodsPoster()
+/** *****************商品海报-end *************************/
+
+// 配送方式复选框
+const deliveryTypeCheckBox = reactive([])
+
+// 运费模板下拉框
+const deliveryTemplateOptions = reactive([])
+
+// 配送方式
+const deliveryTypeFlag = ref(false)
+getShopDeliveryList().then((res) => {
+    const data = res.data
+    if (data) {
+        deliveryTypeCheckBox.splice(0, deliveryTypeCheckBox.length, ...data)
+        // deliveryTypeFlag.value = deliveryTypeCheckBox.every(el => {
+        // return el.status == '2'
+        // })
+    }
+})
+
+// 跳转到运费模板
+const toDeliveryTemplateEvent = () => {
+    const url = router.resolve({
+        path: '/shop/order/shipping/template'
+    })
+    window.open(url.href)
+}
+
+// 运费模板
+const refreshDeliveryTemplate = (bool = false) => {
+    getShippingTemplateList({}).then((res) => {
+        const data = res.data
+        if (data) {
+            deliveryTemplateOptions.splice(0, deliveryTemplateOptions.length, ...data)
+            if (bool) {
+                ElMessage({
+                    message: t('refreshSuccess'),
+                    type: 'success'
+                })
+            }
+        }
+    })
+}
+
+refreshDeliveryTemplate()
+
+/** ***************** 万能表单-start *************************/
+// 万能表单列表下拉框
+const diyFormOptions = reactive([])
+// 跳转到万能表单列表，添加表单
+const toDiyFormEvent = () => {
+    const url = router.resolve({
+        path: '/site/diy_form/list'
+    })
+    window.open(url.href)
+}
+
+// 刷新万能表单
+const refreshDiyForm = (bool = false) => {
+    getDiyFormList({
+        type: 'DIY_FORM_GOODS_DETAIL',
+        status: 1
+    }).then((res) => {
+        const data = res.data
+        if (data) {
+            diyFormOptions.splice(0, diyFormOptions.length, ...data)
+            if (bool) {
+                ElMessage({
+                    message: t('refreshSuccess'),
+                    type: 'success'
+                })
+            }
+        }
+    })
+}
+
+refreshDiyForm()
+/** *****************万能表单-end *************************/
+
+defineExpose({
+    showDialog,
+    show
+})
+</script>
+
+<style lang="scss" scoped>
+.el-menu-item {
+    height:40px;
+}
+.input-width-short{
+    width: 200px;
+}
+</style>

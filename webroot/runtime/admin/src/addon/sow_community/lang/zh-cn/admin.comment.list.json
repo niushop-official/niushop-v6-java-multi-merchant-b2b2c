@@ -1,0 +1,31 @@
+{
+    "contentTitle":"内容标题",
+    "contentTitlePlaceholder":"请输入内容标题",
+    "commentContent":"评论内容",
+    "commentContentPlaceholder":"请输入评论内容",
+    "memberInfo":"会员信息",
+    "memberInfoPlaceholder":"请输入会员编号/昵称/账号/手机号搜索",
+    "status":"审核状态",
+    "statusPlaceholder":"请选择审核状态",
+    "replyNum":"回复数",
+    "likeNum":"点赞数",
+    "createTime":"评论时间",
+    "commentDeleteTips":"确定要删除该数据吗？",
+    "adopt": "通过",
+    "auditAdoptTips": "确定要通过审核吗？",
+    "auditRefuseTips": "确定要拒绝审核吗？",
+    "refuse": "拒绝",
+    "refuseReason":"拒绝原因",
+    "refuseReasonPlaceholder":"请输入拒绝原因",
+    "reply":"回复",
+    "commentContentTitle":"评论回复",
+    "startDate": "开始时间",
+    "endDate": "结束时间",
+
+    "batchEmptySelectedGoodsTips": "请先选择需要批量操作的评论",
+    "batchDelete": "批量删除",
+    "batchAdopt": "批量通过",
+    "batchRefuse": "批量拒绝",
+    "batchDeleteTips": "确定要批量删除选中的评论吗？"
+
+}

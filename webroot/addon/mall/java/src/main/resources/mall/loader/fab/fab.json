@@ -1,0 +1,29 @@
+[
+  {
+    "icon": "addon/mall/diy/tabbar/system-home.png",
+    "url": {
+      "type": "link",
+      "value": "/app/pages/index/index"
+    },
+    "text": "首页",
+    "sort": 1
+  },
+  {
+    "icon": "addon/mall/diy/tabbar/system-category.png",
+    "url": {
+      "type": "link",
+      "value": "/addon/mall/pages/goods/category"
+    },
+    "text": "分类",
+    "sort": 2
+  },
+  {
+    "icon": "addon/mall/diy/tabbar/system-cart.png",
+    "url": {
+      "type": "link",
+      "value": "/addon/mall/pages/goods/cart"
+    },
+    "text": "购物车",
+    "sort": 3
+  }
+]

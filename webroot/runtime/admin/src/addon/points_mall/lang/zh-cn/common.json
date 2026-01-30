@@ -1,0 +1,16 @@
+{
+  "goodsSelectPopupSelectGoodsDialog": "商品选择",
+  "goodsSelectPopupGoodsName": "商品名称",
+  "goodsSelectPopupGoodsNamePlaceholder": "请输入商品名称",
+  "status": "状态",
+  "goodsSelectPopupGoodsStatusPlaceholder": "请选择状态",
+  "goodsSelectPopupGoodsInfo": "商品",
+  "goodsSelectPopupPrice": "价格",
+  "goodsSelectPopupStock": "库存",
+  "goodsSelectPopupGoodsPointUnit": "积分",
+  "goodsSelectPopupGoodsPriceUnit": "元",
+  "goodsSelectPopupGoodsMinTip": "所选商品数量不能少于",
+  "goodsSelectPopupGoodsMaxTip": "所选商品数量不能超过",
+  "goodsSelectPopupSelect": "已选",
+  "goodsSelectPopupPiece": "个"
+}

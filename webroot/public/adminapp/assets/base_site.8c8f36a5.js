@@ -1,0 +1,1 @@
+import{ag as s}from"./index-1a7df68a.js";function t(){return s.get("basic/site/goods/tree")}function e(t){return s.get("basic/site/goods/brand/list",t)}function i(t){return s.get("basic/site/goods/service/list",t)}function o(t){return s.put("shop/site/shop/business_status",t,{showSuccessMessage:!0})}export{e as a,i as b,t as g,o as u};

@@ -1,0 +1,57 @@
+{
+	"1": {
+		"name": "待支付",
+		"status": 1,
+		"is_refund": 0,
+		"action": [],
+		"member_action": [
+			{
+				"name": "支付",
+				"class": "",
+				"params": ""
+			}
+		]
+	},
+	"2": {
+		"name": "待发货",
+		"status": 2,
+		"is_refund": 0,
+		"action": [],
+		"member_action": [
+			{
+				"name": "支付",
+				"class": "",
+				"params": ""
+			}
+		]
+	},
+	"3": {
+		"name": "待收货",
+		"status": 3,
+		"is_refund": 0,
+		"action": [],
+		"member_action": [
+			{
+				"name": "支付",
+				"class": "",
+				"params": ""
+			}
+		]
+	},
+	"5": {
+		"name": "已完成",
+		"status": 5,
+		"is_refund": 0,
+		"action": [],
+		"member_action": [
+		]
+	},
+	"-1": {
+		"name": "已关闭",
+		"status": -1,
+		"is_refund": 0,
+		"action": [],
+		"member_action": [
+		]
+	}
+}

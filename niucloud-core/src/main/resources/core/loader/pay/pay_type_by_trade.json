@@ -1,0 +1,8 @@
+{
+  "recharge": {
+    "not_allow": [
+      "balancepay",
+      "friendspay"
+    ]
+  }
+}

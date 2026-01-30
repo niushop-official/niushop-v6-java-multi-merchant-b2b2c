@@ -1,0 +1,20 @@
+{
+    "tradeNo":"交易单号",
+    "tradeNoPlaceholder":"请输入交易单号",
+    "status":"录入状态",
+    "statusPlaceholder":"请选择录入状态",
+    "all":"全部",
+    "success":"成功",
+    "fail":"失败",
+    "uploadTime":"录入时间",
+    "startDate":"开始时间",
+    "endDate":"结束时间",
+    "transactionId":"微信订单号",
+    "logisticsTypeName":"物流模式",
+    "deliveryModeName":"发货模式",
+    "isAllDelivered":"是否已全部发货完成",
+    "yes":"是",
+    "no":"否",
+    "failReason":"失败原因：",
+    "again":"重新录入"
+}

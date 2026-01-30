@@ -1,0 +1,23 @@
+{
+  "normal": {
+    "title": "无特效",
+    "child_list": []
+  },
+  "promotion": {
+    "title": "促销",
+    "child_list": {
+      "red_packet": "红包",
+      "gift_box": "礼盒",
+      "big_wing": "大元宝"
+    }
+  },
+  "festival": {
+    "title": "节庆",
+    "child_list": {
+      "blessing": "花瓣",
+      "firecrackers": "爆竹",
+      "i_love_you": "我爱你",
+      "kongmin_light": "孔明灯"
+    }
+  }
+}

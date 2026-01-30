@@ -1,0 +1,21 @@
+{
+    "addTopic":"添加话题",
+    "updateTopic":"编辑话题",
+    "topicName":"话题名称",
+    "topicIdPlaceholder":"请输入话题ID",
+    "topicNamePlaceholder":"请输入话题名称",
+    "statusPlaceholder":"请选择状态",
+    "sortPlaceholder":"请输入排序",
+    "sortTips":"排序号格式输入错误",
+    "isRecommend":"是否推荐",
+    "isRecommendPlaceholder":"请选择是否推荐",
+    "contentNum":"相关内容数",
+    "memberNum":"相关作者数",
+    "createTime":"创建时间",
+    "show":"查看",
+    "topicDeleteTips":"确定要删除该数据吗？",
+    "open":"开启",
+    "off":"关闭",
+    "recommend":"推荐",
+    "notRecommend":"不推荐"
+}

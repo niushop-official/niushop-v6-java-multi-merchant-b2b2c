@@ -1,0 +1,27 @@
+{
+    "contentTitle":"内容标题",
+    "contentTitlePlaceholder":"请输入内容标题",
+    "contentType":"内容类型",
+    "imageText": "图文",
+    "shortVideo": "短视频",
+    "contentTypePlaceholder":"请选择内容类型",
+    "contentCover":"内容封面",
+    "likeNum":"点赞数",
+    "shareNum":"分享数",
+    "commentNum":"评论数",
+    "viewNum":"浏览量",
+    "collectNum":"收藏数",
+    "createTime":"发布时间",
+    "commentContent":"评论内容",
+    "commentContentPlaceholder":"请输入评论内容",
+    "detail":"详情",
+    "contentAuthor":"内容作者",
+    "topicName":"内容话题",
+    "content":"内容简介",
+    "cwryInfo":"宝贝信息",
+    "memberInfo":"会员信息",
+    "replyNum":"回复数",
+    "author":"作者",
+    "contentSelectContentTips":"请选择内容"
+
+}

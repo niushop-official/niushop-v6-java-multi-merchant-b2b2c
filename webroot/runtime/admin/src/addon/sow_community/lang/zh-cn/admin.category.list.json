@@ -1,0 +1,14 @@
+{
+    "addCategory":"添加分类",
+    "updateCategory":"编辑分类",
+    "categoryName":"分类名称",
+    "categoryNamePlaceholder":"请输入分类名称",
+    "statusPlaceholder":"请选择状态",
+    "isShow":"是否显示",
+    "sort":"排序",
+    "sortPlaceholder":"请输入排序",
+    "sortTips":"排序号格式输入错误",
+    "categoryDeleteTips":"确定要删除该数据吗？",
+    "open":"开启",
+    "off":"关闭"
+}

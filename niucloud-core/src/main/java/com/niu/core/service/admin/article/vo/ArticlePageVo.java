@@ -1,0 +1,31 @@
+package com.niu.core.service.admin.article.vo;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.niu.core.common.domain.BeanJsonSerializer;
+import lombok.Data;
+
+import java.io.Serializable;
+
+@Data
+public class ArticlePageVo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private Integer id;// 文章id
+    private Integer siteId;// 站点id
+    private Integer categoryId;// 文章分类id
+    private String title;// 文章标题
+    private String image;// 文章图片
+    private String author;// 文章作者
+    private Integer visit;// 实际浏览量
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long createTime;// 创建时间
+    private String imageThumbSmall;// 缩略图小图
+    private String categoryName;// 缩略图小图
+    private ArticleCategoryVo articleCategory;
+    @Data
+    public static class ArticleCategoryVo {
+        private Integer categoryId;// 分类id
+        private String categoryName;// 分类名称
+    }
+}

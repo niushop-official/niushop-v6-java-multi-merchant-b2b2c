@@ -1,0 +1,1 @@
+import{ag as t}from"./index-1a7df68a.js";function e(e){return t.get(`article/site/article/${e}`)}function r(e){return t.get("article/site/article",e)}function a(e){return t.get("mall/site/stat/article",e)}export{r as a,e as b,a as g};

@@ -1,0 +1,11 @@
+[
+  {
+    "icon": "addon/mall/diy/tabbar/system-my.png",
+    "url": {
+      "type": "link",
+      "value": "/app/pages/member/index"
+    },
+    "text": "个人中心",
+    "sort": 4
+  }
+]

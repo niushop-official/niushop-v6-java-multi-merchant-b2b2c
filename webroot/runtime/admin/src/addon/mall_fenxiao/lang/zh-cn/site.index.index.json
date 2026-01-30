@@ -1,0 +1,12 @@
+{
+  "settlementCommission":"已结算佣金（元）",
+  "settlementCommissionTips":"已结算佣金总和",
+  "unSettlementCommission":"待结算佣金（元）",
+  "unSettlementCommissionTips":"待结算佣金总和",
+  "shopCommission":"店铺支付佣金（元）",
+  "shopCommissionTips":"店铺支付佣金总和",
+  "shopRefundCommission":"退还店铺佣金（元）",
+  "shopRefundCommissionTips":"退还店铺佣金总和",
+  "memberInfo":"会员信息",
+  "memberInfoPlaceholder":"请输入会员编号/昵称/账号/手机号搜索"
+}

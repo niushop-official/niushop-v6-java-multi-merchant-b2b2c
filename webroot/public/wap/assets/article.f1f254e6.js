@@ -1,0 +1,1 @@
+import{p as t}from"./index-cf603725.js";function e(){return t.get("article/category")}function r(e){return t.get("article/list",e)}function i(e){return t.get(`article/${e}`)}function n(e){return t.get("article/all",e)}function s(e){return t.put(`article/incVisit/${e}`,{},{showErrorMessage:!1,showSuccessMessage:!1})}export{e as a,r as b,i as c,n as g,s as i};

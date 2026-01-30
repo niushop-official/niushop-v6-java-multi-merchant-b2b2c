@@ -1,0 +1,1 @@
+import{ag as t}from"./index-1a7df68a.js";function n(n){return t.get("stat/finance/accounts/total",n)}function a(n){return t.get("stat/finance/accounts/list",n)}function c(n){return t.get("stat/finance/accounts/detail",n)}export{a,c as b,n as g};

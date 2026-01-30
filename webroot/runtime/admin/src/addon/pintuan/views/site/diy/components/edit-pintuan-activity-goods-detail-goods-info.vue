@@ -1,0 +1,85 @@
+<template>
+    <!-- 内容 -->
+    <div class="content-wrap" v-show="diyStore.editTab == 'content'">
+        <div class="edit-attr-item-wrap">
+            <el-form label-width="100px" class="px-[10px]">
+                <el-form-item :label="t('是否显示')">
+                    <el-checkbox-group v-model="serviceConfig" @change="serviceConfigChange" :min="1">
+                        <el-checkbox label="购买须知" value="instructions" />
+                        <el-checkbox label="服务保障" value="guarantee"/>
+                    </el-checkbox-group>
+                    <div class="text-sm text-gray-400">{{ t('商品服务最少选择1个') }}</div>
+                </el-form-item>
+                <el-form-item :label="t('分割线')">
+                    <el-switch v-model="diyStore.editComponent.dividerLine.isShow" :active-value="true" :inactive-value="false" />
+                </el-form-item>
+                <el-form-item :label="t('购买按钮')">
+                    <div class="flex flex-col">
+                        <el-switch v-model="diyStore.editComponent.buyBtn.isShow" :active-value="true" :inactive-value="false" />
+                        <div class="text-sm text-gray-400 leading-[1.8]">{{ t('活动进行中，点击按钮可按秒杀价购买；其他情况下，点击按钮则按原价购买。') }}</div>
+                    </div>
+                </el-form-item>
+                <el-form-item :label="t('购买按钮名称')">
+                    <el-input v-model.trim="diyStore.editComponent.buyBtn.text" :placeholder="t('titlePlaceholder')" clearable maxlength="6" show-word-limit />
+                </el-form-item>
+            </el-form>
+        </div>
+    </div>
+
+    <!-- 样式 -->
+    <div class="style-wrap" v-show="diyStore.editTab == 'style'">
+        <!-- 分割线样式 -->
+        <el-form-item :label="t('分割线颜色')">
+            <el-color-picker v-model="diyStore.editComponent.dividerLine.color" />
+        </el-form-item>
+
+        <!-- 购买按钮 -->
+        <div class="edit-attr-item-wrap">
+            <h3 class="mb-[10px]">{{ t('购买按钮') }}</h3>
+            <el-form label-width="100px" class="px-[10px]">
+                <el-form-item :label="t('文字颜色')">
+                    <el-color-picker v-model="diyStore.editComponent.buyBtn.textColor" />
+                </el-form-item>
+                <el-form-item :label="t('文字大小')">
+                    <el-slider v-model="diyStore.editComponent.buyBtn.fontSize" show-input size="small" class="ml-[10px] diy-nav-slider" :min="12" :max="20" />
+                </el-form-item>
+                <el-form-item :label="t('背景色')">
+                    <el-color-picker v-model="diyStore.editComponent.buyBtn.bgColor" />
+                </el-form-item>
+                <el-form-item :label="t('圆角')">
+                    <el-slider v-model="diyStore.editComponent.buyBtn.rounded" show-input size="small" class="ml-[10px] diy-nav-slider" :min="0" :max="50" />
+                </el-form-item>
+            </el-form>
+        </div>
+        <!-- 组件样式 -->
+        <slot name="style"></slot>
+    </div>
+</template>
+
+<script lang="ts" setup>
+import { t } from '@/lang'
+import useDiyStore from '@/stores/modules/diy'
+import { ref, reactive } from 'vue'
+
+const diyStore: any = useDiyStore()
+diyStore.editComponent.ignore = [] // 忽略公共属性
+
+const serviceConfig = ref([])
+if (diyStore.editComponent.serviceConfig) {
+    serviceConfig.value = (typeof diyStore.editComponent.serviceConfig == 'object') ? diyStore.editComponent.serviceConfig : diyStore.editComponent.serviceConfig.split(',')
+}
+const serviceConfigChange = (val: any) => {
+    diyStore.editComponent.serviceConfig = val
+}
+
+// 组件验证
+diyStore.editComponent.verify = (index: number) => {
+    const res = { code: true, message: '' }
+    return res
+}
+
+defineExpose({})
+
+</script>
+
+<style lang="scss" scoped></style>
