@@ -1,0 +1,7 @@
+[
+  {
+    "key": "mall",
+    "title": "多商户商城平台首页",
+    "view_path": "mall://admin/index/index"
+  }
+]
