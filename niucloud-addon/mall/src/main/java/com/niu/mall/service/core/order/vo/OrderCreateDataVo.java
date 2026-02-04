@@ -71,7 +71,7 @@ public class OrderCreateDataVo implements Serializable {
 
     protected InvoiceCreateParam invoice;
 
-    protected Integer supplyId;
+    protected Integer supplyId = 0;
 
     protected Integer isPlatCoupon = 1;
 
