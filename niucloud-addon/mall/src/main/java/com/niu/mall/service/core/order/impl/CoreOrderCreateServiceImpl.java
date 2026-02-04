@@ -189,7 +189,9 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
                 (ObjectUtil.isNotEmpty(vo.getBasic().getHasGoodsTypes()) && vo.getBasic().getHasGoodsTypes().contains(GoodsTypeEnum.REAL.getType()))){
             needTakerMobile = 1;
         }
-
+        if (ObjectUtil.isNull(vo.getSupplyId())){
+            vo.setSupplyId(0);
+        }
         // 订单
         MallOrder order = new MallOrder();
         order.setOrderNo(createOrderNo());
