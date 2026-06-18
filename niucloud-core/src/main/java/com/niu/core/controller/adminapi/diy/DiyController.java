@@ -157,7 +157,7 @@ public class DiyController {
      * @return
      */
     @GetMapping("/template")
-    public Result<JSONObject> getTemplate(TemplateParam param) {
+    public Result<?> getTemplate(TemplateParam param) {
         return Result.success(diyPageService.getTemplate(param));
     }
 

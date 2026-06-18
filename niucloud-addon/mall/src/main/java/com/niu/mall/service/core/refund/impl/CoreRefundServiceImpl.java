@@ -3,14 +3,11 @@ package com.niu.mall.service.core.refund.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.CollectUtils;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.pay.PayRefund;
 import com.niu.core.enums.pay.RefundTypeEnum;
-import com.niu.core.event.common.CommonEvent;
-import com.niu.core.event.refund.RefundSuccessEvent;
 import com.niu.core.mapper.pay.PayRefundMapper;
 import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.addon.vo.InstallAddonListVo;
@@ -18,6 +15,7 @@ import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.finance.ICoreFinanceService;
 import com.niu.core.service.core.pay.param.PayRefundCreateParam;
 import com.niu.core.service.core.pay.param.PayRefundTransferParam;
+import com.niu.core.service.core.point_deduct.ICorePointDeductService;
 import com.niu.core.service.core.sys.ICoreSysStatService;
 import com.niu.core.service.core.sys.param.SysDataAddParam;
 import com.niu.mall.entity.order.MallOrder;
@@ -25,7 +23,6 @@ import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderRefund;
 import com.niu.mall.entity.order.MallOrderRefundLog;
 import com.niu.mall.enums.order.*;
-import com.niu.mall.event.goods.MallSupplyGoodsDataInfoEventDefiner;
 import com.niu.mall.event.order.OrderRefundFinishAfterEvent;
 import com.niu.mall.event.refund.SyncSupplyOrderRefundEventDefiner;
 import com.niu.mall.event.refund.SyncSupplyRefundClassEvent;
@@ -37,7 +34,6 @@ import com.niu.mall.mapper.order.MallOrderRefundLogMapper;
 import com.niu.mall.mapper.order.MallOrderRefundMapper;
 import com.niu.mall.service.api.refund.param.CloseRefundParam;
 import com.niu.mall.service.core.goods.ICoreGoodsStatService;
-import com.niu.mall.service.core.goods.impl.CoreGoodsStatServiceImpl;
 import com.niu.mall.service.core.order.ICoreOrderCloseService;
 import com.niu.mall.service.core.order.ICoreOrderDeliveryService;
 import com.niu.mall.service.core.order.ICoreOrderService;
@@ -48,18 +44,17 @@ import com.niu.mall.service.core.refund.param.RefundFinishParam;
 import com.niu.mall.service.core.refund.vo.OrderRefundMoneyVo;
 import com.niu.mall.service.core.shop.ICoreShopSettlementService;
 import com.niu.mall.service.core.shop.ICoreStatService;
-import com.niu.mall.service.core.shop.impl.CoreShopSettlementServiceImpl;
-import com.niu.mall.service.core.shop.param.AddStatParam;
 import com.niu.mall.service.core.shop.param.OrderRefundParam;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.*;
+import java.math.RoundingMode;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -109,6 +104,9 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
     @Resource
     @Lazy
     ICoreRefundService coreRefundService;
+    @Resource
+    private ICorePointDeductService corePointDeductService;
+
     /**
      * 添加维权日志
      *
@@ -138,6 +136,9 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
         }
         //查询商城订单
         MallOrder order = mallOrderMapper.selectById(refund.getOrderId());
+        MallOrderGoods orderGoodsInfo = mallOrderGoodsMapper.selectOne(new QueryWrapper<MallOrderGoods>()
+                .eq("order_goods_id", refund.getOrderGoodsId())
+        );
         MallOrderRefund model = new MallOrderRefund();
         model.setRefundId(refund.getRefundId());
         model.setStatus(OrderRefundStatusEnum.FINISH.getStatus().toString());
@@ -149,21 +150,32 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
         orderGoods.setIsEnableRefund(0);
         mallOrderGoodsMapper.updateById(orderGoods);
 
+        // 退还抵扣积分（与 PHP 一致：按订单项 use_point 返还）
+        Integer refundUsePoint = orderGoodsInfo != null && orderGoodsInfo.getUsePoint() != null
+                ? orderGoodsInfo.getUsePoint() : 0;
+        BigDecimal refundPointDeductMoney = orderGoodsInfo != null && orderGoodsInfo.getPointDeductMoney() != null
+                ? orderGoodsInfo.getPointDeductMoney() : BigDecimal.ZERO;
+        corePointDeductService.refundPointDeduct(order.getSiteId(), order.getMemberId(), refundUsePoint, order.getOrderNo());
+
         //检查是否已退还运费
         BigDecimal refundDeliveryMoney = BigDecimal.ZERO;
         Long refundDeliveryCount = mallOrderRefundMapper.selectCount(new QueryWrapper<MallOrderRefund>()
                 .eq("order_id", refund.getOrderId())
-                .eq("is_refund_delivery",1)
+                .eq("is_refund_delivery", 1)
                 .ne("status", OrderRefundStatusEnum.CLOSE.getStatus())
         );
 
-        if (refundDeliveryCount.intValue() > 0){
+        if (refundDeliveryCount.intValue() > 0) {
             refundDeliveryMoney = order.getDeliveryMoney();
         }
-        //订单退款总额/退还运费累增
+        //订单退款总额/退还运费/退还积分累增
         order.setRefundMoney(order.getRefundMoney().add(refund.getMoney()));
         order.setRefundDeliveryMoney(refundDeliveryMoney);
-        mallOrderMapper.updateById( order);
+        order.setRefundPointDeductMoney(
+                (order.getRefundPointDeductMoney() != null ? order.getRefundPointDeductMoney() : BigDecimal.ZERO).add(refundPointDeductMoney));
+        order.setRefundDeductPoint(
+                (order.getRefundDeductPoint() != null ? order.getRefundDeductPoint() : 0) + refundUsePoint);
+        mallOrderMapper.updateById(order);
         //调用订单退款的负账结算
         OrderRefundParam refundParam = new OrderRefundParam();
         refundParam.setOrderId(Long.parseLong(order.getOrderId().toString()));
@@ -185,15 +197,15 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
                 .eq("order_refund_no", param.getOrderRefundNo())
         );
         BigDecimal supplyRefundMoney = BigDecimal.ZERO;
-        if (checkAddon("supply")){
-            if(refundData.getSupplyRefundId() > 0 ){
+        if (checkAddon("supply")) {
+            if (refundData.getSupplyRefundId() > 0) {
                 SyncSupplyOrderRefundEventDefiner.SyncSupplyOrderRefundEvent eventSupply = new SyncSupplyOrderRefundEventDefiner.SyncSupplyOrderRefundEvent();
                 eventSupply.setRefundId(refundData.getSupplyRefundId());
                 eventSupply.addAppSign("supply");
                 List<SyncSupplyOrderRefundEventDefiner.SyncSupplyOrderRefundResult> supplyOrderRefundList = EventAndSubscribeOfPublisher.publishAndCallback(eventSupply);
-                if(!supplyOrderRefundList.isEmpty()){
-                    for (SyncSupplyOrderRefundEventDefiner.SyncSupplyOrderRefundResult item : supplyOrderRefundList){
-                        if(ObjectUtil.isNotEmpty(item.getMoney())){
+                if (!supplyOrderRefundList.isEmpty()) {
+                    for (SyncSupplyOrderRefundEventDefiner.SyncSupplyOrderRefundResult item : supplyOrderRefundList) {
+                        if (ObjectUtil.isNotEmpty(item.getMoney())) {
                             supplyRefundMoney = item.getMoney();
                         }
                     }
@@ -255,7 +267,7 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
         this.addLog(logParam);
 
         // 商城统计
-        log.info("商城统计:退款金额"+refund.getMoney());
+        log.info("商城统计:退款金额" + refund.getMoney());
         SysDataAddParam sysDataAddParam = new SysDataAddParam();
         sysDataAddParam.setRefundMoney(refund.getMoney());
         sysDataAddParam.setSiteId(order.getSiteId());
@@ -270,7 +282,7 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
     public void AfterMallOrderRefundClose(MallOrderRefund refund, CloseRefundParam param) {
         //订单关闭后的事件
         MallOrder order = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>().eq("order_id", refund.getOrderId()));
-        if(order != null && order.getStatus().equals(OrderStatusEnum.WAIT_DELIVERY.getStatus().toString())){
+        if (order != null && order.getStatus().equals(OrderStatusEnum.WAIT_DELIVERY.getStatus().toString())) {
             //校验一下订单项是否全部发货
             OrderDeliveryParam orderDeliveryParam = new OrderDeliveryParam();
             orderDeliveryParam.setOrderId(order.getOrderId());
@@ -288,11 +300,9 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
         coreRefundService.addLog(logParam);
 
         //商城退款关闭后，同步供货商退款关闭
-        if(ObjectUtil.isNotEmpty(coreAddonService.getInfoByKey("supply")))
-        {
-            MallOrderGoods  orderGoods = mallOrderGoodsMapper.selectOne(new QueryWrapper<MallOrderGoods>().eq("order_refund_no", refund.getOrderRefundNo()));
-            if(orderGoods.getSupplyGoodsId() > 0)
-            {
+        if (ObjectUtil.isNotEmpty(coreAddonService.getInfoByKey("supply"))) {
+            MallOrderGoods orderGoods = mallOrderGoodsMapper.selectOne(new QueryWrapper<MallOrderGoods>().eq("order_refund_no", refund.getOrderRefundNo()));
+            if (orderGoods.getSupplyGoodsId() > 0) {
                 // 触发事件 退款同步供货商的退款单据号
                 SyncSupplyRefundClassEvent eventRefund = new SyncSupplyRefundClassEvent();
                 eventRefund.setRefundData(refund);
@@ -308,6 +318,7 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
 
     /**
      * 转账
+     *
      * @param refund
      */
     @Override
@@ -340,8 +351,8 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
                 mallOrderRefundMapper.updateById(model);
 
                 //todo  supply退款同步供货商的退款单据号
-                if (checkAddon("supply")){
-                    if(refund.getSupplyId() != null && refund.getSupplyRefundId() != null && refund.getSupplyId() > 0 && refund.getSupplyRefundId() > 0){
+                if (checkAddon("supply")) {
+                    if (refund.getSupplyId() != null && refund.getSupplyRefundId() != null && refund.getSupplyId() > 0 && refund.getSupplyRefundId() > 0) {
                         // 触发事件 退款同步供货商的退款单据号
                         SyncSupplyRefundNoEvent event = new SyncSupplyRefundNoEvent();
                         event.setRefundId(refund.getSupplyRefundId());
@@ -367,10 +378,11 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
 
     /**
      * 检查插件是否安装
+     *
      * @param key
      */
     private Boolean checkAddon(String key) {
-        Map<String, InstallAddonListVo> addonListVoMap= coreAddonService.getInstallAddonList();
+        Map<String, InstallAddonListVo> addonListVoMap = coreAddonService.getInstallAddonList();
         return addonListVoMap.get(key) != null;
     }
 
@@ -386,8 +398,8 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
         );
         if (orderRefund == null) return;
 
-        if (checkAddon("supply")){
-            if(orderRefund.getSupplyRefundId() > 0){
+        if (checkAddon("supply")) {
+            if (orderRefund.getSupplyRefundId() > 0) {
                 SyncSupplyRefundSuccessEvent event = new SyncSupplyRefundSuccessEvent();
                 event.setTradeType(refund.getTradeType());
                 event.setTradeId(orderRefund.getOrderRefundNo());
@@ -409,6 +421,7 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
 
     /**
      * 退款校验
+     *
      * @param orderGoodsIds
      * @param applyRefundMoney
      */
@@ -422,8 +435,46 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
         return vo;
     }
 
+    @Override
+    public BigDecimal getItemRefundableMoney(Integer orderGoodsId) {
+        MallOrderGoods orderGoods = mallOrderGoodsMapper.selectById(orderGoodsId);
+        if (orderGoods == null) {
+            throw new CommonException("订单已失效");
+        }
+        return calculateItemRefundableMoney(orderGoods);
+    }
+
+    private static BigDecimal defaultZero(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
+    }
+
+    /**
+     * 解析平台优惠（含积分抵扣），兼容历史数据 point_deduct_money 未计入 mall_discount_money。
+     */
+    private BigDecimal resolveMallDiscountMoney(MallOrderGoods orderGoods) {
+        BigDecimal mall = defaultZero(orderGoods.getMallDiscountMoney());
+        BigDecimal point = defaultZero(orderGoods.getPointDeductMoney());
+        if (point.compareTo(BigDecimal.ZERO) > 0 && mall.compareTo(point) < 0) {
+            return mall.add(point);
+        }
+        return mall;
+    }
+
+    /**
+     * 订单项可退金额（不含运费）。
+     */
+    private BigDecimal calculateItemRefundableMoney(MallOrderGoods orderGoods) {
+        return orderGoods.getGoodsMoney()
+                .subtract(defaultZero(orderGoods.getDiscountMoney()))
+                .subtract(resolveMallDiscountMoney(orderGoods))
+                .subtract(defaultZero(orderGoods.getShopActiveRefundMoney()))
+                .max(BigDecimal.ZERO)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
     /**
      * 获取订单最大可退金额
+     *
      * @param orderGoodsIds
      * @return
      */
@@ -436,14 +487,14 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
         MallOrder order = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>().eq("order_id", orderGoodsList.get(0).getOrderId()));
         if (ObjectUtil.isEmpty(order)) throw new CommonException("订单已失效");
 
-        List< String> statusList = List.of(OrderStatusEnum.WAIT_PAY.getStatus().toString(), OrderStatusEnum.CLOSE.getStatus().toString());
+        List<String> statusList = List.of(OrderStatusEnum.WAIT_PAY.getStatus().toString(), OrderStatusEnum.CLOSE.getStatus().toString());
         if (statusList.contains(order.getStatus())) {
             throw new CommonException("退款已失效(退款未支付或已关闭)");
         }
 
         // 查询是否是最后一笔退款且还没有退运费
         Long orderGoodsCount = mallOrderGoodsMapper.selectCount(new QueryWrapper<MallOrderGoods>()
-                .eq("order_id", order.getOrderId())
+                        .eq("order_id", order.getOrderId())
                 //ns_mall_order_goods 表没有该字段
                 //.eq("is_gift", 0)
         );
@@ -464,9 +515,10 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
         for (int i = 0; i < orderGoodsList.size(); i++) {
             OrderRefundMoneyVo.MallOrderGoods orderGoods = orderGoodsList.get(i);
             if (orderGoods.getIsEnableRefund().equals(0)) throw new CommonException("订单不允许退款");
-            if (!orderGoods.getStatus().equals(OrderGoodsRefundEnum.NORMAL.getStatus())) throw new CommonException("订单已退款或存在未完成的退款");
+            if (!orderGoods.getStatus().equals(OrderGoodsRefundEnum.NORMAL.getStatus()))
+                throw new CommonException("订单已退款或存在未完成的退款");
 
-            BigDecimal itemRefundMoney = orderGoods.getGoodsMoney().subtract(orderGoods.getDiscountMoney()).subtract(orderGoods.getMallDiscountMoney()).subtract(orderGoods.getShopActiveRefundMoney());
+            BigDecimal itemRefundMoney = calculateItemRefundableMoney(orderGoods);
 
             if (isRefundDelivery && i == 0) {
                 itemRefundMoney = itemRefundMoney.add(order.getDeliveryMoney());

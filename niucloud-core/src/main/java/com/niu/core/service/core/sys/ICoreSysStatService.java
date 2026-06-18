@@ -3,6 +3,7 @@ package com.niu.core.service.core.sys;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.service.core.sys.param.SysDataAddParam;
+import com.niu.core.service.core.sys.param.SysDataDecParam;
 import com.niu.core.service.core.sys.vo.SysDataVo;
 import com.niu.core.service.core.sys.vo.SysStatListVo;
 import com.niu.core.service.core.sys.vo.SysStatVo;
@@ -12,6 +13,11 @@ import java.util.Map;
 public interface ICoreSysStatService {
 
     void addStat(SysDataAddParam sysDataAddParam);
+
+    /**
+     * 累减统计数据，对齐 PHP CoreStatService::decStat
+     */
+    void decStat(SysDataDecParam sysDataDecParam);
 
     SysDataVo getStatData(Integer siteId, String startDate, String endDate);
 

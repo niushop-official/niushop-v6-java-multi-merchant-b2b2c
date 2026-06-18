@@ -2,7 +2,6 @@ package com.niu.core.service.core.member;
 
 import cn.hutool.json.JSONObject;
 import com.niu.core.entity.member.Member;
-import com.niu.core.service.admin.member.param.MemberAccountLogParam;
 import com.niu.core.service.core.member.dto.MemberInfoDto;
 import com.niu.core.service.core.member.param.MemberStatSearchParam;
 
@@ -131,10 +130,21 @@ public interface ICoreMemberService {
 
     /**
      * 获取登录用户详情信息
+     *
      * @param memberId
      * @return
      */
     MemberInfoDto getMemberInfo(Integer memberId);
 
     Member getInfoByMemberId(Integer memberId, String field);
+
+    void modifyRecommender(Integer memberId, Integer pid);
+
+    /**
+     * 重置密码
+     *
+     * @param memberId
+     * @param password
+     */
+    void modifyPassword(Integer memberId, String password);
 }

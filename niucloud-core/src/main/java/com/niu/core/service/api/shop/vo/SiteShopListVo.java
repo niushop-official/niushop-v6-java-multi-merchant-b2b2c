@@ -158,6 +158,9 @@ private static final long serialVersionUID = 1L;
 
                 private String groupName;
 
+                /** H5商户背景图 */
+                private String backgroundH5;
+
         }
 
 

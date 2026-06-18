@@ -24,14 +24,17 @@
                     <text class="text-[20rpx] mt-[10rpx]">分享</text>
                 </view>
             </view>
-            <view class="flex flex-1" v-if="diyComponent.shop_info.business_status == 1">
+            <view class="flex flex-1" v-if="diyComponent.goods.audit_status == 1 || diyComponent.goods.audit_status == -1">
+                <button class="w-[100%] !h-[70rpx] font-500 text-[26rpx] !text-[#fff] !bg-[#ccc] !m-0 !mr-[16rpx] leading-[70rpx] rounded-full remove-border">该商品已下架</button>
+            </view>
+            <view class="flex flex-1" v-else-if="diyComponent.shop_info.business_status == 1">
                 <view class="flex flex-1" v-if="diyComponent.goods.status == 1">
                     <template v-if="maxBuy > 0 || maxBuy == -1">
-                        <button v-if="(diyComponent.goods.goods_type == 'real' || (diyComponent.goods.goods_type == 'virtual' && diyComponent.goods.virtual_receive_type != 'verify')) && diyComponent.cartIsShow" class="flex-1 !h-[70rpx] font-500 text-[26rpx] !m-0 !mr-[16rpx] leading-[70rpx] rounded-full remove-border" @click="buyFn('join_cart')" :style="cartBtnStyle">
+                        <button v-if="(diyComponent.goods.goods_type == 'real') && diyComponent.cartIsShow" class="flex-1 !h-[70rpx] font-500 text-[26rpx] !m-0 !mr-[16rpx] leading-[70rpx] rounded-full remove-border" @click="buyFn('join_cart')" :style="cartBtnStyle">
                             {{ diyComponent.cartName }}
                         </button>
                         <button v-if="isShowSingleSku" class="flex-1 !h-[70rpx] font-500 text-[26rpx] !m-0 !mr-[16rpx] leading-[70rpx] rounded-full remove-border" :style="buyBtnStyle" @click="buyFn('buy_now')">{{ diyComponent.buyName }}</button>
-                        <button v-else :style="{ width : (diyComponent.goods.goods_type == 'real' || (diyComponent.goods.goods_type == 'virtual' && diyComponent.goods.virtual_receive_type != 'verify')) ?  '200rpx' : '400rpx' + '!important'  }" class="flex-1 !h-[70rpx] font-500 text-[26rpx] !text-[#fff] !bg-[#ccc] !m-0 !mr-[16rpx] leading-[70rpx] rounded-full remove-border"
+                        <button v-else :style="{ width : (diyComponent.goods.goods_type == 'real') ?  '200rpx' : '400rpx' + '!important'  }" class="flex-1 !h-[70rpx] font-500 text-[26rpx] !text-[#fff] !bg-[#ccc] !m-0 !mr-[16rpx] leading-[70rpx] rounded-full remove-border"
                         >已售罄</button>
                     </template>
                     <button v-else-if="maxBuy == 0" :style="{ width : '420rpx' + '!important'  }" class="flex-1 !h-[70rpx] font-500 text-[26rpx] !text-[#fff] !bg-[#ccc] !m-0 leading-[70rpx] rounded-full remove-border">已达限购数量</button>
@@ -126,7 +129,7 @@ const buyBtnStyle = computed(() => {
     if (diyComponent.value.buyStyle.textColor) style += 'color:' + diyComponent.value.buyStyle.textColor+';';
     if (diyComponent.value.buyStyle.fontSize) style += 'font-size:' + diyComponent.value.buyStyle.fontSize * 2 + 'rpx;';
 
-    if (diyComponent.value.goods.goods_type == 'real' || (diyComponent.value.goods.goods_type == 'virtual' && diyComponent.value.goods.virtual_receive_type != 'verify')){
+    if (diyComponent.value.goods.goods_type == 'real'){
         style += 'width:200rpx !important;';
     }else{
         style += 'width:400rpx !important;';

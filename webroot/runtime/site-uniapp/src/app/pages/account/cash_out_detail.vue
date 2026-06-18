@@ -161,11 +161,11 @@ const loadQrcode = () => {
 }
 // #endif
 
-const toLink = () => {
+const toWeapp = () => {
     diyRedirect(wapPreview.value)
 }
 
-const toWeapp = () => {
+const toLink = () => {
    window.location.href = transferUrl.value.url_link;
 }
 // 取消提现  

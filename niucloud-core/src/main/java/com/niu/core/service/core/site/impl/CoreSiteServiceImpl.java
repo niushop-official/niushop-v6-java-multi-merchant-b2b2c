@@ -11,13 +11,16 @@ import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.component.context.cache.CachedServiceImpl;
 import com.niu.core.common.config.GlobalConfig;
-import com.niu.core.common.utils.date.DateUtils;
+import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteAddonInitRecord;
 import com.niu.core.entity.site.SiteGroup;
 import com.niu.core.enums.addon.AddonActionEnum;
+import com.niu.core.enums.promotion.AdminPromotionEnum;
+import com.niu.core.enums.promotion.SitePromotionEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
+import com.niu.core.enums.sys.AppTypeEnum;
 import com.niu.core.enums.sys.CacheTagEnum;
 import com.niu.core.mapper.addon.AddonMapper;
 import com.niu.core.mapper.site.SiteAddonInitRecordMapper;
@@ -27,12 +30,10 @@ import com.niu.core.service.admin.addon.IAddonService;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.core.site.vo.SiteInfoCacheVo;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * 站点服务层
@@ -142,7 +143,7 @@ public class CoreSiteServiceImpl extends CachedServiceImpl<SiteMapper, Site> imp
             if (siteInfoVo.getAddonKeys().size() != 0) {
                 siteInfoVo.setSiteAddons(addonService.getAddonListByKeys(siteInfoVo.getAddonKeys(), AddonActionEnum.ADDON.getCode()));
                 siteInfoVo.setApps(addonService.getAddonListByKeys(siteInfoVo.getAddonKeys(), AddonActionEnum.APP.getCode()));
-            }else{
+            } else {
                 siteInfoVo.setSiteAddons(new ArrayList<>());
                 siteInfoVo.setApps(new ArrayList<>());
             }
@@ -167,7 +168,7 @@ public class CoreSiteServiceImpl extends CachedServiceImpl<SiteMapper, Site> imp
      */
     @Override
     public boolean siteAddonIsInit(Integer siteId, String addon) {
-            Long count = siteAddonInitRecordMapper.selectCount(new QueryWrapper<SiteAddonInitRecord>().eq("site_id", siteId).eq("addon", addon));
+        Long count = siteAddonInitRecordMapper.selectCount(new QueryWrapper<SiteAddonInitRecord>().eq("site_id", siteId).eq("addon", addon));
         return count == 1 ? true : false;
     }
 
@@ -209,9 +210,9 @@ public class CoreSiteServiceImpl extends CachedServiceImpl<SiteMapper, Site> imp
 
     @Override
     public SiteInfoVo getShopBasicInfo(Integer siteId) {
-    
+
         String field = "ns.site_id, ns.site_name, ns.status, ns.create_time, ns.expire_time, ns.group_id";
-        
+
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.select(field)
                 .setAlias("ns")
@@ -230,5 +231,51 @@ public class CoreSiteServiceImpl extends CachedServiceImpl<SiteMapper, Site> imp
         }
 
         return null;
+    }
+
+
+    /**
+     * 查询营销工具和活动列表
+     *
+     * @param addons  已安装的插件 key 集合
+     * @param appType 应用类型
+     * @param siteId  站点 ID
+     * @return 分组的营销项
+     */
+    @Override
+    public Map<String, Map<String, Object>> getShowPromotionTools(List<String> addons, String appType, Integer siteId) {
+        // 初始化返回结构
+        Map<String, Map<String, Object>> result = new LinkedHashMap<>();
+        Map<String, Object> toolGroup = new LinkedHashMap<>();
+        toolGroup.put("title", "营销工具");
+        toolGroup.put("list", new ArrayList<>());
+        result.put("tool", toolGroup);
+
+        Map<String, Object> activityGroup = new LinkedHashMap<>();
+        activityGroup.put("title", "营销活动");
+        activityGroup.put("list", new ArrayList<>());
+        result.put("activity", activityGroup);
+
+        // 收集所有促销项（通过扩展点）
+        List<Map<String, String>> allPromotions = List.of();
+        if (RequestUtils.appType().equals(AppTypeEnum.ADMIN.getName()))
+            allPromotions = AdminPromotionEnum.getAdminPromotionMapList();
+        if (RequestUtils.appType().equals(AppTypeEnum.SITE.getName()))
+            allPromotions = SitePromotionEnum.getSitePromotionMapList();
+
+        // 过滤并分组
+        for (Map<String, String> promotion : allPromotions) {
+            String addonKey = promotion.get("addon_key");
+            // 插件未安装则跳过
+            if (addonKey != null && !addons.contains(addonKey)) {
+                continue;
+            }
+            String groupKey = promotion.get("group_key");
+            if (result.containsKey(groupKey)) {
+                ((List<Map<String, String>>) result.get(groupKey).get("list")).add(promotion);
+            }
+        }
+        return result;
+
     }
 }

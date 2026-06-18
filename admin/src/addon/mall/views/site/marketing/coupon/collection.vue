@@ -2,14 +2,7 @@
     <div class="main-container">
         <el-card class="box-card !border-none" shadow="never">
             <div class="flex justify-between items-center">
-                <div class="detail-head !m-0">
-                    <div class="left" @click="router.push('/mall/marketing/coupon/list')">
-                        <span class="iconfont iconxiangzuojiantou !text-xs"></span>
-                        <span class="ml-[1px]">{{ t('returnToPreviousPage') }}</span>
-                    </div>
-                    <span class="adorn">|</span>
-                    <span class="right"> {{ t('collectionCoupon') }}</span>
-                </div>
+               <span class="text-page-title">{{ pageName }}</span>
             </div>
             <div class="mt-[10px]">
 
@@ -111,14 +104,14 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { getCouponRecords, getCouponInfo } from '@/addon/mall/api/site/marketing'
+import { getCouponRecords, getCouponStat } from '@/addon/mall/api/site/marketing'
 import { useRoute, useRouter } from 'vue-router'
 import { FormInstance } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
-// const pageName = route.meta.title
-const couponId: number = parseInt(route.query.id)
+const pageName = route.meta.title
+const couponId: number = parseInt(route.query.id) || ''
 const loading = ref(false)
 const tableData = reactive({
     page: 1,
@@ -151,7 +144,7 @@ const couponCollection = () => {
     })
 
     // 详情查询
-    getCouponInfo(couponId).then(res => {
+    getCouponStat({ id: couponId }).then(res => {
         couponStatistics.value = res.data
         loading.value = false
     }).catch(() => {

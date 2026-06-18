@@ -21,7 +21,7 @@
             <view>
                 <scroll-view :scroll-x="true" class="tab-style-2">
                     <view class="tab-content">
-                        <view class="tab-items mr-[40rpx]" :class="{ 'class-select': searchParam.status === item.value }" @click="handleStatus(item.value)" v-for="(item, key) in goodsStatus" :key="key">{{ item.label }}</view>
+                        <view class="tab-items mr-[40rpx]" :class="{ 'class-select': searchParam.status_type === item.value }" @click="handleStatus(item.value)" v-for="(item, key) in goodsStatus" :key="key">{{ item.label }}</view>
                     </view>
                 </scroll-view>
             </view>
@@ -166,8 +166,8 @@
             <view @touchmove.prevent.stop class="popup-common">
                 <view class="title">更多批量操作</view>
                 <view class="px-[30rpx]">
-                    <view class="mb-[40rpx] text-[28rpx]" v-if="searchParam.status != '1'" @click="batchGoodsStatus(1)">批量上架</view>
-                    <view class="mb-[40rpx] text-[28rpx]" v-if="searchParam.status != '0'" @click="batchGoodsStatus(0)">批量下架</view>
+                    <view class="mb-[40rpx] text-[28rpx]" v-if="searchParam.status_type != '1'" @click="batchGoodsStatus(1)">批量上架</view>
+                    <view class="mb-[40rpx] text-[28rpx]" v-if="searchParam.status_type != '0'" @click="batchGoodsStatus(0)">批量下架</view>
                 </view>
             </view>
          </u-popup>
@@ -184,7 +184,7 @@ import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue'
 import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.vue';
 import useMescroll from '@/components/mescroll/hooks/useMescroll.js';
 import { onLoad, onPageScroll, onReachBottom } from '@dcloudio/uni-app';
-import { getGoodsPageList, getGoodsStatus, getGoodsType, editGoodsStatus, deleteGoods } from '@/addon/mall/api/goods'
+import { getGoodsPageList, getGoodsStatusType, getGoodsType, editGoodsStatus, deleteGoods } from '@/addon/mall/api/goods'
 import goodsPriceEditPopup from './components/goods-price-edit-popup.vue';
 import goodsStockEditPopup from './components/goods-stock-edit-popup.vue';
 import uniDrawer from '@/components/uni-drawer/uni-drawer.vue';
@@ -198,7 +198,7 @@ const{setShare} = useShare()
 
 const searchParam = reactive<any>({
     goods_name: '', // 商品名称
-    status: '', // 商品状态
+    status_type: '', // 商品状态
     start_sale_num: '', // 最低销量
     end_sale_num: '', // 最高销量
     start_price: '', // 最低价格
@@ -217,7 +217,7 @@ const selectData = reactive({
 
 const getGoodsStatusFn = () => {
     goodsStatus.value = []
-    getGoodsStatus().then((res: any) => {
+    getGoodsStatusType().then((res: any) => {
         goodsStatus.value.push({ label: '全部', value: '' })
         Object.values(res.data).forEach((item, index) => {
 			goodsStatus.value.push(item);
@@ -339,7 +339,7 @@ const confirm = () => {
 
 const  reset = () => {
     searchParam.goods_name = '' // 商品名称
-    searchParam.status = '' // 商品状态
+    searchParam.status_type = '' // 商品状态
     searchParam.start_sale_num = '' // 最低销量
     searchParam.end_sale_num = '' // 最高销量
     searchParam.start_price = '' // 最低价格
@@ -351,7 +351,7 @@ const  reset = () => {
 
 // 切换状态
 const  handleStatus = (value: string) => {
-    searchParam.status = value
+    searchParam.status_type = value
     getMescroll().resetUpScroll();
     selectData.isShow = false
     selectData.checkAll = false

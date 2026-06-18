@@ -8,7 +8,7 @@
                         <el-checkbox label="商品服务" value="goods_service" />
                         <el-checkbox label="规格选择" value="spec_select" />
                         <el-checkbox label="配送信息" value="delivery_info" />
-                        <el-checkbox label="领券（领取优惠券）" value="coupons"/>
+                        <!-- <el-checkbox label="领券（领取优惠券）" value="coupons"/> -->
                     </el-checkbox-group>
                     <div class="text-sm text-gray-400">{{ t('商品服务最少选择2个') }}</div>
                 </el-form-item>

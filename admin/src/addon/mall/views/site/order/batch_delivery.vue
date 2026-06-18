@@ -76,7 +76,10 @@
                         layout="total, sizes, prev, pager, next, jumper" :total="importFileTableData.total"
                         @size-change="loadInvoiceList()" @current-change="loadInvoiceList" />
                 </div>
+                <batch-operation-select ref="batchOperationSelectDialog" @select="handleOperationSelect" />
                 <import-data ref="importDataDialog" @complete="loadInvoiceList()" />
+                <batch-select-delivery ref="batchSelectDeliveryDialog" @batch-delivery="handleBatchDelivery" />
+                <batch-print-delivery-action ref="batchPrintDeliveryDialog" @complete="handlePrintDeliveryConfirm" />
 
                 <!-- 失败原因弹窗 -->
                 <el-dialog v-model="causeFailureDialog" :title="t('checkCause1')" width="420px">
@@ -98,10 +101,13 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { getOrderBatchDeliveryList, getOrderBatchDeliveryType, getOrderBatchDeliveryState } from '@/addon/mall/api/site/order'
+import { getOrderBatchDeliveryList, getOrderBatchDeliveryType, getOrderBatchDeliveryState, addBatchOrderDelivery } from '@/addon/mall/api/site/order'
 import { FormInstance } from 'element-plus'
 import { getSiteUserList } from '@/app/api/user'
 import importData from '@/addon/mall/views/site/order/components/import-data.vue'
+import batchOperationSelect from '@/addon/mall/views/site/order/components/batch-operation-select.vue'
+import batchSelectDelivery from '@/addon/mall/views/site/order/components/batch-select-delivery.vue'
+import batchPrintDeliveryAction from '@/addon/mall/views/site/order/components/batch-print-delivery-action.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { img } from '@/utils/common'
 
@@ -109,11 +115,19 @@ const route = useRoute()
 const router = useRouter()
 const pageName = route.meta.title
 
-const deliveryType = ref([])
+const deliveryType = ref({})
 const deliveryState = ref([])
 const allUserList = ref([])
 const setFormData = async () => {
-    deliveryType.value = await (await getOrderBatchDeliveryType()).data
+    const typeRes = await getOrderBatchDeliveryType()
+    // 将对象格式转换为 { key: name } 格式,用于 el-select
+    if (typeRes.data && typeof typeRes.data === 'object') {
+        const typeObj: Record<string, string> = {}
+        Object.keys(typeRes.data).forEach(key => {
+            typeObj[key] = typeRes.data[key].name
+        })
+        deliveryType.value = typeObj
+    }
     deliveryState.value = await (await getOrderBatchDeliveryState()).data
     allUserList.value = await (await getSiteUserList()).data
 }
@@ -137,7 +151,7 @@ const searchFormRef = ref<FormInstance>()
 const resetForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return
     formEl.resetFields()
-    importFileTableData.searchParam.main_id = "";
+    importFileTableData.searchParam.main_id = ''
     loadInvoiceList()
 }
 
@@ -162,26 +176,74 @@ const loadInvoiceList = (page: number = 1) => {
 loadInvoiceList()
 
 // 下载
-const examineDownloadFn = (path:any)=>{
-    let url = `${import.meta.env.VITE_IMG_DOMAIN || location.origin}/${path}`;
+const examineDownloadFn = (path:any) => {
+    let url = `${import.meta.env.VITE_IMG_DOMAIN || location.origin}/${path}`
     window.open(url)
 }
 
 /**
- * 批量发货
- * @param data
+ * 批量操作选择
  */
+const batchOperationSelectDialog: Record<string, any> | null = ref(null)
 const importDataDialog: Record<string, any> | null = ref(null)
+const batchSelectDeliveryDialog: Record<string, any> | null = ref(null)
+const currentOperationType = ref('')
+
+// 点击导入数据按钮,先打开操作选择弹窗
 const importEvent = (data: any) => {
-    importDataDialog.value.open();
+    batchOperationSelectDialog.value.open()
+}
+
+// 处理用户选择的操作类型
+const handleOperationSelect = (type: string) => {
+    currentOperationType.value = type
+    switch (type) {
+        case 'print_delivery':
+            // 打开批量选择发货抽屉
+            batchSelectDeliveryDialog.value.open(currentOperationType.value)
+            break
+        case 'delivery':
+            // 打开批量导入发货弹窗
+            importDataDialog.value.open(currentOperationType.value)
+            break
+        case 'select_delivery':
+            // 打开批量选择发货抽屉
+            batchSelectDeliveryDialog.value.open(currentOperationType.value)
+            break
+    }
+}
+
+// ... existing code ...
+
+const batchPrintDeliveryDialog: Record<string, any> | null = ref(null)
+const selectedGoodsForPrint = ref<any[]>([])
+
+// 处理批量发货
+const handleBatchDelivery = (goods: any[]) => {
+    if (currentOperationType.value === 'print_delivery') {
+        selectedGoodsForPrint.value = goods
+        batchPrintDeliveryDialog.value.open({
+            list: goods,
+            type: currentOperationType.value
+        })
+        return false
+    }
+    if (currentOperationType.value === 'select_delivery') {
+        loadInvoiceList()
+    }
+}
+
+// 处理打单发货确认
+const handlePrintDeliveryConfirm = () => {
+    loadInvoiceList()
 }
 
 const causeFailureDialog = ref(false)
-const causeFailureContent = ref(''); //失败原因内容
+const causeFailureContent = ref('') //失败原因内容
 // 查看失败原因
-const checkCauseFn = (data)=>{
-    causeFailureContent.value = data.fail_remark;
-    causeFailureDialog.value = true;
+const checkCauseFn = (data: any) => {
+    causeFailureContent.value = data.fail_remark
+    causeFailureDialog.value = true
 }
 </script>
 

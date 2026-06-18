@@ -3,9 +3,9 @@
         <el-card class="box-card !border-none" shadow="never">
             <div class="flex justify-between  items-center mb-[30px]">
                 <div class="flex items-center">
-                    <el-image class="max-w-[158px] max-h-[24px]" :src="img(logoUrl ? logoUrl : img('/static/resource/images/web/logo.png'))" fit="contain">
+                    <el-image class="max-w-[158px] h-[24px]" :src="img(logoUrl ? logoUrl : img('/static/resource/images/web/logo.png'))" fit="contain">
                         <template #error>
-                            <img class="max-w-[158px] max-h-[24px]" :src="img('/static/resource/images/web/logo.png')" />
+                            <img class="max-w-[158px] h-[24px]" :src="img('/static/resource/images/web/logo.png')" />
                         </template>
                     </el-image>
                     <div class="w-[1px] h-[20px] bg-[#D9D9D9] mx-[16px]"></div>

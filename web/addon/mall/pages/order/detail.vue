@@ -87,6 +87,23 @@
                     <div>
                         <!-- 待付款订单的万能表单信息 -->
                         <diy-form-detail v-if="detail.form_record_id" :record_id="detail.form_record_id" @callback="getOrderDiyFormDetailCallback" />
+                        <div class="flex items-center justify-between text-[14px] text-[#666] mb-[10px] cursor-pointer" v-if="detail.gift_order_goods && detail.gift_order_goods.length > 0">
+                            <span>{{ t('赠品') }}</span>
+                            <view class="flex items-center text-[28rpx]" @click="giftGooodsRef.open(detail.gift_order_goods)">
+                                <view class="text-[24rpx] flex-1 flex gap-x-[8px] justify-end text-primary">
+                                    <view v-for="(cItem, index) in detail.gift_order_goods" :key="index" class="flex">
+                                        <el-image class="w-[30px] h-[30px] rounded-[var(--rounded-small)]" :src="img(cItem.sku_image)" model="aspectFill" v-if="index < 5">
+                                             <template #error>
+                                                <img src="@/assets/images/goods_default.png" class="w-[30px] h-[30px] rounded-[var(--rounded-small)]">
+                                            </template>
+                                        </el-image>
+                                    </view>
+                                </view>
+                                <view class="text-[28rpx] ml-[4px]">共<text class="price-font">{{ getGiftNum(detail.gift_order_goods) }}</text>件</view>
+                                <span class="iconfont icon-youV6xx !text-[16px]"></span>
+                            </view>
+                        </div>
+
                         <div class="flex items-center text-[14px] text-[#666] mb-[20px]">
                             <span>{{ t('deliveryStyle') }}</span>
                             <span class="ml-[auto]">{{ detail.delivery_type_name }}</span>
@@ -95,6 +112,7 @@
                             <span>{{ t('remark') }}</span>
                             <span class="ml-[auto]">{{ detail.member_remark ? detail.member_remark : '-' }}</span>
                         </div>
+                       
                     </div>
                 </div>
                 <template v-if="isShowVerify">
@@ -143,16 +161,39 @@
                         <span class="text-[#333]">{{ t('goodsMoney') }}</span>
                         <span class="text-[#666] price-font">￥{{ detail.goods_money }}</span>
                     </div>
-                    <div class="flex justify-between items-center mb-[20px] text-[14px]">
+                    <div class="flex justify-between items-center mb-[20px] text-[14px]" v-if="Number(detail.delivery_money)">
                         <span class="text-[#333]">{{ t('deliveryMoney') }}</span>
                         <span class="text-[#666] price-font">￥{{ detail.delivery_money }}</span>
                     </div>
-                    <div class="flex justify-between items-center mb-[20px] text-[14px]">
-                        <span class="text-[#333]">{{ t('discountMoney') }}</span>
+                    <div class="flex justify-between items-center mb-[20px] text-[14px]" v-if="Number(detail.discount_money)">
+                        <div class="flex items-center">
+                            <span class="text-[#333]">{{ t('discountMoney') }}</span>
+                            <el-tooltip class="box-item" effect="light" placement="top">
+                                <template #content>
+                                    <div v-if="Number(detail.full_reduction_money)">满减活动：-￥{{ detail.full_reduction_money }}</div>
+                                    <div v-if="Number(detail.coupon_money)">优惠券：-￥{{ detail.coupon_money }}</div>
+                                </template>
+                                <el-icon color="#666">
+                                    <QuestionFilled />
+                                </el-icon>
+                            </el-tooltip>
+                        </div>
+                        
                         <span class="text-[#666] price-font">-￥{{ detail.discount_money }}</span>
                     </div>
-                    <div class="flex justify-between items-center mb-[20px] text-[14px]">
-                        <span class="text-[#333]">{{ t('mallDiscountMoney') }}</span>
+                    <div class="flex justify-between items-center mb-[20px] text-[14px]" v-if="Number(detail.mall_discount_money)">
+                       <div class="flex items-center">
+                            <span class="text-[#333]">{{ t('mallDiscountMoney') }}</span>
+                            <el-tooltip class="box-item" effect="light" placement="top">
+                                <template #content>
+                                    <div v-if="Number(detail.mall_coupon_money)">优惠券：-￥{{ detail.mall_coupon_money }}</div>
+                                    <div v-if="Number(detail.point_deduct_money)">积分抵扣：-￥{{ detail.point_deduct_money }}</div>
+                                </template>
+                                <el-icon color="#666">
+                                    <QuestionFilled />
+                                </el-icon>
+                            </el-tooltip>
+                       </div>
                         <span class="text-[#666] price-font">-￥{{ detail.mall_discount_money }}</span>
                     </div>
                     <div class="flex justify-between items-center text-[14px]">
@@ -182,6 +223,8 @@
         <group-pay ref="groupPayRef"></group-pay>
         <!-- 组合关闭订单 -->
         <group-close ref="groupCloseRef" @confirm="closeGroupOrder"></group-close>
+        <!-- 赠品 -->
+        <gift-goods ref="giftGooodsRef"/>
     </div>
 </template>
 <script lang="ts" setup>
@@ -198,6 +241,8 @@ import deliveryPackage from '@/addon/mall/pages/order/components/delivery-packag
 import GroupPay from '@/addon/mall/pages/order/components/group-pay.vue'
 import GroupClose from '@/addon/mall/pages/order/components/group-close.vue'
 import diyFormDetail from '@/addon/components/diy-form-detail/index.vue'
+import giftGoods from '@/addon/mall/pages/order/components/gift-goods.vue'
+
 definePageMeta({
     middleware: "auth"
 });
@@ -206,6 +251,7 @@ const router = useRouter()
 let detail = ref({})
 let orderId = route.query.order_id
 let loading = ref(false);
+const giftGooodsRef = ref()
 const getOrderInfoFn = (order_id:any) => {
     loading.value = true
     getMallOrderDetail(order_id).then((res:any) => {
@@ -398,6 +444,15 @@ const orderDiyFormData = ref([]);
 const getOrderDiyFormDetailCallback = (data: any) => {
     orderDiyFormData.value = data;
 }
+
+//赠品数量
+const getGiftNum = (data) => { 
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    return data.reduce((total, item) => {
+        const giftNum = Number(item.num) || 0;
+        return total + giftNum;
+    }, 0);
+};
 </script>
 <style lang="scss" scoped>
 

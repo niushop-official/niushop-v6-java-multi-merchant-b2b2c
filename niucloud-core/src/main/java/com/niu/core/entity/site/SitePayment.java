@@ -72,6 +72,18 @@ public class SitePayment {
     @TableField("settle_desc")
     private String settleDesc;
 
+    /**
+     * 审核状态 1审核中 2审核成功 3审核失败
+     */
+    @TableField("audit_status")
+    private Integer auditStatus;
+
+    /**
+     * 审核失败原因
+     */
+    @TableField("audit_fail_remark")
+    private String auditFailRemark;
+
 
 
 

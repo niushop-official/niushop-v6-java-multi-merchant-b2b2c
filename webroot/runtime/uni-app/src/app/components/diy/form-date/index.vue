@@ -44,8 +44,8 @@
                     <text class="name" :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx' ,'font-weight': diyComponent.fontWeight}">{{ diyComponent.field.name }}</text>
                 </view>
                 <view class="layout-two-content" @click="openCalendar">
-                    <view class="flex-1 text-overflow-ellipsis flex justify-end"
-                          :class="{'!text-[#999]' : !diyComponent.field.value.date && !diyComponent.defaultControl}"
+                    <view class="flex-1 text-overflow-ellipsis flex justify-end" 
+                          :class="{'!text-[#999]' : !diyComponent.field.value.date && !diyComponent.defaultControl, '!justify-start': diyGlobal.contentAlign == 'left'}"
                           :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx'}">{{ startDate }}</view>
                     <text class="nc-iconfont !text-[var(--text-color-light9)] !text-[26rpx] nc-icon-youV6xx -mr-[8rpx]" :style="iconfontStyle"></text>
                 </view>

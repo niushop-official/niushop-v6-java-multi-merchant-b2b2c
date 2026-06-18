@@ -1,6 +1,6 @@
 package com.niu.mall.service.admin.goods.vo;
 
-import com.niu.core.common.utils.CommonUtils;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -28,11 +28,25 @@ public class SelectGoodsListVo implements Serializable {
     private Integer supplyId;
     private String goodsCoverThumbSmall;
     private String specType;
+    private Integer skuId;
+    private BigDecimal price;
+    private BigDecimal costPrice;
+
+    @JsonProperty("goods_sku")
+    private DefaultGoodsSkuVO goodsSku;
 
     private List<GoodsSkuVO> skuList;
     private List<GoodsSpecVO> goodsSpec;
     private SupplyInfo supply;
 
+    @Data
+    public static class DefaultGoodsSkuVO {
+        private Integer goodsId;
+        private Integer skuId;
+        private BigDecimal price;
+        private BigDecimal costPrice;
+        private Integer stock;
+    }
 
     @Data
     public static class GoodsSkuVO {
@@ -60,9 +74,5 @@ public class SelectGoodsListVo implements Serializable {
     public static class SupplyInfo {
         private Integer siteId;
         private String siteName;
-    }
-
-    private String getGoodsCoverThumbSmall(){
-        return CommonUtils.thumbImageSmall(this.siteId, this.goodsCover);
     }
 }

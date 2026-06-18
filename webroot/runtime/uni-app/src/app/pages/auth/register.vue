@@ -113,7 +113,7 @@
                 </view>
             </view>
         </u-popup>
-        <Verify @success='success' :mode="'pop'" :captchaType="configStore.login.captcha_type" ref="verifyRef" :imgSize="{width:'310px',height:'155px'}"></Verify>
+        <Verify @success='success' @close="close" :mode="'pop'" :captchaType="configStore.login.captcha_type" ref="verifyRef" :imgSize="{width:'310px',height:'155px'}"></Verify>
     </view>
 </template>
 
@@ -314,7 +314,9 @@ const success = async (data: any) => {
         captcha.refresh()
     })
 }
-
+const close = () => {
+    loading.value = false
+}
 const handleRegister = () => {
     formRef.value.validate().then(() => {
         if (configStore.login.agreement_show && !isAgree.value) {

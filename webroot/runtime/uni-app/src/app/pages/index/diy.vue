@@ -27,12 +27,10 @@ import { ref, nextTick } from 'vue';
 import { useDiy } from '@/hooks/useDiy'
 import { useShare } from '@/hooks/useShare'
 import diyGroup from '@/addon/components/diy/group/index.vue'
-import useDiyStore from '@/app/stores/diy'
 
 const { setShare } = useShare()
 
 const diy = useDiy({})
-const diyStore = useDiyStore();
 
 const diyGroupRef = ref(null)
 
@@ -43,7 +41,6 @@ diy.onLoad();
 
 // 监听页面显示
 diy.onShow((data: any) => {
-    diyStore.siteId = ''
     let share = data.share ? JSON.parse(data.share) : null;
     setShare(share);
     diyGroupRef.value?.refresh();

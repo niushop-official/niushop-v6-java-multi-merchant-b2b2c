@@ -10,7 +10,7 @@
             </el-alert>
             <el-form :model="formData" label-width="100px" ref="formRef" :rules="formRules" class="page-form mb-[30px]">
                 <div>
-                    <el-form-item :label="t('deliveryType')" prop="delivery_type">
+                    <el-form-item :label="t('deliveryType')" prop="delivery_type" v-if="formData.delivery_type == 'express' || formData.delivery_type == 'none_express'">
                         <el-radio-group v-model="formData.delivery_type" @change="deliveryChange">
                             <el-radio :label="index" v-for="(item, index) in deliveryType" :key="index">{{ item }}</el-radio>
                         </el-radio-group>
@@ -89,6 +89,11 @@
                         </el-form-item>
                     </div>
                 </template>
+                <template v-if="formData.delivery_type == 'virtual'">
+                    <el-form-item :label="t('virtualAutoDeliveryContent')" prop="virtual_delivery_content">
+                        <el-input type="textarea" maxlength="5000" show-word-limit rows="5" class="!w-[400px]" v-model.trim="formData.virtual_delivery_content" clearable :placeholder="t('virtualAutoDeliveryContentPlaceholder')" />
+                    </el-form-item>
+                </template>
             </el-form>
             <el-table :data="goodsDataArr" size="large" @selection-change="handleSelectionChange" ref="tableRef" max-height="400px">
                 <el-table-column type="selection" width="55" :selectable="selectable" />
@@ -133,7 +138,7 @@
         </div>
         <template #footer>
             <span class="dialog-footer">
-                <el-button @click="showDialog = false">{{ t('cancel') }}</el-button>
+                <el-button @click="handleClose">{{ t('cancel') }}</el-button>
                 <el-button type="primary" :loading="loading" @click="confirm(formRef)">{{ t('confirm') }}</el-button>
             </span>
         </template>
@@ -226,8 +231,15 @@ getShopDeliverList({}).then((res: any) => {
  */
 const thirdDeliveryData = ref([])
 const getInUseLocalDeliveryListFn = (value: any) => {
-    getInUseLocalDeliveryList({store_id: value}).then((res: any) => {
-        thirdDeliveryData.value = res.data
+    getInUseLocalDeliveryList({ store_id: value }).then((res: any) => {
+        thirdDeliveryData.value = res.data.map((item: any) => {
+            if (item.open_status == 1) {
+                item.name = item.name + '(已开通)'
+            } else {
+                item.name = item.name + '(未开通)'
+            }
+            return item
+        })
     })
 }
 
@@ -236,7 +248,7 @@ const getInUseLocalDeliveryListFn = (value: any) => {
  */
 const deliveryStoreData = ref([])
 getDeliveryStoreListAll({
-    pick_up_type: 'local_delivery',
+    pick_up_type: 'local_delivery'
 }).then((res: any) => {
     deliveryStoreData.value = res.data
 })
@@ -267,7 +279,8 @@ const initialFormData = {
     express_number: '',
     electronic_sheet_id: '',
     order_goods_ids: [],
-    store_id: ''
+    store_id: '',
+    virtual_delivery_content: ''
 }
 
 const formData: Record<string, any> = reactive({ ...initialFormData })
@@ -372,7 +385,6 @@ const goodsWeightPass = (rule: any, value: any, callback: any) => {
     }
 }
 
-
 const selectable = (row:any, index:number) => {
     if ((row.status == 2 || row.delivery_status != 'wait_delivery' || row.status == 3) && (showType.value == 'add' || !showType.value)) {
         return false
@@ -410,7 +422,7 @@ const deliveryChange = () => {
     } else if (formData.delivery_type && formData.delivery_type == 'local_delivery') {
         formData.delivery_way = 'store_delivery'
     }
-} 
+}
 
 const deliveryWayChange = () => {
     curThirdDelivery.value = {}
@@ -545,6 +557,11 @@ const setFormData = async (row: any = null, type:any) => {
                 getInUseLocalDeliveryListFn(formData.store_id)
             })
         }
+        if (formData.delivery_type == 'virtual') {
+            if (row.order_goods.length == 1) {
+                formData.virtual_delivery_content = row.order_goods[0].goods_config?.virtual_delivery_content || ''
+            }
+        }
     }
     loading.value = false
 }
@@ -552,6 +569,10 @@ const setFormData = async (row: any = null, type:any) => {
 const initFormData = () => {
     formData.order_id = 0
     formData.delivery_type = ''
+    formData.delivery_way = 'manual_write'
+    formData.local_delivery_type = 'merchant'
+    formData.store_id = ''
+    formData.local_deliver_id = ''
     formData.express_company_id = ''
     formData.electronic_sheet_id = ''
     formData.express_number = ''
@@ -594,6 +615,7 @@ const printElectronicSheetFn = () => {
 
 const handleClose = () => {
     showDialog.value = false
+    initFormData()
 }
 
 // 去开通

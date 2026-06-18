@@ -53,7 +53,7 @@
                         </up-upload>
                     </view>
                     <view class="relative overflow-hidden"  v-for="(item, index) in list" :key="index">
-                        <image v-if="attrType == 'image'" class="w-[250rpx] h-[250rpx] align-middle" mode="aspectFill" :src="img(item.thumb)" @error="item.thumb='static/resource/images/diy/shop_default.jpg'"  @click="previewImg(item.thumb)"></image>
+                        <image v-if="attrType == 'image'" class="w-[250rpx] h-[250rpx] align-middle" mode="aspectFill" :src="img(item.thumb)" @error="item.thumb='static/resource/images/diy/shop_default.jpg'"  @click="previewImg(item.url)"></image>
                         <view v-else-if="attrType == 'video'" class="w-[250rpx] h-[250rpx] relative">
                             <video  class="w-[250rpx] h-[250rpx] align-middle" :src="img(item.thumb)" @click="previewVideo(item.thumb)"  objectFit="cover" :controls="false" :show-fullscreen-btn="false" :show-center-play-btn="false" :show-play-btn="false" :enable-progress-gesture="false" @error="handleError($event, item) "></video>
                             <text v-if="item.error" class="absolute bottom-[14rpx] left-[6rpx] text-[#fff] text-[22rpx]">该视频源已失效</text>

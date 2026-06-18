@@ -26,7 +26,7 @@ public interface IGoodsServiceService {
 
     PageResult<SiteShopListVo> shopList(ShopSearchPostParam searchParam);
 
-    List<SiteShopListVo> component(ShopSearchParam shopSearchParam, Map<String, String> allParams);
+    List<SiteShopListVo> component(ShopSearchParam shopSearchParam);
 
     List<SiteShopCategoryListVo> shopCategory();
 }

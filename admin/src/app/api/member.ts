@@ -22,6 +22,15 @@ export function getMemberInfo(id: number) {
 }
 
 /**
+ * 获取会员详情类型
+ * @param id 会员id
+ * @returns
+ */
+export function getMemberContentType() {
+    return request.get(`member/member/content/type`);
+}
+
+/**
  * 获取会员编码
  * @returns
  */
@@ -36,6 +45,24 @@ export function getMemberNo() {
  */
 export function addMember(params: Record<string, any>) {
     return request.post(`member/member`, params, {showSuccessMessage: true})
+}
+
+/**
+ * 会员导入
+ * @param params
+ * @returns
+ */
+export function importMember(params: Record<string, any>) {
+    return request.post(`member/member/import`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 获取会员导入记录列表
+ * @param params
+ * @returns
+ */
+export function getMemberImportList(params: Record<string, any>) {
+    return request.get(`member/member/import`, { params })
 }
 
 /**
@@ -64,6 +91,51 @@ export function deleteMember(member_id: number) {
     return request.delete(`member/member/${member_id}`, {showSuccessMessage: true})
 }
 
+/**
+ * 重置密码
+ * @param id 会员id
+ * @returns
+ */
+export function updateResetpwd(params: Record<string, any>) {
+    return request.put(`member/member/resetpwd/${params.member_id}`, params, {showSuccessMessage: true});
+}
+
+/**
+ * 获取会员推荐人选择列表
+ * @param params
+ * @returns
+ */
+export function getMemberRecommenderList(params: Record<string, any>) {
+    return request.get(`member/member/recommender/select`, {params})
+}
+
+/**
+ * 修改上级推荐人
+ * @param id 会员id
+ * @returns
+ */
+export function updateRecommender(params: Record<string, any>) {
+    return request.put(`member/member/recommender/${params.member_id}`, params, {showSuccessMessage: true});
+}
+
+
+/**
+ * 获取赠送优惠券组件
+ * @param params
+ * @returns
+ */
+export function getMemberSendComponent(send_type: string) {
+    return request.get(`member/member/send/component/${send_type}`)
+}
+
+/**
+ * 赠送优惠券
+ * @param id 会员id
+ * @returns
+ */
+export function sendCoupon(params: Record<string, any>) {
+    return request.post(`mall/admin/goods/platform_coupon/send`, params, {showSuccessMessage: true});
+}
 /***************************************************** 会员标签 ****************************************************/
 
 /**
@@ -123,6 +195,14 @@ export function getMemberLabelAll() {
  */
 export function editMemberDetail(params: Record<string, any>) {
     return request.put(`member/member/modify/${params.member_id}/${params.field}`, params, {showSuccessMessage: true})
+}
+
+/**
+ * 批量设置
+ * @param params
+ */
+export function batchModifyMemberDetail(params: Record<string, any>) {
+    return request.put(`member/member/batch_modify`, params, {showSuccessMessage: true})
 }
 
 /***************************************************** 会员零钱 ****************************************************/
@@ -199,6 +279,15 @@ export function adjustPoint(params: Record<string, any>) {
  */
 export function adjustBalance(params: Record<string, any>) {
     return request.post(`member/account/balance`, params, {showSuccessMessage: true})
+}
+
+/**
+ * 会员账户批量调整
+ * @param params
+ * @returns
+ */
+export function batchAdjustAccount(params: Record<string, any>) {
+    return request.post(`member/account/batch`, params, {showSuccessMessage: true})
 }
 
 /***************************************************** 会员相关设置 ****************************************************/

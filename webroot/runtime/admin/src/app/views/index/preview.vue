@@ -57,7 +57,7 @@
 import { ref, reactive, watch, inject } from 'vue'
 import { t } from '@/lang'
 import { useRoute } from 'vue-router'
-import { getWeappConfig } from '@/app/api/weapp'
+import { getWeappQrcode } from '@/app/api/weapp'
 import { getUrl } from '@/app/api/sys'
 import { useClipboard } from '@vueuse/core'
 import { ElMessage } from 'element-plus'
@@ -75,8 +75,14 @@ const loadingDev = ref(false) // 加载开发环境配置
 const timeIframe = ref(0) // iframe打开时间
 const difference = ref(0) // 检测页面加载差异，小于1000毫秒，则配置wap端域名
 
+const siteId = ref()
 const route = useRoute()
 route.query.page = route.query.page || '' // 页面路径
+if (route.query.page) {
+    const decodedPage = decodeURIComponent(route.query.page)
+    const match = decodedPage.match(/[?&]site_id=(\d+)/)
+    siteId.value = match ? match[1] : null
+}
 
 const setLayout = inject('setLayout')
 setLayout('decorate')
@@ -211,12 +217,19 @@ const weappConfig = reactive({
 })
 
 // 获取微信配置
-getWeappConfig().then((res: any) => {
-    if (res.code == 1) {
-        const data = res.data
-        weappConfig.qr_code = data.qr_code
-    }
-})
+const getWeappQrcodeFn = () => {
+    getWeappQrcode({
+        scene: siteId.value ? 'shop_index' : 'wap_index',
+        param: {
+            site_id: siteId.value
+        }
+    }).then((res: any) => {
+        if (res.code == 1) {
+            weappConfig.qr_code = res.data
+        }
+    })
+}
+getWeappQrcodeFn()
 
 // 复制
 const { copy, isSupported, copied } = useClipboard()

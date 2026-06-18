@@ -1,42 +1,36 @@
 package com.niu.mall.service.core.order.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.CollectUtils;
-import com.niu.core.common.utils.RequestUtils;
-import com.niu.core.entity.member.Member;
-import com.niu.core.entity.pay.Pay;
 import com.niu.core.entity.site.Site;
 import com.niu.core.mapper.site.SiteMapper;
-import com.niu.core.service.admin.member.vo.MemberBriefInfoVo;
-import com.niu.core.service.admin.site.vo.SiteInfoVo;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.pay.ICorePayService;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderGroup;
 import com.niu.mall.enums.order.OrderGroupEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
+import com.niu.mall.event.order.OrderGroupCloseAfterEvent;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderGroupMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
-import com.niu.mall.service.core.order.ICoreOrderCloseService;
-import com.niu.mall.service.core.order.param.OrderCloseParam;
-import com.niu.mall.service.core.order.vo.MallOrderListVo;
 import com.niu.mall.service.core.order.ICoreOrderGroupService;
 import com.niu.mall.service.core.order.param.MallOrderGroupParam;
 import com.niu.mall.service.core.order.vo.MallOrderGroupCloseVo;
 import com.niu.mall.service.core.order.vo.MallOrderGroupDataVo;
 import com.niu.mall.service.core.order.vo.MallOrderGroupVo;
+import com.niu.mall.service.core.order.vo.MallOrderListVo;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,12 +55,11 @@ public class CoreOrderGroupServiceImpl implements ICoreOrderGroupService {
     ICorePayService corePayService;
 
 
-    
     @Override
     public MallOrderGroupVo getInfo(Integer groupId) {
         MallOrderGroup orderGroup = mallOrderGroupMapper.selectById(groupId);
         MallOrderGroupVo vo = new MallOrderGroupVo();
-        if(ObjectUtil.isNotEmpty(orderGroup)){
+        if (ObjectUtil.isNotEmpty(orderGroup)) {
             BeanUtils.copyProperties(orderGroup, vo);
         }
         return vo;
@@ -131,7 +124,7 @@ public class CoreOrderGroupServiceImpl implements ICoreOrderGroupService {
             orderMapper.updateById(order);
             groupId = mallOrderGroup.getGroupId();
         }
-       data.setIsAllowPay(isAllowPay);
+        data.setIsAllowPay(isAllowPay);
         data.setGroupId(groupId);
         data.setTakerFullAddress(order.getTakerFullAddress());
         return data;
@@ -209,5 +202,80 @@ public class CoreOrderGroupServiceImpl implements ICoreOrderGroupService {
         data.setIsAllowClose(isAllowClose);
         data.setGroupId(groupId);
         return data;
+    }
+
+    /**
+     * 根据订单ID关闭所属订单组（如果组内所有订单都已关闭）
+     *
+     * @param orderId 订单ID（简化参数，实际可接收 Map）
+     */
+    public void closeOfAllOrderClose(Integer orderId) {
+        // 查询订单
+        MallOrder order = orderMapper.selectOne(
+                new LambdaQueryWrapper<MallOrder>()
+                        .eq(MallOrder::getOrderId, orderId)
+        );
+        if (order == null) {
+            throw new CommonException("订单不存在");
+        }
+
+        // 状态判断：只有待支付(WAIT_PAY) 或 已关闭(CLOSE) 才能参与关闭
+        List<String> validStatuses = Arrays.asList(
+                OrderStatusEnum.WAIT_PAY.getStatus().toString(),
+                OrderStatusEnum.CLOSE.getStatus().toString()
+        );
+        if (!validStatuses.contains(order.getStatus())) {
+            throw new CommonException("订单已支付或已关闭");
+        }
+
+        Integer groupId = order.getGroupId();
+        if (groupId != null && groupId > 0) {
+            // 查询同组内是否存在状态不是 CLOSE 的订单
+            long ingOrderCount = orderMapper.selectCount(
+                    new LambdaQueryWrapper<MallOrder>()
+                            .eq(MallOrder::getGroupId, groupId)
+                            .ne(MallOrder::getStatus, OrderStatusEnum.CLOSE.getStatus())
+            );
+            if (ingOrderCount == 0) {
+                // 全部已关闭，关闭订单组
+                closeGroup(groupId);
+            }
+        }
+    }
+
+    /**
+     * 关闭订单组（更新状态、触发事件）
+     *
+     * @param groupId 订单组ID
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void closeGroup(Integer groupId) {
+        // 查询订单组
+        MallOrderGroup group = mallOrderGroupMapper.selectById(groupId);
+        if (group == null) {
+            throw new CommonException("订单组不存在");
+        }
+        if (OrderGroupEnum.CLOSE.getStatus().equals(group.getStatus())) {
+            throw new CommonException("订单组不能重复关闭");
+        }
+
+        // 更新状态
+        MallOrderGroup update = new MallOrderGroup();
+        update.setGroupId(groupId);
+        update.setStatus(OrderGroupEnum.CLOSE.getStatus());
+        mallOrderGroupMapper.updateById(update);
+
+        // 重新获取最新数据用于事件
+        MallOrderGroup closedGroup = mallOrderGroupMapper.selectById(groupId);
+
+        // 发布订单组关闭事件
+//        EventPublisher.publishEvent(new MallOrderGroupCloseEvent(closedGroup));
+        // 订单组关闭后事件（事务提交后执行，可选异步）
+        OrderGroupCloseAfterEvent event = new OrderGroupCloseAfterEvent();
+        event.addAppSign("mall");
+        event.setName("OrderGroupCloseAfterEvent");
+        event.setOrderGroup(closedGroup);
+        EventAndSubscribeOfPublisher.publishAll(event);
+//        EventPublisher.publishEvent(new AfterMallOrderGroupCloseEvent(closedGroup));
     }
 }

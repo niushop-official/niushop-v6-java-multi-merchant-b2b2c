@@ -28,12 +28,6 @@ export function getAgreementInfo(key: string) {
     return request.get(`agreement/${ key }`)
 }
 
-/**
- * 重置密码
- */
-export function resetPassword(data: AnyObject) {
-    return request.post(`password/reset`, data, { showErrorMessage: true })
-}
 
 /**
  * 发送短信验证码

@@ -26,9 +26,14 @@
                                 v-for="(item, index) in appList" :key="index"/>
                         </el-select>
                     </el-form-item>
-
+					<el-form-item :label="t('group')" prop="status">
+                        <el-select v-model="shopTableData.searchParam.group_id" clearable :placeholder="t('groupIdPlaceholder')" class="input-width" filterable>
+                            <el-option :label="t('selectPlaceholder')" value="" />
+                            <el-option :label="item.group_name" :value="index" v-for="(item, index) in groupList" :key="index"/>
+                        </el-select>
+                    </el-form-item>
                     <el-form-item :label="t('status')" prop="status">
-                        <el-select v-model="shopTableData.searchParam.status" clearable :placeholder="t('groupIdPlaceholder')" class="input-width">
+                        <el-select v-model="shopTableData.searchParam.status" clearable :placeholder="t('statusPlaceholder')" class="input-width">
                             <el-option :label="t('selectPlaceholder')" value="" />
                             <el-option :label="item" :value="index" v-for="(item, index) in statusList" :key="index"/>
                         </el-select>
@@ -174,9 +179,7 @@ const formLoading = ref(false)
 const route = useRoute()
 const pageName = route.meta.title
 const user_store = userStore()
-const groupList = ref({
-    all: []
-})
+const groupList = ref([])
 const passwordFormRef = ref<FormInstance>()
 const password_input = ref(true)
 const confirm_password_input = ref(true)
@@ -208,7 +211,7 @@ shopTableData.searchParam.status = route.query.id || ''
 const setGroupList = async () => {
     const obj = await (await getShopGroupAll({})).data
 
-    groupList.value.all = obj
+    groupList.value = obj
     obj.forEach((item:any, index:any) => {
         if (!groupList.value[item.app]) {
             groupList.value[item.app] = []

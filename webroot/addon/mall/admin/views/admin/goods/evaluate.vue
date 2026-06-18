@@ -128,9 +128,10 @@ const loadEvaluateList = (page: number = 1) => {
         evaluateTable.loading = false
         evaluateTable.data = res.data.data
         evaluateTable.data.map((item: any) => {
-            item.previewList = item.images.map((el: any) => {
+            // 先判断 images 是否为有效数组，空值则赋值为空数组
+            item.previewList = item.images ? item.images.map((el: any) => {
                 return img(el)
-            })
+            }) : []; // 空值时赋值为空数组，避免 previewList 为 undefined
             return item
         })
         evaluateTable.total = res.data.total

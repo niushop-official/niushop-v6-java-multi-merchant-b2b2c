@@ -43,6 +43,7 @@ import com.niu.core.service.admin.upgrade.IUpgradeService;
 import com.niu.core.service.admin.upgrade.param.UpgradeParam;
 import com.niu.core.service.admin.upgrade.vo.UpgradeContentVo;
 import com.niu.core.service.admin.upgrade.vo.UpgradeTaskVo;
+import com.niu.core.service.core.addon.AddonInstallJavaTools;
 import com.niu.core.service.core.addon.AddonInstallTools;
 import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.app.tools.SQLScriptRunnerTools;
@@ -50,6 +51,7 @@ import com.niu.core.service.core.schedule.ICoreScheduleService;
 import com.niu.core.service.core.sys.ICoreMenuService;
 import jakarta.annotation.Resource;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -639,6 +641,15 @@ public class UpgradeServiceImpl implements IUpgradeService {
      * @param vo
      */
     public void coverCode(UpgradeTaskVo vo) throws Exception {
+        IOFileFilter coverExcludeFilter = FileTools.createExclusionFilter(new String[]{
+            "application-prod.yml",
+            ".env.development",
+            ".env.production",
+            ".env.dev",
+            ".env.product",
+            "web-app-boot-exec.jar",
+            "addon.json"
+        });
         if (WebAppEnvs.get().envType.equals("dev")) {
             vo.getUpgradeContent().getContent().forEach(item -> {
                 String appKey = item.getApp().getAppKey();
@@ -674,6 +685,9 @@ public class UpgradeServiceImpl implements IUpgradeService {
                                 for (String line : change) {
                                     String[] content = line.split(" ");
                                     if (content[0].equals("-")) {
+                                        if (content.length > 2 && content[2].replace("\\", "/").endsWith("jar/addon/addon.json")) {
+                                            continue;
+                                        }
                                         (new File(rootDir, content[2])).deleteOnExit();
                                     }
                                 }
@@ -683,7 +697,7 @@ public class UpgradeServiceImpl implements IUpgradeService {
                         File changeDir = new File(codeDir,  version.getVersionNo());
                         if (changeDir.exists()) {
                             try {
-                                FileUtils.copyDirectory(changeDir, rootDir);
+                                FileUtils.copyDirectory(changeDir, rootDir, coverExcludeFilter);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
@@ -884,6 +898,19 @@ public class UpgradeServiceImpl implements IUpgradeService {
             if (!key.equals(GlobalConfig.appKey)) {
                 Addon addon = JSONUtil.toBean(coreAddonService.getAddonConfig(key), Addon.class);
                 coreAddonService.set(addon);
+            }
+        }
+
+        if (!GlobalConfig.runActive.equalsIgnoreCase("dev")) {
+            AddonInstallJavaTools.syncAddonJsonFromInstalled();
+        } else {
+            for (String key : vo.getUpgradeApps()) {
+                if (!key.equals(GlobalConfig.appKey)) {
+                    try {
+                        AddonInstallJavaTools.upsertAddonJson(key);
+                    } catch (Exception ignored) {
+                    }
+                }
             }
         }
 

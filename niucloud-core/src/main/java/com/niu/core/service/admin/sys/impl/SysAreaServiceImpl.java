@@ -17,8 +17,10 @@ import com.niu.core.service.admin.sys.ISysAreaService;
 import com.niu.core.service.admin.sys.param.SysAreaSearchParam;
 import com.niu.core.service.admin.sys.vo.SysAreaByCodeVo;
 import com.niu.core.service.admin.sys.vo.SysAreaListVo;
+import com.niu.core.service.admin.sys.vo.SysAreaResolveVo;
 import com.niu.core.service.admin.sys.vo.SysMapVo;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -96,6 +98,166 @@ public class SysAreaServiceImpl implements ISysAreaService {
             return areaInfo.getName();
         }
         return null;
+    }
+
+    @Override
+    public SysAreaResolveVo resolveAreaByName(String province, String city, String district) {
+        if (StringUtils.isBlank(province)) {
+            return null;
+        }
+        Integer provinceId = matchAreaName(province.trim(), 1, null);
+        if (provinceId == null) {
+            return null;
+        }
+
+        Integer cityId;
+        if (StringUtils.isBlank(city) || province.trim().equals(city.trim())) {
+            cityId = resolveMunicipalityCityId(provinceId);
+        } else {
+            cityId = matchAreaName(city.trim(), 2, provinceId);
+        }
+        if (cityId == null) {
+            return null;
+        }
+
+        Integer districtId = null;
+        if (StringUtils.isNotBlank(district)) {
+            districtId = matchAreaName(district.trim(), 3, cityId);
+        }
+        if (districtId == null) {
+            return null;
+        }
+
+        SysAreaResolveVo vo = new SysAreaResolveVo();
+        vo.setProvinceId(provinceId);
+        vo.setCityId(cityId);
+        vo.setDistrictId(districtId);
+        vo.setArea(buildAreaText(provinceId, cityId, districtId));
+        return vo;
+    }
+
+    @Override
+    public SysAreaResolveVo resolveAreaByText(String areaText) {
+        if (StringUtils.isBlank(areaText)) {
+            return null;
+        }
+        String text = areaText.trim();
+        List<SysArea> provinces = getListByPid(0);
+        SysArea province = matchPrefixArea(text, provinces);
+        if (province == null) {
+            return null;
+        }
+
+        String remainder = text.substring(province.getName().length());
+        List<SysArea> cities = getListByPid(province.getId());
+        SysArea city = matchPrefixArea(remainder, cities);
+        if (city == null) {
+            city = resolveMunicipalityCity(province, cities);
+        }
+        if (city == null) {
+            return null;
+        }
+
+        String districtRemainder = remainder;
+        if (remainder.startsWith(city.getName())) {
+            districtRemainder = remainder.substring(city.getName().length());
+        }
+
+        List<SysArea> districts = getListByPid(city.getId());
+        SysArea district = matchPrefixArea(districtRemainder, districts);
+        if (district == null && StringUtils.isNotBlank(districtRemainder)) {
+            Integer districtId = matchAreaName(districtRemainder.trim(), 3, city.getId());
+            if (districtId != null) {
+                district = sysAreaMapper.selectById(districtId);
+            }
+        }
+        if (district == null) {
+            return null;
+        }
+
+        SysAreaResolveVo vo = new SysAreaResolveVo();
+        vo.setProvinceId(province.getId());
+        vo.setCityId(city.getId());
+        vo.setDistrictId(district.getId());
+        vo.setArea(buildAreaText(province.getId(), city.getId(), district.getId()));
+        return vo;
+    }
+
+    @Override
+    public String buildAreaText(Integer provinceId, Integer cityId, Integer districtId) {
+        StringBuilder sb = new StringBuilder();
+        String provinceName = getAreaName(provinceId);
+        if (StringUtils.isNotBlank(provinceName)) {
+            sb.append(provinceName);
+        }
+        String cityName = getAreaName(cityId);
+        if (StringUtils.isNotBlank(cityName) && !cityName.equals(provinceName)) {
+            sb.append(cityName);
+        }
+        String districtName = getAreaName(districtId);
+        if (StringUtils.isNotBlank(districtName)) {
+            sb.append(districtName);
+        }
+        return sb.toString();
+    }
+
+    private Integer resolveMunicipalityCityId(Integer provinceId) {
+        SysArea city = resolveMunicipalityCity(sysAreaMapper.selectById(provinceId), getListByPid(provinceId));
+        return city != null ? city.getId() : null;
+    }
+
+    private SysArea resolveMunicipalityCity(SysArea province, List<SysArea> cities) {
+        if (province == null || cities == null || cities.isEmpty()) {
+            return null;
+        }
+        for (SysArea city : cities) {
+            if (province.getName().equals(city.getName())) {
+                return city;
+            }
+        }
+        return cities.get(0);
+    }
+
+    private SysArea matchPrefixArea(String text, List<SysArea> areas) {
+        if (StringUtils.isBlank(text) || areas == null || areas.isEmpty()) {
+            return null;
+        }
+        areas.sort((a, b) -> b.getName().length() - a.getName().length());
+        for (SysArea area : areas) {
+            if (text.startsWith(area.getName())) {
+                return area;
+            }
+        }
+        return null;
+    }
+
+    private Integer matchAreaName(String name, int level, Integer pid) {
+        if (StringUtils.isBlank(name)) {
+            return null;
+        }
+        QueryWrapper<SysArea> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id");
+        queryWrapper.eq("level", level);
+        queryWrapper.eq("name", name);
+        if (pid != null) {
+            queryWrapper.eq("pid", pid);
+        }
+        queryWrapper.last("limit 1");
+        SysArea area = sysAreaMapper.selectOne(queryWrapper);
+        if (area != null) {
+            return area.getId();
+        }
+
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id");
+        queryWrapper.eq("level", level);
+        queryWrapper.like("name", name);
+        if (pid != null) {
+            queryWrapper.eq("pid", pid);
+        }
+        queryWrapper.last("limit 1");
+        area = sysAreaMapper.selectOne(queryWrapper);
+        return area != null ? area.getId() : null;
     }
 
     /**

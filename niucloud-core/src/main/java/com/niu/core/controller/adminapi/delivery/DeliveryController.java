@@ -2,15 +2,13 @@ package com.niu.core.controller.adminapi.delivery;
 
 import com.niu.core.common.domain.Result;
 import com.niu.core.enums.delivery.DeliveryTypeEnum;
+import com.niu.core.service.admin.delivery.IDeliveryService;
 import com.niu.core.service.core.delivery.param.DeliverySearchConfigParam;
 import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
 import com.niu.core.service.core.delivery.vo.DeliverySearchConfigVo;
-import com.niu.core.service.admin.delivery.IDeliveryService;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 配送方式控制器
@@ -25,6 +23,7 @@ public class DeliveryController {
 
     /**
      * 获取物流查询接口配置
+     *
      * @return Result<PageResult<ShopDeliveryDeliverListVo>>
      */
     @GetMapping("/search")
@@ -34,6 +33,7 @@ public class DeliveryController {
 
     /**
      * 设置物流查询接口配置
+     *
      * @return Result
      */
     @PostMapping("/search")
@@ -44,6 +44,7 @@ public class DeliveryController {
 
     /**
      * 获取接口配置
+     *
      * @return Result<PageResult<ShopDeliveryDeliverListVo>>
      */
     @GetMapping("/config")
@@ -53,16 +54,18 @@ public class DeliveryController {
 
     /**
      * 设置配置
+     *
      * @return Result
      */
     @PutMapping("/config")
-    public Result<Object> setDeliverySearchConfig(@Validated @RequestBody AdminDeliveryConfigVo param) {
+    public Result<Object> putDeliverySearchConfig(@Validated @RequestBody AdminDeliveryConfigVo param) {
         deliveryService.setAdminDeliveryConfig(param);
         return Result.success();
     }
 
     /**
      * 获取配送方式
+     *
      * @return Result
      */
     @GetMapping("/type")

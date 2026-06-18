@@ -1,1 +1,0 @@
-import{p as i}from"./index-cf603725.js";function n(){return i.get("basic/invoice/content/list")}function t(n){return i.get("basic/invoice",n)}function c(n){return i.get(`basic/invoice/${n}`)}function e(n){return i.post("basic/invoice/apply",n)}export{c as a,n as b,e as c,t as g};

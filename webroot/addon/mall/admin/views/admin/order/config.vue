@@ -46,6 +46,19 @@
                     </el-form-item>
                 </el-card>
                 <el-card class="box-card !border-none" shadow="never">
+                    <h3 class="text-[14px] pl-[15px]">{{ t('refundSet') }}</h3>
+                    <el-form-item>
+                        <div>
+                            <span class="text-[14px]">{{ t('refundAuditBeforeDelivery') }}</span>
+                            <el-radio-group class="mx-[10px]" v-model="formData.refund_audit_before_delivery">
+                                <el-radio :label="1">{{ t('open') }}</el-radio>
+                                <el-radio :label="0">{{ t('close') }}</el-radio>
+                            </el-radio-group>
+                            <p class="text-[12px] text-[#a9a9a9] leading-normal  mt-[5px]">{{ t('refundAuditBeforeDeliveryTips') }}</p>
+                        </div>
+                    </el-form-item>
+                </el-card>
+                <el-card class="box-card !border-none" shadow="never">
                     <h3 class="text-[14px] pl-[15px]">是否启用延时结算</h3>
                     <el-form-item prop="delay_days">
                         <div>
@@ -139,7 +152,8 @@ const formData = ref({
     evaluate_is_show: 1,
     is_self_evaluate: 0,
     is_auto_good_evaluate: 1,
-    good_evaluate_days: 1
+    good_evaluate_days: 1,
+    refund_audit_before_delivery: 1
 })
 const validCloseLength = (rule: any, value: any, callback: Function) => {
     if (formData.value.is_close != 2) {

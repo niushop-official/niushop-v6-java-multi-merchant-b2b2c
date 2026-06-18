@@ -20,7 +20,7 @@
             :safeAreaInsetBottom="true"
             @close="langSheetShow = false" @select="switchLang"></u-action-sheet>
 
-        <fab-float :layout="'circle'" :draggable="true" :autosorption="true" :position="[350, 999]"></fab-float>
+        <fab-float />
     </view>
 </template>
 
@@ -28,7 +28,7 @@
 import { ref, reactive, computed } from 'vue'
 import useMemberStore from '@/stores/member'
 import { t, language } from '@/locale'
-import FabFloat from '@/components/fab-float/index.vue'
+import FabFloat from '@/components/fab-float/fab-float.vue'
 
 const memberStore = useMemberStore()
 

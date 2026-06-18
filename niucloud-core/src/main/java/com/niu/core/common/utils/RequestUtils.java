@@ -14,6 +14,7 @@ import com.niu.core.service.core.user.ICoreUserService;
 import com.niu.core.service.core.user.dto.UserInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.HandlerMapping;
@@ -21,8 +22,9 @@ import org.springframework.web.servlet.HandlerMapping;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * 系统请求工具类
+ * 系统请求工具类（需为 Spring Bean，{@link #setApplicationContext} 才会注入上下文）。
  */
+@Component
 public class RequestUtils {
 
 

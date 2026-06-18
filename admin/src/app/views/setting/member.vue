@@ -32,6 +32,11 @@
                             <span class="cursor-pointer text-primary" @click="toDiyFormEvent">{{ t('addDiyForm') }}</span>
                         </div>
                     </el-form-item>
+                    <!-- <h3 class="panel-title">{{ t('老用户判定规则') }}</h3>
+                    <el-form-item :label="t('会员注册')" prop="old_member_length">
+                        <el-input v-model.trim="formData.old_member_length" :placeholder="t('请输入')" class="!w-[214px]" clearable @keyup="filterNumber($event)"  @blur="formData.old_member_length = $event.target.value"/>
+                        <span class="ml-[10px] text-[13px]">天后自动成为老用户</span>
+                    </el-form-item> -->
                 </el-card>
             </el-form>
         </el-card>
@@ -91,7 +96,8 @@ const formRules = reactive<FormRules>({
 const formData = reactive<Record<string, number | string>>({
     prefix: '',
     length: 10,
-    form_id: ''
+    form_id: '',
+    old_member_length: 0
 })
 
 const setFormData = async () => {

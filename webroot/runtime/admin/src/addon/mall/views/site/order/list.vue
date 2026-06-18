@@ -25,7 +25,7 @@
                             <el-option v-for="(item, index) in payTypeData" :key="index" :label="item.name" :value="item.key"></el-option>
                         </el-select>
                     </el-form-item>
-                    <el-form-item :label="t('fromType')" prop='from_type'>
+                    <el-form-item :label="t('fromType')" prop='order_from'>
                         <el-select v-model="orderTable.searchParam.order_from" clearable class="input-item">
                             <el-option v-for="(item, index) in orderFromData" :key="index" :label="item" :value="index"></el-option>
                         </el-select>
@@ -68,6 +68,8 @@
                     <el-button @click="batchPrintElectronicSheet" size="small" v-if="activeName == 3">
                         {{ t('batchPrintElectronicSheet') }}
                     </el-button>
+                    <el-button @click="batchSelectDelivery" size="small" v-if="activeName == 2">{{ t('批量选择发货')}}</el-button>
+                    <el-button @click="batchPrintDelivery" size="small" v-if="activeName == 2">{{ t('批量打单发货')}}</el-button>
                     <el-button @click="batchDeleteFn" size="small" v-if="activeName == -1"> {{ t('批量删除') }}</el-button>
                 </div>
                 <el-table :data="orderTable.data" size="large" class="table-top" @select-all="selectAllCheck">
@@ -104,13 +106,13 @@
                                     </div>
                                 </div>
 
-                                <el-table :data="(item as any).order_goods" size="large" :show-header="false" :span-method="arraySpanMethod"  :ref="(el: any) => { setTableRef(el, index) }" @select="handleSelectChange">
+                                <el-table :data="(item as any).order_goods" size="large" :show-header="false" :span-method="arraySpanMethod"  :ref="(el: any) => { setTableRef(el, index) }" @selection-change="handleSelectChange($event, item)">
                                     <el-table-column type="selection" width="40" />
                                     <el-table-column align="left" min-width="200">
                                         <template #default="{ row }">
                                             <div class="flex cursor-pointer">
                                                 <div class="flex items-center min-w-[50px] mr-[10px]">
-                                                    <img class="w-[50px] h-[50px]" v-if="row.goods_image" :src="img(row.goods_image)" alt="" />
+                                                    <img class="w-[50px] h-[50px]" v-if="row.goods_image_thumb_small" :src="img(row.goods_image_thumb_small)" alt="" />
                                                     <img class="w-[50px] h-[50px]" v-else src="" alt="" />
                                                 </div>
                                                 <div class="flex flex-col items-start">
@@ -183,15 +185,16 @@
                                                 <el-button v-if="item.mall_discount_money == 0" type="primary" link @click="orderAdjustMoney(item)">{{ t('editPrice') }}</el-button>
                                             </template>
                                             <el-button type="primary" v-if="(item.status == 1 || item.status == 2) && item.delivery_type != 'virtual' && !item.supply_id && item.delivery_type!='store'" link @click="orderEditAddressFn(item)">{{ t('editAddress') }}</el-button>
-                                            <el-button type="primary" link @click="delivery(item,'add')" v-if="item.status == 2 && !item.supply_id && item.delivery_type!='store'">{{ t('sendOutGoods') }}</el-button>
+                                            <el-button type="primary" link @click="delivery(item,'add')" v-if="item.status == 2 && !item.supply_id && item.delivery_type!='store' && !(item.delivery_type == 'virtual' && item.sub_delivery_type == 'verify')">{{ t('sendOutGoods') }}</el-button>
                                             <!-- 物流配送 -->
                                             <el-button type="primary" link @click="delivery(item,'edit')" v-if="item.status == 3 && !item.supply_id && item.delivery_type != 'virtual'&& item.delivery_type == 'express'">{{ t('modifyOutGoods') }}</el-button>
                                             <!-- 同城配送 -->
                                             <el-button type="primary" link @click="delivery(item,'edit')" v-if="item.status == 3 && !item.supply_id && item.delivery_type != 'virtual'&& item.delivery_type == 'local_delivery' && (item.local_delivery_status == -1 || item.local_delivery_status == -2 || item.local_delivery_status == 8)">{{ t('modifyOutGoods') }}</el-button>
-                                            <el-button type="primary" link @click="finish(item)" v-if="item.status == 3 && !item.supply_id">{{t('confirmTakeDelivery') }}</el-button>
+                                            <el-button type="primary" link @click="finish(item)" v-if="item.status == 3 && !item.supply_id && !(item.delivery_type == 'virtual' && item.sub_delivery_type == 'verify')">{{t('confirmTakeDelivery') }}</el-button>
                                             <el-button type="primary"  v-if="item.is_refund_show && item.status != 1 && item.status != -1 && !item.supply_id && item.status != 6" link @click="refundEvent(item)">{{ t('voluntaryRefund') }}</el-button>
                                             <el-button type="primary" v-if="item.status == -1" link @click="deleteEvent(item)">{{ t('delete') }}</el-button>
-                                            <el-button type="primary" v-if="item.delivery_type == 'store' && item.status == 2" link @click="verifyEvent(item)">核销</el-button>
+                                            <el-button type="primary" v-if="item.delivery_type == 'store' && item.status == 2" link @click="verifyEvent(item)">提货</el-button>
+                                            <el-button type="primary" v-if="item.delivery_type == 'virtual' && item.sub_delivery_type == 'verify' && item.status == 3" link @click="verifyEvent(item)">核销</el-button>
                                         </template>
                                     </el-table-column>
                                 </el-table>
@@ -215,11 +218,12 @@
         <delivery-action ref="deliveryActionDialog" @complete="loadOrderList"></delivery-action>
         <order-notes ref="orderNotesDialog" @complete="loadOrderList"></order-notes>
         <order-export-select ref="selectExportDialog" @complete="exportEvent" />
-        <export-sure ref="exportSureDialog" :show="flag" :type="export_type" isSite="true" :searchParam="orderTable.searchParam" @close="handleClose" />
+        <export-sure ref="exportSureDialog" v-model:show="flag" :type="export_type" isSite="true" :searchParam="orderTable.searchParam" @close="handleClose" />
         <order-edit-address ref="orderEditAddressDialog" @complete="loadOrderList"/>
         <electronic-sheet-print ref="electronicSheetPrintDialog" @complete="electronicSheetPrintComplete" />
         <shop-active-refund ref="shopActiveRefundDialog" @complete="loadOrderList" />
         <pay-info ref="payInfoDialog" />
+        <batch-print-delivery-action ref="batchPrintDeliveryDialog" @complete="handlePrintDeliveryConfirm" />
     </div>
 </template>
 
@@ -238,10 +242,12 @@ import orderEditAddress from '@/addon/mall/views/site/order/components/order-edi
 import AdjustMoney from '@/addon/mall/views/site/order/components/adjust-money.vue'
 import ShopActiveRefund from '@/addon/mall/views/site/order/components/shop-active-refund.vue'
 import electronicSheetPrint from '@/addon/mall/views/site/order/components/electronic-sheet-print.vue'
+import BatchPrintDeliveryAction from '@/addon/mall/views/site/order/components/batch-print-delivery-action.vue'
 import { img, setTablePageStorage, getTablePageStorage } from '@/utils/common'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import { cloneDeep } from 'lodash-es'
+import { useBatchDelivery } from '@/addon/mall/views/site/order/public/js/batchDelivery'
 
 const route = useRoute()
 const router = useRouter()
@@ -287,7 +293,7 @@ const selectAllCheck = () => {
                     isAdd = true
                 }
                 if (isAdd) {
-                    multipleSelection['order_' + orderTable.data[i].order_id] = cloneDeep(orderTable.data[i])
+                    multipleSelection['order_' + orderTable.data[i].order_id] = cloneDeep(orderTable.data[i].order_goods)
                 }
             }
         }
@@ -304,28 +310,9 @@ const selectAllCheck = () => {
 
 // 监听表格复选框
 const handleSelectChange = (selection: any, row: any) => {
-    // 是否选中
-    let isSelected = false
-    let item: any = null
-
-    for (let i = 0; i < orderTable.data.length; i++) {
-        if (orderTable.data[i].order_id == row.order_id) {
-            item = orderTable.data[i]
-            break
-        }
-    }
-
-    for (let i = 0; i < selection.length; i++) {
-        if (selection[i].order_id == row.order_id) {
-            isSelected = true
-            break
-        }
-    }
-
-    if (isSelected) {
-        multipleSelection['order_' + row.order_id] = item
+    if (selection.length > 0) {
+        multipleSelection['order_' + row.order_id] = selection
     } else {
-        // 未选中，删除当前商品
         delete multipleSelection['order_' + row.order_id]
     }
 }
@@ -347,8 +334,8 @@ const orderTable: any = reactive({
         status: route.query.status || '',
         create_time: [],
         pay_time: [],
-        extend_field_1: route.query.pintuan_id || '',
-        order_type: ''
+        extend_field_1: route.query.active_id || '',
+        order_type: route.query.order_type || ''
     }
 })
 
@@ -382,6 +369,9 @@ const loadOrderList = (page: number = 1) => {
             }
             el.order_goods.forEach((v: any) => {
                 v.rowNum = el.order_goods.length
+                v.order_id = el.order_id
+                v.delivery_type = el.delivery_type
+                v.isSupportElectronicSheet = el.isSupportElectronicSheet
             })
             return el
         })
@@ -421,6 +411,12 @@ const arraySpanMethod = ({
     rowIndex,
     columnIndex
 }: any) => {
+
+    //第 0 列 = selection 列 = 不合并
+    if (columnIndex === 0) {
+        return [1, 1]
+    }
+
     if (rowIndex === 0) {
         if (columnIndex === 0) {
             return [row.rowNum, 1]
@@ -569,8 +565,10 @@ const batchPrintElectronicSheet = () => {
     let noSupportCount = 0
     let order_ids = []
     for (let key in multipleSelection) {
-        if (multipleSelection[key].isSupportElectronicSheet) {
-            order_ids.push(multipleSelection[key].order_id)
+        // multipleSelection[key] is now an array of goods
+        // We check the first good for isSupportElectronicSheet
+        if (multipleSelection[key][0].isSupportElectronicSheet) {
+            order_ids.push(multipleSelection[key][0].order_id)
         } else {
             noSupportCount++
         }
@@ -694,7 +692,7 @@ const deleteEvent = (data: any) => {
 const batchDeleteFn = () => {
     const orderIds: number[] = []
     for (const key in multipleSelection) {
-        orderIds.push(multipleSelection[key].order_id)
+        orderIds.push(multipleSelection[key][0].order_id)
     }
     if (orderIds.length == 0) {
         ElMessage({
@@ -732,6 +730,132 @@ const verifyEvent = (data: any) => {
         })
         window.open(url.href)
     })
+}
+
+// 批量发货相关
+const batchPrintDeliveryDialog: Record<string, any> | null = ref(null)
+const selectedGoodsForPrint = ref<any[]>([])
+const currentOperationType = ref('')
+
+// 验证批量发货
+const validateBatchDelivery = () => {
+    const selectedOrders = Object.values(multipleSelection)
+    if (selectedOrders.length === 0) {
+        ElMessage.warning('请选择要操作的订单')
+        return false
+    }
+    let hasNonExpress = false
+    let hasRefund = false
+    let hasNotWaitDelivery = false
+    let hasSupply = false
+    for (const goodsList of selectedOrders as any[]) {
+        if (goodsList[0].delivery_type !== 'express') {
+            hasNonExpress = true
+        }
+        // console.table(goodsList[0])
+        if (goodsList[0].supply_id > 0) {
+            hasSupply = true
+        }
+
+        for (const good of goodsList) {
+            if (good.status != 1) {
+                hasRefund = true
+                break
+            }
+            if (good.delivery_status && good.delivery_status != 'wait_delivery') {
+                hasNotWaitDelivery = true
+                break
+            }
+        }
+
+        if (hasNonExpress || hasRefund || hasNotWaitDelivery || hasSupply) break
+    }
+
+    if (hasNonExpress || hasRefund || hasNotWaitDelivery || hasSupply) {
+        ElMessage.warning('仅支持自建商品的物流配送且处于未退款—待发货状态的订单进行批量发货操作')
+        return false
+    }
+    return true
+}
+
+// 获取选中商品（包含同订单下的其他有效商品）
+const getSelectedGoodsWithSiblings = () => {
+    const finalGoodsList: any[] = []
+    const selectedOrderIds = Object.keys(multipleSelection).map(key => parseInt(key.replace('order_', '')))
+
+    // 遍历当前页面的订单
+    orderTable.data.forEach((order: any) => {
+        if (selectedOrderIds.includes(order.order_id)) {
+            // 如果订单被选中（有部分或全部商品被选中），则获取该订单下所有 status == 1 的商品
+            order.order_goods.forEach((good: any) => {
+                if (good.status == 1) {
+                    finalGoodsList.push(good)
+                }
+            })
+            // 从 selectedOrderIds 中移除已处理的订单
+            const index = selectedOrderIds.indexOf(order.order_id)
+            if (index > -1) {
+                selectedOrderIds.splice(index, 1)
+            }
+        }
+    })
+
+    // 处理跨页选中的订单（无法获取同订单其他商品，只能使用已选中的）
+    selectedOrderIds.forEach(orderId => {
+        const key = 'order_' + orderId
+        if (multipleSelection[key]) {
+            finalGoodsList.push(...multipleSelection[key])
+        }
+    })
+
+    return finalGoodsList
+}
+
+const batchDelivery = useBatchDelivery()
+
+// 批量选择发货
+const batchSelectDelivery = () => {
+    if (!validateBatchDelivery()) return
+    ElMessageBox.confirm(t('确定要批量选择发货吗？'), t('warning'), {
+        confirmButtonText: t('confirm'),
+        cancelButtonText: t('cancel'),
+        type: 'warning'
+    }).then(() => {
+        currentOperationType.value = 'select_delivery'
+        const goodsList = getSelectedGoodsWithSiblings()
+        batchDelivery.handleBatchDelivery({
+            goods: goodsList,
+            type: 'select_delivery'
+        }, () => {
+            loadOrderList()
+            resetSelection()
+        })
+    })
+}
+
+// 批量打单发货
+const batchPrintDelivery = () => {
+    if (!validateBatchDelivery()) return
+    ElMessageBox.confirm(t('确定要批量打单发货吗？'), t('warning'), {
+        confirmButtonText: t('confirm'),
+        cancelButtonText: t('cancel'),
+        type: 'warning'
+    }).then(() => {
+        currentOperationType.value = 'print_delivery'
+        const goodsList = getSelectedGoodsWithSiblings()
+
+        selectedGoodsForPrint.value = goodsList
+        batchPrintDeliveryDialog.value.open({
+            list: goodsList,
+            type: 'print_delivery'
+        })
+    })
+}
+
+// 处理打单发货确认
+const handlePrintDeliveryConfirm = () => {
+    loadOrderList()
+    resetSelection()
 }
 </script>
 

@@ -7,19 +7,18 @@ import com.niu.core.common.domain.Result;
 import com.niu.core.entity.site.SiteGroup;
 import com.niu.core.service.admin.site.ISiteGroupService;
 import com.niu.core.service.api.goods.IGoodsServiceService;
-import com.niu.core.service.api.goods.param.MallGoodsSearchParam;
+import com.niu.core.service.api.shop.IShopConfigService;
 import com.niu.core.service.api.shop.ISiteShopApplyService;
 import com.niu.core.service.api.shop.ISiteShopService;
 import com.niu.core.service.api.shop.param.ShopSearchParam;
 import com.niu.core.service.api.shop.param.ShopSearchPostParam;
 import com.niu.core.service.api.shop.param.SiteShopApplyParam;
 import com.niu.core.service.api.shop.vo.*;
+import com.niu.core.service.core.shop.vo.ShopApplyConfigInfoVo;
 import com.niu.core.service.site.shop.ISiteShopMemberService;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 import java.util.List;
 import java.util.Map;
@@ -48,10 +47,13 @@ public class ShopController {
     @Resource
     ISiteShopService siteShopService;
 
+    @Resource
+    IShopConfigService shopConfigService;
+
     /**
      * 获取商品列表
      *
-     * @param searchParam  商品搜索参数
+     * @param searchParam 商品搜索参数
      * @return
      */
     @PostMapping("/web/shop_list")
@@ -62,18 +64,16 @@ public class ShopController {
 
 
     /**
-     *
-     * @param shopSearchParam  商品搜索参数
+     * @param shopSearchParam 商品搜索参数
      * @return 获取商品列表
      */
-    @GetMapping("/web/shop/component")
-    public Result<List<SiteShopListVo>> component(@Validated ShopSearchParam shopSearchParam, @RequestParam Map<String, String> allParams) {
-        List<SiteShopListVo> list = goodsService.component(shopSearchParam,allParams);
+    @PostMapping("/web/shop/component")
+    public Result<List<SiteShopListVo>> component(@Validated @RequestBody ShopSearchParam shopSearchParam) {
+        List<SiteShopListVo> list = goodsService.component(shopSearchParam);
         return Result.success(list);
     }
 
     /**
-     *
      * @return 获取店铺分类列表
      */
     @GetMapping("/web/shop_apply/shop_category")
@@ -84,7 +84,6 @@ public class ShopController {
 
 
     /**
-     *
      * @return 获取店铺套餐列表
      */
     @GetMapping("/web/shop_apply/site_group")
@@ -95,7 +94,6 @@ public class ShopController {
 
 
     /**
-     *
      * @return 获取店铺申请状态列表
      */
     @GetMapping("/web/shop_apply/status")
@@ -104,10 +102,17 @@ public class ShopController {
         return Result.success(map);
     }
 
+    /**
+     * @return 获取店铺申请配置
+     */
+    @GetMapping("/web/shop_apply/config")
+    public Result<ShopApplyConfigInfoVo> getShopApplyConfig() {
+        return Result.success(shopConfigService.getShopApplyConfig());
+    }
+
 
     /**
-     *
-     * @param addParam  申请参数
+     * @param addParam 申请参数
      * @return 商户入驻店铺申请
      */
     @PostMapping("/web/shop_apply")
@@ -118,9 +123,8 @@ public class ShopController {
 
 
     /**
-     *
-     * @param pageParam  分页参数
-     * @param searchParam  搜索参数
+     * @param pageParam   分页参数
+     * @param searchParam 搜索参数
      * @return 获取店铺申请列表
      */
     @GetMapping("/web/shop_apply")
@@ -129,7 +133,6 @@ public class ShopController {
     }
 
     /**
-     *
      * @param pageParam 分页参数
      * @return 获取店铺关注、收藏列表
      */
@@ -140,18 +143,16 @@ public class ShopController {
 
 
     /**
-     *
-     * @param siteId  店铺ID
+     * @param siteId 店铺ID
      * @return 获取店铺扩展信息
      */
     @GetMapping("/web/shop/{siteId}")
     public Result<SiteShopInfoVo> getSiteBySiteId(@PathVariable("siteId") Object siteId, @RequestParam Map<String, String> allParams) {
-        return Result.success(siteShopService.info(siteId,allParams));
+        return Result.success(siteShopService.info(siteId, allParams));
     }
 
     /**
-     *
-     * @param siteId  店铺ID
+     * @param siteId 店铺ID
      * @return 获取店铺二维码
      */
     @GetMapping("/web/shop/qrcode/{siteId}")
@@ -162,9 +163,8 @@ public class ShopController {
 
 
     /**
-     *
      * @param siteId   店铺id
-     * @param isFollow  1 关注  0取消关注
+     * @param isFollow 1 关注  0取消关注
      * @return 关注/取消关注店铺
      */
     @PutMapping("/web/shop/{siteId}/{isFollow}")
@@ -175,7 +175,6 @@ public class ShopController {
 
 
     /**
-     *
      * @return 甄选好店
      */
     @GetMapping("/web/select_shop_list")
@@ -189,8 +188,10 @@ public class ShopController {
 
         return Result.success(siteShopApplyService.applyCheck());
     }
+
     /**
      * 店铺账号检测
+     *
      * @return Response
      */
     @GetMapping("/web/shop_apply/account_check")
@@ -205,7 +206,8 @@ public class ShopController {
 
     /**
      * 编辑店铺申请
-     * @param id 店铺申请id
+     *
+     * @param id        店铺申请id
      * @param editParam 编辑参数
      * @return Result
      */

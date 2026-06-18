@@ -7,7 +7,6 @@ import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.addon.vo.InstallAddonListVo;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.sys.ICorePrinterService;
-import com.niu.core.service.core.sys.param.SysPrinterPrintTicketParam;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.enums.order.OrderDeliveryStatusEnum;
@@ -21,10 +20,9 @@ import com.niu.mall.service.core.order.ICoreOrderFinishService;
 import com.niu.mall.service.core.order.param.OrderFinishParam;
 import com.niu.mall.service.core.shop.ICoreShopPerkService;
 import com.niu.mall.service.core.shop.ICoreShopSettlementService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import jakarta.annotation.Resource;
 
 import java.util.Map;
 
@@ -55,19 +53,21 @@ public class CoreOrderFinishServiceImpl implements ICoreOrderFinishService {
     @Override
     public boolean finish(OrderFinishParam param) {
         MallOrder mallOrder;
-        if(ObjectUtil.isNotEmpty(param.getOrderNo()))
-        {
+        if (ObjectUtil.isNotEmpty(param.getOrderNo())) {
             mallOrder = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>().eq("order_no", param.getOrderNo()));
             param.setOrderId(mallOrder.getOrderId());
-        }else{
+        } else {
             mallOrder = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>().eq("order_id", param.getOrderId()));
 
         }
 
         if (ObjectUtil.isEmpty(mallOrder)) throw new CommonException("订单信息不存在");
 
-        if (mallOrder.getStatus().equals(OrderStatusEnum.FINISH.getStatus().toString())){
-            return true;
+        if (mallOrder.getStatus().equals(OrderStatusEnum.FINISH.getStatus().toString())) {
+            throw new CommonException("订单已完成");
+        }
+        if (mallOrder.getStatus().equals(OrderStatusEnum.CLOSE.getStatus().toString())) {
+            throw new CommonException("订单已关闭");
         }
         Long refundCount = mallOrderGoodsMapper.selectCount(new QueryWrapper<MallOrderGoods>().eq("order_id", param.getOrderId()).eq("status", OrderGoodsRefundEnum.REFUNDING.getStatus()));
         if (refundCount > 0) {
@@ -97,7 +97,7 @@ public class CoreOrderFinishServiceImpl implements ICoreOrderFinishService {
         event.addAppSign("mall");
         event.setName("OrderFinishAfterEvent");
         EventAndSubscribeOfPublisher.publishAll(event);
-        
+
         return true;
     }
 
@@ -118,10 +118,11 @@ public class CoreOrderFinishServiceImpl implements ICoreOrderFinishService {
 
     /**
      * 检查插件是否安装
+     *
      * @param key
      */
     private Boolean checkAddon(String key) {
-        Map<String, InstallAddonListVo> addonListVoMap= coreAddonService.getInstallAddonList();
+        Map<String, InstallAddonListVo> addonListVoMap = coreAddonService.getInstallAddonList();
         return addonListVoMap.get(key) != null;
     }
 }

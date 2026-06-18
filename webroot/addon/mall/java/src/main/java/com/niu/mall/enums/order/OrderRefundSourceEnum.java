@@ -10,25 +10,26 @@ import java.util.Map;
 @AllArgsConstructor
 public enum OrderRefundSourceEnum {
     APPLY("申请退款", 1),
-    ACTIVE_REFUND("商家主动退款", 2);
+    ACTIVE_REFUND("商家主动退款", 2),
+    EXPIRE_AUTO_REFUND("核销过期自动退款", 3),
+    ;
 
     private final String name;
 
     private final Integer type;
 
-    public static String getNameByStatus(Integer type){
-        for (OrderRefundSourceEnum item: OrderRefundSourceEnum.values()) {
-            if(item.getType().equals(type))
-            {
+    public static String getNameByStatus(Integer type) {
+        for (OrderRefundSourceEnum item : OrderRefundSourceEnum.values()) {
+            if (item.getType().equals(type)) {
                 return item.getName();
             }
         }
         return "";
     }
 
-    public static Map<Integer, String> getMap(){
+    public static Map<Integer, String> getMap() {
         Map<Integer, String> map = new HashMap<>();
-        for (OrderRefundSourceEnum item: OrderRefundSourceEnum.values()) {
+        for (OrderRefundSourceEnum item : OrderRefundSourceEnum.values()) {
             map.put(item.getType(), item.getName());
         }
         return map;

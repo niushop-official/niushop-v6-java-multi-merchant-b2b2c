@@ -117,16 +117,6 @@ export function useDiy(params: any = {}) {
                     Object.assign(requestData, res.data);
                     if (requestData.value) {
 
-                        // 当店铺扩展微页面是修改这块代码，这块将路由等于 addon/mall/pages/index 设置为diy
-                        if(currRoute.value == 'addon/mall/pages/index'){
-                            diyStore.topFixedStatus = 'diy'
-                            if(configStore.shop_tabbar && configStore.shop_tabbar === 'shop_index' && configStore.shop_source == 'home' ){
-                                diyStore.topFixedStatus = 'home'
-                            }
-                        }else{
-                            diyStore.topFixedStatus = 'home'
-                        }
-
                         diyData.pageMode = requestData.mode;
                         diyData.title = requestData.title;
                         diyData.name = requestData.name;

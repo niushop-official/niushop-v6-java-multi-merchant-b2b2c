@@ -45,6 +45,7 @@ const useDiyStore = defineStore('diy', {
                 title: "页面", // 页面标题（用于前台展示）
                 completeLayout: 'style-1', // 整体布局，目前万能表单用到，表单布局，排版风格，style-1：单列平铺‌，style-2：左右排列‌
                 completeAlign: 'left', // 左右布局 对齐方式，left：左对齐，right：右对齐
+                contentAlign: 'right', // 内容对齐方式，center：居中，left：左对齐，right：右对齐
                 borderControl: true, // 控制表单组件左右布局时，边框是否显示
 
                 pageStartBgColor: "", // 页面背景颜色（开始）
@@ -139,6 +140,7 @@ const useDiyStore = defineStore('diy', {
                 title: "页面", // 页面标题
                 completeLayout: 'style-1',
                 completeAlign: 'left',
+                contentAlign: 'right',
                 borderControl: true,
 
                 pageStartBgColor: "", // 页面背景颜色（开始）

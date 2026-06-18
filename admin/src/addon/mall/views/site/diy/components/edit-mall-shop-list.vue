@@ -54,6 +54,15 @@
 					:class="{ '!border-[var(--el-color-primary)] text-[var(--el-color-primary)]': diyStore.editComponent.style == 'style-2' }"
 					@click="styleChangeFn('style-2')"></span>
 			</div>
+            <el-form label-width="80px" class="px-[10px]">
+                <el-form-item label="样式选择">
+					<el-radio-group v-model="diyStore.editComponent.type" title="样式选择" @change="initTypeFn">
+						<el-radio :label="1">样式1</el-radio>
+						<el-radio :label="2">样式2</el-radio>
+                        <el-radio :label="3">样式3</el-radio>
+					</el-radio-group>
+				</el-form-item>
+            </el-form>
 		</div>
         <!-- 选择数据源 -->
         <div class="edit-attr-item-wrap">
@@ -111,20 +120,22 @@
         <div class="edit-attr-item-wrap">
 			<h3 class="mb-[10px]">店铺样式</h3>
 			<el-form label-width="90px" class="px-[10px]">
-				<el-form-item label="店铺背景">
-					<el-color-picker v-model="diyStore.editComponent.siteStyle.startBgColor" show-alpha :predefine="diyStore.predefineColors" />
-                    <icon name="iconfont iconmap-connect" size="20px" class="block !text-gray-400 mx-[5px]"/>
-					<el-color-picker v-model="diyStore.editComponent.siteStyle.endBgColor" show-alpha :predefine="diyStore.predefineColors"/>
-				</el-form-item>
-                <el-form-item label="渐变角度">
-                    <el-radio-group v-model="diyStore.editComponent.siteStyle.gradientAngle">
-                        <el-radio label="to bottom">{{ t('topToBottom') }}</el-radio>
-                        <el-radio label="to right">{{ t('leftToRight') }}</el-radio>
-                    </el-radio-group>
-                </el-form-item>
-                <el-form-item label="店铺背景图">
-                    <upload-image v-model="diyStore.editComponent.siteStyle.bgUrl" :limit="1"/>
-                </el-form-item>
+                <template v-if="diyStore.editComponent.type != 3">
+                    <el-form-item label="店铺背景">
+                        <el-color-picker v-model="diyStore.editComponent.siteStyle.startBgColor" show-alpha :predefine="diyStore.predefineColors" />
+                        <icon name="iconfont iconmap-connect" size="20px" class="block !text-gray-400 mx-[5px]"/>
+                        <el-color-picker v-model="diyStore.editComponent.siteStyle.endBgColor" show-alpha :predefine="diyStore.predefineColors"/>
+                    </el-form-item>
+                    <el-form-item label="渐变角度">
+                        <el-radio-group v-model="diyStore.editComponent.siteStyle.gradientAngle">
+                            <el-radio label="to bottom">{{ t('topToBottom') }}</el-radio>
+                            <el-radio label="to right">{{ t('leftToRight') }}</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="店铺背景图">
+                        <upload-image v-model="diyStore.editComponent.siteStyle.bgUrl" :limit="1"/>
+                    </el-form-item>
+                </template>
 				<el-form-item label="店铺名称">
 					<el-color-picker v-model="diyStore.editComponent.siteNameStyle.color" show-alpha :predefine="diyStore.predefineColors" />
 					<div class="mr-[20px]"></div>
@@ -191,6 +202,18 @@ const titleStyleList = reactive([
 // 店铺样式选择
 const styleChangeFn = (style: any) => {
     diyStore.editComponent.style = style
+}
+
+const initTypeFn = () => {
+    if (diyStore.editComponent.type == 3) {
+        diyStore.editComponent.siteNameStyle.color = '#ffffff'
+        diyStore.editComponent.siteStyle.startBgColor = ''
+        diyStore.editComponent.siteStyle.endBgColor = ''
+    } else {
+        diyStore.editComponent.siteNameStyle.color = '#333333'
+        diyStore.editComponent.siteStyle.startBgColor = '#FFC3C4'
+        diyStore.editComponent.siteStyle.endBgColor = '#FFDABA'
+    }
 }
 
 // 组件验证

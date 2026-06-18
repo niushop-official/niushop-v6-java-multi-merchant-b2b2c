@@ -16,8 +16,8 @@ switch (getAppType()) {
     case 'admin':
         siteLayout = 'admin'
         break
-    case 'home':
-        siteLayout = 'home'
+    case 'site':
+        siteLayout = 'menu'
         break
 }
 

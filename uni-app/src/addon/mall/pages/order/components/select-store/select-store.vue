@@ -1,7 +1,7 @@
 <template>
     <u-popup :show="show" @close="handleClose" mode="bottom" :round="10">
         <view @touchmove.prevent.stop class="popup-common">
-            <view class="title">请选择自提点</view>
+            <view class="title">请选择门店</view>
             <scroll-view scroll-y="true" class="h-[50vh]">
                 <view class="p-[var(--popup-sidebar-m)] pt-0 text-sm">
                     <view class="card-template mt-[var(--top-m)] border-1 border-[#eee] border-solid  mb-[var(--top-m)]"
@@ -35,7 +35,7 @@
                     <u-loading-icon :vertical="true"></u-loading-icon>
                 </view>
                 <view class="h-[95%] flex items-center flex-col justify-center" v-if="!loading && !storeList.length">
-                    <u-empty text="没有可选择的自提点" width="214" :icon="img('static/resource/images/empty.png')" />
+                    <u-empty text="没有可选择的门店" width="214" :icon="img('static/resource/images/empty.png')" />
                 </view>
             </scroll-view>
             <view class="btn-wrap">
@@ -87,7 +87,7 @@ const getAddress = (data: any) => {
 
 const callFn = (data: any) => {
     uni.makePhoneCall({
-        phoneNumber: data,
+        phoneNumber: data.mobile,
         success: (res: any) => {
         },
         fail: (res: any) => {

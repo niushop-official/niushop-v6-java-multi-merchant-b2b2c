@@ -60,6 +60,7 @@
                                 <el-button type="primary" link @click="editEvent(row)">{{ t('edit') }}</el-button>
                                 <el-button type="primary" link @click="lockEvent(row.uid)" v-if="row.status">{{ t('lock') }}</el-button>
                                 <el-button type="primary" link @click="unlockEvent(row.uid)" v-else>{{ t('unlock') }}</el-button>
+                                <el-button type="primary" link @click="resetPasswordEvent(row)">重置密码</el-button>
                             </div>
                             <div v-else>
                                 <el-button link disabled>{{ t('adminDisabled') }}</el-button>
@@ -76,6 +77,7 @@
             </div>
 
             <edit-user ref="editUserDialog" @complete="loadUserList()" />
+            <reset-password ref="resetPasswordDialog" @complete="loadUserList()"></reset-password>
         </el-card>
     </div>
 </template>
@@ -90,6 +92,7 @@ import { img } from '@/utils/common'
 import { ElMessageBox } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import { useRoute } from 'vue-router'
+import resetPassword from '@/app/views/auth/components/reset-password.vue'
 
 const route = useRoute()
 const pageName = route.meta.title
@@ -191,6 +194,11 @@ const unlockEvent = (id: number) => {
     })
 }
 
+// 重置密码
+const resetPasswordDialog: Record<string, any> | null = ref(null)
+const resetPasswordEvent = (data: any) => {
+    resetPasswordDialog.value.setFormData(data)
+}
 </script>
 
 <style lang="scss" scoped></style>

@@ -1,21 +1,13 @@
 package com.niu.core.controller.api.sys;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.niu.core.common.domain.Result;
 import com.niu.core.common.utils.RequestUtils;
-import com.niu.core.event.sys.InitWapEvent;
-import com.niu.core.service.api.diy.IDiyService;
-import com.niu.core.service.api.diy.param.DiyTabbarListParam;
-import com.niu.core.service.api.login.ILoginService;
-import com.niu.core.service.api.member.IMemberLevelService;
+import com.niu.core.entity.point_deduct.PointDeduct;
 import com.niu.core.service.api.member.IMemberService;
-import com.niu.core.service.api.member.param.MemberLevelParam;
 import com.niu.core.service.api.sys.ISysConfigService;
+import com.niu.core.service.api.sys.ISysInitService;
 import com.niu.core.service.api.sys.param.*;
-import com.niu.core.service.api.sys.vo.SysInitVo;
-import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
-import com.niu.core.service.core.diy.ICoreDiyConfigService;
-import com.niu.core.service.core.site.ICoreSiteService;
+import com.niu.core.service.core.point_deduct.ICorePointDeductService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,18 +26,12 @@ public class SysConfigController {
     private ISysConfigService sysConfigService;
 
     @Resource
-    private ILoginService loginService;
-
-    @Resource
-    private IDiyService diyService;
-
-    @Resource
-    private ICoreSiteService coreSiteService;
-
-    @Resource
-    private IMemberLevelService memberLevelService;
-    @Resource
     private IMemberService memberService;
+    @Resource
+    private ICorePointDeductService corePointDeductService;
+
+    @Resource
+    private ISysInitService sysInitService;
 
     /**
      * 版权信息
@@ -54,6 +40,7 @@ public class SysConfigController {
      * @return
      */
     @GetMapping("/copyright")
+
     public Result<?> copyright(SysConfigCopyrightParam param) {
         return Result.success(sysConfigService.copyright(param));
     }
@@ -98,26 +85,12 @@ public class SysConfigController {
      */
     @GetMapping("/init")
     public Result init(@RequestParam(name = "url", defaultValue = "") String url) {
-        var vo = new SysInitVo();
-
-        vo.setTabbarList(diyService.getBottomList());
-        vo.setMapConfig(sysConfigService.map(new SysConfigMapParam()));
-        vo.setLoginConfig(loginService.getLoginConfig());
-        vo.setSiteInfo(coreSiteService.getSiteCache(RequestUtils.siteId()));
-        vo.setThemeList(diyService.getDiyTheme());
-        vo.setMemberLevel(memberLevelService.list(new MemberLevelParam()));
-
-        if (ObjectUtil.isEmpty(vo.getSiteInfo().getSiteId())) {
-            InitWapEvent event = new InitWapEvent();
-            event.setSiteId(RequestUtils.siteId());
-            EventAndSubscribeOfPublisher.publishAll(event);
-        }
-
-        return Result.success(vo);
+        return Result.success(sysInitService.buildInitData(RequestUtils.siteId()));
     }
 
     /**
      * 用作小程序审核
+     *
      * @return
      */
     @GetMapping("/isshow")
@@ -127,6 +100,7 @@ public class SysConfigController {
 
     /**
      * 获取公众号用户是否绑定手机
+     *
      * @return Response
      */
     @GetMapping("/member_mobile_exist")
@@ -171,5 +145,11 @@ public class SysConfigController {
     public Result indexQrcode() {
         Object qrcode = sysConfigService.getIndexQrcode();
         return Result.success(qrcode);
+    }
+
+    @GetMapping("/point_deduct")
+    public Result<PointDeduct> isCanPintDeduct() {
+        PointDeduct config = corePointDeductService.getPointDeductConfig();
+        return Result.success(config);
     }
 }

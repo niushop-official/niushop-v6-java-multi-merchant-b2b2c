@@ -158,7 +158,7 @@ public class CoreRefundActionServiceImpl implements ICoreRefundActionService {
         if (order == null) throw new CommonException("订单已失效");
 
         if (param.getIsAgree().equals(1)) {
-            BigDecimal maxRefundMoney = orderGoods.getGoodsMoney().subtract(orderGoods.getDiscountMoney()).subtract(orderGoods.getMallDiscountMoney());
+            BigDecimal maxRefundMoney = coreRefundService.getItemRefundableMoney(refund.getOrderGoodsId());
             if (refund.getIsRefundDelivery().equals(1)) maxRefundMoney = maxRefundMoney.add(order.getDeliveryMoney());
 
             int comparison = (param.getMoney().subtract(maxRefundMoney)).compareTo(BigDecimal.ZERO);
@@ -305,7 +305,7 @@ public class CoreRefundActionServiceImpl implements ICoreRefundActionService {
             if (refundDeliveryCount == 0) isRefundDelivery = 1;
         }
         //当前订单项最大可退金额
-        BigDecimal maxRefundMoney = orderGoods.getGoodsMoney().subtract(orderGoods.getDiscountMoney()).subtract(orderGoods.getMallDiscountMoney());
+        BigDecimal maxRefundMoney = coreRefundService.getItemRefundableMoney(orderGoods.getOrderGoodsId());
         if (isRefundDelivery.equals(1)) maxRefundMoney = maxRefundMoney.add(order.getDeliveryMoney());
         Integer compare = (param.getApplyMoney().subtract(maxRefundMoney)).compareTo(BigDecimal.ZERO);
         if (compare > 0)

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
  * 会员积分流水
  */
 @RestController
-@RequestMapping("/api/member")
+@RequestMapping("/api/member/account")
 @Slf4j
 @SaCheckLogin
 public class MemberAccountController {
@@ -30,7 +30,7 @@ public class MemberAccountController {
      * @param param
      * @return
      */
-    @GetMapping("/account/point")
+    @GetMapping("/point")
     public Result<?> point(@Validated PageParam pageParam, @Validated AccountPointFlowParam param) {
         // 参考mall模块写法：直接使用Param对象接收参数，Spring Boot会自动将create_time[0]和create_time[1]绑定到createTime数组
         return Result.success(memberAccountService.pointFlow(pageParam, param));
@@ -42,10 +42,10 @@ public class MemberAccountController {
      * @param param
      * @return
      */
-    @GetMapping("/account/balance")
+    @GetMapping("/balance")
     public Result<?> balance(@Validated PageParam pageParam, @Validated AccountBalanceFlowParam param, @RequestParam(name = "create_time[0]", defaultValue = "") String startTime, @RequestParam(name = "create_time[1]", defaultValue = "") String endTime) {
         if (!startTime.isEmpty() && !endTime.isEmpty()) {
-            param.setCreateTime(new String[]{ startTime, endTime });
+            param.setCreateTime(new String[]{startTime, endTime});
         }
         return Result.success(memberAccountService.balanceFlow(pageParam, param));
     }
@@ -56,10 +56,10 @@ public class MemberAccountController {
      * @param param
      * @return
      */
-    @GetMapping("/account/balance_list")
+    @GetMapping("/balance_list")
     public Result<?> balanceList(@Validated PageParam pageParam, @Validated AccountBalanceListParam param, @RequestParam(name = "create_time[0]", defaultValue = "") String startTime, @RequestParam(name = "create_time[1]", defaultValue = "") String endTime) {
         if (!startTime.isEmpty() && !endTime.isEmpty()) {
-            param.setCreateTime(new String[]{ startTime, endTime });
+            param.setCreateTime(new String[]{startTime, endTime});
         }
         return Result.success(memberAccountService.balanceList(pageParam, param));
     }
@@ -70,11 +70,11 @@ public class MemberAccountController {
      * @param param
      * @return
      */
-    @GetMapping("/account/money")
+    @GetMapping("/money")
     public Result<?> money(@Validated PageParam pageParam, @Validated AccountMoneyFlowParam param, @RequestParam(name = "create_time[0]", defaultValue = "") String startTime, @RequestParam(name = "create_time[1]", defaultValue = "") String endTime) {
 
         if (!startTime.isEmpty() && !endTime.isEmpty()) {
-            param.setCreateTime(new String[]{ startTime, endTime });
+            param.setCreateTime(new String[]{startTime, endTime});
         }
         return Result.success(memberAccountService.moneyFlow(pageParam, param));
     }
@@ -85,7 +85,7 @@ public class MemberAccountController {
      * @param param
      * @return
      */
-    @GetMapping("/account/count")
+    @GetMapping("/count")
     public Result<?> count(@Validated AccountRecordsParam param) {
         return Result.success(memberAccountService.accountRecords(param));
     }
@@ -96,11 +96,11 @@ public class MemberAccountController {
      * @param param
      * @return
      */
-    @GetMapping("/account/commission")
+    @GetMapping("/commission")
     public Result<?> commission(@Validated PageParam pageParam, @Validated AccountCommissionFlowParam param, @RequestParam(name = "create_time[0]", defaultValue = "") String startTime, @RequestParam(name = "create_time[1]", defaultValue = "") String endTime) {
 
         if (!startTime.isEmpty() && !endTime.isEmpty()) {
-            param.setCreateTime(new String[]{ startTime, endTime });
+            param.setCreateTime(new String[]{startTime, endTime});
         }
         return Result.success(memberAccountService.commissionFlow(pageParam, param));
     }
@@ -111,7 +111,7 @@ public class MemberAccountController {
      * @param accountType
      * @return
      */
-    @GetMapping("/account/fromtype/{accountType}")
+    @GetMapping("/fromtype/{accountType}")
     public Result<?> getFromType(@PathVariable("accountType") String accountType) {
         AccountAccountSourceParam param = ObjectUtils.create(AccountAccountSourceParam.class);
         param.setAccountType(accountType);
@@ -123,7 +123,7 @@ public class MemberAccountController {
      *
      * @return
      */
-    @GetMapping("/account/pointcount")
+    @GetMapping("/pointcount")
     public Result<?> pointCount() {
         AccountPointCountParam param = ObjectUtils.create(AccountPointCountParam.class);
         return Result.success(memberAccountService.pointCount(param));

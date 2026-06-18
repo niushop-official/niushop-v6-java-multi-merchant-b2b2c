@@ -611,7 +611,7 @@ const completeViewType = (row: object) => {
     formData.table_column.splice(rowIndex.value, 1, row)
 }
 const back = () => {
-    router.push({ path: '/tools/code' })
+    router.push({ path: '/tools/code/list' })
 }
 </script>
 

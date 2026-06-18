@@ -163,7 +163,7 @@ const canvasClick = (e: any) => {
                 : `${backToken.value}---${captchaData}`;
 
                 myRequest({
-                    url: '/captcha/check',
+                    url: 'captcha/check',
                     data: {
                         captcha_type: props.captchaType,
                         captcha_code: secretKey.value ? aesEncrypt(captchaData, secretKey.value) : captchaData,

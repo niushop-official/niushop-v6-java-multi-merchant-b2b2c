@@ -8,6 +8,7 @@ import com.niu.core.common.loader.pay.param.PayParam;
 import com.niu.core.entity.pay.Pay;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.service.core.pay.vo.GetInfoByTradeVo;
+import com.niu.core.service.core.pay.vo.PayInfoVo;
 import com.niu.core.service.core.pay.vo.PayTypeVo;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,11 +44,13 @@ public interface ICorePayService {
 
     List<PayTypeVo> getPayTypeByTrade(String tradeType, ChannelEnum channel);
 
-    void payEdit(String json,Integer id);
+    void payEdit(String json, Integer id);
 
-    void payEditHuifu(BigDecimal feeAmt, BigDecimal confirmedAmt,BigDecimal unconfirmAmt, Integer id);
+    void payEditHuifu(BigDecimal feeAmt, BigDecimal confirmedAmt, BigDecimal unconfirmAmt, Integer id);
 
     JSONObject getPayCashierUrl(String payType, String tradeType, Integer tradeId);
 
-    String create(Integer siteId,String mainType,Integer mainId,BigDecimal money,String tradeType,Integer tradeId,String body);
+    String create(Integer siteId, String mainType, Integer mainId, BigDecimal money, String tradeType, Integer tradeId, String body);
+
+    PayInfoVo getPayInfoByOutTradeNo(String outTradeNo);
 }

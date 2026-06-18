@@ -2,6 +2,24 @@
     <x-skeleton :type="skeleton.type" :loading="skeleton.loading" :config="skeleton.config" class="relative">
         <view :style="warpCss" class="overflow-hidden">
             <view :style="maskLayer"></view>
+            <view class="py-[20rpx] flex gap-x-[24rpx]" v-if="diyComponent.searchCondition.isShow">
+                <view class="flex-1 h-[56rpx] bg-[#fff] rounded-[12rpx] flex-center text-[24rpx] text-[#282828] gap-x-[4rpx]"  :class="{ 'font-500': searchType == 'default' }" @click="searchTypeFn('default')">综合</view>
+                <view class="flex-1 h-[56rpx] bg-[#fff] rounded-[12rpx] flex-center text-[24rpx] text-[#282828] gap-x-[4rpx]" @click="searchTypeFn('space')">
+                    <text>距离</text>
+                    <text v-if="space" class="text-[24rpx] nc-iconfont" :class="{'font-500 text-primary': searchType == 'space','nc-icon-shangV6xx-1': space == 'asc', 'nc-icon-xiaV6xx': space == 'desc' }"></text>
+                    <text v-else class="nc-iconfont nc-icon-shangxiaxuanzeV6xx text-[30rpx]"></text>
+                </view>
+                <view class="flex-1 h-[56rpx] bg-[#fff] rounded-[12rpx] flex-center text-[24rpx] text-[#282828] gap-x-[4rpx]" @click="searchTypeFn('sale_num')">
+                    <text>销量</text>
+                    <text v-if="sale_num" class="text-[24rpx] nc-iconfont" :class="{'font-500 text-primary': searchType == 'sale_num','nc-icon-shangV6xx-1': sale_num == 'asc', 'nc-icon-xiaV6xx': sale_num == 'desc' }"></text>
+                    <text v-else class="nc-iconfont nc-icon-shangxiaxuanzeV6xx text-[30rpx]"></text>
+                </view>
+                <view class="flex-1 h-[56rpx] bg-[#fff] rounded-[12rpx] flex-center text-[24rpx] text-[#282828] gap-x-[4rpx]" @click="searchTypeFn('price')">
+                    <text>价格</text>
+                    <text v-if="price" class="text-[24rpx] nc-iconfont" :class="{'font-500 text-primary': searchType == 'price','nc-icon-shangV6xx-1': price == 'asc', 'nc-icon-xiaV6xx': price == 'desc' }"></text>
+                    <text v-else class="nc-iconfont nc-icon-shangxiaxuanzeV6xx text-[30rpx]"></text>
+                </view>
+            </view>
             <view :class="{'diy-mall-goods-list relative flex flex-wrap justify-between': diyComponent.style != 'style-2', 'biserial-goods-list': diyComponent.style == 'style-2'}">
                 <template v-if="diyComponent.style == 'style-1'">
                     <view class="bg-white w-full flex p-[20rpx] overflow-hidden" :class="{ 'mt-[20rpx]': index > 0 }" :style="itemCss" v-for="(item,index) in goodsList" :key="item.goods_id" @click="toLink(item)">
@@ -54,7 +72,7 @@
                                 </view>
                                 <view class="absolute right-[16rpx] bottom-[16rpx]" @click.stop v-if="diyComponent.btnStyle.control && !item.isMaxBuy || diyStore.mode == 'decorate'">
 
-                                    <template v-if="(item.goods_type == 'virtual'  && item.virtual_receive_type != 'verify') || item.goods_type == 'real' || diyStore.mode == 'decorate'">
+                                    <template v-if="item.goods_type == 'real' || diyStore.mode == 'decorate'">
                                         <view v-if="diyComponent.btnStyle.style == 'button'" :style="goodsBtnCss" class="relative px-[18rpx] h-[48rpx] flex items-center justify-center bg-[red]" @click.stop="itemCart(item, 'itemCart' + index)">
                                             <text class="text-[20rpx]">{{ diyComponent.btnStyle.text }}</text>
                                             <view v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
@@ -127,7 +145,7 @@
                                             </text>
                                         </view>
                                         <view class="absolute right-[16rpx] bottom-[16rpx]" @click.stop v-if="diyComponent.btnStyle.control && !item.isMaxBuy || diyStore.mode == 'decorate'">
-                                            <template v-if="(item.goods_type == 'virtual' && item.virtual_receive_type != 'verify') || item.goods_type == 'real' || diyStore.mode == 'decorate'">
+                                            <template v-if="item.goods_type == 'real' || diyStore.mode == 'decorate'">
                                                 <view v-if="diyComponent.btnStyle.style == 'button'" :style="goodsBtnCss" class="relative px-[18rpx] h-[48rpx] flex items-center justify-center bg-[red]" @click.stop="itemCart(item, 'itemCart' + index)">
                                                     <text class="text-[20rpx]">{{ diyComponent.btnStyle.text }}</text>
                                                     <view v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
@@ -197,7 +215,7 @@
                                             </text>
                                         </view>
                                         <view class="absolute right-[16rpx] bottom-[16rpx]" @click.stop v-if="diyComponent.btnStyle.control && !item.isMaxBuy || diyStore.mode == 'decorate'">
-                                            <template v-if="(item.goods_type == 'virtual'  && item.virtual_receive_type != 'verify') || item.goods_type == 'real' || diyStore.mode == 'decorate'">
+                                            <template v-if="item.goods_type == 'real' || diyStore.mode == 'decorate'">
                                                 <view v-if="diyComponent.btnStyle.style == 'button'" :style="goodsBtnCss" class="relative px-[18rpx] h-[48rpx] flex items-center justify-center bg-[red]" @click.stop="itemCart(item, 'itemCart' + index)">
                                                     <text class="text-[20rpx]">{{ diyComponent.btnStyle.text }}</text>
                                                     <view v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
@@ -403,16 +421,24 @@ const setItemStyle3 = () => {
     // #endif
 }
 
+const price = ref('');
+const sale_num = ref('');
+const space = ref('');
+const searchType = ref('default');
+const clickFlag = ref(false);  //是否点击排序
+
 const getGoodsListFn = () => {
     let data = {
         site_id: diyStore.siteId,
         num: (diyComponent.value.source == 'all' || diyComponent.value.source == 'category') ? diyComponent.value.num : '',
         goods_ids: diyComponent.value.source == 'custom' ? diyComponent.value.goods_ids : '',
         goods_category: diyComponent.value.source == 'category' ? diyComponent.value.goods_category : '',
-        order: diyComponent.value.sortWay,
+        order: clickFlag.value ?  (searchType.value == 'space' ? 'distance' : searchType.value) : diyComponent.value.sortWay,
+        sort: clickFlag.value ? (searchType.value == 'price' ? price.value : searchType.value == 'sale_num' ? sale_num.value : space.value) : diyComponent.value.sortType,
         position: systemStore.diyAddressInfo,
         is_location: diyComponent.value.position.control ? 1 : 0,
-        is_local_delivery: diyComponent.value.localDelivery.control ? 1 : 0
+        is_local_delivery: diyComponent.value.localDelivery.control ? 1 : 0,
+		
     }
     getGoodsComponents(data).then((res: any) => {
         goodsList.value = res.data;
@@ -435,6 +461,44 @@ const getGoodsListFn = () => {
     });
 }
 
+// 搜索
+const searchTypeFn = (type:any) => {
+    clickFlag.value = true;
+	searchType.value = type;
+	if (type == 'default') {
+		sale_num.value = '';
+		price.value = '';
+	}
+    if (type == 'space') {
+        sale_num.value = '';
+		price.value = '';
+		if(space.value){
+			space.value = space.value == 'asc' ? 'desc' : 'asc';
+		}else{
+			space.value = 'asc';
+		}
+	}
+    if (type == 'sale_num') {
+		price.value = '';
+        space.value = '';
+		if(sale_num.value){
+			sale_num.value = sale_num.value == 'asc' ? 'desc' : 'asc';
+		}else{
+			sale_num.value = 'asc';
+		}
+	}
+	if (type == 'price') {
+		sale_num.value = '';
+        space.value = '';
+		if(price.value){
+			price.value = price.value == 'asc' ? 'desc' : 'asc';
+		}else{
+			price.value = 'asc';
+		}
+	}
+	
+	getGoodsListFn()
+}
 /*************** 加入购物车 - start ***********************/
 const goodsMaxBuy = () => {
     goodsList.value.forEach((data, index) => {
@@ -507,7 +571,7 @@ const cartRepeatFlag = ref<Boolean>(false)
 const itemCart = (row: any, id: any) => {
     if(diyStore.mode == 'decorate') return false
     // 虚拟商品，并且需要核销，禁止加入购物车
-    if (row.goods_type == 'virtual' && row.virtual_receive_type == 'verify') {
+    if (row.goods_type == 'virtual') {
         return toLink(row)
     }
     if (diyComponent.value.btnStyle.cartEvent !== 'cart') {

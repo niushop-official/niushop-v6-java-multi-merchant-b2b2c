@@ -175,6 +175,12 @@ export function useDiyForm(params: any = {}) {
                     }
                     diyStore.value = sources.value; // 用于 万能表单 收集数据，组件之间的数据通讯
                     diyData.global = sources.global;
+
+                    // 用于区分微页面之间弹窗的id
+                    if (diyData.global.popWindow && diyData.global.popWindow.show) {
+                        diyData.global.popWindow.id = requestData.form_id;
+                    }
+
                     diyData.value = sources.value;    
                     diyData.value.forEach((item: any, index) => {
                         item.componentIsShow = true // 是否显示
@@ -203,7 +209,7 @@ export function useDiyForm(params: any = {}) {
                     });
 
                     // 填写万能表单时，自定义标题展示
-                    if (needLogin.value){
+                    // if (needLogin.value){
                         // 控制自定义头部是否出现 | 微信小程序
                         isShowTopTabbar.value = diyData.value.some((item: any) => {
                             return item && item.position && item.position == 'top_fixed'
@@ -212,7 +218,7 @@ export function useDiyForm(params: any = {}) {
                         uni.setNavigationBarTitle({
                             title: diyData.title
                         });
-                    }  
+                    // }  
 
                 }
 

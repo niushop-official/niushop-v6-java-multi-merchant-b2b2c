@@ -70,6 +70,14 @@ export function getGoodsType() {
 }
 
 /**
+ * 获取商品类型
+ * @returns
+ */
+export function getGoodsStatusType() {
+    return request.get(`mall/admin/goods/status_type`);
+}
+
+/**
  * 获取商品状态
  * @returns
  */

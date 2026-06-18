@@ -46,7 +46,7 @@ public abstract class BasePay {
     /**
      * 扫码支付
      */
-    public abstract void scan();
+    public abstract Object scan(PayParam param);
 
     /**
      * 关闭支付

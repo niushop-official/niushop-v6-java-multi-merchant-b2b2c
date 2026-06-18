@@ -27,14 +27,46 @@ const data = computed(() => {
 })
 
 const adsPopShow = ref(false);
+const pageTriggered = ref(false); // 标记当前页面是否已触发过弹窗（避免同一页面重复触发）
+
+const getCurrentPagePath = () => {
+    const pages = getCurrentPages();
+    if (pages.length === 0) return '';
+    const currentPage = pages[pages.length - 1];
+    // 返回当前页面的路径（如/pages/index/index）
+    return currentPage.route || '';
+}
+
+const getStorageKey = () => {
+    if (!data.value.id) return '';
+    const pagePath = getCurrentPagePath();
+    return `${data.value.id}_${pagePath}_pop_window_count`;
+};
+
+
 onMounted(() => {
     nextTick(() => {
-        if (data.value.count == 'always'){
-            uni.removeStorageSync(data.value.id + '_pop_window_count');
+        if (pageTriggered.value) return;
+
+        const storageKey = getStorageKey();
+        if (!storageKey) return;
+
+        const cacheValue = uni.getStorageSync(storageKey);
+        // 如果缓存值和当前配置不一致，清除缓存（解决配置切换后状态残留）
+        if (cacheValue && cacheValue !== data.value.count) {
+            uni.removeStorageSync(storageKey);
         }
-        if (uni.getStorageSync('isOnLoad')){
-            adsPopupShow()
-            uni.removeStorageSync('isOnLoad')
+
+        if (data.value.count === 'always') {
+            uni.removeStorageSync(storageKey);
+        }
+
+        const isOnLoadTrigger = uni.getStorageSync('isOnLoad');
+        const isPageEnterTrigger = true; // 进入每个页面都触发（核心修改）
+        if (isOnLoadTrigger || isPageEnterTrigger) {
+            adsPopupShow();
+            pageTriggered.value = true; // 标记当前页面已触发
+            if (isOnLoadTrigger) uni.removeStorageSync('isOnLoad');
         }
     })
 })
@@ -62,16 +94,23 @@ const popWindowStyle =() => {
 
 const adsPopupShow = () => {
     // 装修模式下刷新
-    if (diyStore.mode == 'decorate' || !data.value.show) return false
-    const popWindowCount = uni.getStorageSync(data.value.id + '_pop_window_count');
-    if (popWindowCount === 'always' || popWindowCount == '') {
+    if (diyStore.mode === 'decorate' || !data.value.show || !getStorageKey()) return false
+    const storageKey = getStorageKey();
+    const popWindowCount = uni.getStorageSync(storageKey);
+    // always模式：清除存储并显示；once模式：仅当前页面未显示过才显示
+    if (data.value.count === 'always') {
+        adsPopShow.value = true;
+    } else if (data.value.count === 'once' && !popWindowCount) {
         adsPopShow.value = true;
     }
 }
 
 const adsPopupClose = () => {
     adsPopShow.value = false;
-    uni.setStorageSync(data.value.id + '_pop_window_count', data.value.count);
+    const storageKey = getStorageKey();
+    if (storageKey) {
+        uni.setStorageSync(storageKey, data.value.count);
+    }
 }
 
 // onBeforeUnmount(()=>{

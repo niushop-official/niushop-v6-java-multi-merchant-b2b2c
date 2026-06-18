@@ -1,107 +1,105 @@
 <template>
-    <view class="bg-[var(--page-bg-color)]  min-h-[100vh] overflow-hidden" :style="themeColor()" v-if="systemStore.auditFlag && !repeatLoading">
-        <!-- #ifdef H5 -->
-        <view class="bg-img min-h-[100vh] overflow-hidden relative"  :style="{background: 'url(' + img('addon/mall/member/enter.png') + ') left top /cover no-repeat'}">
-        <!-- #endif -->
-        <!-- #ifdef MP-WEIXIN -->
-        <view class="bg-img min-h-[100vh] overflow-hidden relative" :style="{background: 'url(' + img('addon/mall/member/enter_uniapp.png') + ')  left top /cover no-repeat'}">
-            <top-tabbar :data="param"  :scrollBool="topTabarObj.getScrollBool()"   />
+    <view class="bg-[#fff]  min-h-[100vh] overflow-hidden" :style="themeColor()" v-if="systemStore.auditFlag && !repeatLoading">
+        <view class="relative" v-if="diyData" :style="{height: headStyle, backgroundImage: 'url(' + img(diyData.apply_banner) + ')',backgroundSize: 'cover', backgroundPosition: 'bottom',  backgroundRepeat: 'no-repeat'}">
+            <!-- #ifdef MP-WEIXIN -->
+            <top-tabbar :data="param"  :scrollBool="topTabarObj.getScrollBool()" />
             <!-- #endif -->
-            <view class="side-tab" :style="{top: topStyle}"
-                @click="redirect({url:'/addon/mall/pages/member/merchant_record'})">
+            <view class="side-tab" :style="{top: topStyle}" @click="redirect({url:'/addon/mall/pages/member/merchant_record'})">
                 <text class="nc-iconfont nc-icon-shenheV6xx icon"></text>
                 <text class="desc">申请记录</text>
             </view>
-            <view class="mt-[280rpx] mx-[30rpx]  card-template !px-[40rpx] mb-[40rpx] merchant-settled">
-                <u-form labelPosition="left" :model="formData" :label-style="{'font-size':'28rpx'}"  class="pl-[15rpx]"
-                    labelWidth="150rpx" errorType='toast' :rules="rules" ref="formRef">
-                    <view>
-                        <u-form-item :label="t('siteName')" prop="site_name" required  >
-                            <u-input fontSize="28rpx" v-model.trim="formData.site_name" border="none" clearable
-                                maxlength="20" :placeholder="t('siteNamePlaceholder')"
-                                placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" />
-                        </u-form-item>
-                    </view>
-                    <view>
-                        <u-form-item :label="t('userName')" prop="user_name" required  >
-                            <u-input fontSize="28rpx" v-model.trim="formData.user_name" border="none" clearable
-                                maxlength="20" :placeholder="t('userNamePlaceholder')"
-                                placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" />
-                        </u-form-item>
-                    </view>
-                    <view>
-                        <u-form-item :label="t('userMobile')" prop="user_mobile" required  >
-                            <u-input fontSize="28rpx" v-model.trim="formData.user_mobile" border="none" clearable
-                                :placeholder="t('useMobilePlaceholder')"
-                                placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" />
-                        </u-form-item>
-                    </view>
-                    <view>
-                        <u-form-item :label="t('mobileCode')" prop="mobile_code" required>
-                            <u-input v-model="formData.mobile_code" type="number" maxlength="4" border="none" :placeholder="t('mobileCodePlaceholder')"  placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]">
-                                <template #suffix>
-                                    <sms-code :mobile="formData.user_mobile" type="merchant_settled" v-model="formData.mobile_key"></sms-code>
-                                </template>
-                            </u-input>
-                        </u-form-item>
-                    </view>
-                    <view>
-                        <u-form-item :label="t('categoryId')" prop="category_id" required  >
-                            <view class="flex items-center flex-1" @click="showPicker  = true">
-                                <view class="flex-1">
-                                    <view class="" v-if="formData.category_id">{{formData.category_name}}</view>
-                                    <view class="text-[var(--text-color-light9)]" v-else>
-                                        {{ t('categoryIdPlaceholder') }}</view>
-                                </view>
-                                <text
-                                    class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
-                            </view>
-                        </u-form-item>
-                    </view>
-                    <view>
-                        <u-form-item :label="t('groupId')" prop="group_id" required  >
-                            <view class="flex items-center flex-1" @click="siteGroupPopup = true">
-                                <view class="flex-1">
-                                    <view class="" v-if="formData.group_id">{{formData.group_name}}</view>
-                                    <view class="text-[var(--text-color-light9)]" v-else>
-                                        {{ t('groupIdPlaceholder') }}</view>
-                                </view>
-                                <text
-                                    class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
-                            </view>
-                        </u-form-item>
-                    </view>
-                    <view>
-                        <u-form-item :label="t('businessLicense')" labelWidth="640rpx" prop="business_license" required  
-                            class="business_license !flex-col">
-                            <view>
-                                <view class="text-[22rpx] text-[#999] leading-[30rpx]">
-                                    {{ t('businessLicenseTips') }}</view>
-                                <view class="mt-[30rpx]">
-                                    <u-upload :fileList="businessLicenseList" @afterRead="afterRead"
-                                        @delete="deletePic" multiple :maxCount="5"></u-upload>
-                                </view>
-                            </view>
-                        </u-form-item>
-                    </view>
-                </u-form>
-                <view class="text-[22rpx]  text-[#666] mt-[30rpx] mb-[20rpx] flex items-center w-full"
-                    @click="isAgree = !isAgree">
-                    <text class="text-[var(--primary-color)] text-[32rpx] mr-[12rpx]"
-                        :class="isAgree ? 'iconfont iconxuanze1' : 'nc-iconfont nc-icon-yuanquanV6xx'"></text>
-                    {{ t('agreeTips') }}
-                    <view @click.stop="redirect({ url: '/app/pages/auth/agreement?key=shop_apply' })">
-                        <text class="text-primary">《{{ t('enterAgreement') }}》</text>
-                    </view>
+        </view> 
+        <view class="mt-[-150rpx] relative  card-template !px-[40rpx] merchant-settled">
+            <u-form labelPosition="left" :model="formData" :label-style="{'font-size':'28rpx'}"  class="pl-[15rpx]"
+                labelWidth="150rpx" errorType='toast' :rules="rules" ref="formRef">
+                <view>
+                    <u-form-item :label="t('siteName')" prop="site_name" required  >
+                        <u-input fontSize="28rpx" v-model.trim="formData.site_name" border="none" clearable
+                            maxlength="20" :placeholder="t('siteNamePlaceholder')"
+                            placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" />
+                    </u-form-item>
                 </view>
                 <view>
-                    <button hover-class="none"
-                        class="primary-btn-bg text-[#fff] h-[80rpx] leading-[80rpx] rounded-[100rpx] text-[26rpx] font-500"
-                        @click="save">{{ t('save') }}</button>
+                    <u-form-item :label="t('userName')" prop="user_name" required  >
+                        <u-input fontSize="28rpx" v-model.trim="formData.user_name" border="none" clearable
+                            maxlength="20" :placeholder="t('userNamePlaceholder')"
+                            placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" />
+                    </u-form-item>
+                </view>
+                <view>
+                    <u-form-item :label="t('userMobile')" prop="user_mobile" required  >
+                        <u-input fontSize="28rpx" v-model.trim="formData.user_mobile" border="none" clearable
+                            :placeholder="t('useMobilePlaceholder')"
+                            placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" />
+                    </u-form-item>
+                </view>
+                <view>
+                    <u-form-item :label="t('mobileCode')" prop="mobile_code" required>
+                        <u-input  fontSize="28rpx" v-model="formData.mobile_code" type="number" maxlength="4" border="none" :placeholder="t('mobileCodePlaceholder')"  placeholderClass="!text-[var(--text-color-light9)] !text-[28rpx]">
+                            <template #suffix>
+                                <sms-code :mobile="formData.user_mobile" type="merchant_settled" v-model="formData.mobile_key"></sms-code>
+                            </template>
+                        </u-input>
+                    </u-form-item>
+                </view>
+                <view>
+                    <u-form-item :label="t('categoryId')" prop="category_id" required  >
+                        <view class="flex items-center flex-1" @click="showPicker  = true">
+                            <view class="flex-1">
+                                <view class="" v-if="formData.category_id">{{formData.category_name}}</view>
+                                <view class="text-[var(--text-color-light9)]" v-else>
+                                    {{ t('categoryIdPlaceholder') }}</view>
+                            </view>
+                            <text
+                                class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
+                        </view>
+                    </u-form-item>
+                </view>
+                <view>
+                    <u-form-item :label="t('groupId')" prop="group_id" required  >
+                        <view class="flex items-center flex-1" @click="siteGroupPopup = true">
+                            <view class="flex-1">
+                                <view class="" v-if="formData.group_id">{{formData.group_name}}</view>
+                                <view class="text-[var(--text-color-light9)]" v-else>
+                                    {{ t('groupIdPlaceholder') }}</view>
+                            </view>
+                            <text
+                                class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
+                        </view>
+                    </u-form-item>
+                </view>
+                <view>
+                    <u-form-item :label="t('businessLicense')" labelWidth="640rpx" prop="business_license" required  
+                        class="business_license !flex-col">
+                        <view>
+                            <view class="text-[22rpx] text-[#999] leading-[30rpx]">
+                                {{ t('businessLicenseTips') }}</view>
+                            <view class="mt-[30rpx]">
+                                <u-upload :fileList="businessLicenseList" @afterRead="afterRead"
+                                    @delete="deletePic" multiple :maxCount="5"></u-upload>
+                            </view>
+                        </view>
+                    </u-form-item>
+                </view>
+            </u-form>
+            <view>
+                <diy-form v-if="diyData" ref="diyFormRef" :form_id="diyData.form_id"  :form_sign="'memberId_'+userInfo?.member_id+'_formId_'+diyData.form_id" :storage_name="'diyFormStorageByMerchantSettled'"/>
+            </view>
+            <view class="text-[22rpx]  text-[#666] mt-[30rpx] mb-[20rpx] flex items-center w-full"
+                @click="isAgree = !isAgree">
+                <text class="text-[var(--primary-color)] text-[32rpx] mr-[12rpx]"
+                    :class="isAgree ? 'iconfont iconxuanze1' : 'nc-iconfont nc-icon-yuanquanV6xx'"></text>
+                {{ t('agreeTips') }}
+                <view @click.stop="redirect({ url: '/app/pages/auth/agreement?key=shop_apply' })">
+                    <text class="text-primary">《{{ t('enterAgreement') }}》</text>
                 </view>
             </view>
+            <view>
+                <button hover-class="none"
+                    class="primary-btn-bg text-[#fff] h-[80rpx] leading-[80rpx] rounded-[100rpx] text-[26rpx] font-500"
+                    @click="save">{{ t('save') }}</button>
+            </view>
         </view>
-
         <u-loading-page bg-color="rgb(248,248,248)" :loading="loading" loadingText=""></u-loading-page>
         <u-action-sheet :actions="shopCategoryList" :show="showPicker" :closeOnClickOverlay="true" :safeAreaInsetBottom="true" @close="showPicker = false" @select="changeCategory"></u-action-sheet>
         <!-- 店铺套餐 -->
@@ -121,27 +119,40 @@
             </view>
         </u-popup>
 
-        <fab-float :layout="'circle'" :draggable="true" :autosorption="true" :position="[350, 999]"></fab-float>
+        <fab-float />
     </view>
 </template>
 
-<script setup>
-import { ref, computed, reactive } from 'vue'
-import { img, redirect, pxToRpx } from '@/utils/common'
+<script lang="ts" setup>
+import { ref, computed, reactive, nextTick } from 'vue'
+import { img, redirect, pxToRpx, deepClone } from '@/utils/common'
 import { t } from '@/locale'
 import { uploadImage } from '@/app/api/system'
 import { onLoad, onPageScroll } from '@dcloudio/uni-app'
 import { topTabar } from '@/utils/topTabbar'
-import { getShopCategory, getSiteGroup, setShopApply, editShopApply, getShopApply, checkShopStatus, checkhaveAccount } from '@/addon/mall/api/merchant'
+import { getShopConfig, getShopCategory, getSiteGroup, setShopApply, editShopApply, getShopApply, checkShopStatus, checkhaveAccount } from '@/addon/mall/api/merchant'
+import { getFormRecord } from '@/app/api/diy_form'
 import useSystemStore from '@/stores/system'
-import FabFloat from '@/components/fab-float/index.vue'
+import useMemberStore from '@/stores/member'
+import FabFloat from '@/components/fab-float/fab-float.vue'
+import diyForm from '@/addon/components/diy-form/index.vue'
+
 
 const systemStore = useSystemStore()
+// 会员信息
+const memberStore = useMemberStore()
+const userInfo = computed(() => memberStore.info)
 
 /********* 自定义头部 - start ***********/
 const topTabarObj = topTabar()
 let param = topTabarObj.setTopTabbarParam({ title: '商家入驻' })
 /********* 自定义头部 - end ***********/
+
+// 头部图片的高度
+const headStyle = computed(() => {
+    let style = Object.keys(systemStore.menuButtonInfo).length ? (pxToRpx(Number(systemStore.menuButtonInfo.height)) + pxToRpx(systemStore.menuButtonInfo.top) + pxToRpx(8) + 452) + 'rpx' : '452rpx'
+    return style
+})
 const topStyle = computed(() => {
     let style = Object.keys(systemStore.menuButtonInfo).length ? pxToRpx(Number(systemStore.menuButtonInfo.height) + systemStore.menuButtonInfo.top + 8) + 50 + 'rpx' : '50rpx'
     return style
@@ -149,7 +160,7 @@ const topStyle = computed(() => {
 
 // 审核
 const showPicker = ref(false)
-const formData = reactive({
+const formData = reactive<any>({
     apply_id: '',
     site_name: '',
     user_name: '',
@@ -163,10 +174,15 @@ const formData = reactive({
     business_license: [],
     agree: false,
     refuse_reason: '',
-    uid:0
+    uid:0,
+    form_data: {},
 })
-onLoad((option) => {
+const diyData = ref<any>(null)
+const diyFormRef = ref<any>(null)
+
+onLoad((option: any) => {
     formData.apply_id = option.apply_id || ''
+    getShopConfigFn()
     checkStatus()
 })
 const changeCategory = (e) =>{
@@ -175,7 +191,7 @@ const changeCategory = (e) =>{
 }
 // 详情
 const repeatLoading = ref(true)
-const getShopApplyFn = (id) => {
+const getShopApplyFn = (id: any) => {
     repeatLoading.value = true
     getShopApply(id).then(({ data }) => {
         Object.keys(formData).forEach((key) => {
@@ -183,14 +199,39 @@ const getShopApplyFn = (id) => {
             if (data[key] != undefined && key == 'business_license') formData[key] = data[key]
                 .split(',')
         })
+        formData.form_data.record_id = data.form_record_id
         curCategoryId.value = formData.category_id
         curSiteGroupId.value = formData.group_id
+        if(data.form_record_id){
+            getFormRecordFn(data)
+        }
         repeatLoading.value = false
     }).catch(() => {
         repeatLoading.value = false
     })
 }
 
+const getFormRecordFn = (data: any) => {
+    getFormRecord({
+        record_id: data.form_record_id
+    }).then((res: any) => {
+        nextTick(() => {
+            diyFormRef.value.setFormData(res.data)
+        })
+    }).catch(() => {
+    })
+}
+
+const getShopConfigFn = () => {
+    getShopConfig().then((res: any) => {
+        diyData.value = res.data
+        if(res.data.apply_title) {
+            uni.setNavigationBarTitle({
+                title: res.data.apply_title
+            })
+        }
+    })
+}
 const checkStatus = () => {
     checkShopStatus().then((res) => {
         if (res.data) {
@@ -331,6 +372,7 @@ const formRef = ref(null)
 const loading = ref(false)
 const save = () => {
     formRef.value.validate().then(() => {
+        if (diyFormRef.value && !diyFormRef.value.verify()) return;
         if (!isAgree.value) {
             uni.showToast({
                 title: t('isAgreeTips'),
@@ -340,9 +382,15 @@ const save = () => {
         }
         if (loading.value) return
         loading.value = true
+        if (diyFormRef.value) {
+            Object.assign(formData.form_data, deepClone(diyFormRef.value.getData()))
+        }
+        console.log(formData);
         const api = formData.apply_id ? editShopApply : setShopApply
         formData.business_license = formData.business_license.join(',')
         api(formData).then(res => {
+            if (diyFormRef.value) diyFormRef.value.clearStorage();
+            formData.form_data = {};
             setTimeout(() => {
                 redirect({
                     url: '/addon/mall/pages/member/merchant_record'
@@ -357,6 +405,9 @@ const save = () => {
 </script>
 
 <style lang="scss" scoped>
+:deep(.merchant-settled  .u-form-item__body__left__content__required){
+    left: -12px !important;
+}
 :deep(.business_license .u-form-item__body) {
     display: flex;
     flex-direction: column !important;

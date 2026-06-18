@@ -81,8 +81,10 @@
 							<view class="text-[24rpx] text-[var(--text-color-light6)] leading-[34rpx] mt-[20rpx]" v-if="item.taker_name || item.taker_mobile || item.taker_full_address">
 								<text class="nc-iconfont nc-icon-dizhiguanliV6xx text-[24rpx] text-[#303133] mr-[10rpx]"></text>
 								<text v-if="item.taker_name">{{ item.taker_name }}</text>
-								<text v-if="item.taker_mobile">，{{ item.taker_mobile }}</text>
-								<text v-if="item.taker_full_address">，{{item.taker_full_address}}</text>
+								<text v-if="item.taker_name && item.taker_mobile">，</text>
+								<text v-if="item.taker_mobile">{{ item.taker_mobile }}</text>
+								<text v-if="item.taker_mobile && item.taker_full_address">，</text>
+								<text v-if="item.taker_full_address">{{item.taker_full_address}}</text>
 							</view>
 						</view>
 						<view class="flex justify-between items-center pt-[26rpx]">

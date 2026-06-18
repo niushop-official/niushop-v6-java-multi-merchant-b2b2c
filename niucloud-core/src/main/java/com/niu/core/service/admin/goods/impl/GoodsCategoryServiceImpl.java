@@ -17,11 +17,13 @@ import com.niu.core.service.admin.goods.param.GoodsCategoryParam;
 import com.niu.core.service.admin.goods.param.GoodsCategorySearchParam;
 import com.niu.core.service.admin.goods.vo.GoodsCategoryInfoVo;
 import com.niu.core.service.admin.goods.vo.GoodsCategoryListVo;
+import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import jakarta.annotation.Resource;
+
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,7 +33,7 @@ import java.util.List;
  */
 @Service
 public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
-        
+
     @Resource
     GoodsCategoryMapper goodsCategoryMapper;
 
@@ -44,7 +46,8 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
     public List<GoodsCategoryListVo> list(GoodsCategorySearchParam searchParam) {
         QueryWrapper<GoodsCategory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("site_id", RequestUtils.defaultSiteId());
-        if (ObjectUtil.isNotEmpty(searchParam.getCategoryName())) queryWrapper.like("category_name", searchParam.getCategoryName());
+        if (ObjectUtil.isNotEmpty(searchParam.getCategoryName()))
+            queryWrapper.like("category_name", searchParam.getCategoryName());
         if (ObjectUtil.isNotEmpty(searchParam.getLevel())) queryWrapper.eq("level", searchParam.getLevel());
         queryWrapper.orderByDesc(Arrays.asList("sort", "category_id"));
 
@@ -66,11 +69,44 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
     @Override
     public JSONArray tree() {
         List<GoodsCategory> list = goodsCategoryMapper.selectList(new QueryWrapper<GoodsCategory>().eq("site_id", RequestUtils.defaultSiteId()));
-        if (list == null){
-            return null;
-        }
+        if (list == null) return null;
+
         JSONArray jsonArray = JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(list));
-        return TreeUtils.listToTree(jsonArray, "category_id", "pid", "child_list");
+        return removeNodesByIsShow(TreeUtils.listToTree(jsonArray, "category_id", "pid", "child_list"));
+    }
+
+    /**
+     * 移除 JSONArray 中所有 is_show != 1 的节点及其子节点
+     *
+     * @param array 原始 JSONArray
+     * @return 过滤后的 JSONArray（直接修改原数组并返回）
+     */
+    public static JSONArray removeNodesByIsShow(JSONArray array) {
+        if (array == null || array.isEmpty()) {
+            return array;
+        }
+
+        Iterator<Object> iterator = array.iterator();
+        while (iterator.hasNext()) {
+            Object obj = iterator.next();
+            if (!(obj instanceof JSONObject)) {
+                continue;
+            }
+            JSONObject node = (JSONObject) obj;
+            // 判断当前节点是否需要移除
+            Integer isShow = node.getInt("is_show");
+            if (isShow != null && isShow != 1) {
+                iterator.remove(); // 移除当前节点
+                continue;
+            }
+            // 递归处理子节点
+            JSONArray childList = node.getJSONArray("child_list");
+            if (childList != null && !childList.isEmpty()) {
+                removeNodesByIsShow(childList);
+                // 如果子节点列表过滤后为空，可决定是否保留（此处保留空数组）
+            }
+        }
+        return array;
     }
 
     /**
@@ -81,7 +117,7 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
     @Override
     public JSONArray tree(GoodsCategorySearchParam searchParam) {
         QueryWrapper queryWrapper = new QueryWrapper<GoodsCategory>().eq("site_id", RequestUtils.defaultSiteId());
-        if (ObjectUtil.isNotNull(searchParam.getIsShow())){
+        if (ObjectUtil.isNotNull(searchParam.getIsShow())) {
             queryWrapper.eq("is_show", searchParam.getIsShow());
         }
         List<GoodsCategory> list = goodsCategoryMapper.selectList(queryWrapper);
@@ -95,6 +131,7 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
 
     /**
      * 商品分类详情
+     *
      * @param id 主键
      * @return ShopGoodsCategoryInfoVo
      */
@@ -102,8 +139,8 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
     public GoodsCategoryInfoVo info(Integer id) {
         GoodsCategory model = goodsCategoryMapper.selectOne(
                 new QueryWrapper<GoodsCategory>()
-                    .eq("category_id", id)
-                    .eq("site_id", RequestUtils.defaultSiteId()));
+                        .eq("category_id", id)
+                        .eq("site_id", RequestUtils.defaultSiteId()));
 
         Assert.notNull(model, "分类不存在");
 
@@ -119,6 +156,7 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
 
     /**
      * 商品分类添加
+     *
      * @param addParam 参数
      */
     @Override
@@ -218,6 +256,7 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
 
     /**
      * 商品分类删除
+     *
      * @param id 主键ID
      */
     @Override

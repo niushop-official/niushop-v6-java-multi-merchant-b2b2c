@@ -155,28 +155,28 @@ const pageName = route.meta.title
 const activeName = ref('')
 
 const setFormData = async () => {
-	// statusData.value = await (await getOrderStatus()).data
+    // statusData.value = await (await getOrderStatus()).data
 }
 setFormData()
 
 const multipleTable: Record<string, any> | null = ref(null)
 const isSelectAll = ref(false)
 const selectAllCheck = () => {
-	if (isSelectAll.value == false) {
-		isSelectAll.value = true
-		for (const i in orderTable.data) {
-			for (const j in orderTable.data[i].order_goods) {
-				multipleTable.value[i].toggleRowSelection(orderTable.data[i].order_goods[j], true)
-			}
-		}
-	} else {
-		isSelectAll.value = false
-		for (const v in orderTable.data) {
-			for (const k in orderTable.data[v].order_goods) {
-				multipleTable.value[v].clearSelection()
-			}
-		}
-	}
+    if (isSelectAll.value == false) {
+        isSelectAll.value = true
+        for (const i in orderTable.data) {
+            for (const j in orderTable.data[i].order_goods) {
+                multipleTable.value[i].toggleRowSelection(orderTable.data[i].order_goods[j], true)
+            }
+        }
+    } else {
+        isSelectAll.value = false
+        for (const v in orderTable.data) {
+            for (const k in orderTable.data[v].order_goods) {
+                multipleTable.value[v].clearSelection()
+            }
+        }
+    }
 }
 interface orderTableType {
 	page: number
@@ -191,16 +191,16 @@ interface orderTableType {
 	}
 }
 const orderTable = reactive<orderTableType>({
-	page: 1,
-	limit: 10,
-	total: 0,
-	loading: true,
-	data: [],
-	searchParam: {
-		order_refund_no: '',
-		create_time: [],
-		status: ''
-	}
+    page: 1,
+    limit: 10,
+    total: 0,
+    loading: true,
+    data: [],
+    searchParam: {
+        order_refund_no: '',
+        create_time: [],
+        status: ''
+    }
 })
 
 const searchFormRef = ref<FormInstance>()
@@ -212,29 +212,29 @@ const searchFormRef = ref<FormInstance>()
  * 获取订单列表
  */
 const loadOrderList = (page: number = 1) => {
-	orderTable.loading = true
-	orderTable.page = page
+    orderTable.loading = true
+    orderTable.page = page
 
     orderRefund({
-		page: orderTable.page,
-		limit: orderTable.limit,
-		...orderTable.searchParam
-	}).then(res => {
-		orderTable.loading = false
-		orderTable.data = res.data.data.map((el: any) => {
-			el.order_goods = [el.order_goods]
-			return el
-		})
-		orderTable.total = res.data.total
-	}).catch(() => {
-		orderTable.loading = false
-	})
+        page: orderTable.page,
+        limit: orderTable.limit,
+        ...orderTable.searchParam
+    }).then(res => {
+        orderTable.loading = false
+        orderTable.data = res.data.data.map((el: any) => {
+            el.order_goods = [el.order_goods]
+            return el
+        })
+        orderTable.total = res.data.total
+    }).catch(() => {
+        orderTable.loading = false
+    })
 }
 loadOrderList()
 
 const handleClick = (event: string) => {
-	orderTable.searchParam.status = event
-	loadOrderList()
+    orderTable.searchParam.status = event
+    loadOrderList()
 }
 
 /**
@@ -243,29 +243,29 @@ const handleClick = (event: string) => {
 const exportSureDialog = ref(null)
 const flag = ref(false)
 const handleClose = (val) => {
-	flag.value = val
+    flag.value = val
 }
 const exportEvent = (data: any) => {
-	flag.value = true
+    flag.value = true
 }
 
 // 订单详情
 const detailEvent = (data: any) => {
-	router.push('/mall/order/refund/detail?refund_id=' + data.refund_id)
+    router.push('/mall/order/refund/detail?refund_id=' + data.refund_id)
 }
 
 const memberEvent = (member_id: number) => {
-	const routeUrl = router.resolve({
-		path: '/shop/member/detail',
-		query: { member_id }
-	})
-	window.open(routeUrl.href, '_blank')
+    const routeUrl = router.resolve({
+        path: '/shop/member/detail',
+        query: { member_id }
+    })
+    window.open(routeUrl.href, '_blank')
 }
 
 const resetForm = (formEl: FormInstance | undefined) => {
-	if (!formEl) return
-	formEl.resetFields()
-	loadOrderList()
+    if (!formEl) return
+    formEl.resetFields()
+    loadOrderList()
 }
 </script>
 

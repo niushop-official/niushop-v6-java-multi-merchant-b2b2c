@@ -38,7 +38,7 @@ public interface IMallGoodsService {
      *
      * @param addParam 添加参数
      */
-    void add(MallGoodsParam addParam);
+    Integer add(MallGoodsParam addParam);
 
     /**
      * 商品编辑
@@ -73,7 +73,6 @@ public interface IMallGoodsService {
 
     /**
      * 查询商品状态
-     *
      */
     Object getStatus();
 
@@ -188,23 +187,28 @@ public interface IMallGoodsService {
 
     /**
      * 获取商品来源列表
+     *
      * @return 商品来源列表
      */
-    List<Map<String, Object>> getSource();
+    Map<String, Map<String, String>> getSource();
 
     /**
      * 批量设置商品
+     *
      * @param param 批量设置参数
      */
     void batchSet(GoodsBatchSetParam param);
 
     /**
      * 获取批量设置字典
+     *
      * @return 批量设置类型字典
      */
     Map<String, String> getBatchSetDict();
 
     MPJQueryWrapper<MallGoods> getBatchAllQuery(Map<String, Object> where, List<Integer> goodsIds);
 
-    Map<String, Object>  sync(Integer goodsId,Integer supplySync);
+    Map<String, Object> sync(Integer goodsId, Integer supplySync);
+
+    Map<String, Map<String, Object>> getStatusType();
 }

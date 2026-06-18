@@ -15,6 +15,13 @@ export function mobileLogin(data: AnyObject) {
 }
 
 /**
+ * 找回密码
+ */
+export function resetPassword(data: AnyObject) {
+    return request.post(`login/forget_pwd`, data, { showErrorMessage: true })
+}
+
+/**
  * 获取登录配置
  */
 export function getConfig(params: Record<string, any>) {
@@ -32,7 +39,7 @@ export function logout() {
  * 用户名注册
  */
 export function siteRegister(data: AnyObject) {
-    return request.post('wuxinggou/site/auth/register', data, { showErrorMessage: true })
+    return request.post('/site/auth/register', data, { showErrorMessage: true })
 }
 
 /**

@@ -148,9 +148,6 @@ const userStore = defineStore('user', {
 
             })
         },
-        clearRouters() {
-            this.routers = []
-        }
     }
 })
 

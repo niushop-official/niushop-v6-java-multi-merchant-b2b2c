@@ -106,6 +106,10 @@ public class TencentGeocoder {
                 String province = addressComponent.getStr("province");
                 String city = addressComponent.getStr("city");
                 String district = addressComponent.getStr("district");
+                JSONObject adInfo = resultObject.getJSONObject("ad_info");
+                if (adInfo != null && StringUtils.isNotEmpty(adInfo.getStr("adcode"))) {
+                    jsonObjectResult.putOpt("adcode", adInfo.getStr("adcode"));
+                }
                 jsonObjectResult.putOpt("province", province);
                 jsonObjectResult.putOpt("city", city);
                 jsonObjectResult.putOpt("district", district);

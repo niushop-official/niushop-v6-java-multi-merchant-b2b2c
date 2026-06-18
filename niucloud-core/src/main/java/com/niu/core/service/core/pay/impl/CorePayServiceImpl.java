@@ -5,9 +5,9 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.niu.core.common.component.context.cache.Cached;
@@ -20,6 +20,7 @@ import com.niu.core.common.loader.pay.param.PayNotifyParam;
 import com.niu.core.common.loader.pay.param.PayParam;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.StringUtils;
+import com.niu.core.entity.member.Member;
 import com.niu.core.entity.pay.Pay;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.pay.OnliepayStatusEnum;
@@ -27,22 +28,22 @@ import com.niu.core.enums.pay.PayStatusEnum;
 import com.niu.core.event.pay.PayCloseEvent;
 import com.niu.core.event.pay.PayCreateEventDefiner;
 import com.niu.core.event.pay.PaySuccessEvent;
+import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.mapper.pay.PayMapper;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.pay.ICorePayChannelService;
 import com.niu.core.service.core.pay.ICorePayService;
 import com.niu.core.service.core.pay.vo.GetInfoByTradeVo;
+import com.niu.core.service.core.pay.vo.PayInfoVo;
 import com.niu.core.service.core.pay.vo.PayTypeVo;
 import com.niu.core.service.core.sys.ICorePrinterService;
-import com.niu.core.service.core.sys.param.SysPrinterPrintTicketParam;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -68,6 +69,8 @@ public class CorePayServiceImpl implements ICorePayService {
 
     @Resource
     Cached cached;
+    @Resource
+    private MemberMapper memberMapper;
 
     /**
      * 支付
@@ -172,6 +175,7 @@ public class CorePayServiceImpl implements ICorePayService {
      */
     public BasePay driver(String channel, String type) {
         JSONObject config = ObjectUtil.defaultIfNull(corePayChannelService.getConfigByChannelAndType(channel, type), new JSONObject());
+        config.set("channel", channel);
         return PayLoader.getDriver(type).init(config);
     }
 
@@ -268,6 +272,7 @@ public class CorePayServiceImpl implements ICorePayService {
 
     /**
      * 校验支付订单的状态
+     *
      * @return bool
      */
     public void check(Pay pay, PayNotifyParam param) {
@@ -275,7 +280,7 @@ public class CorePayServiceImpl implements ICorePayService {
         //查询第三方支付单据
         Object obj = this.driver(pay.getChannel(), pay.getType()).getOrder(param.getOutTradeNo());
         String status = "";
-        if(ObjectUtil.isNotEmpty(obj) && obj.toString().contains("status")){
+        if (ObjectUtil.isNotEmpty(obj) && obj.toString().contains("status")) {
             status = JSONUtil.parseObj(obj).getStr("status");
             if (status.equals(OnliepayStatusEnum.SUCCESS.getStatus())) {
                 this.paySuccess(pay, param);
@@ -350,7 +355,7 @@ public class CorePayServiceImpl implements ICorePayService {
         }
 
         if (pay.getStatus().equals(PayStatusEnum.STATUS_ING.getCode()) && !pay.getType().isEmpty()) {
-           this.driver(pay.getChannel(), pay.getType()).close(pay);
+            this.driver(pay.getChannel(), pay.getType()).close(pay);
         }
 
         this.payClose(pay);
@@ -370,12 +375,12 @@ public class CorePayServiceImpl implements ICorePayService {
 
         if (pay.getStatus().equals(PayStatusEnum.STATUS_ING.getCode()) && !pay.getType().isEmpty()) {
             Boolean result = this.driver(pay.getChannel(), pay.getType()).close(pay);
-            if(!result){
+            if (!result) {
                 Object obj = this.driver(pay.getChannel(), pay.getType()).getOrder(pay.getOutTradeNo());
                 String status = "";
-                if(ObjectUtil.isNotEmpty(obj) && obj.toString().contains("status")){
+                if (ObjectUtil.isNotEmpty(obj) && obj.toString().contains("status")) {
                     status = JSONUtil.parseObj(obj).getStr("status");
-                    if(status.equals(OnliepayStatusEnum.SUCCESS.getStatus())){
+                    if (status.equals(OnliepayStatusEnum.SUCCESS.getStatus())) {
                         PayNotifyParam param = new PayNotifyParam();
                         BeanUtils.copyProperties(pay, param);
                         param.setPayStatus(OnliepayStatusEnum.SUCCESS);
@@ -410,29 +415,30 @@ public class CorePayServiceImpl implements ICorePayService {
 
     /**
      * 修改支付扩展信息
+     *
      * @param json
      * @param id
      */
     @Override
     public void payEdit(String json, Integer id) {
-        payMapper.update(new Pay(),new UpdateWrapper<Pay>().eq("id",id).set("json",json));
+        payMapper.update(new Pay(), new UpdateWrapper<Pay>().eq("id", id).set("json", json));
     }
 
     @Override
     public void payEditHuifu(BigDecimal feeAmt, BigDecimal confirmedAmt, BigDecimal unconfirmAmt, Integer id) {
-        payMapper.update(new Pay(),new UpdateWrapper<Pay>().eq("id",id)
-                .set("fee_amt",feeAmt)
-                .set("confirmed_amt",ObjectUtil.isNotEmpty(confirmedAmt) ? confirmedAmt : new BigDecimal("0.00"))
-                .set("unconfirm_amt",ObjectUtil.isNotEmpty(unconfirmAmt) ? unconfirmAmt : new BigDecimal("0.00")));
+        payMapper.update(new Pay(), new UpdateWrapper<Pay>().eq("id", id)
+                .set("fee_amt", feeAmt)
+                .set("confirmed_amt", ObjectUtil.isNotEmpty(confirmedAmt) ? confirmedAmt : new BigDecimal("0.00"))
+                .set("unconfirm_amt", ObjectUtil.isNotEmpty(unconfirmAmt) ? unconfirmAmt : new BigDecimal("0.00")));
     }
 
     @Override
     public JSONObject getPayCashierUrl(String payType, String channel, Integer tradeId) {
         JSONObject json = new JSONObject();
-        if(StringUtils.isNotEmpty(payType)){
+        if (StringUtils.isNotEmpty(payType)) {
             json.set("payType", payType);
         }
-        if(ObjectUtil.isNotEmpty(tradeId)){
+        if (ObjectUtil.isNotEmpty(tradeId)) {
             json.set("trade_id", tradeId);
         }
         JSONObject result = new JSONObject();
@@ -458,6 +464,42 @@ public class CorePayServiceImpl implements ICorePayService {
         pay.setFromMainId(mainId);
         payMapper.insert(pay);
         return outTradeNo;
+    }
+
+    @Override
+    public PayInfoVo getPayInfoByOutTradeNo(String outTradeNo) {
+        // 1. 查询支付主表（指定字段）
+        LambdaQueryWrapper<Pay> payWrapper = new LambdaQueryWrapper<Pay>()
+                .eq(Pay::getOutTradeNo, outTradeNo)
+                .select(Pay::getSiteId, Pay::getMainId, Pay::getOutTradeNo, Pay::getTradeType,
+                        Pay::getTradeNo, Pay::getBody, Pay::getMoney, Pay::getVoucher,
+                        Pay::getStatus, Pay::getJson, Pay::getCreateTime, Pay::getPayTime,
+                        Pay::getType, Pay::getChannel);
+        Pay pay = payMapper.selectOne(payWrapper);
+        if (pay == null) {
+            throw new CommonException("TRADE_INFO_NOT_EXIST");
+        }
+
+        // 2. 查询关联的会员信息（仅需要的字段）
+        Member member = null;
+        if (pay.getMainId() != null) {
+            LambdaQueryWrapper<Member> memberWrapper = new LambdaQueryWrapper<Member>()
+                    .eq(Member::getMemberId, pay.getMainId())
+                    .select(Member::getMemberId, Member::getNickname, Member::getHeadimg);
+            member = memberMapper.selectOne(memberWrapper);
+        }
+
+        // 3. 组装 VO
+        PayInfoVo vo = new PayInfoVo();
+        BeanUtils.copyProperties(pay, vo);
+
+        if (member != null) {
+            PayInfoVo.MemberInfo memberInfo = new PayInfoVo.MemberInfo();
+            BeanUtils.copyProperties(member, memberInfo);
+            vo.setMember(memberInfo);
+        }
+
+        return vo;
     }
 
 }

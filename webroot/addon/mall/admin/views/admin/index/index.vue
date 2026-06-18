@@ -1,5 +1,5 @@
 <template>
-	<div class="box-border pb-[30px]">
+	<div class="box-border">
 		<div v-loading="loading">
 			<div class="bg-[#fff] p-[20px]">
 				<div class="mb-[16px] flex items-center">

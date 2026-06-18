@@ -132,7 +132,7 @@ const upload = computed(() => {
     headers.token = getToken()
     headers['site-id'] = storage.get('siteId') || 1
     return {
-        action: `${request.options.baseURL}/file/image`,
+        action: `${request.options.baseURL}file/image`,
         limit: 1,
         headers,
         onSuccess: (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {

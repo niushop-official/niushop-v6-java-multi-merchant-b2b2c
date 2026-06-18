@@ -63,3 +63,11 @@ export function checkShopStatus(apply_id: number) {
 export function checkhaveAccount(params: number) {
     return request.get(`shop/web/shop_apply/account_check`,params)
 }
+
+
+/**
+ * 店铺申请状态
+ */
+export function getShopConfig() {
+    return request.get(`shop/web/shop_apply/config`)
+}

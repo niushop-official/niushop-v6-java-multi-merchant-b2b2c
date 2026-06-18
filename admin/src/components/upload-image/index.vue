@@ -13,10 +13,12 @@
                     </div>
                 </div>
                 <upload-attachment :limit="limit" @confirm="confirmSelect" v-else>
-                    <div class="w-full h-full flex items-center justify-center flex-col content-wrap">
-                        <icon name="element Plus" size="20px" color="var(--el-text-color-secondary)" />
-                        <div class="leading-none text-xs mt-[10px] text-secondary">{{ imageText || t('upload.root') }}</div>
-                    </div>
+                    <slot>
+                        <div class="w-full h-full flex items-center justify-center flex-col content-wrap">
+                            <icon name="element Plus" size="20px" color="var(--el-text-color-secondary)" />
+                            <div class="leading-none text-xs mt-[10px] text-secondary">{{ imageText || t('upload.root') }}</div>
+                        </div>
+                    </slot>
                 </upload-attachment>
             </div>
         </template>

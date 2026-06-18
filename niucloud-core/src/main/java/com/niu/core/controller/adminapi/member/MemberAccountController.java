@@ -2,18 +2,23 @@ package com.niu.core.controller.adminapi.member;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.hutool.json.JSONObject;
-import com.niu.core.common.domain.Result;
+import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.domain.Result;
 import com.niu.core.enums.member.AccountTypeEnum;
 import com.niu.core.enums.member.MemberAccountChangeTypeEnum;
 import com.niu.core.service.admin.member.IMemberAccountService;
+import com.niu.core.service.admin.member.param.AdjustAccountBatchParam;
 import com.niu.core.service.admin.member.param.AdjustAccountParam;
 import com.niu.core.service.admin.member.param.MemberAccountLogSearchParam;
-import com.niu.core.service.admin.member.vo.*;
-import com.niu.core.common.domain.PageParam;
+import com.niu.core.service.admin.member.vo.MemberAccountLogListVo;
+import com.niu.core.service.admin.member.vo.SumBalanceVo;
+import com.niu.core.service.admin.member.vo.SumCommissionVo;
+import com.niu.core.service.admin.member.vo.SumPointVo;
+import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import jakarta.annotation.Resource;
+
 import java.util.Map;
 
 /**
@@ -30,6 +35,7 @@ public class MemberAccountController {
 
     /**
      * 获取账户类型
+     *
      * @return
      */
     @GetMapping("/type")
@@ -39,7 +45,8 @@ public class MemberAccountController {
 
     /**
      * 会员积分流水
-     * @param pageParam 分页
+     *
+     * @param pageParam   分页
      * @param searchParam 搜索条件
      * @return Result<PageResult<MemberAccountLogListVo>>
      */
@@ -52,7 +59,8 @@ public class MemberAccountController {
 
     /**
      * 会员余额流水
-     * @param pageParam 分页
+     *
+     * @param pageParam   分页
      * @param searchParam 搜索条件
      * @return Result<PageResult<MemberAccountLogListVo>>
      */
@@ -65,7 +73,8 @@ public class MemberAccountController {
 
     /**
      * 会员可提现余额流水
-     * @param pageParam 分页
+     *
+     * @param pageParam   分页
      * @param searchParam 搜索条件
      * @return Result<PageResult<MemberAccountLogListVo>>
      */
@@ -78,7 +87,8 @@ public class MemberAccountController {
 
     /**
      * 会员成长值流水
-     * @param pageParam 分页
+     *
+     * @param pageParam   分页
      * @param searchParam 搜索条件
      * @return Result<PageResult<MemberAccountLogListVo>>
      */
@@ -91,7 +101,8 @@ public class MemberAccountController {
 
     /**
      * 会员佣金流水
-     * @param pageParam 分页
+     *
+     * @param pageParam   分页
      * @param searchParam 搜索条件
      * @return Result<PageResult<MemberAccountLogListVo>>
      */
@@ -117,6 +128,15 @@ public class MemberAccountController {
     @PostMapping("/balance")
     public Result<Object> adjustBalance(@Validated @RequestBody AdjustAccountParam param) {
         memberAccountService.adjustBalance(param);
+        return Result.success();
+    }
+
+    /**
+     * 批量调整
+     */
+    @PostMapping("/batch")
+    public Result<Object> batch(@Validated @RequestBody AdjustAccountBatchParam param) {
+        memberAccountService.adjustBatch(param);
         return Result.success();
     }
 
@@ -149,6 +169,7 @@ public class MemberAccountController {
 
     /**
      * 获取账户类型的变动方式
+     *
      * @param accountType
      * @return
      */

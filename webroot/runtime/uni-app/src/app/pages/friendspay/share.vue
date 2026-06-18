@@ -218,7 +218,7 @@ const getFriendspayInfoFn = (tradeType : string, tradeId : number) => {
                     posterParam.id = friendsInfo.value.trade_id;
                     posterParam.type = friendsInfo.value.trade_type;
                     if (userInfo.value && userInfo.value.member_id) posterParam.member_id = userInfo.value.member_id;
-                    sharePosterRef.value.loadPoster();
+                    // sharePosterRef.value.loadPoster();
                 }
             }, 400)
         })

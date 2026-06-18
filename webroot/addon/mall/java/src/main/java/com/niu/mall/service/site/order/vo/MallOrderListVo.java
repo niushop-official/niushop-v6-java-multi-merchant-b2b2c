@@ -191,6 +191,8 @@ public class MallOrderListVo implements Serializable {
         private Integer localDeliverId;
         private String localDeliveryOrderId;
         private String localDeliveryStatus;
+        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        private String goodsConfig; // 商品对应配置
 
         private String orderDeliveryStatus;
         @JsonProperty("orderDelivery")
@@ -233,15 +235,7 @@ public class MallOrderListVo implements Serializable {
     }
 
     public String getOrderTypeName() {
-        if(StringUtil.isNotEmpty(this.orderType) && this.orderType.equals("pintuan")){
-            Object orderType = OrderTypeEnum.getOrderType(this.orderType);
-            if(JSONUtil.isTypeJSON(orderType.toString())){
-                return "";
-            }
-            return orderType.toString();
-        }else{
-            return "";
-        }
+        return OrderTypeEnum.getOrderTypeName(this.orderType);
     }
 
     public String getOrderFromName() {

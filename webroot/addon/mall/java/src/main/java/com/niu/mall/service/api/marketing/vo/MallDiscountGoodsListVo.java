@@ -28,6 +28,8 @@ public class MallDiscountGoodsListVo implements Serializable {
     private String goodsCover;  // 商品封面
     private String goodsCoverThumbSmall;
     private String goodsCoverThumbMid;
+    private String goodsImage;  // 商品封面
+    private String goodsImageThumbSmall;
     private Integer saleNum;  // 销量
     private Integer status;  // 商品状态（1.正常0下架）
     private Integer stock;
@@ -95,5 +97,7 @@ public class MallDiscountGoodsListVo implements Serializable {
         return coreUploadService().thumb(this.siteId, this.getGoodsCover(), UploadThumbTypeEnum.MID.getType()).getDataMap().get(UploadThumbTypeEnum.MID.getType());
     }
 
-
+    public String getGoodsImageThumbSmall() {
+        return coreUploadService().thumb(this.siteId, this.getGoodsImage(), UploadThumbTypeEnum.SMALL.getType()).getDataMap().get(UploadThumbTypeEnum.SMALL.getType());
+    }
 }

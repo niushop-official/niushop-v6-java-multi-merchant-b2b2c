@@ -39,6 +39,7 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
 @Slf4j
 @Component
 @EventCallback("mall")
@@ -66,7 +67,7 @@ public class PrinterContentListener extends AbstractPrinterContentCallbackListen
             return new SysPrinterPrintTicketResult();
         }
 
-            LambdaQueryWrapper<SysPrinter> printerLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<SysPrinter> printerLambdaQueryWrapper = new LambdaQueryWrapper<>();
         printerLambdaQueryWrapper.eq(SysPrinter::getSiteId, event.getParam().getSiteId())
                 .eq(SysPrinter::getStatus, 1)
                 .like(SysPrinter::getTemplateType, KEY)
@@ -280,19 +281,19 @@ public class PrinterContentListener extends AbstractPrinterContentCallbackListen
             // 商品总额
             if (data.getJSONObject("order_item").getJSONArray("value").contains("goods_money") &&
                     orderInfo.getGoodsMoney().compareTo(BigDecimal.ZERO) > 0) {
-                content.append("商品总额：￥").append(orderInfo.getGoodsMoney().toString()).append("\n");
+                content.append("商品总额：￥").append(orderInfo.getGoodsMoney()).append("\n");
             }
 
             // 优惠金额
             if (data.getJSONObject("order_item").getJSONArray("value").contains("discount_money") &&
                     orderInfo.getDiscountMoney().compareTo(BigDecimal.ZERO) > 0) {
-                content.append("优惠金额：￥").append(orderInfo.getDiscountMoney().toString()).append("\n");
+                content.append("优惠金额：￥").append(orderInfo.getDiscountMoney()).append("\n");
             }
 
             // 配送金额
             if (data.getJSONObject("order_item").getJSONArray("value").contains("delivery_money") &&
                     orderInfo.getDeliveryMoney().compareTo(BigDecimal.ZERO) > 0) {
-                content.append("配送金额：￥").append(orderInfo.getDeliveryMoney().toString()).append("\n");
+                content.append("配送金额：￥").append(orderInfo.getDeliveryMoney()).append("\n");
             }
         }
 

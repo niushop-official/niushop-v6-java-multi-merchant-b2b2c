@@ -11,6 +11,7 @@ import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.service.api.member.IMemberLevelService;
 import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
@@ -21,7 +22,6 @@ import com.niu.mall.mapper.goods.MallGoodsBrowseMapper;
 import com.niu.mall.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
 import com.niu.mall.service.api.goods.IGoodsBrowseService;
-import com.niu.mall.service.api.goods.IGoodsService;
 import com.niu.mall.service.api.goods.param.GoodsBrowseParam;
 import com.niu.mall.service.api.goods.param.GoodsBrowseSearchParam;
 import com.niu.mall.service.api.goods.vo.GoodsBrowseListVo;
@@ -54,9 +54,6 @@ public class GoodsBrowseServiceImpl implements IGoodsBrowseService {
 
     @Resource
     IMemberLevelService memberLevelService;
-
-    @Resource
-    IGoodsService goodsService;
 
     @Resource
     ICoreGoodsStatService coreGoodsStatService;
@@ -125,17 +122,22 @@ public class GoodsBrowseServiceImpl implements IGoodsBrowseService {
         model.setGoodsCover(goods.getGoodsCover());
         model.setSkuId(sku.getSkuId());
 
+        long todayStart = DateUtils.StringToTimestamp(DateUtils.currInitDate());
+        boolean isFirstVisitToday = browse == null || browse.getBrowseTime() < todayStart;
+
         if (browse == null) {
             mallGoodsBrowseMapper.insert(model);
+        } else {
+            model.setId(browse.getId());
+            mallGoodsBrowseMapper.updateById(model);
+        }
 
+        if (isFirstVisitToday) {
             GoodsAddStatParam param = new GoodsAddStatParam();
             param.setSiteId(model.getSiteId());
             param.setGoodsId(addParam.getGoodsId());
             param.setGoodsVisitMemberCount(1);
             coreGoodsStatService.addStat(param);
-        } else {
-            model.setId(browse.getId());
-            mallGoodsBrowseMapper.updateById(model);
         }
     }
 

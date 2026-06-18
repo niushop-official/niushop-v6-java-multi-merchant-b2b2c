@@ -11,7 +11,7 @@
         </div>
     </div>
     <div v-else :style="warpCss" class="form-item-frame">
-        <div class="base-layout-two" v-if="diyGlobal.completeLayout == 'style-2'">
+        <div class="base-layout-two">
             <div class="layout-two-wrap" :class="{'no-border': !diyGlobal.borderControl}">
                 <div class="layout-two-label">
                     <span class="required" v-if="diyComponent.field.required">{{ diyComponent.field.required ? '*' : '' }}</span>

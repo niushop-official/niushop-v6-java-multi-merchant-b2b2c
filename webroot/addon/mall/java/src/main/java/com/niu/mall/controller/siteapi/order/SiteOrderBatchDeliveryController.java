@@ -42,8 +42,7 @@ public class SiteOrderBatchDeliveryController {
 
     @GetMapping("/get_type")
     public Result<?> getBatchType() {
-        Map<String, String> result = Arrays.stream(OrderBatchDeliveryTypeEnum.values())
-                .collect(Collectors.toMap(OrderBatchDeliveryTypeEnum::getValue, OrderBatchDeliveryTypeEnum::getName));
+        var result = OrderBatchDeliveryTypeEnum.getMap();
         return Result.success(result);
     }
 

@@ -3,6 +3,8 @@ package com.niu.mall.service.admin.goods.vo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
+import com.niu.mall.enums.goods.GoodsAuditStatusEnum;
+import com.niu.mall.enums.goods.GoodsStatusEnum;
 import com.niu.mall.enums.goods.GoodsTypeEnum;
 import lombok.Data;
 
@@ -27,6 +29,7 @@ public class MallGoodsListVo implements Serializable {
     private String goodsCoverThumbSmall;
     private Integer saleNum;  // 销量
     private Integer status;  // 商品状态（1.正常0下架）
+    private Integer auditStatus;  // 审核状态
     private Integer stock;
     private Integer sort;  // 排序
     private String goodsTypeName;
@@ -47,6 +50,7 @@ public class MallGoodsListVo implements Serializable {
     private Integer goodsMallCategory;  // 商品商城分类
     private BigDecimal price;  // 商品价格
     private Integer skuId;
+
     @Data
     public static class GoodsSku {
         private Integer goodsId;
@@ -79,13 +83,27 @@ public class MallGoodsListVo implements Serializable {
     private Site site;
 
     @Data
-    public static class Site{
+    public static class Site {
         private Integer siteId;
         private String siteName;
     }
+
     public String getGoodsTypeName() {
         return GoodsTypeEnum.getNameByType(this.goodsType);
     }
+
+    private String statusName;
+
+    public String getStatusName() {
+        return GoodsStatusEnum.getNameByStatus(this.status);
+    }
+
+    private String auditStatusName;
+
+    public String getAuditStatusName() {
+        return GoodsAuditStatusEnum.getNameByStatus(this.auditStatus);
+    }
+
     @Data
     public static class GoodsLabelArray {
         @JsonProperty("label_id")

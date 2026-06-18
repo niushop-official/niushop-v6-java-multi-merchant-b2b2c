@@ -96,11 +96,7 @@ public class SysVerifyServiceImpl implements ISysVerifyService {
     public Boolean checkVerifier(SysVerifyCheckVerifierParam param) {
         QueryWrapper<Verifier> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("member_id", param.memberId());
-        Verifier verifier = verifierMapper.selectOne(queryWrapper);
-        if (verifier != null) {
-            return true;
-        }
-        return false;
+        return verifierMapper.exists(queryWrapper);
     }
 
     /**

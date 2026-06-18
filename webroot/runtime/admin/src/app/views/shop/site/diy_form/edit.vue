@@ -142,7 +142,7 @@
                                     <!-- 表单布局 页面设置 -->
                                     <div class="edit-attr-item-wrap" v-if="diyStore.currentComponent == 'edit-page'">
                                         <h3 class="mb-[10px]">{{ t('formLayout') }}</h3>
-                                        <el-form label-width="90px" class="px-[10px]">
+                                        <el-form label-width="110px" class="px-[10px]">
                                             <el-form-item class="display-block">
                                                 <template #label>
                                                     <div class="flex items-center">
@@ -173,6 +173,12 @@
                                             </el-form-item>
                                             <el-form-item :label="t('textAlign')" v-show="diyStore.global.completeLayout == 'style-2'">
                                                 <el-radio-group v-model="diyStore.global.completeAlign">
+                                                    <el-radio :label="'left'">{{ t('textAlignLeft') }}</el-radio>
+                                                    <el-radio :label="'right'">{{ t('textAlignRight') }}</el-radio>
+                                                </el-radio-group>
+                                            </el-form-item>
+                                            <el-form-item :label="t('内容对齐方式')" v-show="diyStore.global.completeLayout == 'style-2'">
+                                                <el-radio-group v-model="diyStore.global.contentAlign">
                                                     <el-radio :label="'left'">{{ t('textAlignLeft') }}</el-radio>
                                                     <el-radio :label="'right'">{{ t('textAlignRight') }}</el-radio>
                                                 </el-radio-group>

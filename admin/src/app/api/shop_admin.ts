@@ -363,3 +363,99 @@ export function getAddonList(params: Record<string, any>) {
 export function resetPassword(params: Record<string, any>) {
     return request.put(`auth/site/password/${params.id}`,params,{ showSuccessMessage: true });
 }
+
+
+/**
+ * 获取账户入驻申请列表
+ * 
+ */
+export function getAccountApply(params: Record<string, any>) {
+    return request.get(`shop/admin/spear_user_apply`,{params});
+}
+
+/**
+ * 获取账户入驻平台类型
+ * 
+ */
+export function getAccountApplyType() {
+    return request.get(`shop/admin/spear_user_apply/type`);
+}
+
+/**
+ * 获取账户入驻平台详情
+ * @param apply_id
+ */
+export function getAccountApplyInfo(id: number) {
+    return request.get(`shop/admin/spear_user_apply/${id}`)
+}
+
+/**
+ * 获取账户管理列表
+ * 
+ */
+export function getAccount(params: Record<string, any>) {
+    return request.get(`shop/admin/spear_user`,{params});
+}
+
+/**
+ * 获取账户入驻平台详情
+ * @param id
+ */
+export function getAccountInfo(id: number) {
+    return request.get(`shop/admin/spear_user/${id}`)
+}
+
+/**
+ * 获取账户管理状态
+ * 
+ */
+export function getAccountStatus() {
+    return request.get(`shop/admin/spear_user/status`);
+}
+
+/**
+ * 获取账户管理平台类型
+ * 
+ */
+export function getAccountType() {
+    return request.get(`shop/admin/spear_user/type`);
+}
+
+/**
+ * 获取账户管理平台类型
+ * 
+ */
+
+export function getAccountSettle() {
+    return request.get(`shop/admin/spear_user/settle`);
+}
+
+/**
+ * 获取表单配置
+ * @returns
+ */
+export function getConfig() {
+    return request.get('shop/admin/shop/apply_config')
+}
+
+/**
+ * 编辑表单配置
+ * @returns
+ */
+export function setConfig(param: any) {
+    return request.post('shop/admin/shop/apply_config', param, { showSuccessMessage: true })
+}
+
+/**
+ * 绑定账户
+ */
+export function addByHandle(params: Record<string, any>) {
+    return request.post(`shop/admin/spear_user`, params, { showSuccessMessage: true });
+}
+
+/**
+ * 编辑账户
+ */
+export function editAccount(params: Record<string, any>) {
+    return request.put(`shop/admin/spear_user`, params, { showSuccessMessage: true });
+}

@@ -8,6 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.google.gson.JsonArray;
@@ -26,6 +27,7 @@ import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteGroup;
 import com.niu.core.entity.sys.SysMenu;
 import com.niu.core.entity.sys.SysUserRole;
+import com.niu.core.enums.addon.AddonStatusEnum;
 import com.niu.core.enums.addon.AddonTypeEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.enums.sys.AppTypeEnum;
@@ -60,6 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -482,13 +485,13 @@ public class SiteServiceImpl implements ISiteService {
                 .eq("status", 1)
                 .in("`key`", siteAddonKeys)
                 .select("title", "icon", "`key`", "`desc`", "status", "type", "support_app");
-        
+
         if (param != null && ObjectUtil.isNotEmpty(param.getTitle())) {
             queryWrapper.like("title", param.getTitle());
         }
-        
+
         List<Addon> addons = addonMapper.selectList(queryWrapper);
-        
+
         return getShowAppToolsWithAddons(addons, "site");
     }
 
@@ -503,7 +506,7 @@ public class SiteServiceImpl implements ISiteService {
         if (param != null && ObjectUtil.isNotEmpty(param.getTitle())) {
             queryWrapper.like("title", param.getTitle());
         }
-        
+
         List<Addon> addons = addonMapper.selectList(queryWrapper);
         return getShowAppToolsWithAddons(addons, "admin");
     }
@@ -522,13 +525,13 @@ public class SiteServiceImpl implements ISiteService {
         promotionVo.setTitle("营销活动");
         promotionVo.setList(new ArrayList<>());
         map.put("promotion", promotionVo);
-        
+
         List<String> filterKeys = new ArrayList<>();
         filterKeys.add("b2b2c_dada");
         if ("site".equals(appType)) {
             filterKeys.add("points_mall");
         }
-        
+
         JsonModuleLoader jsonModuleLoader = new JsonModuleLoader();
         JSONObject appConfig = new JSONObject();
         if (appType.equals("admin")) {
@@ -547,7 +550,7 @@ public class SiteServiceImpl implements ISiteService {
                     String appKey = jsonObject.getStr("key");
 
                     //处理拼团路径
-                    if (appKey.equals("pintuan_diy")){
+                    if (appKey.equals("pintuan_diy")) {
                         String page = "/admin/decorate/edit?type=DIY_PINTUAN_ACTIVITY_GOODS_DETAIL&title=拼团活动详情&back=/admin/app/index&is_target=true";
                         DiyPage diyPageInfo = diyPageMapper.selectOne(new LambdaQueryWrapper<DiyPage>()
                                 .eq(DiyPage::getType, "DIY_PINTUAN_ACTIVITY_GOODS_DETAIL")
@@ -556,7 +559,7 @@ public class SiteServiceImpl implements ISiteService {
                                 .eq(DiyPage::getIsDefault, 1)
                                 .last("limit 1")
                         );
-                        if(ObjectUtil.isNotEmpty(diyPageInfo)){
+                        if (ObjectUtil.isNotEmpty(diyPageInfo)) {
                             page = "/admin/decorate/edit?id=" + diyPageInfo.getId() + "&back=/admin/app/index&is_target=true";
                         }
                         //替换url
@@ -566,14 +569,14 @@ public class SiteServiceImpl implements ISiteService {
                     if (filterKeys.contains(appKey)) {
                         continue;
                     }
-                    
+
                     ShowAppListVo.AppInfo appInfo = new ShowAppListVo.AppInfo();
                     appInfo.setTitle(jsonObject.getStr("title"));
                     appInfo.setKey(appKey);
                     appInfo.setDesc(jsonObject.getStr("desc"));
                     appInfo.setIcon(jsonObject.getStr("icon"));
                     appInfo.setUrl(jsonObject.getStr("url"));
-                    
+
                     if (key.equals("addon")) {
                         addonVo.getList().add(appInfo);
                     } else if (key.equals("tool")) {
@@ -585,14 +588,14 @@ public class SiteServiceImpl implements ISiteService {
                 }
             }
         }
-        
+
         if (ObjectUtil.isNotEmpty(addons)) {
             // 查询插件的菜单URL
             List<String> addonKeyList = addons.stream()
                     .map(Addon::getKey)
                     .filter(key -> !appKeys.contains(key))
                     .toList();
-            
+
             Map<String, String> addonUrlMap = new HashMap<>();
             if (!addonKeyList.isEmpty()) {
                 QueryWrapper<SysMenu> menuQueryWrapper = new QueryWrapper<>();
@@ -603,29 +606,29 @@ public class SiteServiceImpl implements ISiteService {
                         .eq("app_type", appType)
                         .orderByAsc("id")
                         .groupBy("addon");
-                
+
                 List<SysMenu> menus = sysMenuMapper.selectList(menuQueryWrapper);
                 for (SysMenu menu : menus) {
                     addonUrlMap.put(menu.getAddon(), menu.getRouterPath());
                 }
             }
-            
+
             for (Addon addon : addons) {
                 if (!appKeys.contains(addon.getKey())) {
                     String url = addonUrlMap.getOrDefault(addon.getKey(), "");
-                    
+
                     ShowAppListVo.AppInfo appInfo = new ShowAppListVo.AppInfo();
                     appInfo.setTitle(addon.getTitle());
                     appInfo.setKey(addon.getKey());
                     appInfo.setDesc(addon.getDesc());
                     appInfo.setIcon(addon.getIcon());
                     appInfo.setUrl(ObjectUtil.isNotEmpty(url) ? "/" + url : "");
-                    
+
                     addonVo.getList().add(appInfo);
                 }
             }
         }
-        
+
         return map;
     }
 
@@ -692,7 +695,7 @@ public class SiteServiceImpl implements ISiteService {
     }
 
     @Override
-    public PageResult<SiteNameListVo> getSiteListByAppName(String appName, String order, String sort, String keyword,PageParam pageParam) {
+    public PageResult<SiteNameListVo> getSiteListByAppName(String appName, String order, String sort, String keyword, PageParam pageParam) {
         Integer page = pageParam.getPage();
         Integer limit = pageParam.getLimit();
 
@@ -715,7 +718,7 @@ public class SiteServiceImpl implements ISiteService {
         if (ObjectUtil.isNotEmpty(keyword)) {
             queryWrapper.like("site_name", keyword).or().like("keywords", keyword);
         }
-        IPage<SiteNameListVo> list = siteMapper.selectJoinPage(new Page<>(page, limit),SiteNameListVo.class, queryWrapper);
+        IPage<SiteNameListVo> list = siteMapper.selectJoinPage(new Page<>(page, limit), SiteNameListVo.class, queryWrapper);
         if (!list.getRecords().isEmpty()) {
             Random rand = new Random();
             list.getRecords().forEach(item -> {
@@ -747,18 +750,56 @@ public class SiteServiceImpl implements ISiteService {
         }
         if (isAdmin > 0) {
             // 超级管理员获取所有菜单
-            List<SysMenu> menuList = sysMenuService.getAdminAllMenuList(appType, status, isButton == 1,0);
+            List<SysMenu> menuList = sysMenuService.getAdminAllMenuList(appType, status, isButton == 1, 0);
             JSONArray jsonArray = JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(menuList));
             return isTree ? TreeUtils.listToTree(jsonArray, "menu_key", "parent_key", "children") : jsonArray;
         } else {
             String userRoleIds = authRole.getRoleIds();
             strings.add(userRoleIds);
             List<String> menuKeys = sysRoleService.getMenuIdsByRoleIds(siteId, strings);
-            List<SysMenu> adminMenuListByMenuKeys = sysMenuService.getAdminMenuListByMenuKeys(RequestUtils.appType(), siteId, status, isButton, menuKeys, addon,0);
+            List<SysMenu> adminMenuListByMenuKeys = sysMenuService.getAdminMenuListByMenuKeys(RequestUtils.appType(), siteId, status, isButton, menuKeys, addon, 0);
             JSONArray jsonArray = JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(adminMenuListByMenuKeys));
             return isTree ? TreeUtils.listToTree(jsonArray, "menu_key", "parent_key", "children") : jsonArray;
         }
 
+    }
+
+    @Override
+    public Map<String, Map<String, Object>> getSitePromotionTools(SiteAppToolsParam param) {
+        // 1. 获取当前站点已购买的插件 key 列表
+        List<String> siteAddonKeys = coreSiteService.getAddonKeysBySiteId(RequestUtils.siteId());
+        if (siteAddonKeys == null || siteAddonKeys.isEmpty()) {
+            return coreSiteService.getShowPromotionTools(List.of(), AppTypeEnum.SITE.getName(), RequestUtils.siteId());
+        }
+
+        // 2. 查询已安装且启用的插件（类型为 addon，状态为启用，且 key 在站点购买列表中）
+        LambdaQueryWrapper<Addon> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(Addon::getType, AddonTypeEnum.ADDON.getType())
+                .eq(Addon::getStatus, AddonStatusEnum.ON.getCode())
+                .in(Addon::getKey, siteAddonKeys);
+        // 动态添加搜索条件（如 title 模糊查询）
+        if (ObjectUtil.isNotEmpty(param.getTitle())) {
+            wrapper.like(Addon::getTitle, param.getTitle());
+        }
+        List<String> addonKeys = addonMapper.selectList(wrapper)
+                .stream().map(Addon::getKey).collect(Collectors.toList());
+
+        return coreSiteService.getShowPromotionTools(addonKeys, RequestUtils.appType(), RequestUtils.siteId());
+    }
+
+    @Override
+    public Map<String, Map<String, Object>> getAdminPromotionTools(SiteAppToolsParam param) {
+        // 1. 查询所有已安装且启用的插件（类型为 addon，状态为启用）
+        LambdaQueryWrapper<Addon> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(Addon::getType, AddonTypeEnum.ADDON.getType())
+                .eq(Addon::getStatus, AddonStatusEnum.ON.getCode());
+        if (ObjectUtil.isNotEmpty(param.getTitle())) {
+            wrapper.like(Addon::getTitle, param.getTitle());
+        }
+        List<String> addonKeys = addonMapper.selectList(wrapper)
+                .stream().map(Addon::getKey).toList();
+
+        return coreSiteService.getShowPromotionTools(addonKeys, RequestUtils.appType(), null);
     }
 
 }

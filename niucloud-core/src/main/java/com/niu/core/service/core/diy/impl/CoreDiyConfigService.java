@@ -1,18 +1,15 @@
 package com.niu.core.service.core.diy.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.niu.core.common.exception.AdminException;
 import com.niu.core.common.utils.json.JsonModuleLoader;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.diy.BottomConfigValue;
-import com.niu.core.enums.notice.NoticeEnum;
-import com.niu.core.enums.notice.vo.NoticeEnumListVo;
 import com.niu.core.mapper.addon.AddonMapper;
-import com.niu.core.service.admin.member.vo.LoginConfigVo;
 import com.niu.core.service.core.diy.ICoreDiyConfigService;
 import com.niu.core.service.core.diy.param.StartUpPageConfigParam;
 import com.niu.core.service.core.diy.vo.BottomConfigVo;
@@ -23,9 +20,11 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 @Log4j2
 @Service
 public class CoreDiyConfigService implements ICoreDiyConfigService {
@@ -36,122 +35,136 @@ public class CoreDiyConfigService implements ICoreDiyConfigService {
     @Resource
     ICoreConfigService coreConfigService;
 
-    private static JSONArray bottomJson;
-    private static JSONArray bottomSiteJson;
+    private final JsonModuleLoader jsonModuleLoader = new JsonModuleLoader();
 
-    private static JSONArray getBottomJson() {
-        if(bottomJson == null || bottomJson.isEmpty()){
-            JsonModuleLoader jsonModuleLoader = new JsonModuleLoader();
-            bottomJson = jsonModuleLoader.mergeContentToArray("diy/bottom.json");
-        }
-        return bottomJson;
+    private JSONArray getBottomJson() {
+        return jsonModuleLoader.mergeContentToArray("diy/bottom.json");
     }
 
-    private static JSONArray getSiteBottomJson() {
-        if (bottomSiteJson == null || bottomSiteJson.isEmpty()) {
-            JsonModuleLoader jsonModuleLoader = new JsonModuleLoader();
-            bottomSiteJson = jsonModuleLoader.mergeContentToArray("diy/bottom_site.json");
+    private JSONArray getSiteBottomJson() {
+        return jsonModuleLoader.mergeContentToArray("diy/bottom_site.json");
+    }
+
+    private Map<String, Addon> loadAddonMap(List<String> keys) {
+        Map<String, Addon> addonMap = new HashMap<>();
+        Addon appAddon = new Addon();
+        appAddon.setTitle("系统");
+        addonMap.put("app", appAddon);
+
+        List<String> dbKeys = keys.stream().filter(key -> !"app".equals(key)).collect(Collectors.toList());
+        if (!dbKeys.isEmpty()) {
+            List<Addon> addons = addonMapper.selectList(new QueryWrapper<Addon>().in("`key`", dbKeys));
+            for (Addon addon : addons) {
+                addonMap.put(addon.getKey(), addon);
+            }
         }
-        return bottomSiteJson;
+        return addonMap;
+    }
+
+    private List<BottomConfigVo> buildBottomListFromJson(JSONArray bottomJsonArray) {
+        List<String> keys = new ArrayList<>();
+        for (Object bottomMap : bottomJsonArray) {
+            keys.add(((JSONObject) bottomMap).getStr("key"));
+        }
+        Map<String, Addon> addonMap = loadAddonMap(keys);
+
+        List<BottomConfigVo> list = new ArrayList<>();
+        for (Object bottomMap : bottomJsonArray) {
+            JSONObject jsonObject = (JSONObject) bottomMap;
+            BottomConfigVo vo = new BottomConfigVo();
+            String key = jsonObject.getStr("key");
+            vo.setInfo(addonMap.getOrDefault(key, new Addon()));
+            vo.setKey(key);
+            JSONObject bottomValueJson = jsonObject.getJSONObject("value");
+            BottomConfigValue bottomConfigValue = JSONUtil.toBean(bottomValueJson, BottomConfigValue.class);
+            vo.setValue(bottomConfigValue);
+            list.add(vo);
+        }
+        return list;
     }
 
     @Override
     public List<BottomConfigVo> getBottomList() {
-        JSONArray bottomJson = getBottomJson();
-
-        List<BottomConfigVo> list = new ArrayList<>();
-        for (Object bottomMap : bottomJson) {
-            JSONObject jsonObject = (JSONObject) bottomMap;
-            BottomConfigVo vo = new BottomConfigVo();
-            String key = jsonObject.getStr("key");
-
-            Addon addon = new Addon();
-            if(key.equals("app"))
-            {
-                addon.setTitle("系统");
-            }else {
-                addon = addonMapper.selectOne(new QueryWrapper<Addon>().eq("`key`", key));
-            }
-
-            vo.setInfo(addon);
-            vo.setKey(key);
-            JSONObject bottomValueJson = jsonObject.getJSONObject("value");
-            BottomConfigValue bottomConfigValue = JSONUtil.toBean(bottomValueJson, BottomConfigValue.class);
-            vo.setValue(bottomConfigValue);
-            list.add(vo);
-        }
-
-        return list;
+        return buildBottomListFromJson(getBottomJson());
     }
 
     @Override
     public List<BottomConfigVo> getSiteBottomList() {
-        JSONArray bottomJson = getSiteBottomJson();
-        log.info("info: {}", JSONUtil.toJsonStr(bottomJson));
-        List<BottomConfigVo> list = new ArrayList<>();
-        for (Object bottomMap : bottomJson) {
-            JSONObject jsonObject = (JSONObject) bottomMap;
-            BottomConfigVo vo = new BottomConfigVo();
-            String key = jsonObject.getStr("key");
-
-            Addon addon = new Addon();
-            if(key.equals("app"))
-            {
-                addon.setTitle("系统");
-            }else {
-                addon = addonMapper.selectOne(new QueryWrapper<Addon>().eq("`key`", key));
-            }
-
-            vo.setInfo(addon);
-            vo.setKey(key);
-            JSONObject bottomValueJson = jsonObject.getJSONObject("value");
-            BottomConfigValue bottomConfigValue = JSONUtil.toBean(bottomValueJson, BottomConfigValue.class);
-            vo.setValue(bottomConfigValue);
-            list.add(vo);
-        }
-
-        return list;
+        return buildBottomListFromJson(getSiteBottomJson());
     }
 
     @Override
     public BottomConfigVo getBottomConfig(Integer siteId, String key) {
-        List<BottomConfigVo> list;
-        if(siteId == 0)
-        {
-            list = getBottomList();
-        }else{
-            list = getSiteBottomList();
+        List<BottomConfigVo> result = getBottomConfigList(siteId, List.of(key));
+        return result.isEmpty() ? null : result.get(0);
+    }
+
+    @Override
+    public List<BottomConfigVo> getBottomConfigList(Integer siteId, List<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return new ArrayList<>();
         }
+        List<BottomConfigVo> list = siteId == 0 ? getBottomList() : getSiteBottomList();
+        Map<String, BottomConfigVo> configMap = list.stream()
+                .filter(vo -> keys.contains(vo.getKey()))
+                .collect(Collectors.toMap(BottomConfigVo::getKey, vo -> vo, (a, b) -> a));
 
-
-        BottomConfigVo config = list.stream().filter(vo -> vo.getKey().equals(key)).findFirst().orElse(null);
-        JSONObject jsonObject = coreConfigService.getConfigValue(siteId, "diy_bottom_"+key);
-        if(ObjectUtil.isNotEmpty(jsonObject)) {
-            BottomConfigValue bottomConfigValue = JSONUtil.toBean(jsonObject, BottomConfigValue.class);
-            config.setValue(bottomConfigValue);
-
+        List<BottomConfigVo> result = new ArrayList<>();
+        for (String key : keys) {
+            BottomConfigVo config = configMap.get(key);
+            if (config == null) {
+                continue;
+            }
+            JSONObject jsonObject = coreConfigService.getConfigValue(siteId, "diy_bottom_" + key);
+            if (ObjectUtil.isNotEmpty(jsonObject)) {
+                BottomConfigValue bottomConfigValue = JSONUtil.toBean(jsonObject, BottomConfigValue.class);
+                config.setValue(bottomConfigValue);
+            }
+            result.add(config);
         }
+        if (siteId != null && siteId > 0) {
+            for (BottomConfigVo config : result) {
+                appendSiteIdToBottomLinks(config.getValue(), siteId);
+            }
+        }
+        return result;
+    }
 
-        return config;
+    private void appendSiteIdToBottomLinks(BottomConfigValue value, Integer siteId) {
+        if (value == null || value.getList() == null) {
+            return;
+        }
+        JSONArray tabList = value.getList();
+        for (int i = 0; i < tabList.size(); i++) {
+            JSONObject item = tabList.getJSONObject(i);
+            if (item == null) {
+                continue;
+            }
+            JSONObject link = item.getJSONObject("link");
+            if (link == null) {
+                continue;
+            }
+            String url = link.getStr("url", "");
+            if (StrUtil.isBlank(url) || url.startsWith("http://") || url.startsWith("https://")) {
+                continue;
+            }
+            if (!url.startsWith("/") || url.contains("site_id=")) {
+                continue;
+            }
+            link.set("url", url + (url.contains("?") ? "&" : "?") + "site_id=" + siteId);
+        }
     }
 
     /**
      * 设置底部导航
-     *
-     * @param siteId
-     * @param bottomConfigValue
      */
     @Override
-    public void setBottomConfig(Integer siteId, BottomConfigValue bottomConfigValue,String key) {
-        coreConfigService.setConfig(siteId, "diy_bottom_"+key, JSONUtil.parseObj(bottomConfigValue));
+    public void setBottomConfig(Integer siteId, BottomConfigValue bottomConfigValue, String key) {
+        coreConfigService.setConfig(siteId, "diy_bottom_" + key, JSONUtil.parseObj(bottomConfigValue));
     }
 
     /**
      * 启动页配置
-     *
-     * @param siteId
-     * @param value
-     * @param name
      */
     @Override
     public void setStartUpPageConfig(Integer siteId, StartUpPageConfigParam value, String name) {
@@ -160,10 +173,6 @@ public class CoreDiyConfigService implements ICoreDiyConfigService {
 
     /**
      * 获取启动页配置
-     *
-     * @param siteId
-     * @param name
-     * @return
      */
     public StartUpPageConfigVo getStartUpPageConfig(Integer siteId, String name) {
         JSONObject config = coreConfigService.getConfigValue(siteId, "START_UP_PAGE_" + name.toUpperCase());

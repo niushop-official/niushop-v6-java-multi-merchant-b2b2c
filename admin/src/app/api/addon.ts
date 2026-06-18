@@ -49,7 +49,7 @@ export function uninstallAddon(params: Record<string, any>) {
  * @returns
  */
 export function preInstallCheck(addon: string) {
-    return request.get(`addon/install/check/${ addon }`, { timeout: 30 * 1000 })
+    return request.get(`addon/install/check/${ addon }`, { timeout: 30 * 1000, showErrorMessage: false })
 }
 
 /**
@@ -66,7 +66,7 @@ export function getAddonInstalltask() {
  * @returns
  */
 export function getAddonCloudInstallLog(addon: string) {
-    return request.get(`addon/cloudinstall/${ addon }`)
+    return request.get(`addon/cloudinstall/${ addon }`, { showErrorMessage: false })
 }
 
 /**

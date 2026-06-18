@@ -2,14 +2,19 @@ package com.niu.mall.service.core.order.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.yulichang.query.MPJQueryWrapper;
-import com.niu.core.common.component.context.task.ThreadPoolManager;
 import com.niu.core.common.config.GlobalConfig;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.NoticeUtils;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.basic.Invoice;
+import com.niu.core.enums.basic.InvoiceContentEnum;
 import com.niu.core.enums.basic.InvoiceStatusEnum;
 import com.niu.core.mapper.basic.InvoiceMapper;
 import com.niu.core.service.core.addon.ICoreAddonService;
@@ -28,20 +33,20 @@ import com.niu.core.service.core.sys.param.SysPrinterPrintTicketParam;
 import com.niu.mall.entity.cart.MallCart;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderDiscount;
+import com.niu.mall.entity.order.MallOrderGiftGoods;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.config.MallOrderDelaySpear;
 import com.niu.mall.entity.order.config.MallOrderEvaluate;
 import com.niu.mall.entity.order.config.MallOrderFinish;
-import com.niu.mall.entity.order.config.MallOrderInvoice;
 import com.niu.mall.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.*;
 import com.niu.mall.event.order.MallOrderSettlementEvent;
 import com.niu.mall.event.order.MallOrderSettlementFinishEvent;
 import com.niu.mall.event.order.OrderCloseStockEvent;
-import com.niu.mall.event.order.OrderCreateAfterEvent;
 import com.niu.mall.event.order.SyncSupplyGoodsStockDecEvent;
 import com.niu.mall.mapper.cart.MallCartMapper;
 import com.niu.mall.mapper.order.MallOrderDiscountMapper;
+import com.niu.mall.mapper.order.MallOrderGiftGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsService;
@@ -50,24 +55,22 @@ import com.niu.mall.service.core.goods.ICoreGoodsStatService;
 import com.niu.mall.service.core.goods.param.GoodsAddStatParam;
 import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
 import com.niu.mall.service.core.order.*;
+import com.niu.mall.service.core.order.helper.OrderPointDeductHelper;
 import com.niu.mall.service.core.order.param.*;
 import com.niu.mall.service.core.order.vo.*;
-import com.niu.mall.service.core.shop.ICoreStatService;
-import com.niu.mall.service.core.shop.param.AddStatParam;
 import com.niu.mall.service.site.marketing.IMallDiscountService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -138,6 +141,12 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
     @Resource
     @Lazy
     ICoreOrderSettlementService coreOrderSettlementService;
+    @Resource
+    private MallOrderGiftGoodsMapper orderGiftGoodsMapper;
+    @Resource
+    private ICoreOrderGroupService coreOrderGroupService;
+    @Resource
+    private OrderPointDeductHelper orderPointDeductHelper;
 
     /**
      * 订单关闭之后
@@ -159,24 +168,21 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
                     case "coupon":
                         isHas = false;
                         checkList = mallOrderDiscountMapper.selectJoinList(CheckMallOrderDiscountVo.class, new MPJQueryWrapper<MallOrderDiscount>()
-                                        .setAlias("nmod")
-                                        .innerJoin("?_mall_order nmo ON nmod.order_id = nmo.order_id".replace("?_", GlobalConfig.tablePrefix))
-                                        .eq("nmod.discount_type", "coupon")
-                                        .eq("nmod.discount_type_id", item.getDiscountTypeId())
-                                        .eq("nmo.group_id", order.getGroupId())
-                                        .ne("nmod.order_id", order.getOrderId())
-                                        .select("nmod.id, nmod.site_id, nmod.order_id, nmod.order_goods_ids, nmod.type, nmod.num, nmod.money, nmod.discount_type, nmod.discount_type_id, nmod.content, nmod.create_time, nmod.status, nmo.status AS order_status"));
-                        if(ObjectUtil.isNotEmpty(checkList))
-                        {
+                                .setAlias("nmod")
+                                .innerJoin("?_mall_order nmo ON nmod.order_id = nmo.order_id".replace("?_", GlobalConfig.tablePrefix))
+                                .eq("nmod.discount_type", "coupon")
+                                .eq("nmod.discount_type_id", item.getDiscountTypeId())
+                                .eq("nmo.group_id", order.getGroupId())
+                                .ne("nmod.order_id", order.getOrderId())
+                                .select("nmod.id, nmod.site_id, nmod.order_id, nmod.order_goods_ids, nmod.type, nmod.num, nmod.money, nmod.discount_type, nmod.discount_type_id, nmod.content, nmod.create_time, nmod.status, nmo.status AS order_status"));
+                        if (ObjectUtil.isNotEmpty(checkList)) {
                             for (CheckMallOrderDiscountVo check : checkList) {
-                                if(!check.getOrderStatus().equals(OrderStatusEnum.CLOSE.getStatus()))
-                                {
+                                if (!check.getOrderStatus().equals(OrderStatusEnum.CLOSE.getStatus())) {
                                     isHas = true;
                                 }
                             }
                         }
-                        if(!isHas)
-                        {
+                        if (!isHas) {
                             coreCouponMemberService.recover(item.getDiscountTypeId());
                         }
                         break;
@@ -190,17 +196,14 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
                                 .eq("nmo.group_id", order.getGroupId())
                                 .ne("nmod.order_id", order.getOrderId())
                                 .select("nmod.id, nmod.site_id, nmod.order_id, nmod.order_goods_ids, nmod.type, nmod.num, nmod.money, nmod.discount_type, nmod.discount_type_id, nmod.content, nmod.create_time, nmod.status, nmo.status AS order_status"));
-                        if(ObjectUtil.isNotEmpty(checkList))
-                        {
+                        if (ObjectUtil.isNotEmpty(checkList)) {
                             for (CheckMallOrderDiscountVo check : checkList) {
-                                if(!check.getOrderStatus().equals(OrderStatusEnum.CLOSE.getStatus()))
-                                {
+                                if (!check.getOrderStatus().equals(OrderStatusEnum.CLOSE.getStatus())) {
                                     isHas = true;
                                 }
                             }
                         }
-                        if(!isHas)
-                        {
+                        if (!isHas) {
                             coreCouponMemberService.recover(item.getDiscountTypeId());
                         }
                         break;
@@ -210,12 +213,17 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
             }
         }
 
+        //返还商品库存
         List<MallOrderGoods> orderGoods = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().eq("order_id", order.getOrderId()));
 
+        // 非退款关单退还抵扣积分（对齐 PHP AfterMallOrderClose；退款关单由订单项处理）
+        String closeType = param.getCloseType();
+        orderPointDeductHelper.refundOnOrderClose(order, closeType, orderGoods);
+        boolean shouldDecSaleNum = order.getPayTime() == 0
+                || OrderCloseTypeEnum.REFUND_CLOSE.getType().equals(closeType);
         for (MallOrderGoods item : orderGoods) {
-            // 扣除销量
-            if(order.getPayTime() == 0)
-            {
+            // 扣除销量：未支付关单，或已支付全额退款关单
+            if (shouldDecSaleNum) {
                 coreGoodsService.decSaleNum(item.getSiteId(), item.getGoodsId(), item.getSkuId(), item.getNum());
                 GoodsAddStatParam goodsAddStatParam = new GoodsAddStatParam();
                 goodsAddStatParam.setSiteId(item.getSiteId());
@@ -225,16 +233,25 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
             }
 
             // 返还库存
-            if(item.getSupplyGoodsId() == 0)
-            {
+            if (item.getSupplyGoodsId() == 0) {
                 coreGoodsService.incStock(item.getSiteId(), item.getGoodsId(), item.getSkuId(), item.getNum());
             }
 
         }
 
+        // ========== 补充2：赠品库存返还 ==========
+        List<MallOrderGiftGoods> giftGoodsList = orderGiftGoodsMapper.selectList(
+                new LambdaQueryWrapper<MallOrderGiftGoods>().eq(MallOrderGiftGoods::getOrderId, order.getOrderId())
+        );
+        for (MallOrderGiftGoods gift : giftGoodsList) {
+            if (gift.getSupplyGoodsId() == 0) {
+                coreGoodsService.incStock(gift.getSiteId(), gift.getGoodsId(), gift.getSkuId(), gift.getNum());
+            }
+        }
+
         //订单退款同步供应商库存
-        if(checkAddon("supply")){
-            if (ObjectUtil.isNotEmpty(order.getSupplyId()) && order.getSupplyId() > 0){
+        if (checkAddon("supply")) {
+            if (ObjectUtil.isNotEmpty(order.getSupplyId()) && order.getSupplyId() > 0) {
                 OrderCloseStockEvent orderCloseStockEvent = new OrderCloseStockEvent();
                 orderCloseStockEvent.setOrderId(order.getOrderId());
                 orderCloseStockEvent.addAppSign("supply");
@@ -244,6 +261,9 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
 
         // 发票失效
         if (order.getInvoiceId() > 0) coreInvoiceService.close(order.getInvoiceId());
+
+        // ========== 补充3：订单组关闭 ==========
+        coreOrderGroupService.closeOfAllOrderClose(order.getOrderId());
 
         //本地配送渠道关闭
         try {
@@ -275,7 +295,7 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
     public void orderCreateAfter(OrderCreateDataVo vo) {
         log.info("订单AfterShopOrderCreate 订单id:" + vo.getOrderId());
         try {
-            long time = System.currentTimeMillis()/1000;
+            long time = System.currentTimeMillis() / 1000;
             // 创建发票
             this.createInvoice(vo);
 
@@ -292,6 +312,11 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
                 coreGoodsStatService.addStat(goodsAddStatParam);
             }
 
+            //扣减赠品库存
+            for (MallOrderGiftGoods giftGoods : vo.getGiftGoods()) {
+                coreGoodsService.decStock(giftGoods.getSiteId(), giftGoods.getGoodsId(), giftGoods.getSkuId(), giftGoods.getNum());
+            }
+
             // 清除购物车
             if (ObjectUtil.isNotEmpty(vo.getCartIds())) {
                 cartMapper.delete(new QueryWrapper<MallCart>()
@@ -302,7 +327,7 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
 
 
             //同步供货库存和销量(减/增)
-            if(ObjectUtil.isNotEmpty(vo.getSupplyId()) && vo.getSupplyId() > 0){
+            if (ObjectUtil.isNotEmpty(vo.getSupplyId()) && vo.getSupplyId() > 0) {
                 SyncSupplyGoodsStockDecEvent event = new SyncSupplyGoodsStockDecEvent();
                 event.setSiteId(vo.getSiteId());
                 event.setOrderId(vo.getOrderId());
@@ -319,7 +344,7 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
             coreOrderLogService.add(logParam);
 
             //创建定时关闭任务
-            coreOrderCloseService. setOrderCloseTimeout(vo.getOrderId(),time);
+            coreOrderCloseService.setOrderCloseTimeout(vo.getOrderId(), time);
 
             // 添加统计
             SysDataAddParam statParam = new SysDataAddParam();
@@ -339,7 +364,7 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
      */
     private void createInvoice(OrderCreateDataVo vo) {
         InvoiceInfoVo invoice = coreInvoiceService.invoice(vo.getSiteId());
-        if(ObjectUtil.isEmpty(invoice)) return ;
+        if (ObjectUtil.isEmpty(invoice)) return;
         if (invoice.getIsInvoice().equals("1") && ObjectUtil.isNotEmpty(vo.getInvoice().getHeaderName())) {
             Invoice model = new Invoice();
             BeanUtil.copyProperties(vo.getInvoice(), model);
@@ -350,6 +375,7 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
             model.setMoney(vo.getBasic().getOrderMoney());
             model.setStatus(InvoiceStatusEnum.WAIT_OPEN.getStatus());
             model.setCreateTime(System.currentTimeMillis() / 1000);
+            model.setName(InvoiceContentEnum.getNameByType(vo.getInvoice().getContentType()));
             invoiceMapper.insert(model);
 
             MallOrder order = new MallOrder();
@@ -407,36 +433,14 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         //商城商品销量统计
         coreGoodsStatNumService.updateMallSaleNum(order.getOrderId());
 
-        // 虚拟商品自动发货
-        MPJQueryWrapper<MallOrderGoods> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.setAlias("og")
-                .innerJoin("?_mall_goods g ON g.goods_id = og.goods_id".replace("?_", GlobalConfig.tablePrefix));
-        queryWrapper.select("og.order_goods_id");
-        queryWrapper.eq("og.order_id", order.getOrderId());
-        queryWrapper.eq("g.goods_type", GoodsTypeEnum.VIRTUAL.getType());
-        queryWrapper.eq("g.virtual_auto_delivery", 1);
-        if (checkAddon("supply")){
-            queryWrapper.eq("og.supply_id", 0);
-        }
-
-        List<OrderGoodsVo> orderGoods = mallOrderGoodsMapper.selectJoinList(OrderGoodsVo.class, queryWrapper);
-        if (ObjectUtil.isNotEmpty(orderGoods)) {
-            OrderDeliveryParam deliveryParam = new OrderDeliveryParam();
-            deliveryParam.setMainType(OrderLogMainTypeEnum.SYSTEM.getType());
-            deliveryParam.setMainId(0);
-            deliveryParam.setSiteId(order.getSiteId());
-            deliveryParam.setOrderId(order.getOrderId());
-            deliveryParam.setDeliveryType(OrderDeliveryTypeEnum.VIRTUAL.getType());
-            deliveryParam.setOrderGoodsIds(orderGoods.stream().map(OrderGoodsVo::getOrderGoodsId).toArray(Integer[]::new));
-            coreOrderDeliveryService.delivery(deliveryParam);
-        }
+        // 虚拟商品自动发货（对照 PHP AfterMallOrderPay::afterOrderPayEvent）
+        handleVirtualOrderDelivery(order);
         //限时折扣活动数据累计
         mallDiscountService.orderPayAfter(order);
 
 
-
         //小票打印，订单付款之后
-        try{
+        try {
             SysPrinterPrintTicketParam printTicketParam = new SysPrinterPrintTicketParam();
             printTicketParam.setSiteId(order.getSiteId());
             printTicketParam.setType("mallGoodsOrder");
@@ -445,17 +449,81 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
             business.setOrderId(order.getOrderId());
             printTicketParam.setBusiness(business);
             corePrinterService.printTicket(printTicketParam);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error(" 小票打印失败 - 堆栈信息:", e);
+        }
+    }
+
+    @Override
+    public void handleVirtualOrderDelivery(MallOrder order) {
+        List<MallOrderGoods> orderGoodsList = mallOrderGoodsMapper.selectList(
+                new QueryWrapper<MallOrderGoods>().eq("order_id", order.getOrderId())
+        );
+        if (checkAddon("supply")) {
+            orderGoodsList = orderGoodsList.stream()
+                    .filter(item -> item.getSupplyId() == null || item.getSupplyId() == 0)
+                    .collect(Collectors.toList());
+        }
+        List<Integer> virtualOrderGoodsIds = new ArrayList<>();
+        for (MallOrderGoods orderGoods : orderGoodsList) {
+            if (!GoodsTypeEnum.VIRTUAL.getType().equals(orderGoods.getGoodsType())) {
+                continue;
+            }
+            if (!org.springframework.util.StringUtils.hasText(orderGoods.getGoodsConfig())) {
+                continue;
+            }
+            JSONObject goodsConfig = JSONUtil.parseObj(orderGoods.getGoodsConfig());
+            String virtualDeliveryType = goodsConfig.getStr("virtual_delivery_type", "");
+            switch (virtualDeliveryType) {
+                case "auto":
+                    virtualOrderGoodsIds.add(orderGoods.getOrderGoodsId());
+                    break;
+                case "verify":
+                    int virtualVerifyType = goodsConfig.getInt("virtual_verify_type", 0);
+                    long expireTime;
+                    if (virtualVerifyType == 0) {
+                        expireTime = 0L;
+                    } else if (virtualVerifyType == 1) {
+                        expireTime = System.currentTimeMillis() / 1000 + goodsConfig.getLong("virtual_indate", 0L) * 86400;
+                    } else {
+                        expireTime = goodsConfig.getLong("virtual_indate", 0L);
+                    }
+                    if (goodsConfig.getInt("virtual_refund", 0) == 1) {
+                        int refundDay = goodsConfig.getInt("virtual_refund_day", 0);
+                        long refundExpireTime = refundDay > 0 ? System.currentTimeMillis() / 1000 + refundDay * 86400L : 0L;
+                        goodsConfig.set("refund_expire_time", refundExpireTime);
+                    }
+                    MallOrderGoods verifyUpdate = new MallOrderGoods();
+                    verifyUpdate.setOrderGoodsId(orderGoods.getOrderGoodsId());
+                    verifyUpdate.setGoodsConfig(goodsConfig.toString());
+                    verifyUpdate.setVerifyExpireTime(expireTime);
+                    verifyUpdate.setIsVerify(1);
+                    mallOrderGoodsMapper.updateById(verifyUpdate);
+                    virtualOrderGoodsIds.add(orderGoods.getOrderGoodsId());
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (ObjectUtil.isNotEmpty(virtualOrderGoodsIds)) {
+            OrderDeliveryParam deliveryParam = new OrderDeliveryParam();
+            deliveryParam.setMainType(OrderLogMainTypeEnum.SYSTEM.getType());
+            deliveryParam.setMainId(0);
+            deliveryParam.setSiteId(order.getSiteId());
+            deliveryParam.setOrderId(order.getOrderId());
+            deliveryParam.setDeliveryType(OrderDeliveryTypeEnum.VIRTUAL.getType());
+            deliveryParam.setOrderGoodsIds(virtualOrderGoodsIds.toArray(Integer[]::new));
+            coreOrderDeliveryService.delivery(deliveryParam);
         }
     }
 
     /**
      * 检查插件是否安装
+     *
      * @param key
      */
     private Boolean checkAddon(String key) {
-        Map<String, InstallAddonListVo> addonListVoMap= coreAddonService.getInstallAddonList();
+        Map<String, InstallAddonListVo> addonListVoMap = coreAddonService.getInstallAddonList();
         return addonListVoMap.get(key) != null;
     }
 
@@ -470,10 +538,10 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
     public void orderDeliveryAfter(MallOrder order, OrderDeliveryParam orderDeliveryDataParam) {
 
         MallOrderFinish orderFinish = coreOrderConfigService.getConfig().getConfirm();
-        if (orderFinish.getIsFinishEr()){
-            if(orderFinish.getFinishLength() > 0){
+        if (orderFinish.getIsFinishEr()) {
+            if (orderFinish.getFinishLength() > 0) {
                 Long timeout = order.getDeliveryTime() + orderFinish.getFinishLength() * 86400;
-                mallOrderMapper.update(new MallOrder(),new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
+                mallOrderMapper.update(new MallOrder(), new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
                         .set("timeout", timeout));
             }
         }
@@ -507,8 +575,10 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         coreOrderLogService.add(logParam);
 
         // 物流信息上传
-        coreOrderWeappDeliveryService.orderShippingUploadShippingInfo( order.getOrderId(), order.getSiteId());
-
+        String str = coreOrderWeappDeliveryService.orderShippingUploadShippingInfo(order.getOrderId(), order.getSiteId());
+        if (StringUtils.isNotEmpty(str)) {
+            throw new CommonException(str);
+        }
         // 发送消息
         Map<String, Object> noticeParam = new HashMap<String, Object>();
         noticeParam.put("order", order);
@@ -537,7 +607,7 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         coreOrderLogService.add(logParam);
 
         // 微信小程序 发送 确认收货提醒消息
-        coreOrderWeappDeliveryService.orderShippingNotifyConfirmReceive( order.getOutTradeNo(), order.getDeliveryType());
+        coreOrderWeappDeliveryService.orderShippingNotifyConfirmReceive(order.getOutTradeNo(), order.getDeliveryType());
 
         // 订单完成发放积分成长值
         Map<String, Object> data = new HashMap<>();
@@ -550,31 +620,31 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
 
         //设置订单自动好评时间
         MallOrderEvaluate evaluateConfig = coreOrderConfigService.getEvaluateConfig();
-        if (evaluateConfig.getIsAutoGoodEvaluate() == 1){
-            if (evaluateConfig.getGoodEvaluateDays() > 0){
-                mallOrderMapper.update(new MallOrder(),new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
-                        .set("evaluate_timer", order.getFinishTime()+evaluateConfig.getGoodEvaluateDays()*86400)
+        if (evaluateConfig.getIsAutoGoodEvaluate() == 1) {
+            if (evaluateConfig.getGoodEvaluateDays() > 0) {
+                mallOrderMapper.update(new MallOrder(), new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
+                        .set("evaluate_timer", order.getFinishTime() + evaluateConfig.getGoodEvaluateDays() * 86400)
                 );
             }
         }
         //设置自动结算时间
         MallOrderDelaySpear orderConfig = coreOrderConfigService.orderDelaySpear();
-        if (orderConfig.getIsDelaySpear() == 1){
-            if(orderConfig.getDelayDays() > 0){
-                mallOrderMapper.update(new MallOrder(),new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
-                        .set("settlement_timer", order.getFinishTime()+orderConfig.getDelayDays()*86400)
+        if (orderConfig.getIsDelaySpear() == 1) {
+            if (orderConfig.getDelayDays() > 0) {
+                mallOrderMapper.update(new MallOrder(), new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
+                        .set("settlement_timer", order.getFinishTime() + orderConfig.getDelayDays() * 86400)
                 );
             }
-        }else{
-            coreOrderSettlementService.settlement( order);
+        } else {
+            coreOrderSettlementService.settlement(order);
         }
-        
-  
+
+
         OrderFinanceParam financeParam = new OrderFinanceParam();
         BeanUtils.copyProperties(order, financeParam);
         financeService.orderFinish(financeParam);
-        
-        try{
+
+        try {
             SysPrinterPrintTicketParam printTicketParam = new SysPrinterPrintTicketParam();
             printTicketParam.setSiteId(order.getSiteId());
             printTicketParam.setType("mallGoodsOrder");
@@ -583,7 +653,7 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
             business.setOrderId(order.getOrderId());
             printTicketParam.setBusiness(business);
             corePrinterService.printTicket(printTicketParam);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error(" 小票打印失败 - 堆栈信息:", e);
         }
     }

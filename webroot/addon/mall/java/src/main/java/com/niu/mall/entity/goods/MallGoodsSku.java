@@ -38,6 +38,22 @@ public class MallGoodsSku implements Serializable {
     private Integer supplyId; // 供应商id
     private Integer supplySkuId; // 关联供应商商品规格id
     private Integer isSell; // 是否售卖，0.否，1.是
+
+    /** 商品来源 0本地 1导入 2采集 */
+    private Integer sourceType;
+
+    /** 导入/采集商品关联goods_id/spu_id */
+    private String sourceGoodsId;
+
+    /** 导入/采集商品关联sku_id */
+    private String sourceSkuId;
+
+    /** 采集商品平台标识 */
+    private String sourceFlatform;
+
+    /** 采集商品第三方标识 */
+    private String sourceParty;
+
     @TableField(exist = false)
     private String calculatePrice;
 }

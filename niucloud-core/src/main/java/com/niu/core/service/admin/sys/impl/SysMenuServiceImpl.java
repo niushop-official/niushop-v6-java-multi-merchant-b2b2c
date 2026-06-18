@@ -14,6 +14,7 @@ import com.niu.core.common.utils.TreeUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.json.JacksonUtils;
 import com.niu.core.entity.sys.SysMenu;
+import com.niu.core.enums.sys.AdminIndexEnum;
 import com.niu.core.enums.sys.CacheTagEnum;
 import com.niu.core.enums.sys.MenuSourceEnum;
 import com.niu.core.mapper.sys.SysMenuMapper;
@@ -321,6 +322,7 @@ public class SysMenuServiceImpl implements ISysMenuService {
         if (showMount == 1){
             menuListAll.addAll(getAdminMountMenu(appType, siteId, status, isButton, menuKeys, addon));
         }
+        applyAdminIndexViewPath(menuListAll);
         return menuListAll;
     }
 
@@ -389,6 +391,7 @@ public class SysMenuServiceImpl implements ISysMenuService {
             if (isButton == 0) {
                 queryWrapper.ne("menu_type", 2);
             }
+            applySupportAddonFilter(queryWrapper);
             queryWrapper.orderByDesc("sort");
 
             //排除菜单 后期处理
@@ -478,6 +481,7 @@ public class SysMenuServiceImpl implements ISysMenuService {
         if (showMount == 1){
             menuListAll.addAll(getAdminAllMountMenu(appType, status, isButton));
         }
+        applyAdminIndexViewPath(menuListAll);
         return menuListAll;
     }
 
@@ -541,6 +545,7 @@ public class SysMenuServiceImpl implements ISysMenuService {
             if (!isButton) {
                 queryWrapper.ne("menu_type", 2);
             }
+            applySupportAddonFilter(queryWrapper);
             queryWrapper.orderByDesc("sort");
 
             //排除菜单 后期处理
@@ -608,7 +613,7 @@ public class SysMenuServiceImpl implements ISysMenuService {
      */
     @Override
     public List<SysMenu> getMenuListByCondition(String appType, Integer siteId, Integer status, Integer isButton, List<String> menuKeys, String addon) {
-        return cached.remember(useCache, cacheTagName, Arrays.asList("getMenuListByCondition", appType, siteId, status, isButton, menuKeys, addon), uniqueKey -> {
+        List<SysMenu> menuList = cached.remember(useCache, cacheTagName, Arrays.asList("getMenuListByCondition", appType, siteId, status, isButton, menuKeys, addon), uniqueKey -> {
             QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
             if (ObjectUtil.isNotEmpty(appType)) {
                 queryWrapper.eq("app_type", appType);
@@ -635,9 +640,39 @@ public class SysMenuServiceImpl implements ISysMenuService {
 
             //排除菜单 后期处理
 
-            List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
-            return menuList;
+            return sysMenuMapper.selectList(queryWrapper);
         });
+        applyAdminIndexViewPath(menuList);
+        return menuList;
+    }
+
+    /**
+     * 按 support_addon 过滤菜单，对齐 PHP MenuService
+     * support_addon 为空，或包含平台已安装插件 key 时才展示
+     */
+    private void applySupportAddonFilter(QueryWrapper<SysMenu> queryWrapper) {
+        List<String> installedAddons = coreAddonService.getAddonCache();
+        queryWrapper.and(wrapper -> {
+            wrapper.eq("support_addon", "");
+            for (String addonKey : installedAddons) {
+                wrapper.or().like("support_addon", "\"" + addonKey + "\"");
+            }
+        });
+    }
+
+    /**
+     * 平台首页 view_path 动态替换，对齐 PHP MenuService overview 处理
+     */
+    private void applyAdminIndexViewPath(List<SysMenu> menuList) {
+        if (menuList == null || menuList.isEmpty()) {
+            return;
+        }
+        String adminIndexViewPath = AdminIndexEnum.getAdminIndexConfig();
+        for (SysMenu menu : menuList) {
+            if ("overview".equals(menu.getMenuKey()) && "admin".equals(menu.getAppType())) {
+                menu.setViewPath(adminIndexViewPath);
+            }
+        }
     }
 
     /**

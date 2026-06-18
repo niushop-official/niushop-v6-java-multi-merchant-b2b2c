@@ -55,10 +55,12 @@
                             {{ row.create_time || '' }}
                         </template>
                     </el-table-column>
-                    <el-table-column :label="t('operation')" align="right" fixed="right" width="100">
+                    <el-table-column :label="t('operation')" align="right" fixed="right" width="250">
                         <template #default="{ row }">
                             <div class="flex justify-end">
                                 <el-button type="primary" link @click="downloadEvent(row)" v-if="row.export_status == 2">{{ t('download') }}</el-button>
+                                <el-button type="primary" link @click="checkCauseFn(row)" v-if="row.export_status == -1">{{ t('checkCause') }}</el-button>
+                                <el-button type="primary" link @click="retryExportEvent(row.id)" v-if="row.export_status == -1">{{ t('retryExport') }}</el-button>
                                 <el-button type="primary" link @click="deleteEvent(row.id)">{{ t('delete') }}</el-button>
                             </div>
                         </template>
@@ -69,6 +71,18 @@
                         layout="total, sizes, prev, pager, next, jumper" :total="exportTableData.total"
                         @size-change="loadExportList()" @current-change="loadExportList" />
                 </div>
+
+                <!-- 失败原因弹窗 -->
+                <el-dialog v-model="causeFailureDialog" :title="t('checkCause1')" width="420px">
+                    <div class="break-all -mt-[20px]">
+                        {{causeFailureContent}}
+                    </div>
+                    <template #footer>
+                        <span class="dialog-footer">
+                            <el-button @click="causeFailureDialog = false">{{ t('confirm') }}</el-button>
+                        </span>
+                    </template>
+                </el-dialog>
             </div>
         </el-card>
     </div>
@@ -78,7 +92,7 @@
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
 import { img } from '@/utils/common'
-import { getExportStatusList, getExportKeyList, getExportList, deleteExport } from '@/app/api/sys'
+import { getExportStatusList, getExportKeyList, getExportList, deleteExport, againExport } from '@/app/api/sys'
 import { ElMessageBox, FormInstance } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 
@@ -169,6 +183,27 @@ const deleteEvent = (id: number) => {
         }).catch(() => {
         })
     })
+}
+
+
+const causeFailureDialog = ref(false)
+const causeFailureContent = ref(''); //失败原因内容
+// 查看失败原因
+const checkCauseFn = (data)=>{
+    causeFailureContent.value = data.fail_reason;
+    causeFailureDialog.value = true;
+}
+
+/**
+ * 重新执行导出
+ */
+const retryExportEvent = (id: number) => {
+    
+    againExport(id).catch(() => {})
+
+    setTimeout(()=>{
+        loadExportList()
+    }, 300)
 }
 </script>
 

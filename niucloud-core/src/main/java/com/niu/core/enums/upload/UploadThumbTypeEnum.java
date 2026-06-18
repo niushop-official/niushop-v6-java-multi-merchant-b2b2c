@@ -3,6 +3,11 @@ package com.niu.core.enums.upload;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * 上传压缩枚举
  */
@@ -21,4 +26,18 @@ public enum UploadThumbTypeEnum {
     private final Integer width;
 
     private final Integer height;
+
+    public static List<String> getTypeList() {
+        return Arrays.stream(UploadThumbTypeEnum.values())
+                .map(UploadThumbTypeEnum::getType)
+                .toList();
+    }
+
+    public static Map<String, Map<String, Object>> getMap() {
+        return Arrays.stream(UploadThumbTypeEnum.values())
+                .collect(Collectors.toMap(
+                        UploadThumbTypeEnum::getType,
+                        e -> Map.of("type", e.getType(), "width", e.getWidth(), "height", e.getHeight())
+                ));
+    }
 }

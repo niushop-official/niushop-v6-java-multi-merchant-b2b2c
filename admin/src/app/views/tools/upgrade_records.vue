@@ -33,7 +33,7 @@
                             【{{ row.name }}】从{{ row.prev_version }}升级到{{ row.current_version }}
                         </div>
                         <div v-else>
-                            <div v-for="item in row.content">【{{ item.app.name }}】从{{ item.version }}升级到{{ item.upgrade_version }}</div>
+                            <div v-for="item in row.content.content">【{{ item.app.app_name }}】从{{ item.version }}升级到{{ item.upgrade_version }}</div>
                         </div>
                     </template>
                 </el-table-column>

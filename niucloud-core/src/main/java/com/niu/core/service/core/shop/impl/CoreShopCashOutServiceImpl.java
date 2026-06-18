@@ -40,7 +40,7 @@ public class CoreShopCashOutServiceImpl implements ICoreShopCashOutService {
     @Override
     public void transferFinish(String transferNo) {
         SiteShopCashOut siteShopCashOut = siteShopCashOutMapper.selectOne(new QueryWrapper<SiteShopCashOut>().eq("transfer_no", transferNo));
-        if (siteShopCashOut != null) throw new CommonException("店铺提现不存在");
+        if (siteShopCashOut == null) throw new CommonException("店铺提现不存在");
         if(!siteShopCashOut.getStatus().equals(ShopCashOutEnum.WAIT_TRANSFER.getState()) && !siteShopCashOut.getStatus().equals(ShopCashOutEnum.TRANSFER_ING.getState()) ) throw new CommonException("店铺提现状态不正确");
         this.give(siteShopCashOut);
         siteShopCashOut.setStatus(ShopCashOutEnum.TRANSFERED.getState());

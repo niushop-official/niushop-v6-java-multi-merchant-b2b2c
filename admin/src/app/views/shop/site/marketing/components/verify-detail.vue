@@ -24,7 +24,7 @@
                             </span>
                         </div>
                     </el-col>
-                    <el-col :span="8">
+                    <el-col :span="8" v-if="verifyData.is_admin == 1">
                         <div class="flex items-center mt-[15px]">
                             <span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('核销人员') }}</span>
                             <span class="text-[14px] text-[#666666]">
@@ -102,6 +102,7 @@
                                 </div>
                                 <div class="flex flex-col">
                                     <p class="multi-hidden text-[14px]">{{ row.name }}</p>
+                                    <div class="text-primary">{{ row.un_use_msg }}</div>
                                 </div>
                             </div>
                         </template>

@@ -1,18 +1,17 @@
 package com.niu.mall.service.core.order.vo;
 
 import cn.hutool.json.JSONObject;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
-import com.niu.core.service.core.sys.ICoreUploadService;
-import com.niu.core.entity.delivery.DeliveryStore;
 import com.niu.core.service.core.delivery.vo.DeliveryConfigVo;
+import com.niu.core.service.core.sys.ICoreUploadService;
+import com.niu.mall.entity.order.MallOrderGiftGoods;
+import com.niu.mall.service.core.marketing.vo.FullGiftCalculateVo;
+import com.niu.mall.service.core.marketing.vo.FullReductionCalculateVo;
 import com.niu.mall.service.core.order.param.InvoiceCreateParam;
-import com.niu.mall.service.core.order.param.OrderHelperParam;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -40,20 +39,27 @@ public class OrderCreateDataVo implements Serializable {
     protected List<Long> cartIds = new ArrayList<>();
 
     protected Map<String, Discount> discount = new HashMap<>();
+    protected Map<String, Discount> goodsDiscount = new HashMap<>();
+
 
     //计算扩展
     protected Map<String, Map<Integer, Discount>> discountList = new HashMap<>();
+
+    //    protected Map<String, Map<String, Discount>> mallData = new HashMap<>();
+    protected Map<String, Object> mallData = new HashMap<>();
 
     //限购
     protected Map<String, LimitBuy> limitBuy = new HashMap<>();
 
     protected Basic basic = new Basic();
 
+    protected BasicConfig basicConfig = new BasicConfig();
+
     protected Buyer buyer;
 
     protected Map<Integer, ? extends Sku> goodsData;
 
-    protected Map<Integer, ? extends Sku> giftGoods;
+    protected List<? extends MallOrderGiftGoods> giftGoods;
 
     protected Delivery delivery = new Delivery();
     protected Position position = new Position();
@@ -76,12 +82,18 @@ public class OrderCreateDataVo implements Serializable {
     protected Integer isPlatCoupon = 1;
 
     protected Integer isShopCoupon = 1;
+    protected Integer isCanUsePoint = 1;
+
+    protected Integer isJoinFullReduction = 1;
+    protected Integer isJoinFullGift = 1;
+
 
     protected String weappVersion;
     protected ConfigInfo config;
     protected String buyerAskDeliveryTime;
     protected String localDeliveryType;
     protected JSONObject extendData;
+
     @Data
     public static class Basic {
         protected String body = "";
@@ -109,6 +121,29 @@ public class OrderCreateDataVo implements Serializable {
         protected Integer virtualVerifyMobile;
         protected String orderType;
         protected JSONObject extendData;
+
+        protected List<Integer> giftGoodsIds = new ArrayList<>();
+        protected List<Integer> giftSkuIds = new ArrayList<>();
+        protected List<Integer> giftNums = new ArrayList<>();
+        protected List<Map<String, Object>> giftGoodsList = new ArrayList<>();
+
+        protected BigDecimal pointDeductMoney = new BigDecimal(0);
+        protected Integer usePoint = 0;
+        protected BigDecimal fullReductionMoney = new BigDecimal(0);
+        protected Integer isCanPointDeduct = 0;
+        protected BigDecimal prePointDeductMoney = new BigDecimal(0);
+        protected Integer preUsePoint = 0;
+
+        protected List<Map<String, Object>> fullGiftSkuList;
+        List<FullGiftCalculateVo> fullGiftList;
+
+    }
+
+
+    @Data
+    public static class BasicConfig {
+        //是否校验商品是否可售
+        protected Boolean checkIsSell = true;
     }
 
     @Data
@@ -174,8 +209,17 @@ public class OrderCreateDataVo implements Serializable {
 
         protected String marketType;
         protected Integer marketTypeId;
-
+        protected Integer maxBuy;
+        protected Integer minBuy;
         protected String error;
+
+        protected Integer limitType;
+
+        protected FullReductionCalculateVo fullReduction;
+        protected BigDecimal fullReductionMoney = new BigDecimal(0);
+        protected FullGiftCalculateVo fullGift;
+        protected Integer usePoint;
+        private BigDecimal pointDeductMoney;
     }
 
     @Data
@@ -226,8 +270,22 @@ public class OrderCreateDataVo implements Serializable {
         private Integer minBuy;
         private Integer formId;
 
-        /** 供应商id */
+        private String pointDeductType;
+        private BigDecimal pointDeductRate;
+        private Integer usePoint;
+        private BigDecimal pointDeductMoney;
+        private BigDecimal mallDiscountMoney;
+
+        private String virtualDeliveryType;
+        private String virtualDeliveryContent;
+        private Integer virtualRefund;
+        private Integer virtualRefundDay;
+
+        /**
+         * 供应商id
+         */
         private Integer supplyGoodsId;
+
         protected ICoreUploadService coreUploadService() {
             return SpringContext.bean(ICoreUploadService.class);
         }
@@ -284,6 +342,7 @@ public class OrderCreateDataVo implements Serializable {
         protected BigDecimal money;
         protected String discountType = "";
         protected Integer discountTypeId;
+        protected Integer orderDiscountId;
         protected String content;
         protected String title;
         private Integer couponId;
@@ -304,7 +363,7 @@ public class OrderCreateDataVo implements Serializable {
         /**
          * 门店编号
          */
-        private String storeNo ;
+        private String storeNo;
 
 
         /**
@@ -350,7 +409,7 @@ public class OrderCreateDataVo implements Serializable {
         /**
          * 完整地址
          */
-        private String fullAddress ;
+        private String fullAddress;
 
         /**
          * 纬度
@@ -453,24 +512,25 @@ public class OrderCreateDataVo implements Serializable {
     }
 
     @Data
-    public static class ConfigInfo{
+    public static class ConfigInfo {
 
         protected CloseOrder closeOrderInfo;
 
-        protected Map<String,Object> deliveryType;
+        protected Map<String, Object> deliveryType;
 
         protected InvoiceInfo invoice;
 
         @Data
-        public static class CloseOrder{
+        public static class CloseOrder {
             protected Integer isClose;
             protected Integer closeLength;
         }
 
         @Data
-        public static class InvoiceInfo{
+        public static class InvoiceInfo {
             @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
-            protected String invoiceContent;;
+            protected String invoiceContent;
+            ;
             protected String isInvoice;
         }
     }

@@ -1,10 +1,10 @@
 package com.niu.core.service.core.site;
 
 import com.niu.core.entity.addon.Addon;
-import com.niu.core.entity.site.Site;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 插件服务接口类
@@ -61,4 +61,6 @@ public interface ICoreSiteService {
     void clearSiteCache(Integer siteId);
 
     SiteInfoVo getShopBasicInfo(Integer siteId);
+
+    Map<String, Map<String, Object>> getShowPromotionTools(List<String> addons, String appType, Integer siteId);
 }

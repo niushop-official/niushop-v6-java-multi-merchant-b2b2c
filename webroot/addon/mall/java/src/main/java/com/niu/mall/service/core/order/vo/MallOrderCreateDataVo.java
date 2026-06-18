@@ -1,19 +1,8 @@
 package com.niu.mall.service.core.order.vo;
 
-import cn.hutool.json.JSONObject;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.niu.core.common.component.context.SpringContext;
-import com.niu.core.common.domain.BeanJsonSerializer;
-import com.niu.core.entity.delivery.DeliveryStore;
-import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
-import com.niu.core.service.core.delivery.vo.DeliveryConfigVo;
-import com.niu.core.service.core.sys.ICoreUploadService;
-import com.niu.mall.service.core.order.param.InvoiceCreateParam;
 import com.niu.mall.service.core.order.param.OrderHelperParam;
-import io.swagger.models.auth.In;
 import lombok.Data;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -67,6 +56,11 @@ public class MallOrderCreateDataVo implements Serializable {
 
         protected BigDecimal orderMoney = new BigDecimal(0);
 
+        // -----------------开始----------------- 2026-05-11 （平台券维度）
+        /** 平台优惠券金额（聚合） */
+        protected BigDecimal mallCouponMoney = new BigDecimal(0);
+        // -----------------结束-------------
+
         protected String body = "";
 
         protected Set<String> hasGoodsTypes = new HashSet<>();
@@ -76,6 +70,14 @@ public class MallOrderCreateDataVo implements Serializable {
         protected Integer virtualVerifyMobile;
         protected Integer isNeedTakeAddress;
 
+        protected Integer isCanPointDeduct;
+        protected Integer preUsePoint = 0;
+        protected BigDecimal prePointDeductMoney = new BigDecimal(0);
+        protected BigDecimal pointDeductMoney = new BigDecimal(0);
+        protected Integer usePoint = 0;
+        protected BigDecimal fullReductionMoney = new BigDecimal(0);
+        protected List<Integer> fullGiftSkuIds = new ArrayList<>();
+        protected List<Map<String, Object>> giftGoodsList = new ArrayList<>();
     }
 
     @Data
@@ -89,7 +91,7 @@ public class MallOrderCreateDataVo implements Serializable {
 
 
     @Data
-    public static class MallDiscountVo{
+    public static class MallDiscountVo {
 
         private List<Integer> matchGoodsIds;
 
@@ -130,7 +132,7 @@ public class MallOrderCreateDataVo implements Serializable {
     }
 
     @Data
-    public static class CloseOrder{
+    public static class CloseOrder {
         protected Integer isClose;
         protected Integer closeLength;
     }

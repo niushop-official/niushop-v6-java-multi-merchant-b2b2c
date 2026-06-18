@@ -107,6 +107,8 @@ public class CorePosterServiceImpl implements ICorePosterService {
             event.addAppSign("mall_fenxiao");
             event.addAppSign("shop");
             event.addAppSign("points_mall");
+            event.addAppSign("seckill");
+            event.addAppSign("pintuan");
             event.setName("GetPosterDataEvent");
             event.setType(normalizedType);
             event.setParam(posterDataparam);
@@ -312,7 +314,7 @@ public class CorePosterServiceImpl implements ICorePosterService {
                 add.setValue(template.getJSONObject("data").toString());
                 add.setIsDefault(1);
                 add.setStatus(1);
-                add.setAddon("mall");
+                add.setAddon(addon);
                 add(add);
             }
         }

@@ -51,6 +51,14 @@ export function getWeappPreview() {
 }
 
 /**
+ * 获取微信小程序配置
+ * @returns
+ */
+export function getWeappQrcode(params: Record<string, any>) {
+    return request.get('qrcode', { params })
+}
+
+/**
  * 微信小程序版本列表
  * @param params
  * @returns

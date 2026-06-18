@@ -143,6 +143,8 @@ const recordStateFn = (status:any) =>{
 const toLink = (data:any) =>{
     if(data.status == -1){
         redirect({ url: '/addon/mall/pages/member/merchant_settled', param: { apply_id : data.apply_id } })
+    } else{
+        redirect({ url: '/addon/mall/pages/member/merchant_detail', param: { apply_id : data.apply_id } })
     }
 }
 //预览图片

@@ -1,21 +1,29 @@
 package com.niu.core.controller.adminapi.sys;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import com.niu.core.common.domain.Result;
+import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.domain.Result;
+import com.niu.core.common.exception.CommonException;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.service.admin.sys.ISysAttachmentService;
 import com.niu.core.service.admin.sys.param.*;
-import com.niu.core.service.admin.sys.vo.*;
+import com.niu.core.service.admin.sys.vo.AttachmentUploadVo;
+import com.niu.core.service.admin.sys.vo.SysAttachmentCategoryListVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentConfigVo;
-import com.niu.core.common.domain.PageParam;
+import com.niu.core.service.admin.sys.vo.SysAttachmentListVo;
+import com.niu.core.service.core.upload.ICoreUploadConfigService;
+import com.niu.core.service.core.upload.vo.UploadConfigVo;
+import jakarta.annotation.Resource;
+import jdk.jfr.Description;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import jdk.jfr.Description;
 
-import jakarta.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 附件管理控制器
@@ -28,6 +36,9 @@ public class SysAttachmentController {
 
     @Resource
     ISysAttachmentService sysAttachmentService;
+
+    @Resource
+    private ICoreUploadConfigService uploadConfigService;
 
     /**
      * 附件管理列表
@@ -72,6 +83,11 @@ public class SysAttachmentController {
      */
     @PostMapping("/image")
     public Result<AttachmentUploadVo> image(@RequestParam("file") MultipartFile multipartFile, AttachmentUploadParam param) {
+        UploadConfigVo config = uploadConfigService.getUploadConfig();
+        // 校验扩展名
+        validateExtension(multipartFile, config.getImageExt(), "图片");
+        // 校验大小
+        validateFileSize(multipartFile, config.getImageSize(), "图片");
         param.setFile(multipartFile);
         return Result.success(sysAttachmentService.image(param));
     }
@@ -83,8 +99,46 @@ public class SysAttachmentController {
      */
     @PostMapping("/video")
     public Result<AttachmentUploadVo> video(@RequestParam("file") MultipartFile multipartFile, AttachmentUploadParam param) {
+        UploadConfigVo config = uploadConfigService.getUploadConfig();
+        validateExtension(multipartFile, config.getVideoExt(), "视频");
+        validateFileSize(multipartFile, config.getVideoSize(), "视频");
         param.setFile(multipartFile);
         return Result.success(sysAttachmentService.video(param));
+    }
+
+    /**
+     * 校验扩展名
+     */
+    private void validateExtension(MultipartFile file, String[] allowedExts, String fileTypeName) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.contains(".")) {
+            throw new CommonException(fileTypeName + "文件格式错误");
+        }
+        String ext = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+        List<String> extList = Arrays.stream(allowedExts)
+                .filter(StringUtils::isNotEmpty)
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
+        if (!extList.contains(ext)) {
+            throw new CommonException(fileTypeName + "类型错误，仅支持：" + String.join(",", extList));
+        }
+    }
+
+    /**
+     * 校验文件大小
+     *
+     * @param file         文件
+     * @param maxSizeB     配置的最大大小（B），若为null或<=0则不校验
+     * @param fileTypeName 文件类型名称（用于提示）
+     */
+    private void validateFileSize(MultipartFile file, Long maxSizeB, String fileTypeName) {
+        if (maxSizeB == null || maxSizeB <= 0) {
+            return;
+        }
+        if (file.getSize() > maxSizeB) {
+            Float maxSizeKb = maxSizeB / 1024f;
+            throw new CommonException(fileTypeName + "大小不能超过 " + String.format("%.2f", maxSizeKb) + "KB");
+        }
     }
 
     /**
@@ -174,6 +228,7 @@ public class SysAttachmentController {
         SysAttachmentConfigVo config = sysAttachmentService.getConfig();
         return Result.success(config);
     }
+
     @PutMapping("/attachment/config")
     public Result<Object> setConfig(@Validated @RequestBody SysAttachmentConfigParam param) {
         sysAttachmentService.setConfig(param);

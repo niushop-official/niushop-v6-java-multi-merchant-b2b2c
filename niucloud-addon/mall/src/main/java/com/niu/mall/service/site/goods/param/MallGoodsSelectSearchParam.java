@@ -16,6 +16,7 @@ public class MallGoodsSelectSearchParam implements Serializable {
     private String keyword;
 
     private Integer goodsCategory;
+    private Integer goodsMallCategory;
 
     private String goodsType;
 

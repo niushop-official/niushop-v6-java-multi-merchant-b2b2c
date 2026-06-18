@@ -9,6 +9,7 @@ import com.niu.core.event.order.OrderPageEventDefiner;
 import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderRefund;
+import com.niu.mall.enums.goods.GoodsAuditStatusEnum;
 import com.niu.mall.enums.goods.GoodsStatusEnum;
 import com.niu.mall.enums.order.OrderRefundStatusEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
@@ -22,11 +23,11 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Date;
 
 @EventCallback("mall")
 @Component
-public class MallOrderPageListener  extends OrderPageEventDefiner {
+public class MallOrderPageListener extends OrderPageEventDefiner {
 
     @Resource
     MallOrderMapper mallOrderMapper;
@@ -68,7 +69,7 @@ public class MallOrderPageListener  extends OrderPageEventDefiner {
         moneyWrapper.gt("status", OrderStatusEnum.WAIT_PAY.getStatus());
         QueryMapperUtils.buildByTime(moneyWrapper, "create_time", todayTime);
         MallOrder todaySaleMoney = mallOrderMapper.selectOne(moneyWrapper);
-        if(todaySaleMoney != null && ObjectUtil.isNotEmpty(todaySaleMoney.getOrderMoney())){
+        if (todaySaleMoney != null && ObjectUtil.isNotEmpty(todaySaleMoney.getOrderMoney())) {
             result.setTodaySaleMoney(todaySaleMoney.getOrderMoney().setScale(2, RoundingMode.HALF_UP).toString());
         }
 
@@ -78,7 +79,7 @@ public class MallOrderPageListener  extends OrderPageEventDefiner {
         moneyWrapper.gt("status", OrderStatusEnum.WAIT_PAY.getStatus());
         QueryMapperUtils.buildByTime(moneyWrapper, "create_time", yesterdayTime);
         MallOrder yesterdaySaleMoney = mallOrderMapper.selectOne(moneyWrapper);
-        if(yesterdaySaleMoney != null && ObjectUtil.isNotEmpty(yesterdaySaleMoney.getOrderMoney())){
+        if (yesterdaySaleMoney != null && ObjectUtil.isNotEmpty(yesterdaySaleMoney.getOrderMoney())) {
             result.setYesterdaySaleMoney(yesterdaySaleMoney.getOrderMoney().setScale(2, RoundingMode.HALF_UP).toString());
         }
         //销售总额
@@ -86,7 +87,7 @@ public class MallOrderPageListener  extends OrderPageEventDefiner {
         moneyWrapper.select("sum(order_money) as order_money");
         moneyWrapper.gt("status", OrderStatusEnum.WAIT_PAY.getStatus());
         MallOrder totalSaleMoney = mallOrderMapper.selectOne(moneyWrapper);
-        if(totalSaleMoney != null && ObjectUtil.isNotEmpty(totalSaleMoney.getOrderMoney())){
+        if (totalSaleMoney != null && ObjectUtil.isNotEmpty(totalSaleMoney.getOrderMoney())) {
             result.setTotalSaleMoney(totalSaleMoney.getOrderMoney().setScale(2, RoundingMode.HALF_UP).toString());
         }
         //今日退款金额
@@ -95,7 +96,7 @@ public class MallOrderPageListener  extends OrderPageEventDefiner {
         moneyRefundWrapper.eq("status", OrderRefundStatusEnum.FINISH.getStatus());
         QueryMapperUtils.buildByTime(moneyRefundWrapper, "create_time", todayTime);
         MallOrderRefund todayRefundMoney = mallOrderRefundMapper.selectOne(moneyRefundWrapper);
-        if(todayRefundMoney != null && ObjectUtil.isNotEmpty(todayRefundMoney.getMoney())){
+        if (todayRefundMoney != null && ObjectUtil.isNotEmpty(todayRefundMoney.getMoney())) {
             result.setTodayRefundMoney(todayRefundMoney.getMoney().setScale(2, RoundingMode.HALF_UP).toString());
         }
         //昨日退款金额
@@ -104,7 +105,7 @@ public class MallOrderPageListener  extends OrderPageEventDefiner {
         moneyRefundWrapper.eq("status", OrderRefundStatusEnum.FINISH.getStatus());
         QueryMapperUtils.buildByTime(moneyRefundWrapper, "create_time", yesterdayTime);
         MallOrderRefund yesterdayRefundMoney = mallOrderRefundMapper.selectOne(moneyRefundWrapper);
-        if(yesterdayRefundMoney != null && ObjectUtil.isNotEmpty(yesterdayRefundMoney.getMoney())){
+        if (yesterdayRefundMoney != null && ObjectUtil.isNotEmpty(yesterdayRefundMoney.getMoney())) {
             result.setYesterdayRefundMoney(yesterdayRefundMoney.getMoney().setScale(2, RoundingMode.HALF_UP).toString());
         }
         //退款总额
@@ -112,7 +113,7 @@ public class MallOrderPageListener  extends OrderPageEventDefiner {
         moneyRefundWrapper.select("sum(money) as money");
         moneyRefundWrapper.eq("status", OrderRefundStatusEnum.FINISH.getStatus());
         MallOrderRefund totalRefundMoney = mallOrderRefundMapper.selectOne(moneyRefundWrapper);
-        if(totalRefundMoney != null && ObjectUtil.isNotEmpty(totalRefundMoney.getMoney())){
+        if (totalRefundMoney != null && ObjectUtil.isNotEmpty(totalRefundMoney.getMoney())) {
             result.setTotalRefundMoney(totalRefundMoney.getMoney().setScale(2, RoundingMode.HALF_UP).toString());
         }
         //待付款
@@ -132,12 +133,13 @@ public class MallOrderPageListener  extends OrderPageEventDefiner {
 
         //退款中（订单项）
         QueryWrapper<MallOrderRefund> refundOrderWrapper = new QueryWrapper<>();
-        refundOrderWrapper.notIn("status", OrderRefundStatusEnum.CLOSE.getStatus(),OrderRefundStatusEnum.FINISH.getStatus());
+        refundOrderWrapper.notIn("status", OrderRefundStatusEnum.CLOSE.getStatus(), OrderRefundStatusEnum.FINISH.getStatus());
         result.setRefundOrder(mallOrderRefundMapper.selectCount(refundOrderWrapper));
 
         //商品销售中
         QueryWrapper<MallGoods> goodsWrapper = new QueryWrapper<>();
         goodsWrapper.eq("status", GoodsStatusEnum.ONLINE.getStatus());
+        queryWrapper.eq("audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
         result.setSaleGoodsNum(mallGoodsMapper.selectCount(goodsWrapper));
 
         //商品待审核

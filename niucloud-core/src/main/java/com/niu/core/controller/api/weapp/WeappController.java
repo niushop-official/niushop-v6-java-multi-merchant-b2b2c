@@ -6,10 +6,13 @@ import com.niu.core.service.api.weapp.IWeappService;
 import com.niu.core.service.api.weapp.parma.TradeManagedScanParam;
 import com.niu.core.service.api.wechat.param.AuthRegisterParam;
 import com.niu.core.service.api.wechat.param.WechatAuthParam;
+import org.apache.commons.collections.map.AbstractMapDecorator;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import com.niu.core.service.core.delivery_weapp.vo.IsTradeManagedVo;
 import jakarta.annotation.Resource;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -72,7 +75,9 @@ public class WeappController {
      */
     @GetMapping("/getMsgJumpPath")
     public Result getMsgJumpPath(@Validated TradeManagedScanParam  param) {
-        return Result.success(weappService.getMsgJumpPath(param));
+        Map<String,String> data = new HashMap<>();
+        data.put("path",weappService.getMsgJumpPath(param));
+        return Result.success(data);
     }
 
     /**

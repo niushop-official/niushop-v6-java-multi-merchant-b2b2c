@@ -1,6 +1,15 @@
 {
   "point": {
-
+    "order": {
+      "name": "订单积分抵扣",
+      "inc": 0,
+      "dec": 1
+    },
+    "order_refund": {
+      "name": "订单退款积分返还",
+      "inc": 1,
+      "dec": 0
+    },
     "account_point_exchange_close": {
       "name": "兑换订单关闭",
       "inc": 0,

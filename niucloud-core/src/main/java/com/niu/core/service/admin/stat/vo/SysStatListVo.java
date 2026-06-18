@@ -118,6 +118,10 @@ public class SysStatListVo  {
         /** 商家分账（计算后） */
         @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal separateMoney;
+
+        /** 佣金（计算后） */
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+        private BigDecimal commission;
         
         /** 运费（计算后） */
         @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)

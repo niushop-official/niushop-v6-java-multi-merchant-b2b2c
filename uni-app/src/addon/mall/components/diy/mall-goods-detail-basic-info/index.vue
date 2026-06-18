@@ -26,7 +26,7 @@
             </view>
             <view @touchmove.stop.prevent class="media-mode absolute top-0 left-0 w-full h-full transition-transform duration-300 ease-linear transform" :class="{'translate-x-0':switchMedia === 'video','-translate-x-full':switchMedia != 'video'}" :style="{background: 'url(' + img(diyComponent.goods.goods_cover_thumb_mid) + ') left bottom / cover no-repeat'}">
                 <view :style="goodsVideoHeight">
-                    <video id="goodsVideo" class="w-full h-full" :src="img(diyComponent.goods.goods_video)" :poster="img(diyComponent.goods.goods_cover_thumb_mid)" objectFit="cover" play-btn-position="center"></video>
+                    <video id="goodsVideo" class="w-full h-full bg-[#fff]" :src="img(diyComponent.goods.goods_video)" :poster="img(diyComponent.goods.goods_cover_thumb_mid)" objectFit="cover" play-btn-position="center"></video>
                 </view>
             </view>
             <!-- 切换视频、图片 -->
@@ -94,6 +94,15 @@
                         <text class="price-font text-[32rpx] mr-[10rpx]">.{{ parseFloat(goodsPrice).toFixed(2).split('.')[1] }}</text>
                     </view>
                 </view>
+                <view class="flex items-center justify-between mb-[24rpx]" v-if="skuPromotionList.length">
+                    <scroll-view :scroll-x="true" class="flex-1 relative whitespace-nowrap box-border overflow-hidden">
+                        <view class="inline-block h-[40rpx] rounded-[8rpx] text-center leading-[40rpx] text-[22rpx] text-primary px-[10rpx] bg-[#fdeae9] mr-[10rpx]" v-for="(item,index) in skuPromotionList" :key="index">{{ item }}</view>
+                    </scroll-view>
+                    <view class="text-primary flex-shrink-0 ml-[20rpx]" @click="toDetail">
+                        <text class="text-[22rpx]">查看</text>
+                        <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] ml-[8rpx]"></text>
+                    </view>
+                </view>
                 <view class="font-medium text-[30rpx] multi-hidden leading-[40rpx]" :style="{'color': diyComponent.goodsInfo.titleColor}">
                     <view class="brand-tag middle" v-if="diyComponent.goods.goods_brand&& Object.values(diyComponent.goods.goods_brand).length" :style="diyGoods.baseTagStyle(diyComponent?.goods?.goods_brand)">{{ diyComponent?.goods?.goods_brand?.brand_name }}</view>
                     {{ diyComponent.goods.goods_name }}
@@ -126,6 +135,7 @@
         </view>
         <!-- 装修时，防止点击 -->
         <view v-if="diyStore.mode == 'decorate'" class="absolute z-10 top-0 right-0 bottom-0 left-0"></view>
+        <ns-goods-youhui ref="youhuiShowRef"></ns-goods-youhui>
     </view>
 </template>
 
@@ -135,8 +145,10 @@ import { onPageScroll } from '@dcloudio/uni-app'
 import { redirect, img, getToken } from '@/utils/common';
 import useDiyStore from '@/app/stores/diy';
 import useSystemStore from '@/stores/system'
+import { getShopMarketingList, getGoodsSkuPromotionList, getGoodsSkuPromotionDetail } from '@/addon/mall/api/goods';
 import { useGoods } from '@/addon/mall/hooks/useGoods'
 import useGoodsDetailStore from '@/addon/mall/stores/goodsDetail';
+import nsGoodsYouhui from '@/addon/mall/components/ns-goods-youhui/ns-goods-youhui.vue';
 
 const props = defineProps(['component', 'index', 'value', 'global']);
 const diyStore = useDiyStore();
@@ -148,6 +160,11 @@ const videoContext: any = ref(null)
 const discountTime = ref(0)
 const swiperImageHeight = ref('100vw') // 轮播图高度
 const diyGoods = useGoods();
+
+// 满赠
+const youhuiShowRef: any = ref(null); //满减送
+const skuPromotionDetail = ref({}); //优惠详情
+const skuPromotionList = ref<any>([]);
 
 const diyComponent = computed(() => {
     if (diyStore.mode == 'decorate') {
@@ -164,6 +181,7 @@ const diyComponent = computed(() => {
             stock: 80,
             goods_video: '',
         }
+        skuPromotionList.value = ['满20元送赠品', '无门槛立减10.00元', '满30.00减5.00元']
         return Object.assign({},obj,diyStore.value[props.index]);
     } else {
         return Object.assign({}, props.component, useGoodsDetailStore().goodsDetail);
@@ -561,6 +579,9 @@ onMounted(() => {
         )
     } else {
         initFn()
+        // 获取优惠列表
+        getGoodsSkuPromotionListFn()
+        getGoodsSkuPromotionDetailFn()
         watch(
             () => diyComponent.value,
             (newValue, oldValue) => {
@@ -572,6 +593,31 @@ onMounted(() => {
         )
     }
 });
+
+const getGoodsSkuPromotionListFn = () => {
+    getGoodsSkuPromotionList({
+        sku_id: diyComponent.value.sku_id || '',
+    }).then((res: any) => {
+        skuPromotionList.value = []
+        skuPromotionList.value = res.data
+    })
+}
+
+// 优惠详情
+const getGoodsSkuPromotionDetailFn = () => {
+    getGoodsSkuPromotionDetail({
+        sku_id: diyComponent.value.sku_id || '',
+    }).then((res: any) => {
+        skuPromotionDetail.value = res.data
+    })
+}
+const toDetail = () => {
+    if(Object.keys(skuPromotionDetail.value).length){
+        youhuiShowRef.value.open(skuPromotionDetail.value,diyComponent.value.sku_id);
+    }
+	
+}
+
 </script>
 <style lang="scss" scoped>
 .arrow-left {
@@ -580,6 +626,9 @@ onMounted(() => {
     border: 1rpx solid rgba(0, 0, 0, 0.1);
 }
 .media-mode {
+    :deep(.uni-video-video){
+        background-color: #fff;
+    }
     .tab-item {
         color: #fff;
         font-size: 24rpx;

@@ -14,23 +14,22 @@ import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.goods.GoodsBrand;
 import com.niu.core.enums.goods.BrandAuditEnum;
-import com.niu.core.enums.goods.BrandPopularEnum;
 import com.niu.core.enums.goods.BrandStatusEnum;
 import com.niu.core.enums.goods.BrandTypeEnum;
 import com.niu.core.mapper.goods.GoodsBrandMapper;
 import com.niu.core.service.core.goods.ICoreGoodsConfigService;
 import com.niu.core.service.core.goods.vo.CoreGoodsConfigVo;
-import com.niu.core.service.site.goods.param.EditGoodsBrandStatusParam;
-import com.niu.core.service.site.goods.vo.GoodsBrandInfoVo;
+import com.niu.core.service.site.goods.IGoodsBrandService;
 import com.niu.core.service.site.goods.param.EditGoodsBrandSortParam;
+import com.niu.core.service.site.goods.param.EditGoodsBrandStatusParam;
 import com.niu.core.service.site.goods.param.GoodsBrandParam;
 import com.niu.core.service.site.goods.param.GoodsBrandSearchParam;
-import com.niu.core.service.site.goods.IGoodsBrandService;
+import com.niu.core.service.site.goods.vo.GoodsBrandInfoVo;
 import com.niu.core.service.site.goods.vo.GoodsBrandInitVo;
 import com.niu.core.service.site.goods.vo.GoodsBrandListVo;
+import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.Resource;
 import org.springframework.util.Assert;
 
 import java.util.LinkedList;
@@ -42,7 +41,7 @@ import java.util.List;
  */
 @Service
 public class GoodsBrandServiceImpl implements IGoodsBrandService {
-        
+
     @Resource
     GoodsBrandMapper goodsBrandMapper;
     @Resource
@@ -51,8 +50,8 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
 
     @Override
     public PageResult<GoodsBrandListVo> page(PageParam pageParam, GoodsBrandSearchParam searchParam) {
-        Integer page  = pageParam.getPage();
-        Integer limit =pageParam.getLimit();
+        Integer page = pageParam.getPage();
+        Integer limit = pageParam.getLimit();
 
 
         MPJQueryWrapper<GoodsBrand> queryWrapper = new MPJQueryWrapper<>();
@@ -60,10 +59,12 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
                 .leftJoin("?_site ns ON ngb.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .select("ngb.brand_id, ngb.site_id, ngb.brand_name, ngb.logo, ngb.color_json, ngb.`desc`, ngb.sort, ngb.create_time, ngb.update_time, ngb.delete_time, ngb.brand_type, ns.site_name, ns.front_end_logo,ngb.status,ngb.audit_status,ngb.audit_reason,ngb.audit_time");
         queryWrapper.eq("ngb.site_id", RequestUtils.siteId());
-        if (ObjectUtil.isNotEmpty(searchParam.getBrandName())) queryWrapper.like("ngb.brand_name", searchParam.getBrandName());
+        if (ObjectUtil.isNotEmpty(searchParam.getBrandName()))
+            queryWrapper.like("ngb.brand_name", searchParam.getBrandName());
         queryWrapper.orderByDesc("ngb.brand_id");
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus()))   queryWrapper.eq("ngb.status", searchParam.getStatus());
-        if (ObjectUtil.isNotEmpty(searchParam.getAuditStatus()))   queryWrapper.eq("ngb.audit_status", searchParam.getAuditStatus());
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) queryWrapper.eq("ngb.status", searchParam.getStatus());
+        if (ObjectUtil.isNotEmpty(searchParam.getAuditStatus()))
+            queryWrapper.eq("ngb.audit_status", searchParam.getAuditStatus());
         IPage<GoodsBrandListVo> iPage = goodsBrandMapper.selectJoinPage(new Page<>(page, limit), GoodsBrandListVo.class, queryWrapper);
         for (GoodsBrandListVo item : iPage.getRecords()) {
             GoodsBrandListVo.SiteInfoVO siteInfoVO = new GoodsBrandListVo.SiteInfoVO();
@@ -84,7 +85,8 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
                         .eq("brand_type", BrandTypeEnum.ADMIN.getType())
 
         );
-        if (ObjectUtil.isNotEmpty(searchParam.getBrandName())) queryWrapper.like("brand_name", searchParam.getBrandName());
+        if (ObjectUtil.isNotEmpty(searchParam.getBrandName()))
+            queryWrapper.like("brand_name", searchParam.getBrandName());
         if (ObjectUtil.isNotEmpty(searchParam.getBrandIds())) queryWrapper.in("brand_id", searchParam.getBrandIds());
 
         queryWrapper.orderByDesc("create_time");
@@ -104,11 +106,11 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
         GoodsBrand model = goodsBrandMapper.selectOne(
                 new QueryWrapper<GoodsBrand>()
                         .eq("brand_id", id)
-                        .eq("site_id", RequestUtils.siteId()));
+                        .in("site_id", RequestUtils.siteId(), RequestUtils.defaultSiteId()));
 
         Assert.notNull(model, "品牌不存在");
 
-       GoodsBrandInfoVo vo = new GoodsBrandInfoVo();
+        GoodsBrandInfoVo vo = new GoodsBrandInfoVo();
         BeanUtils.copyProperties(model, vo);
         return vo;
     }
@@ -124,7 +126,7 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
         model.setSiteId(RequestUtils.siteId());
         model.setBrandName(addParam.getBrandName());
         model.setBrandType(BrandTypeEnum.SITE.getType());
-        model.setAuditStatus(ObjectUtil.isNotEmpty(config.getIsVerifyBrand()) ? BrandAuditEnum.AUDIT_WAIT.getStatus(): BrandAuditEnum.AUDIT_PASS.getStatus());
+        model.setAuditStatus(ObjectUtil.isNotEmpty(config.getIsVerifyBrand()) ? BrandAuditEnum.AUDIT_WAIT.getStatus() : BrandAuditEnum.AUDIT_PASS.getStatus());
         model.setAuditTime(System.currentTimeMillis() / 1000);
         model.setLogo(addParam.getLogo());
         model.setDesc(addParam.getDesc());
@@ -143,7 +145,7 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
         CoreGoodsConfigVo config = coreGoodsConfigService.getConfig();
         GoodsBrand model = goodsBrandMapper.selectOne(
                 new QueryWrapper<GoodsBrand>()
-                        .eq("brand_id",  id)
+                        .eq("brand_id", id)
                         .eq("site_id", RequestUtils.siteId()));
 
         Assert.notNull(model, "品牌不存在!");
@@ -153,7 +155,7 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
         model.setDesc(editParam.getDesc());
         model.setSort(ObjectUtil.isNotEmpty(editParam.getSort()) ? Integer.parseInt(editParam.getSort()) : 0);
         model.setUpdateTime(System.currentTimeMillis() / 1000);
-        model.setAuditStatus(ObjectUtil.isNotEmpty(config.getIsVerifyBrand()) ? BrandAuditEnum.AUDIT_WAIT.getStatus(): BrandAuditEnum.AUDIT_PASS.getStatus());
+        model.setAuditStatus(ObjectUtil.isNotEmpty(config.getIsVerifyBrand()) ? BrandAuditEnum.AUDIT_WAIT.getStatus() : BrandAuditEnum.AUDIT_PASS.getStatus());
         model.setAuditTime(System.currentTimeMillis() / 1000);
         model.setColorJson(JSONUtil.toJsonStr(ObjectUtil.defaultIfNull(editParam.getColorJson(), new JSONObject())));
         goodsBrandMapper.updateById(model);
@@ -168,11 +170,11 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
     public void modifySort(EditGoodsBrandSortParam editParam) {
         GoodsBrand model = goodsBrandMapper.selectOne(
                 new QueryWrapper<GoodsBrand>()
-                        .eq("brand_id",  editParam.getBrandId())
+                        .eq("brand_id", editParam.getBrandId())
                         .eq("site_id", RequestUtils.siteId()));
 
         Assert.notNull(model, "品牌不存在!");
-        if(model.getBrandType().equals(BrandTypeEnum.ADMIN.getType())){
+        if (model.getBrandType().equals(BrandTypeEnum.ADMIN.getType())) {
             return;
         }
         model.setSort(editParam.getSort());
@@ -185,11 +187,11 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
     public void modifyStatus(EditGoodsBrandStatusParam editParam) {
         GoodsBrand model = goodsBrandMapper.selectOne(
                 new QueryWrapper<GoodsBrand>()
-                        .eq("brand_id",  editParam.getBrandId())
+                        .eq("brand_id", editParam.getBrandId())
                         .eq("site_id", RequestUtils.siteId()));
 
         Assert.notNull(model, "品牌不存在!");
-        if(model.getBrandType().equals(BrandTypeEnum.ADMIN.getType())){
+        if (model.getBrandType().equals(BrandTypeEnum.ADMIN.getType())) {
             return;
         }
         model.setStatus(editParam.getStatus());

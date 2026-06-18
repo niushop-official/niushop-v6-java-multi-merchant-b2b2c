@@ -74,6 +74,13 @@
                                                                     <view class="base-tag" v-else-if="tagItem.style_type == 'diy' || !tagItem.icon" :style="diyGoods.baseTagStyle(tagItem)">{{ tagItem.label_name }}</view>
                                                                 </template>
                                                             </view>
+                                                            <view v-if="subItem.goodsSku.market_list && subItem.goodsSku.market_list.length>0" class="flex items-center mt-[8rpx] mb-[auto]">
+                                                                <view class="flex">
+                                                                    <view class="bg-[var(--primary-color-light)] text-[var(--primary-color)] rounded-[6rpx] text-[20rpx] flex items-center justify-center px-[10rpx] h-[36rpx] mr-[6rpx] whitespace-nowrap" v-for="(cItem,index) in subItem.goodsSku.market_list" :key="index" :class="{'ml-[6rpx]':index>0}">
+                                                                        <view @click.stop="manjianOpenFn(cItem,subItem)">{{ cItem.title }}</view>
+                                                                    </view>
+                                                                </view>
+                                                            </view>
                                                             <view class="flex justify-between items-end self-end mt-[10rpx] w-[100%]">
                                                                 <view class="text-[var(--price-text-color)] price-font truncate max-w-[200rpx]">
                                                                     <text class="text-[24rpx] font-500">￥</text>
@@ -171,6 +178,7 @@
         <tabbar />
         <!-- 强制绑定手机号 -->
 		<bind-mobile ref="bindMobileRef" /> 
+        <ns-goods-youhui ref="youhuiShowRef"></ns-goods-youhui>
     </view>
 </template>
 
@@ -182,10 +190,12 @@ import { onShow } from '@dcloudio/uni-app'
 import { img, redirect } from '@/utils/common'
 import useCartStore from '@/addon/mall/stores/cart'
 import { getCartGoodsList } from '@/addon/mall/api/cart'
+import { getGoodsSkuPromotionDetail } from '@/addon/mall/api/goods';
 import bindMobile from '@/components/bind-mobile/bind-mobile.vue';
 import { t } from "@/locale";
 import { useGoods } from '@/addon/mall/hooks/useGoods'
 import nsGoodsRecommend from '@/addon/mall/components/ns-goods-recommend/ns-goods-recommend.vue';
+import nsGoodsYouhui from '@/addon/mall/components/ns-goods-youhui/ns-goods-youhui.vue';
 import { topTabar } from '@/utils/topTabbar';
 import { useShare } from '@/hooks/useShare'
 const { setShare } = useShare()
@@ -204,6 +214,8 @@ const total = ref('0.00')
 const cartList = ref<object[]>([])
 const isEdit = ref(false)
 const cartStore = useCartStore();
+const youhuiShowRef: any = ref(null);
+
 
 const getCartGoodsListFn = () => {
     getCartGoodsList({}).then(({data}) => {
@@ -356,7 +368,9 @@ const numChange = (event: any, subItem: any) => {
 			sale_price: data.goodsSku.sale_price,
 			num: data.num,
             site_id: data.site_id
-		}, 0);
+		}, 0,()=>{
+            getCartGoodsListFn()
+        });
 	}, 500)
 }
 
@@ -511,6 +525,19 @@ const allChange = () =>{
     }
 
 }
+
+//满减送
+const skuPromotionDetail = ref({})
+const manjianOpenFn = (data: any,subItem: any) => { 
+    getGoodsSkuPromotionDetail({
+        sku_id: subItem.sku_id || '',
+    }).then((res: any) => {
+        skuPromotionDetail.value = res.data
+        youhuiShowRef.value.open(skuPromotionDetail.value,subItem.sku_id);
+    })
+	
+}
+
 
 //强制绑定手机号
 const bindMobileRef: any = ref(null)

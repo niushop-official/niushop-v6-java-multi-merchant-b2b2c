@@ -176,6 +176,15 @@
 			}
 		},
 		{
+			"path": "app/pages/auth/resetpwd",
+			"style": {
+				// #ifndef H5
+                "navigationStyle": "custom",
+                // #endif
+				"navigationBarTitleText": "%pages.auth.resetpwd%"
+			}
+		},
+		{
 			"path": "app/pages/auth/updatepwd",
 			"style": {
 				

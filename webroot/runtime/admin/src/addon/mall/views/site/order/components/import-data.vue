@@ -54,9 +54,19 @@ const initDataFn = ()=>{
     refundDialogLoading.value = false;
 }
 
+const props = defineProps({
+    type: {
+        type: String,
+        default: ''
+    }
+})
+
+const operationType = ref('')
+
 // 打开弹窗
-const open = ()=>{
+const open = (type: string = '')=>{
     initDataFn();
+    operationType.value = type || props.type;
     importDialog.value = true;
 }
 const refundDialogLoading = ref(false)
@@ -67,8 +77,14 @@ const refundDialogConfirm = async (formEl: FormInstance | undefined) => {
     await formEl.validate(async (valid) => {
         if (valid) {
             refundDialogLoading.value = true
-            const data = {'data': importData.value}
-            addBatchOrderDelivery(data).then((res) => {
+            const params = {
+                type: operationType.value,
+                data: {
+                    path: importData.value.path,
+                    type: importData.value.type // 这里的type是模板类型(order/order_goods)，不是操作类型
+                }
+            }
+            addBatchOrderDelivery(params).then((res) => {
                 emit('complete');
                 importDialog.value = false;
             }).catch(() => {

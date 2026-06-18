@@ -71,9 +71,9 @@
                     <text class="required" v-if="diyComponent.field.required">{{ diyComponent.field.required ? '*' : '' }}</text>
                     <text class="name" :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx' ,'font-weight': diyComponent.fontWeight}">{{ diyComponent.field.name }}</text>
                 </view>
-                <view class="layout-two-content" v-if="diyComponent.style == 'style-1'">
+                <view class="layout-two-content" :class="{'!justify-start': diyGlobal.contentAlign == 'left' }" v-if="diyComponent.style == 'style-1'">
                     <u-checkbox-group v-model="selectValue" @change="checkboxChange" iconPlacement="left" class="justify-end">
-                        <view v-for="(item, index) in diyComponent.options" class="ml-[30rpx]">
+                        <view v-for="(item, index) in diyComponent.options" :class="{'ml-[30rpx]': diyGlobal.contentAlign == 'right', 'mr-[30rpx]' : diyGlobal.contentAlign == 'left'}">
                             <u-checkbox activeColor="var(--primary-color)" :labelSize="(diyComponent.fontSize * 2) + 'rpx'" :labelColor="diyComponent.textColor" :key="index" :label="item.text" :name="item.id"></u-checkbox>
                         </view>
                     </u-checkbox-group>

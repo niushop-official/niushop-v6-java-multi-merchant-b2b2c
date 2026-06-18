@@ -73,20 +73,57 @@
                             </template>
                             <div class="h-[1px] border-t-[1px] border-dashed border-[#dcdfe6] my-[24px]"></div>
                         </div>
-                        <div class="mb-[30px] flex justify-between items-center" v-if="orderData.basic.has_goods_types[0] != 'virtual'">
+                        <div class="mb-[30px] flex justify-between items-center" v-if="orderData.basic.has_goods_types[0] != 'virtual' && parseFloat(item.basic.delivery_money)">
                             <div class="text-[16px] text-[#666]">{{ t('deliveryMoney') }}</div>
                             <div class="text-[16px] text-[#333] price-font">￥{{parseFloat(item.basic.delivery_money).toFixed(2)}}</div>
                         </div>
+                        <!-- 赠品 -->
+                        <div class="mb-[30px] flex justify-between items-center" v-if="item.basic.full_gift_sku_list && item.basic.full_gift_sku_list.length">
+                            <div class="text-[16px] text-[#666]">赠品</div>
+                            <div class="flex items-center cursor-pointer text-[#666]" @click="giftGooodsRef.open(item.basic.full_gift_sku_list)">
+                                <div class="flex items-center gap-x-[8px]">
+                                    <template v-for="(cItem,index) in item.basic.full_gift_sku_list" :key="index">
+                                        <div class="w-[30px] h-[30px]" v-if="index < 5">
+                                            <el-image class="w-[30px] h-[30px] rounded-[var(--rounded-small)]"  :src="img(cItem.sku_image)" fit="cover" >
+                                                <template #error>
+                                                    <img src="@/assets/images/goods_default.png" class="w-[30px] h-[30px] rounded-[var(--rounded-small)]">
+                                                </template>
+                                            </el-image>
+                                        </div>
+                                    </template>
+                                </div>
+                                
+                                <div class="text-[14px] ml-[6px]">共<span class="price-font">{{ getGiftNum(item.basic.full_gift_sku_list) }}</span>件</div>
+                                <span class="iconfont icon-youV6xx text-[16px]"></span>
+                            </div>
+                        </div>
                         <!-- 优惠劵 -->
                         <div class="mb-[30px] flex justify-between items-center">
-                            <div class="text-[16px] text-[#666]">店铺优惠</div>
+                            <div class="text-[16px] text-[#666]">优惠劵</div>
                             <div>
                                 <div class="text-[16px] text-[333] cursor-pointer" v-if="couponData[key] && couponData[key].couponList.length"  @click="couponRef.open(createData.body[key])">
-                                    <span class="price-font">-￥{{parseFloat(item.basic.discount_money).toFixed(2)}}</span>
+                                    <span class="price-font" v-if="item.discount && item.discount.coupon">-￥{{parseFloat(item.discount.coupon.money).toFixed(2)}}</span>
+                                    <span v-else class="text-[13px] text-gray-subtitle">请选择优惠券</span>
                                     <span class="iconfont icon-xiaV6xx !text-[20px]"></span>
                                 </div>
                                 <div v-else class="text-[#666]">暂无可使用优惠</div>
                             </div>
+                        </div>
+                        <!-- 店铺优惠 -->
+                        <div class="mb-[30px] flex justify-between items-center" v-if="parseFloat(item.basic.full_reduction_money)">
+                            <div class="text-[16px] text-[#666] flex items-center">
+                                <span class="mr-[2px]">优惠金额</span>
+                                <el-tooltip class="box-item" effect="light" placement="top">
+                                    <template #content>
+                                        <div v-if="Number(item.basic.full_reduction_money)">满减活动：-￥{{ item.basic.full_reduction_money }}</div>
+                                            <div v-if="Number(item.basic.coupon_money)">优惠券：-￥{{ item.basic.coupon_money }}</div>
+                                        </template>
+                                        <el-icon color="#666">
+                                            <QuestionFilled />
+                                        </el-icon>
+                                </el-tooltip>
+                            </div>
+                            <div class="text-[16px] text-[#333] price-font">-￥{{ parseFloat(item.basic.full_reduction_money).toFixed(2) }}</div>
                         </div>
                         <div v-if="item.form_id" class="mb-[30px]">
                             <diy-form ref="diyFormRef" :form_id="item.form_id" :relate_id="item.site_id"></diy-form>
@@ -119,7 +156,7 @@
                             <span>共{{item.basic.total_num}}{{ t('unit') }}</span>
                             <div class="ml-[10px]">
                                 <span>{{ t('subTotal') }}</span>
-                                <span class="price-font">￥{{ parseFloat(item.basic.order_money + item.basic.mall_discount_money).toFixed(2) }}</span>
+                                <span class="price-font">￥{{ parseFloat(Number(item.basic.order_money) - Number(item.basic.mall_discount_money)).toFixed(2) }}</span>
                             </div>
                         </div>
                     </div> 
@@ -141,21 +178,47 @@
                     </div>
                 </div>
             </div>
+            <!-- 积分抵扣 -->
+            <div class="bg-[#fff] px-[30px] py-[30px] mb-[20px] rounded-[var(--rounded-big)]" v-if="pointConfig.is_open && orderData.basic.is_can_point_deduct">
+                <div class="flex items-center justify-between mb-[20px]">
+                    <div class="text-[16px] text-[#666] w-[64px] flex-shrink-0">{{ t('积分抵扣') }}</div>
+                    <span class="price-font text-primary">-￥{{ createData.is_use_point_deduct ? parseFloat(orderData.basic.pre_point_deduct_money).toFixed(2) : '0'}}</span> 
+                    
+                </div>
+                <div class="text-[16px] text-[333] flex items-center">
+                    <el-switch v-model="createData.is_use_point_deduct" :active-value="1" :inactive-value="0" @change="pointChange" />
+                    <div class="text-[14px] text-[#303133] flex-shrink-0 ml-[10px]">
+                        <span>使用{{orderData.basic.pre_use_point}}积分可抵扣</span>
+                        <span class="price-font text-primary ">￥{{ parseFloat(orderData.basic.pre_point_deduct_money).toFixed(2)}}</span> 
+                    </div>   
+                </div>
+            </div>
             <div class="bg-[#fff] px-[30px] pt-[30px] pb-[20px] rounded-[var(--rounded-big)]">
                 <div class="bg-[#f7f7f7] p-[20px] rounded-[var(--rounded-big)]">
                     <div class="flex justify-between items-center mb-[15px] text-[14px]">
                         <div class="text-[#666]">{{ t('goodsMoney') }}</div>
                         <div class="text-[#333] price-font">¥{{parseFloat(orderData.basic.goods_money).toFixed(2) }}</div>
                     </div>
-                    <div class="flex justify-between items-center mb-[15px] text-[14px]" v-if="orderData.basic.shop_discount_money">
+                    <div class="flex justify-between items-center mb-[15px] text-[14px]" v-if="Number(orderData.basic.shop_discount_money)">
                         <div class="text-[#666]">{{ t('discountMoney') }}</div>
                         <div class="text-[#333] price-font">-¥{{parseFloat(orderData.basic.shop_discount_money).toFixed(2) }}</div>
                     </div>
-                    <div class="flex justify-between items-center mb-[15px] text-[14px]" v-if="orderData.basic.mall_discount_money">
-                        <div class="text-[#666]">{{ t('mallDiscountMoney') }}</div>
+                    <div class="flex justify-between items-center mb-[15px] text-[14px]" v-if="Number(orderData.basic.mall_discount_money)">
+                        <div class="text-[#666] flex items-center">
+                            <span class="mr-[2px]">{{ t('mallDiscountMoney') }}</span>
+                            <el-tooltip class="box-item" effect="light" placement="top">
+                                <template #content>
+                                    <div v-if="Number(orderData.basic.mall_coupon_money)">优惠券：-￥{{ orderData.basic.mall_coupon_money }}</div>
+                                    <div v-if="Number(orderData.basic.point_deduct_money)">积分抵扣：-￥{{ orderData.basic.point_deduct_money }}</div>
+                                </template>
+                                <el-icon color="#666">
+                                    <QuestionFilled />
+                                </el-icon>
+                            </el-tooltip>
+                        </div>
                         <div class="text-[#333] price-font">-¥{{parseFloat(orderData.basic.mall_discount_money).toFixed(2) }}</div>
                     </div>
-                    <div class="flex justify-between items-center mb-[15px] text-[14px]" v-if="orderData.basic.delivery_money">
+                    <div class="flex justify-between items-center mb-[15px] text-[14px]" v-if="Number(orderData.basic.delivery_money)">
                         <div class="text-[#666]">{{ t('deliveryMoney') }}</div>
                         <div class="text-[#333] price-font">+¥{{ parseFloat(orderData.basic.delivery_money).toFixed(2) }}</div>
                     </div>
@@ -177,9 +240,11 @@
         <!-- 发票 -->
         <invoice ref="invoiceRef" @confirm="confirmInvoice" @cancel="cancelInvoice" />
         <!-- 店铺优惠劵 -->
-         <select-coupon :order-key="createData.body" ref="couponRef" @confirm="confirmSelectCoupon"  v-if="storeCoupon" />
-         <!-- 平台优惠劵 -->
-         <platform-coupon :order-key="createData.body" ref="platformCouponRef" @confirm="confirmPlatformCoupon"/>
+        <select-coupon :order-key="createData.body" ref="couponRef" @confirm="confirmSelectCoupon"  v-if="storeCoupon" />
+        <!-- 平台优惠劵 -->
+        <platform-coupon :order-key="createData.body" ref="platformCouponRef" @confirm="confirmPlatformCoupon"/>
+        <!-- 赠品 -->
+        <gift-goods ref="giftGooodsRef"/>
     </div>
     
 </template>
@@ -189,10 +254,11 @@ import { ref, reactive,computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import storage from '@/utils/storage'
 import { getAddressList } from '@/addon/mall/api/address'
-import { orderCreateCalculate, orderCoupon, orderCreate, orderPlatformCoupon } from '@/addon/mall/api/order'
+import { orderCreateCalculate, orderCoupon, orderCreate, orderPlatformCoupon, getPointDeduct } from '@/addon/mall/api/order'
 import AddAddress from '@/addon/mall/pages/order/components/edit-address.vue'
 import invoice from '@/addon/mall/pages/order/components/invoice.vue'
 import selectCoupon from '@/addon/mall/pages/order/components/select-coupon.vue'
+import giftGoods from '@/addon/mall/pages/order/components/gift-goods.vue'
 import platformCoupon from '@/addon/mall/pages/order/components/platform-coupon.vue'
 import useCartStore from '@/addon/mall/stores/cart'
 import diyForm from '@/addon/components/diy-form/index.vue'
@@ -207,7 +273,8 @@ const createData = ref({
     mall_discount: {
         platform_coupon_id:''
     },
-    form_data: {}
+    form_data: {},
+    is_use_point_deduct: 0,
 })
 const createLoading = ref(false)
 const couponRef = ref()
@@ -215,6 +282,7 @@ const platformCouponRef = ref()
 const orderData = ref({})
 const diyFormRef: any = ref(null)
 const diyFormGoodsRef: any = ref(null)
+const giftGooodsRef = ref()
 storage.get('orderCreateData') && Object.assign(createData.value, storage.get('orderCreateData'))
 
 
@@ -452,6 +520,30 @@ const cancelInvoice = (site_id) =>{
         delete createData.value.body[site_id].invoice
     }
 }
+
+/**
+ * 积分抵扣
+ */
+const pointConfig = ref({})
+const getPointDeductFn = ()=> { 
+    getPointDeduct().then((res:any)=>{
+        pointConfig.value = res.data
+    }) 
+}
+getPointDeductFn()
+
+const pointChange = (value:any)=>{
+    calculate()
+}
+
+//赠品数量
+const getGiftNum = (data) => { 
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    return data.reduce((total, item) => {
+        const giftNum = Number(item.num) || 0;
+        return total + giftNum;
+    }, 0);
+};
 </script>
 
 <style lang="scss" scoped>

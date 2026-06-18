@@ -14,16 +14,15 @@ import com.niu.mall.mapper.coupon.MallCouponMemberMapper;
 import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
 import com.niu.mall.service.core.marketing.vo.MallMemberCouponInfoVo;
 import com.niu.mall.service.core.marketing.vo.MallMemberCouponListVo;
-import net.bytebuddy.implementation.bytecode.Throw;
+import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class CoreCouponMemberServiceImpl  extends ServiceImpl<MallCouponMemberMapper, MallCouponMember> implements ICoreCouponMemberService {
+public class CoreCouponMemberServiceImpl extends ServiceImpl<MallCouponMemberMapper, MallCouponMember> implements ICoreCouponMemberService {
 
     @Resource
     MallCouponMemberMapper mallCouponMemberMapper;
@@ -40,10 +39,10 @@ public class CoreCouponMemberServiceImpl  extends ServiceImpl<MallCouponMemberMa
                 .eq("member_id", memberId)
                 .eq("site_id", siteId)
                 .eq("status", CouponMemberStatusEnum.WAIT_USE.getStatus())
+                .gt("expire_time", System.currentTimeMillis() / 1000)
                 .orderByAsc("expire_time"));
         List<MallMemberCouponListVo> list = new ArrayList<>();
-        for (MallCouponMember memberCoupon : couponMembers)
-        {
+        for (MallCouponMember memberCoupon : couponMembers) {
             MallMemberCouponListVo vo = new MallMemberCouponListVo();
             BeanUtils.copyProperties(memberCoupon, vo);
             vo.setGoods(mallCouponGoodsMapper.selectList(new QueryWrapper<MallCouponGoods>().eq("coupon_id", memberCoupon.getCouponId())));
@@ -59,10 +58,10 @@ public class CoreCouponMemberServiceImpl  extends ServiceImpl<MallCouponMemberMa
                 .eq("member_id", memberId)
                 .eq("site_id", 0)
                 .eq("status", CouponMemberStatusEnum.WAIT_USE.getStatus())
+                .gt("expire_time", System.currentTimeMillis() / 1000)
                 .orderByAsc("expire_time"));
         List<MallMemberCouponListVo> list = new ArrayList<>();
-        for (MallCouponMember memberCoupon : couponMembers)
-        {
+        for (MallCouponMember memberCoupon : couponMembers) {
             MallMemberCouponListVo vo = new MallMemberCouponListVo();
             BeanUtils.copyProperties(memberCoupon, vo);
             vo.setGoods(mallCouponGoodsMapper.selectList(new QueryWrapper<MallCouponGoods>().eq("coupon_id", memberCoupon.getCouponId())));
@@ -95,7 +94,8 @@ public class CoreCouponMemberServiceImpl  extends ServiceImpl<MallCouponMemberMa
                 .eq("status", CouponMemberStatusEnum.WAIT_USE.getStatus())
                 .eq("id", id));
         if (memberCoupon == null) throw new CommonException("优惠券已使用或已过期");
-        if (memberCoupon.getExpireTime().compareTo(System.currentTimeMillis() / 1000) == -1) throw new CommonException("当前优惠券已过期");
+        if (memberCoupon.getExpireTime().compareTo(System.currentTimeMillis() / 1000) == -1)
+            throw new CommonException("当前优惠券已过期");
 
         memberCoupon.setTradeId(tradeId);
         memberCoupon.setStatus(CouponMemberStatusEnum.USED.getStatus());
@@ -152,13 +152,27 @@ public class CoreCouponMemberServiceImpl  extends ServiceImpl<MallCouponMemberMa
     /**
      * 发放优惠券（这里只进行发放，直接领取数量控制在直接领取方法，累计发放数量）
      *
-     * @param siteId  站点ID
+     * @param siteId   站点ID
      * @param memberId 会员ID
      * @param couponId 优惠券ID
-     * @param num 发放数量
+     * @param num      发放数量
      */
     @Override
     public void sendCoupon(Integer siteId, Integer memberId, Integer couponId, Integer num) {
+        sendCoupon(siteId, memberId, couponId, num, null);
+    }
+
+    /**
+     * 发放优惠券（这里只进行发放，直接领取数量控制在直接领取方法，累计发放数量）
+     *
+     * @param siteId   站点ID
+     * @param memberId 会员ID
+     * @param couponId 优惠券ID
+     * @param num      发放数量
+     * @param num      备注
+     */
+    @Override
+    public void sendCoupon(Integer siteId, Integer memberId, Integer couponId, Integer num, String memo) {
         // 根据优惠券ID和站点ID查询优惠券信息
         QueryWrapper<MallCoupon> couponQueryWrapper = new QueryWrapper<>();
         couponQueryWrapper.eq("id", couponId).eq("site_id", siteId);
@@ -191,6 +205,9 @@ public class CoreCouponMemberServiceImpl  extends ServiceImpl<MallCouponMemberMa
             memberCoupon.setPrice(coupon.getPrice());
             memberCoupon.setStatus(CouponMemberStatusEnum.WAIT_USE.getStatus());
             memberCoupon.setMinConditionMoney(coupon.getMinConditionMoney());
+            if (memo != null && !memo.isEmpty()) {
+                memberCoupon.setMemo(memo);
+            }
 
             memberCouponData.add(memberCoupon);
         }

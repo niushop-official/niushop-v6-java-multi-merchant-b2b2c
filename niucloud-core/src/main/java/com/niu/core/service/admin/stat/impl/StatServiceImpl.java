@@ -195,7 +195,6 @@ public class StatServiceImpl implements IStatService {
 
     @Override
     public PageResult<SysStatListVo> financeAccountsList(PageParam pageParam, SysStatSearchParam searchParam) {
-        // 处理日期参数
         String startDate = "";
         String endDate = "";
         if (searchParam.getDate() != null && searchParam.getDate().length > 0) {
@@ -204,189 +203,21 @@ public class StatServiceImpl implements IStatService {
                 endDate = searchParam.getDate()[1];
             }
         }
-        // 获取站点ID
         Integer siteId = RequestUtils.siteId();
-
-        // 构建查询条件
-        QueryWrapper<SysStat> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("site_id", siteId);
-
-        // 根据日期范围构建条件
-        if (StringUtils.isNotEmpty(startDate) && StringUtils.isNotEmpty(endDate)) {
-            queryWrapper.ge("date_time", DateUtils.StringToTimestamp(startDate));
-            queryWrapper.le("date_time", DateUtils.StringToTimestamp(endDate));
-        } else if (StringUtils.isNotEmpty(startDate)) {
-            queryWrapper.eq("date_time", DateUtils.StringToTimestamp(startDate));
-        } else {
-            queryWrapper.gt("date_time", 0);
-        }
-
-        // 默认为按天查询
         String type = StringUtils.isNotEmpty(searchParam.getType()) ? searchParam.getType() : "day";
 
-        // 分页参数
-        Integer page = pageParam.getPage();
-        Integer limit = pageParam.getLimit();
+        PageResult<com.niu.core.service.core.sys.vo.SysStatListVo> coreResult =
+                coreSysStatService.getStatList(pageParam, siteId, startDate, endDate, type);
 
-        // 构建查询
-        IPage<SysStat> iPage;
-        if ("day".equals(type)) {
-            // 按天查询
-            queryWrapper.select("*");
-            queryWrapper.orderByDesc("date");
-            iPage = sysStatMapper.selectPage(new Page<>(page, limit), queryWrapper);
-        } else {
-            // 按月查询，分组汇总
-            queryWrapper.select("site_id",
-                    "month",
-                    "IFNULL(sum(order_num), 0) as order_num",
-                    "IFNULL(sum(sale_money), 0) as sale_money",
-                    "IFNULL(sum(refund_money), 0) as refund_money",
-                    "IFNULL(sum(access_sum), 0) as access_sum",
-                    "IFNULL(sum(order_receivable_money), 0) as order_receivable_money",
-                    "IFNULL(sum(order_actual_money), 0) as order_actual_money",
-                    "IFNULL(sum(mall_coupon_money), 0) as mall_coupon_money",
-                    "IFNULL(sum(mall_refund_coupon_money), 0) as mall_refund_coupon_money",
-                    "IFNULL(sum(order_refund_money), 0) as order_refund_money",
-                    "IFNULL(sum(order_actual_refund_money), 0) as order_actual_refund_money",
-                    "IFNULL(sum(shop_separate_money), 0) as shop_separate_money",
-                    "IFNULL(sum(shop_refund_separate_money), 0) as shop_refund_separate_money",
-                    "IFNULL(sum(shop_commission), 0) as shop_commission",
-                    "IFNULL(sum(shop_refund_commission), 0) as shop_refund_commission",
-                    "IFNULL(sum(delivery_money), 0) as delivery_money",
-                    "IFNULL(sum(refund_delivery_money), 0) as refund_delivery_money",
-                    "IFNULL(sum(mall_service_money), 0) as mall_service_money",
-                    "IFNULL(sum(mall_refund_service_money), 0) as mall_refund_service_money",
-                    "IFNULL(sum(recharge_money), 0) as recharge_money",
-                    "IFNULL(sum(recharge_pay_money), 0) as recharge_pay_money",
-                    "IFNULL(sum(supply_separate_money), 0) as supply_separate_money",
-                    "IFNULL(sum(supply_refund_separate_money), 0) as supply_refund_separate_money",
-                    "IFNULL(sum(supply_money), 0) as supply_money",
-                    "IFNULL(sum(supply_refund_money), 0) as supply_refund_money");
-
-            queryWrapper.groupBy("month");
-            queryWrapper.orderByDesc("month");
-
-            // 执行分页查询
-            iPage = sysStatMapper.selectPage(new Page<>(page, limit), queryWrapper);
-        }
-
-        // 处理结果数据
         List<SysStatListVo> resultList = new ArrayList<>();
-        for (SysStat stat : iPage.getRecords()) {
-            SysStatListVo vo = new SysStatListVo();
-            BeanUtils.copyProperties(stat, vo);
-            if (StringUtils.isNotEmpty(stat.getDate())) {
-                vo.setTime(stat.getDate());
-            } else if (StringUtils.isNotEmpty(stat.getMonth())) {
-                vo.setTime(stat.getMonth());
+        if (coreResult.getData() != null) {
+            for (com.niu.core.service.core.sys.vo.SysStatListVo coreVo : coreResult.getData()) {
+                SysStatListVo vo = new SysStatListVo();
+                BeanUtils.copyProperties(coreVo, vo);
+                resultList.add(vo);
             }
-
-            // 计算额外字段
-            // 商家分账=支付分账-退款分账
-            BigDecimal shopSeparateMoney = Optional.ofNullable(vo.getShopSeparateMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal shopRefundSeparateMoney = Optional.ofNullable(vo.getShopRefundSeparateMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal separateMoney = shopSeparateMoney.subtract(shopRefundSeparateMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-            vo.setSeparateMoney(separateMoney);
-
-            // 佣金=支付佣金-退还佣金
-            BigDecimal shopCommission = Optional.ofNullable(vo.getShopCommission()).orElse(BigDecimal.ZERO);
-            BigDecimal shopRefundCommission = Optional.ofNullable(vo.getShopRefundCommission()).orElse(BigDecimal.ZERO);
-            BigDecimal commission = shopCommission.subtract(shopRefundCommission).setScale(2, BigDecimal.ROUND_HALF_UP);
-            vo.setShopCommission(commission);
-
-            // 运费=支付运费-退还运费
-            BigDecimal deliveryMoney = Optional.ofNullable(vo.getDeliveryMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal refundDeliveryMoney = Optional.ofNullable(vo.getRefundDeliveryMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal shippingFee = deliveryMoney.subtract(refundDeliveryMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-            vo.setShippingFee(shippingFee);
-
-            // 平台手续费=支付手续费-退还手续费
-            BigDecimal mallServiceMoney = Optional.ofNullable(vo.getMallServiceMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal mallRefundServiceMoney = Optional.ofNullable(vo.getMallRefundServiceMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal serviceMoney = mallServiceMoney.subtract(mallRefundServiceMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-            vo.setServiceMoney(serviceMoney);
-
-            BigDecimal orderActualMoney = Optional.ofNullable(vo.getOrderActualMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal orderReceivableMoney = Optional.ofNullable(vo.getOrderReceivableMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal orderRefundMoney = Optional.ofNullable(vo.getOrderRefundMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal incomeMoney;
-            if(siteId == 0){
-                //实际收入=订单实收-订单应退
-                incomeMoney = orderActualMoney.subtract(orderRefundMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-            }else{
-                //实际收入=订单应收-订单应退
-                incomeMoney = orderReceivableMoney.subtract(orderRefundMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-            }
-            vo.setIncomeMoney(incomeMoney);
-
-            //供货商货款=支付供货商货款-退还供货商货款
-            BigDecimal supplyMoney = Optional.ofNullable(vo.getSupplyMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal supplyRefundMoney = Optional.ofNullable(vo.getSupplyRefundMoney()).orElse(BigDecimal.ZERO);
-            vo.setSupplyGoodsMoney(supplyMoney.subtract(supplyRefundMoney).setScale(2, RoundingMode.HALF_UP));
-
-            //供货商分账=供货商支付分账-供货商退款分账
-            BigDecimal supplySeparateMoney = Optional.ofNullable(vo.getSupplySeparateMoney()).orElse(BigDecimal.ZERO);
-            BigDecimal supplyRefundSeparateMoney = Optional.ofNullable(vo.getSupplyRefundSeparateMoney()).orElse(BigDecimal.ZERO);
-            vo.setSupplyAllSeparateMoney(supplySeparateMoney.subtract(supplyRefundSeparateMoney).setScale(2, RoundingMode.HALF_UP));
-
-            // 实际支出
-            BigDecimal outlayMoney;
-            if (siteId == 0) {
-                // 实际支出=商家分账+佣金+运费
-                outlayMoney = separateMoney.add(commission).add(shippingFee).add(vo.getSupplyAllSeparateMoney()).setScale(2, BigDecimal.ROUND_HALF_UP);
-            } else {
-                // 实际支出=平台手续费+佣金
-                outlayMoney = serviceMoney.add(commission).add(vo.getSupplyGoodsMoney()).setScale(2, BigDecimal.ROUND_HALF_UP);
-            }
-            vo.setOutlayMoney(outlayMoney);
-
-            // 当日结余=实际收入-实际支出
-            BigDecimal balanceMoney = incomeMoney.subtract(outlayMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-            vo.setBalanceMoney(balanceMoney);
-
-            // 设置展示字段，添加负号
-            if (vo.getSupplyRefundMoney() != null)
-                vo.setSupplyRefundMoney(vo.getSupplyRefundMoney().negate());
-
-            if (vo.getSupplyRefundSeparateMoney() != null)
-                vo.setSupplyRefundSeparateMoney(vo.getSupplyRefundSeparateMoney().negate());
-
-            if (vo.getSupplyAllSeparateMoney() != null)
-                vo.setSupplyAllSeparateMoney(vo.getSupplyAllSeparateMoney().negate());
-
-            if (vo.getOrderRefundMoney() != null)
-                vo.setOrderRefundMoney(vo.getOrderRefundMoney().negate());
-
-            if (vo.getOrderActualRefundMoney() != null)
-                vo.setOrderActualRefundMoney(vo.getOrderActualRefundMoney().negate());
-
-            if (vo.getShopRefundSeparateMoney() != null)
-                vo.setShopRefundSeparateMoney(vo.getShopRefundSeparateMoney().negate());
-
-            if (vo.getShopRefundCommission() != null)
-                vo.setShopRefundCommission(vo.getShopRefundCommission().negate());
-
-            if (vo.getRefundDeliveryMoney() != null)
-                vo.setRefundDeliveryMoney( vo.getRefundDeliveryMoney().negate());
-
-            if (vo.getMallRefundServiceMoney() != null)
-                vo.setMallRefundServiceMoney( vo.getMallRefundServiceMoney());
-
-            // 处理mall_coupon_money和mall_refund_coupon_money
-            if (vo.getMallCouponMoney() != null)
-                vo.setMallCouponMoney((siteId == 0 ? vo.getMallCouponMoney().negate() :vo.getMallCouponMoney()));
-
-            if (vo.getMallRefundCouponMoney() != null)
-                vo.setMallRefundCouponMoney((siteId == 0 ? vo.getMallRefundCouponMoney() : vo.getMallRefundCouponMoney().negate()));
-
-            // 设置类型
-            vo.setType(type);
-
-            resultList.add(vo);
         }
-
-        return PageResult.build(page, limit, iPage.getTotal()).setData(resultList);
+        return PageResult.build(coreResult.getCurrentPage(), coreResult.getPerPage(), coreResult.getTotal()).setData(resultList);
     }
 
 
@@ -471,136 +302,17 @@ public class StatServiceImpl implements IStatService {
 
     @Override
     public SysStatListVo financeAccountsDetail(SysStatSearchParam searchParam) {
-        // 处理日期参数
         String date = "";
         if (searchParam.getDate() != null && searchParam.getDate().length > 0) {
             date = searchParam.getDate()[0];
         }
-        // 获取站点ID
         Integer siteId = RequestUtils.siteId();
-        // 默认为按天查询
         String type = StringUtils.isNotEmpty(searchParam.getType()) ? searchParam.getType() : "day";
-        
-        // 调用核心服务获取详情（返回core层的VO）
+
         com.niu.core.service.core.sys.vo.SysStatListVo coreVo = coreSysStatService.getStatDetail(siteId, date, type);
-        
-        // 转换为admin层的VO
         SysStatListVo vo = new SysStatListVo();
         BeanUtils.copyProperties(coreVo, vo);
-        
-        // 设置基础字段
-        vo.setSiteId(coreVo.getSiteId());
-        vo.setTime(coreVo.getTime());
-        vo.setOrderNum(coreVo.getOrderNum());
-        vo.setSaleMoney(coreVo.getSaleMoney());
-        vo.setRefundMoney(coreVo.getRefundMoney());
-        vo.setAccessSum(coreVo.getAccessNum() != null ? coreVo.getAccessNum() : 0);
-        vo.setOrderReceivableMoney(coreVo.getOrderReceivableMoney());
-        vo.setOrderActualMoney(coreVo.getOrderActualMoney());
-        vo.setMallCouponMoney(coreVo.getMallCouponMoney());
-        vo.setMallRefundCouponMoney(coreVo.getMallRefundCouponMoney());
-        vo.setOrderRefundMoney(coreVo.getOrderRefundMoney());
-        vo.setOrderActualRefundMoney(coreVo.getOrderActualRefundMoney());
-        vo.setShopSeparateMoney(coreVo.getShopSeparateMoney());
-        vo.setShopRefundSeparateMoney(coreVo.getShopRefundSeparateMoney());
-        vo.setShopCommission(coreVo.getShopCommission());
-        vo.setShopRefundCommission(coreVo.getShopRefundCommission());
-        vo.setDeliveryMoney(coreVo.getDeliveryMoney());
-        vo.setRefundDeliveryMoney(coreVo.getRefundDeliveryMoney());
-        vo.setMallServiceMoney(coreVo.getMallServiceMoney());
-        vo.setMallRefundServiceMoney(coreVo.getMallRefundServiceMoney());
-        vo.setRechargeMoney(coreVo.getRechargeMoney());
-        vo.setRechargePayMoney(coreVo.getRechargePayMoney());
-        vo.setSupplyMoney(coreVo.getSupplyMoney());
-        vo.setSupplyRefundMoney(coreVo.getSupplyRefundMoney());
-        vo.setSupplySeparateMoney(coreVo.getSupplySeparateMoney());
-        vo.setSupplyRefundSeparateMoney(coreVo.getSupplyRefundSeparateMoney());
-        vo.setType(type);
-        
-        // 计算额外字段（与financeAccountsList方法保持一致）
-        BigDecimal shopSeparateMoney = Optional.ofNullable(vo.getShopSeparateMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal shopRefundSeparateMoney = Optional.ofNullable(vo.getShopRefundSeparateMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal separateMoney = shopSeparateMoney.subtract(shopRefundSeparateMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-        vo.setSeparateMoney(separateMoney);
-
-        // 佣金=支付佣金-退还佣金（注意：保留原始shopCommission值，commission用于计算）
-        BigDecimal shopCommission = Optional.ofNullable(vo.getShopCommission()).orElse(BigDecimal.ZERO);
-        BigDecimal shopRefundCommission = Optional.ofNullable(vo.getShopRefundCommission()).orElse(BigDecimal.ZERO);
-        BigDecimal commission = shopCommission.subtract(shopRefundCommission).setScale(2, BigDecimal.ROUND_HALF_UP);
-        // 注意：PHP版本中commission是新字段，Java版本中VO没有commission字段，所以不覆盖shopCommission
-
-        BigDecimal deliveryMoney = Optional.ofNullable(vo.getDeliveryMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal refundDeliveryMoney = Optional.ofNullable(vo.getRefundDeliveryMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal shippingFee = deliveryMoney.subtract(refundDeliveryMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-        vo.setShippingFee(shippingFee);
-
-        BigDecimal mallServiceMoney = Optional.ofNullable(vo.getMallServiceMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal mallRefundServiceMoney = Optional.ofNullable(vo.getMallRefundServiceMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal serviceMoney = mallServiceMoney.subtract(mallRefundServiceMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-        vo.setServiceMoney(serviceMoney);
-
-        BigDecimal orderActualMoney = Optional.ofNullable(vo.getOrderActualMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal orderReceivableMoney = Optional.ofNullable(vo.getOrderReceivableMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal orderRefundMoney = Optional.ofNullable(vo.getOrderRefundMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal incomeMoney;
-        if (siteId == 0) {
-            incomeMoney = orderActualMoney.subtract(orderRefundMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-        } else {
-            incomeMoney = orderReceivableMoney.subtract(orderRefundMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-        }
-        vo.setIncomeMoney(incomeMoney);
-
-        BigDecimal supplyMoney = Optional.ofNullable(vo.getSupplyMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal supplyRefundMoney = Optional.ofNullable(vo.getSupplyRefundMoney()).orElse(BigDecimal.ZERO);
-        vo.setSupplyGoodsMoney(supplyMoney.subtract(supplyRefundMoney).setScale(2, RoundingMode.HALF_UP));
-
-        BigDecimal supplySeparateMoney = Optional.ofNullable(vo.getSupplySeparateMoney()).orElse(BigDecimal.ZERO);
-        BigDecimal supplyRefundSeparateMoney = Optional.ofNullable(vo.getSupplyRefundSeparateMoney()).orElse(BigDecimal.ZERO);
-        vo.setSupplyAllSeparateMoney(supplySeparateMoney.subtract(supplyRefundSeparateMoney).setScale(2, RoundingMode.HALF_UP));
-
-        // 设置展示字段，添加负号（与PHP版本一致，在计算outlay_money之前设置）
-        if (vo.getOrderRefundMoney() != null) {
-            vo.setOrderRefundMoney(vo.getOrderRefundMoney().negate());
-        }
-        if (vo.getOrderActualRefundMoney() != null) {
-            vo.setOrderActualRefundMoney(vo.getOrderActualRefundMoney().negate());
-        }
-        if (vo.getShopRefundSeparateMoney() != null) {
-            vo.setShopRefundSeparateMoney(vo.getShopRefundSeparateMoney().negate());
-        }
-        if (vo.getShopRefundCommission() != null) {
-            vo.setShopRefundCommission(vo.getShopRefundCommission().negate());
-        }
-        if (vo.getRefundDeliveryMoney() != null) {
-            vo.setRefundDeliveryMoney(vo.getRefundDeliveryMoney().negate());
-        }
-        if (vo.getMallRefundServiceMoney() != null) {
-            vo.setMallRefundServiceMoney(vo.getMallRefundServiceMoney().negate());
-        }
-        if (vo.getSupplyRefundMoney() != null) {
-            vo.setSupplyRefundMoney(vo.getSupplyRefundMoney().negate());
-        }
-        if (vo.getSupplyRefundSeparateMoney() != null) {
-            vo.setSupplyRefundSeparateMoney(vo.getSupplyRefundSeparateMoney().negate());
-        }
-        if (vo.getMallCouponMoney() != null) {
-            vo.setMallCouponMoney(siteId == 0 ? vo.getMallCouponMoney().negate() : vo.getMallCouponMoney());
-        }
-        if (vo.getMallRefundCouponMoney() != null) {
-            vo.setMallRefundCouponMoney(siteId == 0 ? vo.getMallRefundCouponMoney() : vo.getMallRefundCouponMoney().negate());
-        }
-
-        BigDecimal outlayMoney;
-        if (siteId == 0) {
-            outlayMoney = separateMoney.add(commission).add(shippingFee).add(vo.getSupplyAllSeparateMoney()).setScale(2, BigDecimal.ROUND_HALF_UP);
-        } else {
-            outlayMoney = serviceMoney.add(commission).add(vo.getSupplyGoodsMoney()).setScale(2, BigDecimal.ROUND_HALF_UP);
-        }
-        vo.setOutlayMoney(outlayMoney);
-
-        BigDecimal balanceMoney = incomeMoney.subtract(outlayMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
-        vo.setBalanceMoney(balanceMoney);
-
+        vo.setAccessSum(coreVo.getAccessNum());
         return vo;
     }
 

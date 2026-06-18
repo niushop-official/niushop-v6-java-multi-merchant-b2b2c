@@ -280,7 +280,8 @@ const typeList = ref<Array<Object>>([])
 const typePopup = ref<boolean>(false)
 const getMyCouponTypeFn = () =>{
     getMyCouponType().then((res: any) =>{
-        typeList.value = res.data
+
+        typeList.value = res.data.filter((el: any) => el.value != 2)
     })
 }
 const typeClick = (index : number,data:any) =>{

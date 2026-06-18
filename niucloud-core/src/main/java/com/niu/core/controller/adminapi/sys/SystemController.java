@@ -6,11 +6,9 @@ import com.niu.core.service.admin.sys.ISystemService;
 import com.niu.core.service.admin.sys.param.SysQrcodeSearchParam;
 import com.niu.core.service.admin.sys.vo.SysQrcodeVo;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,6 +40,14 @@ public class SystemController {
     @GetMapping("/qrcode")
     public Result<SysQrcodeVo> qrcode(@Validated SysQrcodeSearchParam params,@RequestParam Map<String, String> allParams) {
         return Result.success(systemService.getQrcode(params.getFolder(), params.getPage(),allParams));
+    }
+
+    /**
+     * 校验消息队列是否正常运行
+     */
+    @GetMapping("/job")
+    public Result<Boolean> checkJob() {
+        return Result.success(systemService.checkJob());
     }
 
 }

@@ -180,7 +180,7 @@
 										<template #default="{ row }">
 											<div class="flex items-center cursor-pointer">
 												<div class="min-w-[40px] h-[40px] flex items-center">
-													<el-image  class="w-[40px] h-[40px]" :src="img(row.goods.goods_cover)" fit="contain">
+													<el-image  class="w-[40px] h-[40px]" :src="img(row.goods.goods_cover_thumb_small)" fit="contain">
 														<template #error>
 															<div class="image-slot">
 																<img class="w-[40px] h-[40px]" src="@/addon/mall/assets/goods_default.png" />
@@ -503,26 +503,27 @@ const articleDetail = (id: any) => {
 .store{
     background-image: url('@/addon/mall/assets/index/store_bg.png');
 	background-repeat: no-repeat;
+	background-size: 100% 100%;
 	border-radius: 8px;
 }
 .goods{
 	background-image: url('@/addon/mall/assets/index/goods.png');
 	background-repeat: no-repeat;
-	background-size: auto 100%;
+	background-size: 100% 100%;
 	background-position: right;
 	border-radius: 8px;
 }
 .order{
 	background-image: url('@/addon/mall/assets/index/order.png');
 	background-repeat: no-repeat;
-	background-size: auto 100%;
+	background-size: 100% 100%;
 	background-position: right;
 	border-radius: 8px;
 }
 .addon{
 	background-image: url('@/addon/mall/assets/index/addon.png');
 	background-repeat: no-repeat;
-	background-size: auto 100%;
+	background-size: 100% 100%;
 	background-position: right;
 	border-radius: 8px;
 }

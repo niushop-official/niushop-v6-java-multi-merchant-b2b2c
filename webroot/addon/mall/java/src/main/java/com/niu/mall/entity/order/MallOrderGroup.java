@@ -34,4 +34,13 @@ public class MallOrderGroup implements Serializable {
     private Integer siteId; // 站点id(跨店支付为0)
     private String takerFullAddress; // 收货地址
 
+    /** 使用积分数 */
+    private Integer usePoint;
+
+    /** 积分抵扣金额 */
+    private BigDecimal pointDeductMoney;
+
+    /** 满减活动扣减金额 */
+    private BigDecimal fullReductionMoney;
+
 }

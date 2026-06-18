@@ -5,6 +5,7 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -24,11 +25,13 @@ import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.diy_form.DiyForm;
 import com.niu.core.entity.goods.GoodsBrand;
+import com.niu.core.entity.goods.GoodsCategory;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.mapper.addon.AddonMapper;
 import com.niu.core.mapper.diy_form.DiyFormMapper;
 import com.niu.core.mapper.goods.GoodsBrandMapper;
+import com.niu.core.mapper.goods.GoodsCategoryMapper;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.api.member.IMemberLevelService;
 import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
@@ -38,12 +41,10 @@ import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.core.sys.ICoreUploadService;
 import com.niu.core.service.site.shop.ISiteShopSettingService;
-import com.niu.mall.entity.active.MallActiveGoods;
 import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsSku;
 import com.niu.mall.entity.goods.MallGoodsSpec;
 import com.niu.mall.entity.order.MallOrderGoods;
-import com.niu.mall.enums.active.ActiveGoodsTypeEnum;
 import com.niu.mall.enums.goods.*;
 import com.niu.mall.event.goods.AfterGoodsEditEvent;
 import com.niu.mall.event.goods.AfterMallGoodsStatusEditEvent;
@@ -88,6 +89,9 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
 
     @Resource
     MallGoodsSkuMapper mallGoodsSkuMapper;
+
+    @Resource
+    GoodsCategoryMapper goodsCategoryMapper;
 
     @Resource
     MallGoodsSpecMapper mallGoodsSpecMapper;
@@ -154,7 +158,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         queryWrapper.setAlias("g")
                 .innerJoin("?_mall_goods_sku gs ON g.goods_id = gs.goods_id AND gs.is_default = 1".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site s ON g.supply_id = s.site_id ".replace("?_", GlobalConfig.tablePrefix));
-        queryWrapper.select("g.goods_id,g.site_id,goods_name,goods_type,goods_cover,g.stock,g.sale_num,g.pay_money,g.status,g.shop_sort,g.create_time,member_discount,g.audit_reason,g.supply_id,g.supply_goods_id,s.site_name as supplyName");
+        queryWrapper.select("g.goods_id,g.site_id,goods_name,goods_type,goods_cover,g.stock,g.sale_num,g.pay_money,g.status,g.audit_status,g.shop_sort,g.create_time,member_discount,g.audit_reason,g.supply_id,g.supply_goods_id,s.site_name as supplyName");
         queryWrapper.eq("g.site_id", RequestUtils.siteId());
         queryWrapper.eq("delete_time", 0);
         if (ObjectUtil.isNotEmpty(searchParam.getGoodsName()))
@@ -167,23 +171,26 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         if (ObjectUtil.isNotEmpty(searchParam.getLabelIds()))
             queryWrapper.like("label_ids", "\"" + searchParam.getLabelIds() + "\"");
 
-        if (ObjectUtil.isNotEmpty(searchParam.getGoodsSource())){
-            if(searchParam.getGoodsSource().equals("self_goods") || searchParam.getGoodsSource().equals("0")){
+        if (ObjectUtil.isNotEmpty(searchParam.getGoodsSource())) {
+            if (searchParam.getGoodsSource().equals("self_goods") || searchParam.getGoodsSource().equals("0")) {
                 queryWrapper.eq("g.supply_goods_id", 0);
-            }else{
+            } else {
                 queryWrapper.ne("g.supply_goods_id", 0);
             }
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())){
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
             if (GoodsStatusEnum.OFFLINE.getStatus().equals(searchParam.getStatus())) {
                 queryWrapper.eq("g.status", GoodsStatusEnum.OFFLINE.getStatus());
                 queryWrapper.eq("g.is_supply_update", 0);
-            } else if(searchParam.getStatus().equals(-4)){
-                queryWrapper.eq("g.status",GoodsStatusEnum.OFFLINE.getStatus());
+            } else if (searchParam.getStatus().equals(-4)) {
+                queryWrapper.eq("g.status", GoodsStatusEnum.OFFLINE.getStatus());
                 queryWrapper.eq("g.is_supply_update", 1);
-            }else {
+            } else {
                 queryWrapper.eq("g.status", searchParam.getStatus());
             }
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getStatusType())) {
+            setMallGoodsLambdaQueryWrapper(queryWrapper, searchParam.getStatusType());
         }
         QueryMapperUtils.buildByBetween(queryWrapper, "g.sale_num", new Integer[]{searchParam.getStartSaleNum(), searchParam.getEndSaleNum()});
         QueryMapperUtils.buildByBetween(queryWrapper, "gs.price", new Double[]{searchParam.getStartPrice(), searchParam.getEndPrice()});
@@ -217,9 +224,10 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
 
     /**
      * 处理商品参与的活动数据
+     *
      * @param list
      */
-    private void formatGoodsJoinActive(List<MallGoodsListVo> list){
+    private void formatGoodsJoinActive(List<MallGoodsListVo> list) {
         List<Integer> goodsIds = list.stream().map(MallGoodsListVo::getGoodsId).toList();
         // 创建具体的事件对象
         GoodsJoinInfoEventDefiner.GoodsJoinInfoEvent event = new GoodsJoinInfoEventDefiner.GoodsJoinInfoEvent();
@@ -228,24 +236,24 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         event.setIsGetCount(0);
         List<GoodsJoinInfoEventDefiner.GoodsJoinInfoResult> marketData = EventAndSubscribeOfPublisher.publishAndCallback(event);
         Map<Integer, Map<String, Object>> itemMap = new HashMap<>();
-        if (!marketData.isEmpty()){
-            for (GoodsJoinInfoEventDefiner.GoodsJoinInfoResult item : marketData){
-                if(ObjectUtil.isNotEmpty(item.getInfo())){
+        if (!marketData.isEmpty()) {
+            for (GoodsJoinInfoEventDefiner.GoodsJoinInfoResult item : marketData) {
+                if (ObjectUtil.isNotEmpty(item.getInfo())) {
                     itemMap = item.getInfo();
                 }
             }
         }
         Map<Integer, List<Map<String, Object>>> goodsActiveMap = new HashMap<>();
-        if(!itemMap.isEmpty()){
-            for (Integer goodsId : itemMap.keySet()){
-                if(itemMap.get(goodsId).isEmpty()){
+        if (!itemMap.isEmpty()) {
+            for (Integer goodsId : itemMap.keySet()) {
+                if (itemMap.get(goodsId).isEmpty()) {
                     continue;
                 }
-                for (String activeId : itemMap.get(goodsId).keySet()){
-                    if (!goodsActiveMap.containsKey(goodsId)){
+                for (String activeId : itemMap.get(goodsId).keySet()) {
+                    if (!goodsActiveMap.containsKey(goodsId)) {
                         goodsActiveMap.put(goodsId, new ArrayList<>());
                     }
-                    Map<String, Object> activeInfo = (Map<String, Object>)itemMap.get(goodsId).get(activeId);
+                    Map<String, Object> activeInfo = (Map<String, Object>) itemMap.get(goodsId).get(activeId);
                     // 合并数组值
                     List<Map<String, Object>> currentList = goodsActiveMap.get(goodsId);
                     currentList.add(activeInfo);
@@ -253,40 +261,40 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                 }
             }
         }
-        if(!goodsActiveMap.isEmpty()){
-            Map<Integer,Map<String, Map<String, Object>>> activeTips = new HashMap<>();
-            for (Integer goodsId : goodsActiveMap.keySet()){
+        if (!goodsActiveMap.isEmpty()) {
+            Map<Integer, Map<String, Map<String, Object>>> activeTips = new HashMap<>();
+            for (Integer goodsId : goodsActiveMap.keySet()) {
                 activeTips.put(goodsId, new HashMap<>());
-                for (Map<String, Object> activeInfo : goodsActiveMap.get(goodsId)){
+                for (Map<String, Object> activeInfo : goodsActiveMap.get(goodsId)) {
                     Map<String, Object> type = new HashMap<>();
                     String joinType = activeInfo.get("join_type").toString();
-                    if(activeTips.get(goodsId).get(joinType) == null){
+                    if (activeTips.get(goodsId).get(joinType) == null) {
                         type = new HashMap<>();
-                    }else{
+                    } else {
                         type = activeTips.get(goodsId).get(joinType);
                     }
 
-                    if (ObjectUtil.isEmpty(type.get("name"))){
-                        type.put("name","");
+                    if (ObjectUtil.isEmpty(type.get("name"))) {
+                        type.put("name", "");
                     }
-                    if(ObjectUtil.isNotEmpty(activeInfo.get("short"))){
-                        type.put("short",activeInfo.get("short"));
+                    if (ObjectUtil.isNotEmpty(activeInfo.get("short"))) {
+                        type.put("short", activeInfo.get("short"));
                         activeInfo.remove("short");
                         type.computeIfAbsent("list", k -> new ArrayList<>());
 
                         // 合并数组值
-                        List<Map<String, Object>> currentList = (List<Map<String, Object>>)type.get("list");
+                        List<Map<String, Object>> currentList = (List<Map<String, Object>>) type.get("list");
                         currentList.add(activeInfo);
-                        type.put("list",currentList);
+                        type.put("list", currentList);
                         String name = type.get("name").toString();
-                        type.put("name",name + activeInfo.get("name") +" \n ");
+                        type.put("name", name + activeInfo.get("name") + " \n ");
                     }
-                    activeTips.get(goodsId).put(joinType, type );
+                    activeTips.get(goodsId).put(joinType, type);
                 }
             }
-            if(!activeTips.isEmpty()){
-                for (int i=0; i<list.size(); i++){
-                    list.get( i).setActive(JSONUtil.parseObj(activeTips.get(list.get( i).getGoodsId())).toString());
+            if (!activeTips.isEmpty()) {
+                for (int i = 0; i < list.size(); i++) {
+                    list.get(i).setActive(JSONUtil.parseObj(activeTips.get(list.get(i).getGoodsId())).toString());
                 }
             }
         }
@@ -321,18 +329,18 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
      */
     @Override
     @Transactional
-    public void add(MallGoodsParam addParam) {
+    public Integer add(MallGoodsParam addParam) {
         Integer siteId = RequestUtils.siteId();
 
         //判断限购数量
-        if(ObjectUtil.isNotEmpty(addParam.getIsLimit()) && addParam.getIsLimit() > 0){
-            if(ObjectUtil.isNotEmpty(addParam.getMaxBuy()) && addParam.getMaxBuy() > 0 && ObjectUtil.isNotEmpty(addParam.getMinBuy()) && addParam.getMinBuy() > 0){
-                if(addParam.getMinBuy() > addParam.getMaxBuy()){
+        if (ObjectUtil.isNotEmpty(addParam.getIsLimit()) && addParam.getIsLimit() > 0) {
+            if (ObjectUtil.isNotEmpty(addParam.getMaxBuy()) && addParam.getMaxBuy() > 0 && ObjectUtil.isNotEmpty(addParam.getMinBuy()) && addParam.getMinBuy() > 0) {
+                if (addParam.getMinBuy() > addParam.getMaxBuy()) {
                     throw new CommonException("起购数量不能大于限购数量");
                 }
             }
-            if(ObjectUtil.isNotEmpty(addParam.getMinBuy()) && addParam.getMinBuy() > 0){
-                if(addParam.getMinBuy()> addParam.getStock()){
+            if (ObjectUtil.isNotEmpty(addParam.getMinBuy()) && addParam.getMinBuy() > 0) {
+                if (addParam.getMinBuy() > addParam.getStock()) {
                     throw new CommonException("起购数量不能大于库存数量");
                 }
             }
@@ -348,12 +356,19 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         model.setLabelIds(JSONUtil.parseArray(intArrToStrArr(addParam.getLabelIds())).toString());
         model.setServiceIds(JSONUtil.parseArray(intArrToStrArr(addParam.getServiceIds())).toString());
         model.setDeliveryType(JSONUtil.parseArray(addParam.getDeliveryType()).toString());
-        model.setStatus(coreGoodsConfigService.getConfig().getIsVerifyOpen().equals(1) ? GoodsStatusEnum.WAIT_AUDIT.getStatus() : addParam.getStatus());
+        model.setStatus(addParam.getStatus());
+        model.setAuditStatus(coreGoodsConfigService.getConfig().getIsVerifyOpen().equals(1) ?
+                GoodsAuditStatusEnum.WAIT_AUDIT.getStatus() : GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
         model.setAttrIds(ObjectUtil.isNotEmpty(addParam.getAttrIds()) ? addParam.getAttrIds().toString() : "");
         model.setShopAttrIds(ObjectUtil.isNotEmpty(addParam.getShopAttrIds()) ? addParam.getShopAttrIds().toString() : "");
         model.setAttrFormat(ObjectUtil.isNotEmpty(addParam.getAttrFormat()) ? addParam.getAttrFormat().toString() : "");
         model.setFormId(addParam.getFormId());
-        model.setApplyTime(coreGoodsConfigService.getConfig().getIsVerifyOpen().equals(1)  ? System.currentTimeMillis() / 1000 : 0);
+        model.setApplyTime(coreGoodsConfigService.getConfig().getIsVerifyOpen().equals(1) ? System.currentTimeMillis() / 1000 : 0);
+//        model.setPointDeductType(addParam.getPointDeductType() != null ? addParam.getPointDeductType() : GoodsDictEnum.SITE.getValue());
+//        model.setPointDeductRate(addParam.getPointDeductRate());
+        if (model.getUnit().isEmpty()) {
+            model.setUnit("件");
+        }
         mallGoodsMapper.insert(model);
 
         // 规格数据
@@ -431,6 +446,8 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         event.setGoodsData(model);
         event.setSkuData(skuData);
         EventAndSubscribeOfPublisher.publishAll(event);
+
+        return model.getGoodsId();
     }
 
     /**
@@ -472,14 +489,14 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
     @Transactional
     public void edit(Integer id, MallGoodsParam editParam) {
         //判断限购数量
-        if(ObjectUtil.isNotEmpty(editParam.getIsLimit()) && editParam.getIsLimit() > 0){
-            if(ObjectUtil.isNotEmpty(editParam.getMaxBuy()) && editParam.getMaxBuy() > 0 && ObjectUtil.isNotEmpty(editParam.getMinBuy()) && editParam.getMinBuy() > 0){
-                if(editParam.getMinBuy() > editParam.getMaxBuy()){
+        if (ObjectUtil.isNotEmpty(editParam.getIsLimit()) && editParam.getIsLimit() > 0) {
+            if (ObjectUtil.isNotEmpty(editParam.getMaxBuy()) && editParam.getMaxBuy() > 0 && ObjectUtil.isNotEmpty(editParam.getMinBuy()) && editParam.getMinBuy() > 0) {
+                if (editParam.getMinBuy() > editParam.getMaxBuy()) {
                     throw new CommonException("起购数量不能大于限购数量");
                 }
             }
-            if(ObjectUtil.isNotEmpty(editParam.getMinBuy()) && editParam.getMinBuy() > 0){
-                if(editParam.getMinBuy()> editParam.getStock()){
+            if (ObjectUtil.isNotEmpty(editParam.getMinBuy()) && editParam.getMinBuy() > 0) {
+                if (editParam.getMinBuy() > editParam.getStock()) {
                     throw new CommonException("起购数量不能大于库存数量");
                 }
             }
@@ -505,12 +522,24 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         model.setLabelIds(JSONUtil.parseArray(intArrToStrArr(editParam.getLabelIds())).toString());
         model.setServiceIds(JSONUtil.parseArray(intArrToStrArr(editParam.getServiceIds())).toString());
         model.setDeliveryType(JSONUtil.parseArray(editParam.getDeliveryType()).toString());
-        model.setStatus(auditStatus ? GoodsStatusEnum.WAIT_AUDIT.getStatus() : editParam.getStatus());
+        model.setStatus(editParam.getStatus());
+        if (auditStatus) {
+            model.setAuditStatus(GoodsAuditStatusEnum.WAIT_AUDIT.getStatus());
+            model.setApplyTime(System.currentTimeMillis() / 1000);
+        } else {
+            model.setAuditStatus(GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
+        }
         model.setAttrIds(ObjectUtil.isNotEmpty(editParam.getAttrIds()) ? editParam.getAttrIds().toString() : "");
         model.setShopAttrIds(ObjectUtil.isNotEmpty(editParam.getShopAttrIds()) ? editParam.getShopAttrIds().toString() : "");
         model.setAttrFormat(ObjectUtil.isNotEmpty(editParam.getAttrFormat()) ? editParam.getAttrFormat().toString() : "");
         model.setFormId(editParam.getFormId());
-        model.setApplyTime(auditStatus ? System.currentTimeMillis() / 1000 : 0);
+//        model.setPointDeductType(editParam.getPointDeductType() != null ?
+//                editParam.getPointDeductType() : StringUtils.isNotEmpty(model.getPointDeductType()) ?
+//                model.getPointDeductType() : GoodsDictEnum.SITE.getValue());
+//        model.setPointDeductRate(editParam.getPointDeductRate());
+        if (model.getUnit().isEmpty()) {
+            model.setUnit("件");
+        }
         mallGoodsMapper.updateById(model);
 
         // 规格数据
@@ -716,18 +745,18 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
     /**
      * 判断商品信息是否有变动
      *
-     * @return
+     * @return 开启审核的情况下才检测, 不开启审核直接返回false
      */
     public Boolean checkAuditGoodsInfo(Integer goodsId, MallGoodsParam editParam) {
         Boolean auditStatus = false;
         //查询商品配置
         GoodsConfigVo config = coreGoodsConfigService.getConfig();
-        if(config != null && config.getIsVerifyOpen().equals(1)){
+        if (config != null && config.getIsVerifyOpen().equals(1)) {
             // 查询商品信息
             MallGoods model = mallGoodsMapper.selectOne(new QueryWrapper<MallGoods>().eq("goods_id", goodsId).eq("site_id", RequestUtils.siteId()).eq("delete_time", 0));
             Assert.notNull(model, "商品不存在");
 
-            List<Integer> auditStatusList = Arrays.asList(GoodsStatusEnum.WAIT_AUDIT.getStatus(),GoodsStatusEnum.AUDIT_REFUSE.getStatus(),GoodsStatusEnum.AUDI_TO_FINE.getStatus());
+            List<Integer> auditStatusList = Arrays.asList(GoodsStatusEnum.WAIT_AUDIT.getStatus(), GoodsStatusEnum.AUDIT_REFUSE.getStatus(), GoodsStatusEnum.AUDI_TO_FINE.getStatus());
             if (auditStatusList.contains(model.getStatus())) auditStatus = true;
 
             //比较商品内容是否发生了变化
@@ -737,18 +766,18 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
             List<MallGoodsSku> skuList = mallGoodsSkuMapper.selectList(new QueryWrapper<MallGoodsSku>().eq("goods_id", goodsId));
             if (editParam.getSpecType().equals("single")) {
                 //多规格变单规格，需要审核
-                if(skuList.size()>1){
+                if (skuList.size() > 1) {
                     auditStatus = true;
                 } else if (!skuList.isEmpty()) {
-                    auditStatus =  checkGoodsSkuContent(editParam, skuList.get(0), auditStatus);
+                    auditStatus = checkGoodsSkuContent(editParam, skuList.get(0), auditStatus);
                 }
-            }else if (editParam.getSpecType().equals("multi")){
-                if (!editParam.getGoodsSkuData().keySet().isEmpty()){
+            } else if (editParam.getSpecType().equals("multi")) {
+                if (!editParam.getGoodsSkuData().keySet().isEmpty()) {
                     for (String key : editParam.getGoodsSkuData().keySet()) {
                         MallGoodsParam.SkuData skuParam = editParam.getGoodsSkuData().get(key);
-                        if(skuParam.getSkuId() == null){
+                        if (skuParam.getSkuId() == null) {
                             continue;
-                        }else{
+                        } else {
                             auditStatus = true;
                         }
                         List<String> skuSpecFormat = new LinkedList<>();
@@ -767,23 +796,23 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
 
                         //查询商品规格
                         List<MallGoodsSku> multiSkuThis = skuList.stream().filter(item -> item.getSkuId().equals(skuParam.getSkuId()) && item.getGoodsId().equals(model.getGoodsId())).toList();
-                        if(!multiSkuThis.isEmpty()){
-                            auditStatus =  checkGoodsSkuContentTow(sku, multiSkuThis.get(0), auditStatus);
+                        if (!multiSkuThis.isEmpty()) {
+                            auditStatus = checkGoodsSkuContentTow(sku, multiSkuThis.get(0), auditStatus);
                         }
                     }
-                }else{
-                    if(!skuList.isEmpty()){
+                } else {
+                    if (!skuList.isEmpty()) {
                         auditStatus = true;
                     }
                 }
                 //查询规格值
                 List<MallGoodsSpec> specList = mallGoodsSpecMapper.selectList(new QueryWrapper<MallGoodsSpec>().eq("goods_id", goodsId));
-                if (!editParam.getGoodsSpecFormat().isEmpty()){
+                if (!editParam.getGoodsSpecFormat().isEmpty()) {
                     for (int i = 0; i < editParam.getGoodsSpecFormat().size(); i++) {
                         JSONObject goodsSpec = editParam.getGoodsSpecFormat().getJSONObject(i);
-                        if(goodsSpec.getStr("spec_id") == null){
+                        if (goodsSpec.getStr("spec_id") == null) {
                             continue;
-                        }else{
+                        } else {
                             auditStatus = true;
                         }
                         MallGoodsSpec spec = new MallGoodsSpec();
@@ -799,12 +828,12 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                         spec.setSpecValues(String.join(",", specValues));
                         //查询商品值
                         List<MallGoodsSpec> multiSpecThis = specList.stream().filter(item -> item.getSpecId().equals(spec.getSpecId()) && item.getGoodsId().equals(model.getGoodsId())).toList();
-                        if(!multiSpecThis.isEmpty()){
-                            auditStatus =  checkGoodsSpecContent(spec, multiSpecThis.get(0), auditStatus);
+                        if (!multiSpecThis.isEmpty()) {
+                            auditStatus = checkGoodsSpecContent(spec, multiSpecThis.get(0), auditStatus);
                         }
                     }
-                }else{
-                    if(!specList.isEmpty()){
+                } else {
+                    if (!specList.isEmpty()) {
                         auditStatus = true;
                     }
                 }
@@ -821,7 +850,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
      * @param model
      * @return
      */
-    private Boolean checkGoodsSkuContent(MallGoodsParam editParam, MallGoodsSku model,Boolean isEdit) {
+    private Boolean checkGoodsSkuContent(MallGoodsParam editParam, MallGoodsSku model, Boolean isEdit) {
         if (!(ObjectUtil.isNotEmpty(editParam.getGoodsImage()) && ObjectUtil.isNotEmpty(model.getSkuImage())
                 && editParam.getGoodsImage().equals(model.getSkuImage()) || ObjectUtil.isEmpty(editParam.getGoodsImage()) && ObjectUtil.isEmpty(model.getSkuImage()))) {
             isEdit = true;
@@ -840,7 +869,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
      * @param model
      * @return
      */
-    private Boolean checkGoodsSkuContentTow(MallGoodsSku editParam, MallGoodsSku model,Boolean isEdit) {
+    private Boolean checkGoodsSkuContentTow(MallGoodsSku editParam, MallGoodsSku model, Boolean isEdit) {
         if (!(ObjectUtil.isNotEmpty(editParam.getSkuImage()) && ObjectUtil.isNotEmpty(model.getSkuImage())
                 && editParam.getSkuImage().equals(model.getSkuImage()) || ObjectUtil.isEmpty(editParam.getSkuImage()) && ObjectUtil.isEmpty(model.getSkuImage()))) {
             isEdit = true;
@@ -860,10 +889,10 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
      * 检测商品规格内容是否发生了变化
      *
      * @param editParam 编辑
-     * @param model 模型
+     * @param model     模型
      * @return 是否发生了变化
      */
-    private Boolean checkGoodsSpecContent(MallGoodsSpec editParam, MallGoodsSpec model,Boolean isEdit) {
+    private Boolean checkGoodsSpecContent(MallGoodsSpec editParam, MallGoodsSpec model, Boolean isEdit) {
         if (!(ObjectUtil.isNotEmpty(editParam.getSpecName()) && ObjectUtil.isNotEmpty(model.getSpecName())
                 && editParam.getSpecName().equals(model.getSpecName()) || ObjectUtil.isEmpty(editParam.getSpecName()) && ObjectUtil.isEmpty(model.getSpecName()))) {
             isEdit = true;
@@ -882,7 +911,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
      * @param model
      * @return
      */
-    private Boolean checkGoodsContent(MallGoodsParam editParam, MallGoods model,Boolean isEdit) {
+    private Boolean checkGoodsContent(MallGoodsParam editParam, MallGoods model, Boolean isEdit) {
         if (!(ObjectUtil.isNotEmpty(editParam.getGoodsName()) && ObjectUtil.isNotEmpty(model.getGoodsName())
                 && editParam.getGoodsName().equals(model.getGoodsName()) || ObjectUtil.isEmpty(editParam.getGoodsName()) && ObjectUtil.isEmpty(model.getGoodsName()))) {
             isEdit = true;
@@ -913,10 +942,10 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         }
 
         String goodsCategory = "[]";
-        if(editParam.getGoodsCategory() != null && editParam.getGoodsCategory().length > 0){
+        if (editParam.getGoodsCategory() != null && editParam.getGoodsCategory().length > 0) {
             goodsCategory = JSONUtil.parseArray(editParam.getGoodsCategory()).toString();
         }
-        if(!goodsCategory.equals(model.getGoodsCategory())){
+        if (!goodsCategory.equals(model.getGoodsCategory())) {
             isEdit = true;
         }
         if (!(ObjectUtil.isNotEmpty(editParam.getGoodsMallCategory()) && ObjectUtil.isNotEmpty(model.getGoodsMallCategory())
@@ -924,24 +953,24 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
             isEdit = true;
         }
         String attrIds = "[]";
-        if(editParam.getAttrIds() != null && !editParam.getAttrIds().isEmpty()){
+        if (editParam.getAttrIds() != null && !editParam.getAttrIds().isEmpty()) {
             attrIds = editParam.getAttrIds().toString();
         }
-        if(!attrIds.equals(model.getAttrIds())){
+        if (!attrIds.equals(model.getAttrIds())) {
             isEdit = true;
         }
         String shopAttrIds = "[]";
-        if(editParam.getShopAttrIds() != null && !editParam.getShopAttrIds().isEmpty()){
+        if (editParam.getShopAttrIds() != null && !editParam.getShopAttrIds().isEmpty()) {
             shopAttrIds = editParam.getShopAttrIds().toString();
         }
-        if(!shopAttrIds.equals(model.getShopAttrIds())){
+        if (!shopAttrIds.equals(model.getShopAttrIds())) {
             isEdit = true;
         }
         String attrFormat = "[]";
-        if(editParam.getAttrFormat() != null && !editParam.getAttrFormat().isEmpty()){
+        if (editParam.getAttrFormat() != null && !editParam.getAttrFormat().isEmpty()) {
             attrFormat = editParam.getAttrFormat().toString();
         }
-        if(!attrFormat.equals(model.getAttrFormat())){
+        if (!attrFormat.equals(model.getAttrFormat())) {
             isEdit = true;
         }
 
@@ -1005,6 +1034,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
 
     /**
      * 检查插件是否安装
+     *
      * @param key
      */
     private Boolean checkAddon(String key) {
@@ -1032,7 +1062,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         model.setStatus(0);
         model.setDeleteTime(System.currentTimeMillis() / 1000);
         mallGoodsMapper.update(model, new QueryWrapper<MallGoods>().eq("site_id", RequestUtils.siteId()).in("goods_id", goodsIds));
-        if(goodsIds != null && goodsIds.length > 0){
+        if (goodsIds != null && goodsIds.length > 0) {
             AfterMallGoodsStatusEditEvent event = new AfterMallGoodsStatusEditEvent();
             event.setSiteId(RequestUtils.siteId());
             event.setGoodsIds(Arrays.asList(goodsIds));
@@ -1159,7 +1189,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                 goodsIds = Arrays.asList((Integer) param.getGoodsIds());
             }
         }
-        if(goodsIds.isEmpty()&&param.getIsAll()!=1){
+        if (goodsIds.isEmpty() && param.getIsAll() != 1) {
             throw new CommonException("请选择商品");
         }
         SiteInfoVo shopBasicInfo = coreSiteService.getShopBasicInfo(RequestUtils.siteId());
@@ -1189,6 +1219,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
             coreGoodsOnlineCheckService.checkGoodsSkuPriceBatch(goodsIds);
         }
         //更新商品状态
+        int res = 0;
         if (isAll == 0) {
             MallGoods model = new MallGoods();
             model.setStatus(param.getStatus());
@@ -1199,7 +1230,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
             if (!explodeGoodsIds.isEmpty()) {
                 updateWrapper.notIn("goods_id", explodeGoodsIds);
             }
-            mallGoodsMapper.update(model, updateWrapper);
+            res = mallGoodsMapper.update(model, updateWrapper);
         } else {
             MPJQueryWrapper<MallGoods> updateWrapper = getBatchAllQuery((Map<String, Object>) param.getWhere(), explodeGoodsIds);
             updateWrapper.ge("goods.status", 0);
@@ -1210,11 +1241,13 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                         .collect(Collectors.toList());
                 MallGoods model = new MallGoods();
                 model.setStatus(param.getStatus());
-                mallGoodsMapper.update(model, new QueryWrapper<MallGoods>()
+                res = mallGoodsMapper.update(model, new QueryWrapper<MallGoods>()
                         .in("goods_id", targetGoodsIds));
             }
         }
-
+        if (!explodeGoodsIds.isEmpty() && res == 0) {
+            throw new AdminException("商品正在参与营销活动，禁止修改");
+        }
         AfterMallGoodsStatusEditEvent event = new AfterMallGoodsStatusEditEvent();
         event.setSiteId(RequestUtils.siteId());
         event.setGoodsIds(goodsIds);
@@ -1224,9 +1257,10 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
 
     /**
      * 获取参与营销活动的商品ID列表
+     *
      * @param goodsId 商品ID列表
-     * @param isAll 是否全部查询
-     * @param where 查询条件
+     * @param isAll   是否全部查询
+     * @param where   查询条件
      * @return 参与营销活动的商品ID列表
      */
     private List<Integer> getActiveGoodsIds(List<Integer> goodsId, Integer isAll, Map<String, Object> where) {
@@ -1245,9 +1279,9 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         event.setWhere(where);
         List<GoodsJoinInfoEventDefiner.GoodsJoinInfoResult> marketData = EventAndSubscribeOfPublisher.publishAndCallback(event);
         List<Integer> activeGoodsIds = new ArrayList<>();
-        if (!marketData.isEmpty()){
-            for (GoodsJoinInfoEventDefiner.GoodsJoinInfoResult item : marketData){
-                if(ObjectUtil.isNotEmpty(item.getInfo())){
+        if (!marketData.isEmpty()) {
+            for (GoodsJoinInfoEventDefiner.GoodsJoinInfoResult item : marketData) {
+                if (ObjectUtil.isNotEmpty(item.getInfo())) {
                     Map<Integer, Map<String, Object>> itemMap = item.getInfo();
                     activeGoodsIds.addAll(itemMap.keySet());
                 }
@@ -1259,6 +1293,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
 
     /**
      * 检测商品sku价格
+     *
      * @param goods
      */
     public void checkGoodsSkuPrice(MallGoods goods) {
@@ -1295,7 +1330,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
      */
     @Override
     public void editSort(EditGoodsSortParam param) {
-        if(ObjectUtil.isEmpty(param.getShopSort())){
+        if (ObjectUtil.isEmpty(param.getShopSort())) {
             param.setShopSort(0);
         }
         MallGoods model = new MallGoods();
@@ -1440,14 +1475,14 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         event.setIsGetCount(0);
         List<GoodsJoinInfoEventDefiner.GoodsJoinInfoResult> marketData = EventAndSubscribeOfPublisher.publishAndCallback(event);
         Map<Integer, Map<String, Object>> itemMap = new HashMap<>();
-        if (!marketData.isEmpty()){
-            for (GoodsJoinInfoEventDefiner.GoodsJoinInfoResult item : marketData){
-                if(ObjectUtil.isNotEmpty(item.getInfo())){
+        if (!marketData.isEmpty()) {
+            for (GoodsJoinInfoEventDefiner.GoodsJoinInfoResult item : marketData) {
+                if (ObjectUtil.isNotEmpty(item.getInfo())) {
                     itemMap = item.getInfo();
                 }
             }
         }
-        return Long.parseLong( ObjectUtil.isNotEmpty(itemMap) ? itemMap.size()+"" : "0") ;
+        return Long.parseLong(ObjectUtil.isNotEmpty(itemMap) ? itemMap.size() + "" : "0");
     }
 
     /**
@@ -1464,14 +1499,14 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         event.setIsGetCount(0);
         List<GoodsJoinInfoEventDefiner.GoodsJoinInfoResult> marketData = EventAndSubscribeOfPublisher.publishAndCallback(event);
         Map<Integer, Map<String, Object>> itemMap = new HashMap<>();
-        if (!marketData.isEmpty()){
-            for (GoodsJoinInfoEventDefiner.GoodsJoinInfoResult item : marketData){
-                if(ObjectUtil.isNotEmpty(item.getInfo())){
+        if (!marketData.isEmpty()) {
+            for (GoodsJoinInfoEventDefiner.GoodsJoinInfoResult item : marketData) {
+                if (ObjectUtil.isNotEmpty(item.getInfo())) {
                     itemMap = item.getInfo();
                 }
             }
         }
-        return Long.parseLong( ObjectUtil.isNotEmpty(itemMap) ? itemMap.size()+"" : "0") ;
+        return Long.parseLong(ObjectUtil.isNotEmpty(itemMap) ? itemMap.size() + "" : "0");
     }
 
     /**
@@ -1545,6 +1580,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         if (searchParam.getSelectType().equals("all")) {
             queryWrapper.gt("g.stock", 0);
             queryWrapper.eq("g.status", 1);
+            queryWrapper.eq("g.audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
         }
 
         if (searchParam.getSelectType().equals("selected") && ObjectUtil.isNotEmpty(searchParam.getGoodsIds())) {
@@ -1556,6 +1592,24 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
 
         if (ObjectUtil.isNotEmpty(searchParam.getGoodsCategory()))
             queryWrapper.like("goods_category", "\"" + searchParam.getGoodsCategory() + "\"");
+
+        if (ObjectUtil.isNotEmpty(searchParam.getGoodsMallCategory())) {
+//            String categorySql = "WITH RECURSIVE cte AS (\n" +
+//                    "        SELECT category_id, pid, 0 AS level\n" +
+//                    "        FROM ?_goods_category\n".replace("?_", GlobalConfig.tablePrefix) +
+//                    "        WHERE category_id = ?\n".replace("?", searchParam.getGoodsMallCategory().toString()) +
+//                    "        UNION ALL\n" +
+//                    "        SELECT c.category_id,  c.pid, cte.level + 1\n" +
+//                    "        FROM ?_goods_category c\n".replace("?_", GlobalConfig.tablePrefix) +
+//                    "        INNER JOIN cte ON c.pid = cte.category_id\n" +
+//                    "    )\n" +
+//                    "    SELECT category_id FROM cte ORDER BY level";
+//            queryWrapper.inSql("goods_mall_category", categorySql);
+            //Mysql8.0以下不支持 WITH RECURSIVE
+            List<Integer> categoryIds = new ArrayList<>(List.of(searchParam.getGoodsMallCategory()));
+            categoryIds.addAll(getMallCategory(categoryIds));
+            queryWrapper.in("goods_mall_category", categoryIds);
+        }
 
         List<Integer> verifyGoodsIds = new LinkedList<>();
         List<Integer> verifySkuIds = new LinkedList<>();
@@ -1608,6 +1662,23 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
     }
 
     /**
+     * 递归查询所有子分类
+     *
+     * @param pids 父分类列表
+     * @return 子分类列表
+     */
+    private List<Integer> getMallCategory(List<Integer> pids) {
+        List<Integer> categoryIds = new ArrayList<>(goodsCategoryMapper.selectList(new LambdaQueryWrapper<GoodsCategory>()
+                        .select(GoodsCategory::getCategoryId)
+                        .in(GoodsCategory::getPid, pids))
+                .stream().map(GoodsCategory::getCategoryId).toList());
+        if (!categoryIds.isEmpty()) {
+            categoryIds.addAll(getMallCategory(categoryIds));
+        }
+        return categoryIds;
+    }
+
+    /**
      * 获取商品选择列表带ku
      *
      * @param searchParam
@@ -1620,6 +1691,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         queryWrapper.select("g.goods_id,g.site_id,g.goods_image,goods_name,goods_type,goods_cover,g.stock,g.sale_num,g.status,sort,create_time,member_discount");
         queryWrapper.eq("g.site_id", RequestUtils.siteId());
         queryWrapper.eq("g.status", 1);
+        queryWrapper.eq("g.audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
         queryWrapper.eq("delete_time", 0);
 
         // 检测商品id集合是否存在，移除不存在的商品id，纠正数据准确性
@@ -1966,15 +2038,14 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
     }
 
     @Override
-    public List<Map<String, Object>> getSource() {
+    public Map<String, Map<String, String>> getSource() {
         JSONObject sourceType = GoodsSourceEnum.getSourceType();
-        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Map<String, String>> result = new HashMap<>();
         for (String key : sourceType.keySet()) {
             JSONObject item = sourceType.getJSONObject(key);
-            Map<String, Object> map = new HashMap<>();
-            map.put("key", key);
+            Map<String, String> map = new HashMap<>();
             map.put("name", item.getStr("name"));
-            result.add(map);
+            result.put(key, map);
         }
 
         return result;
@@ -1991,7 +2062,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         if (ObjectUtil.isEmpty(goodsIds)) {
             return new ArrayList<>();
         }
-        
+
         // PHP中没有setType的条件限制，直接过滤供货商商品
         QueryWrapper<MallGoods> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("goods_id", goodsIds)
@@ -2210,7 +2281,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
 
             if (isAll == 1) { // 全选模式
                 MPJQueryWrapper<MallGoods> queryWrapper = getBatchAllQuery(convertWhereToMap(param.getWhere()), supplyGoodsIds);
-                
+
                 if (param.getSetType().equals(GoodsBatchTypeEnum.DELIVERY.getType())) {
                     queryWrapper.eq("goods_type", GoodsTypeEnum.REAL.getType());
                 }
@@ -2220,7 +2291,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                 for (Map.Entry<String, Object> entry : update.entrySet()) {
                     String column = entry.getKey();
                     Object value = entry.getValue();
-                    
+
                     // 根据字段类型决定是否需要JSON序列化
                     Object finalValue;
                     if (value instanceof List) {
@@ -2229,7 +2300,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                     } else {
                         finalValue = value;
                     }
-                    
+
                     updateData.put("goods." + column, finalValue);
                 }
 
@@ -2280,7 +2351,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                     for (Map.Entry<String, Object> entry : update.entrySet()) {
                         String column = entry.getKey();
                         Object value = entry.getValue();
-                        
+
                         // 根据字段类型决定是否需要JSON序列化
                         Object finalValue;
                         if (value instanceof List) {
@@ -2289,14 +2360,14 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
                         } else {
                             finalValue = value;
                         }
-                        
+
                         updateWrapper.set(column, finalValue);
                     }
 
                     mallGoodsMapper.update(null, updateWrapper);
                 }
             }
-            
+
             if (param.getSetType().equals(GoodsBatchTypeEnum.MEMBER_DISCOUNT.getType()) && ObjectUtil.isNotEmpty(goodsIds)) {
                 mallGoodsSkuMapper.update(null, new UpdateWrapper<MallGoodsSku>()
                         .in("goods_id", goodsIds)
@@ -2327,7 +2398,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         if (where == null) {
             return new HashMap<>();
         }
-        
+
         Map<String, Object> whereMap = new HashMap<>();
         if (where.getGoodsName() != null) whereMap.put("goods_name", where.getGoodsName());
         if (where.getGoodsCategory() != null) whereMap.put("goods_category", where.getGoodsCategory());
@@ -2342,7 +2413,7 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         if (where.getStartSaleNum() != null) whereMap.put("start_sale_num", where.getStartSaleNum());
         if (where.getEndSaleNum() != null) whereMap.put("end_sale_num", where.getEndSaleNum());
         if (where.getStatus() != null) whereMap.put("status", where.getStatus());
-        
+
         return whereMap;
     }
 
@@ -2460,13 +2531,13 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
     @Override
     public Map<String, Object> sync(Integer goodsId, Integer supplySync) {
         Map<String, Object> result = new HashMap<>();
-        if (ObjectUtil.isNotEmpty(goodsId)){
+        if (ObjectUtil.isNotEmpty(goodsId)) {
             //查询商品
             MallGoods goods = mallGoodsMapper.selectById(goodsId);
-            if (ObjectUtil.isNotEmpty(goods)){
+            if (ObjectUtil.isNotEmpty(goods)) {
                 // 供货商设置同步
-                if(checkAddon("supply") && goods.getSupplyId() > 0){
-                    if(supplySync == 1){
+                if (checkAddon("supply") && goods.getSupplyId() > 0) {
+                    if (supplySync == 1) {
                         //这里需要处理同步设置，事件调用
                         SupplyGoodsSyncEventDefiner.SupplyGoodsSyncEvent event = new SupplyGoodsSyncEventDefiner.SupplyGoodsSyncEvent();
                         event.setGoodsId(goods.getSupplyGoodsId());
@@ -2508,5 +2579,46 @@ public class MallGoodsServiceImpl implements IMallGoodsService {
         }
 
         return result;
+    }
+
+    @Override
+    public Map<String, Map<String, Object>> getStatusType() {
+        Map<String, Map<String, Object>> map = GoodsStatusTypeEnum.getMap();
+        for (var item : map.entrySet()) {
+            MPJQueryWrapper<MallGoods> queryWrapper = new MPJQueryWrapper<>();
+            queryWrapper.setAlias("g")
+                    .select("g.goods_id");
+            queryWrapper.eq("g.site_id", RequestUtils.siteId());
+            setMallGoodsLambdaQueryWrapper(queryWrapper, (Integer) item.getValue().get("value"));
+            item.getValue().put("count", mallGoodsMapper.selectCount(queryWrapper));
+        }
+        return map;
+    }
+
+    /**
+     * 设置商品状态查询条件
+     *
+     * @param wrapper
+     * @param statusType
+     */
+    private void setMallGoodsLambdaQueryWrapper(MPJQueryWrapper<MallGoods> wrapper, Integer statusType) {
+        var optional = GoodsStatusTypeEnum.getEnumByStatus(statusType);
+        if (optional.isEmpty()) return;
+        GoodsStatusTypeEnum statusTypeEnum = optional.get();
+        switch (statusTypeEnum) {
+            case ON_SALE -> wrapper.eq("g.status", GoodsStatusEnum.ONLINE.getStatus())
+                    .eq("g.audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
+            case IN_WAREHOUSE -> wrapper.eq("g.status", GoodsStatusEnum.OFFLINE.getStatus())
+                    .eq("g.audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus())
+                    .eq("g.is_supply_update", 0);
+            case PENDING_REVIEW -> wrapper.eq("g.audit_status", GoodsAuditStatusEnum.WAIT_AUDIT.getStatus());
+            case REVIEW_FAILS -> wrapper.eq("g.audit_status", GoodsAuditStatusEnum.AUDIT_REFUSE.getStatus());
+            case FORCE_REMOVAL -> wrapper.eq("g.status", GoodsStatusEnum.AUDI_TO_FINE.getStatus());
+            case SUPPLY_UPDATE -> wrapper.eq("g.status", GoodsStatusEnum.OFFLINE.getStatus())
+                    .eq("g.audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus())
+                    .eq("g.is_supply_update", 1);
+            default -> {
+            }
+        }
     }
 }

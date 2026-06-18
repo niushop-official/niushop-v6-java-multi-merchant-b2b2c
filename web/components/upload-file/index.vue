@@ -130,7 +130,7 @@ const runtimeConfig = useRuntimeConfig()
 
 let url = runtimeConfig.public.VITE_APP_BASE_URL || `${location.origin}/api/`
 const upload: Record<string, any> = {
-    action: `${url}/file/image`,
+    action: `${url}file/image`,
     headers,
 	accept: '.png,.jpg,.jpeg',
     onSuccess: (response: any, uploadFile: UploadFile, uploadFiles: UploadFiles) => {

@@ -13,7 +13,9 @@ public enum MemberRegisterTypeEnum {
     WECHAT("公众号", "wechat"),
     USERNAME("用户名密码注册", "username"),
     MOBILE("手机验证码注册", "mobile"),
-    MANUAL("商家添加", "manual");
+    MANUAL("商家添加", "manual"),
+    IMPORT("导入", "import"),
+    ;
 
     private final String name;
 
@@ -21,8 +23,7 @@ public enum MemberRegisterTypeEnum {
 
     public static Map<String, String> getMap() {
         Map<String, String> map = new HashMap<>();
-        for(MemberRegisterTypeEnum item : MemberRegisterTypeEnum.values())
-        {
+        for (MemberRegisterTypeEnum item : MemberRegisterTypeEnum.values()) {
             map.put(item.getType(), item.getName());
         }
         return map;
@@ -30,14 +31,13 @@ public enum MemberRegisterTypeEnum {
 
     /**
      * 通过type获取当前名称
+     *
      * @param type
      * @return
      */
-    public static String getNameByType(String type){
-        for(MemberRegisterTypeEnum item : MemberRegisterTypeEnum.values())
-        {
-            if(item.getType().equals(type))
-            {
+    public static String getNameByType(String type) {
+        for (MemberRegisterTypeEnum item : MemberRegisterTypeEnum.values()) {
+            if (item.getType().equals(type)) {
                 return item.getName();
             }
         }

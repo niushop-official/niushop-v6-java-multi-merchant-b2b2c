@@ -1,12 +1,11 @@
 package com.niu.mall.service.core.order.param;
 
 import cn.hutool.json.JSONObject;
-import io.swagger.models.auth.In;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +15,8 @@ public class MallOrderCalculateParam implements Serializable {
 
     private Integer memberId;
     private String orderFrom;
+    @Schema(description = "是否使用积分抵扣功能")
+    private Integer isUsePointDeduct;
     private Map<Integer, Body> body;
     private MallDiscount mallDiscount = new MallDiscount();
     private OrderHelperParam.Delivery delivery = new OrderHelperParam.Delivery();

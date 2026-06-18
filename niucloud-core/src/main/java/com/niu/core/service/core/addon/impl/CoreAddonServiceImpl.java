@@ -4,7 +4,6 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.component.context.WebAppEnvs;
-import com.niu.core.common.utils.image.ImageUtils;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.enums.addon.AddonActionEnum;
 import com.niu.core.enums.addon.AddonStatusEnum;
@@ -80,12 +79,11 @@ public class CoreAddonServiceImpl extends CoreAddonBaseService implements ICoreA
     }
 
     @Override
-    public Map<String,InstallAddonListVo> getInstallAddonList() {
+    public Map<String, InstallAddonListVo> getInstallAddonList() {
         List<Addon> addonList = addonMapper.selectList(new MPJQueryWrapper<Addon>().select("title, icon, `key`, `desc`, `status`, author, version, install_time, update_time, cover, type, support_app").eq("status", AddonStatusEnum.ON.getCode()));
-        Map<String,InstallAddonListVo> map = new HashMap<>();
+        Map<String, InstallAddonListVo> map = new HashMap<>();
         if (ObjectUtil.isNotEmpty(addonList)) {
-            for(Addon item: addonList)
-            {
+            for (Addon item : addonList) {
                 InstallAddonListVo installAddonListVo = new InstallAddonListVo();
                 BeanUtils.copyProperties(item, installAddonListVo);
                 installAddonListVo.setSupportApp(item.getSupportApp());

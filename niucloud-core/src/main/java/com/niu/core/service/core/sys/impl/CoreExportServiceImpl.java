@@ -16,19 +16,18 @@ import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.json.JsonModuleLoader;
 import com.niu.core.entity.diy_form.DiyFormFields;
 import com.niu.core.entity.sys.SysExport;
-import com.niu.core.enums.diy_form.DiyFormTypeEnum;
 import com.niu.core.event.sys.ExportDataEventDefiner;
 import com.niu.core.mapper.diy_form.DiyFormFieldsMapper;
 import com.niu.core.mapper.sys.SysExportMapper;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.sys.ICoreExportService;
 import com.niu.core.service.core.sys.param.SysExportParam;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import jakarta.annotation.Resource;
 import java.util.*;
 
 /**
@@ -75,11 +74,15 @@ public class CoreExportServiceImpl implements ICoreExportService {
      * 获取导出数据类型列表
      */
     @Override
-    public Map<String, String> getExportDataType() {
+    public Map<String, String> getExportDataType(String appType) {
         Map<String, String> map = new HashMap<>();
         for (Object res : JsonModuleLoader.build().mergeResultSet("export/ExportType.json")) {
             JSONObject result = JSONUtil.parseObj(res);
-            result.keySet().forEach(key -> map.put(key, result.getJSONObject(key).getStr("name")));
+            result.keySet().forEach(key -> {
+                JSONObject item = result.getJSONObject(key);
+                if (item.containsKey("app_type") && !item.getStr("app_type").equals(appType)) return;
+                map.put(key, item.getStr("name"));
+            });
         }
 
         return map;
@@ -112,17 +115,17 @@ public class CoreExportServiceImpl implements ICoreExportService {
     @Override
     public JSONArray getExportDataColumn(Integer siteId, String type, JSONObject where) {
         JSONArray baseColumn = getExportDataColumn(type);
-        
+
         if ("site_diy_form_records".equals(type) && where != null && where.containsKey("form_id")) {
             Integer formId = where.getInt("form_id");
-            
+
             List<DiyFormFields> fieldsList = diyFormFieldsMapper.selectList(
                     new QueryWrapper<DiyFormFields>()
                             .eq("form_id", formId)
                             .eq("site_id", siteId)
                             .orderByAsc("field_id")
             );
-            
+
             for (DiyFormFields field : fieldsList) {
                 JSONObject fieldColumn = new JSONObject();
                 JSONObject fieldInfo = new JSONObject();
@@ -131,7 +134,7 @@ public class CoreExportServiceImpl implements ICoreExportService {
                 baseColumn.add(fieldColumn);
             }
         }
-        
+
         return baseColumn;
     }
 

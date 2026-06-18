@@ -55,13 +55,13 @@ public class CoreGoodsServiceImpl implements ICoreGoodsService {
         UpdateWrapper goods = new UpdateWrapper<MallGoods>();
         goods.eq("goods_id", goodsId);
         goods.eq("site_id", siteId);
-        goods.setSql("sale_num = sale_num - " + num);
+        goods.setSql("sale_num = GREATEST(0, sale_num - " + num + ")");
         mallGoodsMapper.update(null, goods);
 
         UpdateWrapper sku = new UpdateWrapper<MallGoodsSku>();
         sku.eq("sku_id", skuId);
         sku.eq("site_id", siteId);
-        sku.setSql("sale_num = sale_num - " + num);
+        sku.setSql("sale_num = GREATEST(0, sale_num - " + num + ")");
         mallGoodsSkuMapper.update(null, sku);
     }
 

@@ -272,3 +272,11 @@ export function setSign() {
 export function getMemberAccountPointcount() {
     return request.get(`member/account/pointcount`)
 }
+
+/**
+ * 点击签到
+ * @returns
+ */
+export function addVisit(params: Record<string, any>) {
+    return request.post('member/visit', params)
+}

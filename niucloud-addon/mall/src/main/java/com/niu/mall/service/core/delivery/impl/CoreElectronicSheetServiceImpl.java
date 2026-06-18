@@ -7,9 +7,9 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.niu.core.common.utils.json.JacksonUtils;
 import com.niu.core.common.component.context.cache.CacheFactory;
 import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.entity.sys.SysArea;
@@ -480,7 +480,8 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
                 return ElectronicSheetConfigValueVo.newInstance();
             }
 
-            return JSON.parseObject(config.getValue(), ElectronicSheetConfigValueVo.class);
+            ElectronicSheetConfigValueVo parsed = JacksonUtils.toSnakeCaseObject(config.getValue(), ElectronicSheetConfigValueVo.class);
+            return parsed != null ? parsed : ElectronicSheetConfigValueVo.newInstance();
         }
 
         private Map<Integer, SysArea> groupSysAreaById(Integer... areaIds) {

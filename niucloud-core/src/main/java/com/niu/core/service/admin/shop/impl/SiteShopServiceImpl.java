@@ -1,4 +1,5 @@
 package com.niu.core.service.admin.shop.impl;
+
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
@@ -51,7 +52,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -80,7 +80,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
     @Resource
     SysUserMapper sysUserMapper;
-    
+
     @Resource
     SysUserRoleMapper sysUserRoleMapper;
 
@@ -112,6 +112,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
     @Resource
     private Cached cached;
+
     @Override
     public PageResult<SiteShopListVo> page(PageParam pageParam, SiteShopSearchParam searchParam) {
         Integer page = pageParam.getPage();
@@ -280,7 +281,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
     @Override
     @Transactional
     public void add(SiteShopParam addParam) {
-        if ((ObjectUtil.isNull(addParam.getUid()) || addParam.getUid() == 0) 
+        if ((ObjectUtil.isNull(addParam.getUid()) || addParam.getUid() == 0)
                 && StringUtils.isNotBlank(addParam.getUsername())) {
             QueryWrapper<SysUser> userQuery = new QueryWrapper<>();
             userQuery.eq("username", addParam.getUsername());
@@ -292,7 +293,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
         List<String> appList = new ArrayList<>();
         List<String> addonsList = new ArrayList<>();
         Integer groupId = addParam.getGroupId();
-        
+
         if ("group".equals(addParam.getSelectType())) {
             if (ObjectUtil.isEmpty(addParam.getGroupId())) {
                 throw new AdminException("请选择套餐");
@@ -360,7 +361,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
         siteShop.setCommissionRate(siteShopCategory.getCommissionRate());
         siteShop.setSupplyServiceRate(addParam.getSupplyServiceRate());
         siteShopMapper.insert(siteShop);
-        
+
         // 更新店铺申请状态
         if (ObjectUtil.isNotEmpty(addParam.getApplyId())) {
             siteShopApplyMapper.update(null, Wrappers.<SiteShopApply>lambdaUpdate()
@@ -458,7 +459,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
             if (site.getGroupId() != null && site.getGroupId() > 0) {
                 oldSiteGroup = siteGroupService.info(site.getGroupId());
             }
-            
+
             // 如果initalled_addon为空，合并app和addon
             if (ObjectUtil.isEmpty(site.getInitalledAddon())) {
                 List<String> mergedList = new ArrayList<>();
@@ -506,7 +507,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
             List<String> mainApp = new ArrayList<>();
             List<String> newAppList = editParam.getAppList();
             if (!newAppList.isEmpty()) {
-                
+
                 for (String app : newAppList) {
                     if (ObjectUtil.isNotEmpty(app) && !currentInitalled.contains(app)) {
                         mainApp.add(app);
@@ -517,7 +518,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
             List<String> siteAddons = new ArrayList<>();
             List<String> newAddonsList = editParam.getAddonsList();
             if (!newAddonsList.isEmpty()) {
-                
+
                 for (String addon : newAddonsList) {
                     if (ObjectUtil.isNotEmpty(addon) && !currentInitalled.contains(addon)) {
                         siteAddons.add(addon);
@@ -539,7 +540,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
             List<String> allAddons = new ArrayList<>(currentInitalled);
             allAddons.addAll(editParam.getAppList());
             allAddons.addAll(editParam.getAddonsList());
-            
+
             // 去重并设置已安装插件
             Set<String> uniqueSet = new HashSet<>();
             List<String> uniqueList = new ArrayList<>();
@@ -556,14 +557,15 @@ public class SiteShopServiceImpl implements ISiteShopService {
             dataShop.setIsSelf(editParam.getIsSelf());
             dataShop.setCategoryId(editParam.getCategoryId());
             dataShop.setBusinessLicense(editParam.getBusinessLicense());
-            
+
             // 店铺抽成随之改变
 //            if (editParam.getCommissionRate() != null && editParam.getCommissionRate() > 0) {
 //                dataShop.setCommissionRate(new BigDecimal(editParam.getCommissionRate()));
 //            } else {
 //                dataShop.setCommissionRate(shopCategory.getCommissionRate());
 //            }
-            dataShop.setCommissionRate(new BigDecimal(ObjectUtil.defaultIfNull(shopCategory.getCommissionRate(), 0).toString()));
+//            dataShop.setCommissionRate(new BigDecimal(ObjectUtil.defaultIfNull(shopCategory.getCommissionRate(), 0).toString()));
+            dataShop.setCommissionRate(editParam.getCommissionRate().compareTo(BigDecimal.ZERO) > 0 ? editParam.getCommissionRate() : shopCategory.getCommissionRate());
             // 供应商手续费
             if (editParam.getSupplyServiceRate() != null) {
                 dataShop.setSupplyServiceRate(new BigDecimal(editParam.getSupplyServiceRate()));
@@ -589,7 +591,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
             // 更新站点基本信息
             site.setSiteName(editParam.getSiteName());
             site.setGroupId(editParam.getGroupId());
-            
+
             // 处理 app 和 addons 的存储格式
             String normApp = JSONUtil.toJsonStr(editParam.getAppList());
             if (ObjectUtil.isEmpty(normApp) || "{}".equals(normApp.trim())) {
@@ -654,8 +656,8 @@ public class SiteShopServiceImpl implements ISiteShopService {
         SiteGroup siteGroup = siteGroupService.info(model.getGroupId());
 
         //修改店铺数据
-        SiteShop siteShop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id",model.getSiteId()).last("Limit 1"));
-        if(ObjectUtil.isNotEmpty(siteShop)){
+        SiteShop siteShop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", model.getSiteId()).last("Limit 1"));
+        if (ObjectUtil.isNotEmpty(siteShop)) {
             siteShop.setBusinessStatus(editParam.getBusinessStatus());
             siteShop.setContactName(editParam.getContactName());
             siteShopMapper.updateById(siteShop);
@@ -768,8 +770,8 @@ public class SiteShopServiceImpl implements ISiteShopService {
     public SiteShopSelectPage getSelectPage(PageParam pageParam, SiteShopSelectParam siteShopSelectParam) {
         Integer page = pageParam.getPage();
         Integer limit = pageParam.getLimit();
-        
-        
+
+
         siteShopSelectParam.setStatus(SiteStatusEnum.ON.getCode());
         List<Integer> verifySiteIds = new ArrayList<>();
         if (ObjectUtil.isNotEmpty(siteShopSelectParam.getVerifySiteIds())) {
@@ -779,7 +781,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
                 QueryWrapper<Site> simpleWrapper = new QueryWrapper<>();
                 simpleWrapper.select("site_id").in("site_id", verifySiteIdList).eq("status", SiteStatusEnum.ON.getCode());
                 List<Site> simpleSites = siteMapper.selectList(simpleWrapper);
-                
+
                 // 直接使用简单查询的结果，不再要求必须有shop记录
                 verifySiteIds = simpleSites.stream().map(Site::getSiteId).collect(Collectors.toList());
             }
@@ -885,6 +887,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
     /**
      * 检查店铺收款账户信息是否已经完成配置
+     *
      * @return boolean true：已完成配置，false：未完成配置
      */
     @Override
@@ -917,6 +920,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
     /**
      * 格式化百分比字段
+     *
      * @param item 店铺列表项
      */
     private void formatPercentageFields(SiteShopListVo item) {

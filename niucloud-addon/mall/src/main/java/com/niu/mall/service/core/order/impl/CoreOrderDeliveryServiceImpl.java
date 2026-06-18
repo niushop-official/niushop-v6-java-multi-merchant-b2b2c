@@ -2,6 +2,7 @@ package com.niu.mall.service.core.order.impl;
 
 import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.yulichang.query.MPJQueryWrapper;
@@ -9,11 +10,16 @@ import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.delivery.DeliveryTypeEnum;
+import com.niu.core.enums.pay.TransferTypeEnum;
 import com.niu.core.mapper.pay.PayMapper;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
+import com.niu.core.service.core.delivery.param.ShopDeliveryPrintElectronicSheetParam;
+import com.niu.core.service.core.delivery.vo.ElectronicSheetPrintVo;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderCreateService;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderService;
 import com.niu.core.service.core.local_delivery.param.LocalDeliveryOrderCreateParam;
+import com.niu.core.service.core.pay.ICorePayService;
+import com.niu.core.service.core.pay.vo.PayInfoVo;
 import com.niu.core.service.core.weapp.ICoreWeappDeliveryService;
 import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.entity.order.MallOrder;
@@ -30,28 +36,26 @@ import com.niu.mall.mapper.order.MallOrderDeliveryMapper;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
 import com.niu.mall.service.core.delivery.ICoreElectronicSheetService;
-import com.niu.core.service.core.delivery.param.ShopDeliveryPrintElectronicSheetParam;
-import com.niu.core.service.core.delivery.vo.ElectronicSheetPrintVo;
+import com.niu.mall.service.core.order.ICoreOrderDeliveryContentService;
 import com.niu.mall.service.core.order.ICoreOrderDeliveryService;
 import com.niu.mall.service.core.order.ICoreOrderEventService;
 import com.niu.mall.service.core.order.ICoreOrderFinishService;
+import com.niu.mall.service.core.order.param.OrderDeliveryContentParam;
 import com.niu.mall.service.core.order.param.OrderDeliveryDataParam;
 import com.niu.mall.service.core.order.param.OrderDeliveryParam;
 import com.niu.mall.service.core.order.param.OrderFinishParam;
 import com.niu.mall.service.core.order.vo.MallOrderGoodsDeliveryVo;
+import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-
-import jakarta.annotation.Resource;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.niu.core.common.utils.CommonUtils.createNo;
@@ -87,6 +91,10 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
     ICoreWeappDeliveryService coreWeappDeliveryService;
     @Resource
     ICoreLocalDeliveryOrderService coreLocalDeliveryOrderService;
+    @Resource
+    ICoreOrderDeliveryContentService orderDeliveryContentService;
+    @Resource
+    private ICorePayService corePayService;
 
     @Resource
     public void setOrderFinishService(@Lazy ICoreOrderFinishService orderFinishService) {
@@ -121,15 +129,24 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         queryWrapper.select("gs.weight,g.unit");
         //配送
         String deliveryType = orderDeliveryParam.getDeliveryType();
-        if (ObjectUtil.isNotEmpty(orderDeliveryParam.getDeliveryIds())){
+        if (ObjectUtil.isNotEmpty(orderDeliveryParam.getDeliveryIds())) {
             queryWrapper.eq("og.delivery_status", OrderDeliveryStatusEnum.DELIVERY_FINISH.getStatus());
-        }else{
+        } else {
             queryWrapper.eq("og.delivery_status", OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus());
         }
         queryWrapper.eq("og.order_id", orderId);
         queryWrapper.in("og.order_goods_id", orderGoodsIds);
         queryWrapper.eq("og.status", OrderGoodsRefundEnum.NORMAL.getStatus());
-        List<MallOrderGoodsDeliveryVo> orderGoodsData = mallOrderGoodsMapper.selectJoinList(MallOrderGoodsDeliveryVo.class,queryWrapper);
+
+        if (OrderDeliveryTypeEnum.LOCAL_DELIVERY.getType().equals(deliveryType)) {
+            orderGoodsIds = mallOrderGoodsMapper.selectList(new LambdaQueryWrapper<MallOrderGoods>()
+                    .eq(MallOrderGoods::getOrderId, orderId)
+                    .in(MallOrderGoods::getOrderGoodsId, orderGoodsIds)
+                    .ne(MallOrderGoods::getStatus, OrderGoodsRefundEnum.REFUND_FINISH.getStatus())
+            ).stream().map(MallOrderGoods::getOrderGoodsId).toList();
+        }
+
+        List<MallOrderGoodsDeliveryVo> orderGoodsData = mallOrderGoodsMapper.selectJoinList(MallOrderGoodsDeliveryVo.class, queryWrapper);
 
         if (orderGoodsData.size() != orderGoodsIds.size()) throw new CommonException("订单中存在已退款的商品，不能发货");
 
@@ -141,7 +158,7 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
 
         if (hasGoodsTypeArray.size() > 1) throw new CommonException("一次发货只能发送一种商品类型的订单项");
         String goodsType = hasGoodsTypeArray.get(0);
-        if(OrderDeliveryTypeEnum.NONE_EXPRESS.getType().equals(orderDeliveryParam.getDeliveryType())){
+        if (OrderDeliveryTypeEnum.NONE_EXPRESS.getType().equals(orderDeliveryParam.getDeliveryType())) {
             orderDeliveryParam.setDeliveryWay("");
         }
         OrderDeliveryDataParam orderDeliveryDataParam = new OrderDeliveryDataParam();
@@ -196,58 +213,61 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         mallOrderDelivery.setDeliveryType(orderData.getDeliveryType());
         mallOrderDelivery.setSubDeliveryType(deliveryType);
         mallOrderDelivery.setRemark(orderDeliveryParam.getRemark());
-        Integer deliveryId = this.packages(orderDeliveryParam.getDeliveryIds(),mallOrderDelivery);
+        Integer deliveryId = this.packages(orderDeliveryParam.getDeliveryIds(), mallOrderDelivery);
+        if (ObjectUtil.isEmpty(orderDeliveryParam.getDeliveryIds())) {
+            //虚拟商品自动收货
+            for (MallOrderGoodsDeliveryVo orderGoods : orderGoodsData) {
+                MallOrderGoods orderGoodsUpdate = new MallOrderGoods();
+                orderGoodsUpdate.setOrderGoodsId(orderGoods.getOrderGoodsId());
+                orderGoodsUpdate.setDeliveryStatus(OrderDeliveryStatusEnum.DELIVERY_FINISH.getStatus());
+                orderGoodsUpdate.setDeliveryId(deliveryId);
+                mallOrderGoodsMapper.updateById(orderGoodsUpdate);
+            }
 
-        //虚拟商品自动收货
-        for (MallOrderGoodsDeliveryVo orderGoods : orderGoodsData) {
-            MallOrderGoods orderGoodsUpdate = new MallOrderGoods();
-            orderGoodsUpdate.setOrderGoodsId(orderGoods.getOrderGoodsId());
-            orderGoodsUpdate.setDeliveryStatus(OrderDeliveryStatusEnum.DELIVERY_FINISH.getStatus());
-            orderGoodsUpdate.setDeliveryId(deliveryId);
-            mallOrderGoodsMapper.updateById(orderGoodsUpdate);
-        }
+            // 构建商品ID -> 商品配置的映射
+            List<Integer> goodsIds = orderGoodsData.stream().map(MallOrderGoodsDeliveryVo::getGoodsId).distinct().collect(Collectors.toList());
+            Map<Integer, MallGoods> goodsMap = mallGoodsMapper.selectList(
+                    new LambdaQueryWrapper<MallGoods>().in(MallGoods::getGoodsId, goodsIds)
+            ).stream().collect(Collectors.toMap(MallGoods::getGoodsId, g -> g));
 
-        //调用虚拟配送(生成核销码)
-        List<Integer> goodsIds = orderGoodsData.stream().map(MallOrderGoodsDeliveryVo::getGoodsId).collect(Collectors.toList());
-        List<MallGoods> tempGoodsList = mallGoodsMapper.selectList(new QueryWrapper<MallGoods>().in("goods_id", goodsIds));
-        for (MallOrderGoodsDeliveryVo orderGoods : orderGoodsData) {
-            for (MallGoods mallGoods : tempGoodsList) {
-                if (orderGoods.getGoodsId().equals(mallGoods.getGoodsId())) {
-                    if (mallGoods.getVirtualReceiveType().equals("verify")) {
-                        //生成核销码
-                        Long expireTime;
-                        if (mallGoods.getVirtualVerifyType() == 0) {
-                            expireTime = 0L;
-                        } else if (mallGoods.getVirtualVerifyType() == 1) {
+            //调用虚拟配送
+            for (MallOrderGoodsDeliveryVo orderGoods : orderGoodsData) {
+                MallGoods mallGoods = goodsMap.get(orderGoods.getGoodsId());
+                if (mallGoods == null) continue;
 
-                            expireTime = System.currentTimeMillis() / 1000 + mallGoods.getVirtualIndate() * 86400;
-                        } else {
-                            expireTime = (long) mallGoods.getVirtualIndate();
-                        }
-                        MallOrderGoods orderGoodsUpdate = new MallOrderGoods();
-                        orderGoodsUpdate.setOrderGoodsId(orderGoods.getOrderGoodsId());
-                        orderGoodsUpdate.setVerifyExpireTime(expireTime);
-                        orderGoodsUpdate.setIsVerify(1);
-                        mallOrderGoodsMapper.updateById(orderGoodsUpdate);
-                    } else if (mallGoods.getVirtualReceiveType().equals("auto")) {
-                        orderFinishService.orderGoodsTake(orderGoods.getOrderId(), new Integer[]{orderGoods.getOrderGoodsId()});
-                    }
+                // 对齐 PHP CoreOrderDeliveryService：收发货配置读商品表
+                String virtualDeliveryType = ObjectUtil.defaultIfEmpty(mallGoods.getVirtualDeliveryType(), "auto");
+                String virtualReceiveType = ObjectUtil.defaultIfEmpty(mallGoods.getVirtualReceiveType(), "artificial");
 
+                if (Arrays.asList("auto", "manual").contains(virtualDeliveryType)) {
+                    String content = StringUtils.hasText(orderDeliveryParam.getVirtualDeliveryContent()) ?
+                            orderDeliveryParam.getVirtualDeliveryContent()
+                            : ObjectUtil.defaultIfNull(mallGoods.getVirtualDeliveryContent(), "");
+                    OrderDeliveryContentParam param = new OrderDeliveryContentParam();
+                    param.setSiteId(orderData.getSiteId());
+                    param.setTradeId(orderData.getOrderId());
+                    param.setTradeType("mall");
+                    param.setTradeNo(orderData.getOrderNo());
+                    param.setContent(content);
+                    orderDeliveryContentService.add(param);
+                }
+
+                if ("auto".equals(virtualReceiveType)) {
+                    orderFinishService.orderGoodsTake(orderGoods.getOrderId(),
+                            new Integer[]{orderGoods.getOrderGoodsId()});
                 }
             }
         }
-
-
     }
 
     @Override
-    public Integer packages(Integer[] deliverIds,MallOrderDelivery mallOrderDelivery) {
-        if(ObjectUtil.isNotEmpty(deliverIds)){
-            if (ObjectUtil.isNotEmpty(mallOrderDelivery) && ObjectUtil.isEmpty(mallOrderDelivery.getExpressCompanyId())){
+    public Integer packages(Integer[] deliverIds, MallOrderDelivery mallOrderDelivery) {
+        if (ObjectUtil.isNotEmpty(deliverIds)) {
+            if (ObjectUtil.isNotEmpty(mallOrderDelivery) && ObjectUtil.isEmpty(mallOrderDelivery.getExpressCompanyId())) {
                 mallOrderDelivery.setExpressCompanyId(0);
             }
-            mallOrderDeliveryMapper.update(mallOrderDelivery,new UpdateWrapper<MallOrderDelivery>().in("id",deliverIds));
-        }else{
+            mallOrderDeliveryMapper.update(mallOrderDelivery, new UpdateWrapper<MallOrderDelivery>().in("id", deliverIds));
+        } else {
             mallOrderDelivery.setCreateTime(System.currentTimeMillis() / 1000);
             mallOrderDelivery.setCode(createNo());
             mallOrderDeliveryMapper.insert(mallOrderDelivery);
@@ -298,7 +318,7 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
             }
         }
 
-        Integer deliveryId = this.packages(orderDeliveryParam.getDeliveryIds(),mallOrderDelivery);
+        Integer deliveryId = this.packages(orderDeliveryParam.getDeliveryIds(), mallOrderDelivery);
 
         for (MallOrderGoodsDeliveryVo orderGoods : orderGoodsData) {
             MallOrderGoods orderGoodsUpdate = new MallOrderGoods();
@@ -314,8 +334,8 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
     public void localDelivery(OrderDeliveryDataParam orderDeliveryDataParam) {
 
         //检查当前交易下是否有存在同城配送订单
-        Boolean erUnderwayDeliveryOrder = coreLocalDeliveryOrderService.getUnderwayDeliveryOrder("mall",orderDeliveryDataParam.getOrderData().getOrderNo());
-        if (!erUnderwayDeliveryOrder){
+        Boolean erUnderwayDeliveryOrder = coreLocalDeliveryOrderService.getUnderwayDeliveryOrder("mall", orderDeliveryDataParam.getOrderData().getOrderNo());
+        if (!erUnderwayDeliveryOrder) {
             throw new CommonException("该订单已存在正在进行中的配送订单");
         }
         MallOrder orderData = orderDeliveryDataParam.getOrderData();
@@ -384,13 +404,13 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         mallOrderDelivery.setSubDeliveryType(deliveryType);
         mallOrderDelivery.setRemark(orderDeliveryParam.getRemark());
         Integer deliveryId = this.packages(orderDeliveryParam.getDeliveryIds(), mallOrderDelivery);
-        if(ObjectUtil.isEmpty(orderDeliveryParam.getDeliveryIds())){
-            for (MallOrderGoodsDeliveryVo orderGoods : orderGoodsData){
-                Integer num = orderGoods.getNum()-orderGoods.getVerifyCount();
-                if(num>=orderGoods.getNum()){
+        if (ObjectUtil.isEmpty(orderDeliveryParam.getDeliveryIds())) {
+            for (MallOrderGoodsDeliveryVo orderGoods : orderGoodsData) {
+                Integer num = orderGoods.getNum() - orderGoods.getVerifyCount();
+                if (num >= orderGoods.getNum()) {
                     MallOrderGoods orderGoodsUpdate = new MallOrderGoods();
                     orderGoodsUpdate.setOrderGoodsId(orderGoods.getOrderGoodsId());
-                    orderGoodsUpdate.setVerifyCount(orderGoods.getVerifyCount()+ orderGoods.getNum());
+                    orderGoodsUpdate.setVerifyCount(orderGoods.getVerifyCount() + orderGoods.getNum());
                     orderGoodsUpdate.setDeliveryStatus(OrderDeliveryStatusEnum.DELIVERY_FINISH.getStatus());
                     orderGoodsUpdate.setDeliveryId(deliveryId);
                     mallOrderGoodsMapper.updateById(orderGoodsUpdate);
@@ -417,11 +437,12 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         //查询订单
         List<MallOrderGoods> ordersGoodsList = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>()
                 .eq("order_id", orderDeliveryParam.getOrderId())
+                .ne("status", OrderGoodsRefundEnum.REFUND_FINISH.getStatus())
         );
         Boolean checkFinish = true;
-        if (DeliveryTypeEnum.STORE.getType().equals(orderDeliveryParam.getDeliveryType())){
-            for (MallOrderGoods orderGoods : ordersGoodsList){
-                if(orderGoods.getNum()>orderGoods.getVerifyCount()){
+        if (DeliveryTypeEnum.STORE.getType().equals(orderDeliveryParam.getDeliveryType())) {
+            for (MallOrderGoods orderGoods : ordersGoodsList) {
+                if (orderGoods.getNum() > orderGoods.getVerifyCount()) {
                     checkFinish = false;
                 }
             }
@@ -434,18 +455,18 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean finish(OrderDeliveryParam orderDeliveryParam) {
-
         //查询订单
         QueryWrapper<MallOrder> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("order_id", orderDeliveryParam.getOrderId())
                 .eq("site_id", orderDeliveryParam.getSiteId());
-        if (orderDeliveryParam.getDeliveryIds() != null && orderDeliveryParam.getDeliveryIds().length > 0){
-            queryWrapper.eq("status",OrderGoodsRefundEnum.REFUND_FINISH.getStatus());
-        }else{
-            queryWrapper.eq("status",OrderStatusEnum.WAIT_DELIVERY.getStatus());
+        if (orderDeliveryParam.getDeliveryIds() != null && orderDeliveryParam.getDeliveryIds().length > 0) {
+            queryWrapper.eq("status", OrderGoodsRefundEnum.REFUND_FINISH.getStatus());
+        } else {
+            queryWrapper.eq("status", OrderStatusEnum.WAIT_DELIVERY.getStatus());
         }
-        MallOrder order =    mallOrderMapper.selectOne(queryWrapper);
+        MallOrder order = mallOrderMapper.selectOne(queryWrapper);
         if (ObjectUtil.isEmpty(order)) throw new CommonException("订单不存在或已发货");
         order.setDeliveryTime(System.currentTimeMillis() / 1000);
         order.setStatus(OrderStatusEnum.WAIT_TAKE.getStatus().toString());
@@ -462,13 +483,14 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         EventAndSubscribeOfPublisher.publishAll(event);
 
         Boolean canFinish = false;
-        //如果有且只有一个虚拟商品并且已经收货，则订单完成
-        List<MallOrderGoods> orderGoodsList = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().eq("order_id", orderDeliveryParam.getOrderId()));
-        if (orderGoodsList.size() == 1){
-            MallOrderGoods orderGoods = orderGoodsList.get(0);
-            if (orderGoods.getGoodsType().equals(GoodsTypeEnum.VIRTUAL.getType()) && orderGoods.getDeliveryStatus().equals(OrderDeliveryStatusEnum.TAKED.getStatus())) {
-                canFinish = true;
-            }
+        // 全部有效商品行均为虚拟商品且已收货，则订单完成
+        List<MallOrderGoods> orderGoodsList = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>()
+                .eq("order_id", orderDeliveryParam.getOrderId())
+                .ne("status", OrderGoodsRefundEnum.REFUND_FINISH.getStatus()));
+        if (!orderGoodsList.isEmpty() && orderGoodsList.stream().allMatch(orderGoods ->
+                GoodsTypeEnum.VIRTUAL.getType().equals(orderGoods.getGoodsType())
+                        && OrderDeliveryStatusEnum.TAKED.getStatus().equals(orderGoods.getDeliveryStatus()))) {
+            canFinish = true;
         }
         //自提订单发货完成后，订单直接完成
         if (order.getDeliveryType().equals(DeliveryTypeEnum.STORE.getType())) {
@@ -476,9 +498,17 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
         }
         //如果是小程序订单，不能直接完成
         if (order.getOrderFrom().equals(ChannelEnum.WEAPP.getCode())) {
-            canFinish = false;
+            PayInfoVo payInfo = corePayService.getPayInfoByOutTradeNo(order.getOutTradeNo());
+            if (payInfo == null) {
+                throw new CommonException("支付信息不存在");
+            }
+            if (ChannelEnum.WEAPP.getCode().equals(payInfo.getChannel()) &&
+                    TransferTypeEnum.WECHATPAY.getKey().equals(payInfo.getType()) &&
+                    !OrderDeliveryTypeEnum.VIRTUAL.getType().equals(order.getDeliveryType())) {
+                canFinish = false;
+            }
         }
-        if(canFinish){
+        if (canFinish) {
             OrderFinishParam finishParam = new OrderFinishParam();
             finishParam.setOrderId(orderDeliveryParam.getOrderId());
             finishParam.setSiteId(orderDeliveryParam.getSiteId());

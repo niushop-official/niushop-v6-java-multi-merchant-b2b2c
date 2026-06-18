@@ -3,11 +3,10 @@ package com.niu.mall.service.core.order;
 import com.niu.mall.entity.order.config.MallOrderDelaySpear;
 import com.niu.mall.entity.order.config.MallOrderEvaluate;
 import com.niu.mall.entity.order.config.MallOrderFinish;
-import com.niu.mall.entity.order.config.MallOrderInvoice;
-import com.niu.mall.entity.order.config.MallOrderRefund;
+import com.niu.mall.entity.order.config.MallOrderRefundInfo;
 import com.niu.mall.service.core.order.param.OrderConfigParam;
-import com.niu.mall.service.core.order.vo.OrderConfigVo;
 import com.niu.mall.service.core.order.vo.MallOrderCloseVo;
+import com.niu.mall.service.core.order.vo.OrderConfigVo;
 
 /**
  * 订单配置接口
@@ -41,4 +40,11 @@ public interface ICoreOrderConfigService {
     MallOrderCloseVo orderClose();
 
     MallOrderDelaySpear orderDelaySpear();
+
+    /**
+     * 获取快捷退款配置
+     *
+     * @return
+     */
+    MallOrderRefundInfo refundAudit();
 }

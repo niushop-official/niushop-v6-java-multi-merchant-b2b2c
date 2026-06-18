@@ -9,11 +9,7 @@ import com.niu.mall.service.api.goods.param.MallGoodsComponentsSearchParam;
 import com.niu.mall.service.api.goods.param.MallGoodsDetailParam;
 import com.niu.mall.service.api.goods.param.MallGoodsSearchParam;
 import com.niu.mall.service.api.goods.param.ShopComponentsSearchParam;
-import com.niu.mall.service.api.goods.vo.GoodsLabelListVo;
-import com.niu.mall.service.api.goods.vo.MallGoodsDetailVo;
-import com.niu.mall.service.api.goods.vo.MallGoodsListVo;
-import com.niu.mall.service.api.goods.vo.MallGoodsSkuVo;
-import jakarta.servlet.http.HttpServletRequest;
+import com.niu.mall.service.api.goods.vo.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,10 +24,11 @@ public interface IGoodsService {
      * @param searchParam
      * @return
      */
-    PageResult<MallGoodsListVo> page(PageParam pageParam, MallGoodsSearchParam searchParam,Map<String, String>  position);
+    PageResult<MallGoodsListVo> page(PageParam pageParam, MallGoodsSearchParam searchParam, Map<String, String> position);
 
     /**
      * 店铺商品列表
+     *
      * @param pageParam
      * @param searchParam
      * @return
@@ -40,6 +37,7 @@ public interface IGoodsService {
 
     /**
      * 优惠券商品列表
+     *
      * @param pageParam
      * @param searchParam
      * @return
@@ -48,6 +46,7 @@ public interface IGoodsService {
 
     /**
      * 推荐商品列表
+     *
      * @param siteId
      * @param num
      * @return
@@ -56,10 +55,12 @@ public interface IGoodsService {
 
     /**
      * 常规获取商品列表
+     *
      * @param searchParam
      * @return
      */
     List<MallGoodsListVo> getGoodsList(MallGoodsSearchParam searchParam);
+
     /**
      * 获取商品详情
      *
@@ -96,6 +97,7 @@ public interface IGoodsService {
 
     /**
      * 根据商品标签获取标签名称
+     *
      * @param labelIds
      * @return
      */
@@ -107,8 +109,13 @@ public interface IGoodsService {
 
     /**
      * 获取店铺推荐组件商品列表
+     *
      * @param param
      * @return
      */
     List<MallGoodsListVo> shopRecommendComponents(ShopComponentsSearchParam param);
+
+    List<String> getSkuPromotionList(Integer skuId);
+
+    SkuPromotionDetailVo getSkuPromotionDetail(Integer skuId);
 }

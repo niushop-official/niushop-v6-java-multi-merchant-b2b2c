@@ -11,9 +11,9 @@
                         <el-option :label="item['group_name']" :value="item['group_id']" v-for="(item, index) in groupList" :key="index" />
                     </el-select>
                 </el-form-item>
-                <el-form-item :label="t('contactMobile')" prop="phone">
+                <!-- <el-form-item :label="t('contactMobile')" prop="phone">
                     <el-input v-model.trim="formData.phone" clearable :placeholder="t('contactMobilePlaceholder')" class="input-width" maxlength="30" />
-                </el-form-item>
+                </el-form-item> -->
                 <el-form-item :label="t('categoryName')" prop="category_id">
                     <el-select v-model="formData.category_id" clearable :placeholder="t('categoryIdPlaceholder')" class="input-width">
                         <el-option :label="item['category_name']" :value="item['category_id']" v-for="(item, index) in categoryList" :key="index" />
@@ -38,7 +38,7 @@
                             <div class="flex items-center">
                                 <el-avatar :src="img(item.head_img)" size="small" class="mr-[10px]" v-if="item.head_img" />
                                 <img src="@/app/assets/images/member_head.png" alt="" class="mr-[10px] w-[24px]" v-else>
-                                {{ item.username }}
+                                {{ item.username}}
                             </div>
                         </el-option>
                     </el-select>
@@ -101,9 +101,15 @@ const showDialog = ref(false)
 const loading = ref(false)
 const groupList = ref([])
 const categoryList = ref([])
-const siteUser = ref([])
+const siteUser = ref<any>([])
 getAllUserList({}).then(({ data }) => {
     siteUser.value = data
+    siteUser.value.map((item: any) => {
+        if (item.username == '') {
+            item.username = item.mobile
+        }
+        return item
+    })
 }).catch()
 
 const end = new Date()
@@ -235,6 +241,9 @@ const confirm = async (formEl: FormInstance | undefined) => {
 
 const setFormData = async (row: any = null) => {
     Object.assign(formData, row)
+    if (!row.user) {
+        formData.uid = ''
+    }
 }
 
 defineExpose({

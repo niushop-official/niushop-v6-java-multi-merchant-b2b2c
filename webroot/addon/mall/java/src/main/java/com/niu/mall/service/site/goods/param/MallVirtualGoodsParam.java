@@ -1,17 +1,20 @@
 package com.niu.mall.service.site.goods.param;
 
 import cn.hutool.json.JSONArray;
-import lombok.Data;
-
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.niu.core.common.domain.BeanJsonSerializer;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
  * 商品参数
-*/
+ */
 @Data
 public class MallVirtualGoodsParam implements Serializable {
 
@@ -104,7 +107,9 @@ public class MallVirtualGoodsParam implements Serializable {
 
     private Integer virtualIndate = 0;
 
-    /** 虚拟商品是否核销手机号，1.开启，0.关闭 */
+    /**
+     * 虚拟商品是否核销手机号，1.开启，0.关闭
+     */
     private Integer virtualVerifyMobile = 0;
 
     @NotNull(message = "member_discount参数缺失")
@@ -114,14 +119,31 @@ public class MallVirtualGoodsParam implements Serializable {
 
     private Integer formId = 0;
 
-    /** 供货商设置同步 */
+    /**
+     * 供货商设置同步
+     */
     private Integer supplySync = 0;
 
-    /**商品平台分类*/
+    /**
+     * 商品平台分类
+     */
     private Integer goodsMallCategory;
 
-    /** 自定义详情 */
+    /**
+     * 自定义详情
+     */
     private Integer diyDetailId;
+
+    /**
+     * 积分抵扣类型 custom:自定义 site:继承店铺
+     */
+    private String pointDeductType;
+
+    /**
+     * 积分抵扣比例
+     */
+    private BigDecimal pointDeductRate;
+
     @Data
     public static class SkuData {
         private Integer skuId;
@@ -153,4 +175,27 @@ public class MallVirtualGoodsParam implements Serializable {
 
         private Integer isSell = 1;
     }
+
+    //	定时上架状态
+    private Integer timerOnStatus;
+    //定时上架时间
+    @JsonDeserialize(using = BeanJsonSerializer.UnixMillisDeserializer.class)
+    private Long timerOnTime;
+    //定时下架状态
+    private Integer timerOffStatus;
+    //定时下架时间
+    @JsonDeserialize(using = BeanJsonSerializer.UnixMillisDeserializer.class)
+    private Long timerOffTime;
+    //支持的支付方式
+    private List<String> supportPayType;
+    //是否允许退款
+    private Integer isEnableRefund;
+    //虚拟商品发货方式 auto/manual/verify
+    private String virtualDeliveryType;
+    //虚拟商品自动发货内容
+    private String virtualDeliveryContent;
+    //虚拟商品退款设置类型
+    private Integer virtualRefund;
+    //虚拟商品退款有效天数
+    private Integer virtualRefundDay;
 }

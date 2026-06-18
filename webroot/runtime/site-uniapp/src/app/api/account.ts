@@ -11,14 +11,14 @@ export function getAccountCheck() {
  * 获取店铺转账方式
  */
 export function getTransfertype() {
-    return request.get(`shop/site/shop/cash_out/transfer_type`)
+    return request.get(`/shop/site/shop/cash_out/transfer_type`)
 }
 
 /**
  * 申请提现
  */
 export function getCashApply(params: Record<string, any>) {
-    return request.post(`shop/site/shop/cash_apply`, params)
+    return request.post(`/shop/site/shop/cash_apply`, params)
 }
 
 /**

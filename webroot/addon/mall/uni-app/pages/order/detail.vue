@@ -1,54 +1,56 @@
 <template>
-    <view :style="themeColor()">   
-        <view class="bg-[var(--page-bg-color)]" v-if="!loading">
-            <view v-if="!loading" class="pb-20rpx">
-                <view style="min-height: calc(50vh  + 150rpx);" v-if="isShowLocalDelivery">
-                    <!-- #ifdef MP-WEIXIN -->
-                    <top-tabbar :data="topTabbarData" :scrollBool="topTabarObj.getScrollBool()" />
-                    <!-- #endif -->
-                    <map-show ref="mapShowRef" tradeType="mall" :tradeNo="detail.order_no" @comfirm="handleComfirm"  v-if="detail.order_no" />
-                </view>
-                
-                <view v-if="detail.status_name && !isShowLocalDelivery" class="pl-[40rpx] pr-[50rpx] bg-linear pb-[100rpx]">
+    <view class="bg-[var(--page-bg-color)] min-h-[100vh]"  :style="themeColor()">   
+        <view v-if="!loading">
+            <view v-if="!loading" class="pb-20rpx">            
+                <view class="pl-[40rpx] pr-[50rpx] bg-linear pb-[100rpx]">
                     <!-- #ifdef MP-WEIXIN -->
                     <top-tabbar :data="topTabbarData" :scrollBool="topTabarObj.getScrollBool()" />
                     <!-- #endif -->
                     <view class="flex justify-between items-center pt-[40rpx]">
-                        <view class="text-[#fff] text-[36rpx] font-500 leading-[42rpx]">
-                            <text>{{ detail.status_name.name }}</text>
+                         <view class="flex flex-col">
+                            <image class="w-[28rpx] h-[20rpx] mb-[10rpx] ml-[4rpx]" :src="img('addon/mall/detail/head_001.png')" mode="aspectFit" />
+                            <view v-if="isShowLocalDelivery" class="" >
+                                <view class="text-[#fff] text-[36rpx] font-500 leading-[42rpx] mb-[6rpx]" @click="localeDeliveryFn">
+                                    <text>{{ detail.local_delivery_status_name }}</text>
+                                    <text class="nc-iconfont nc-icon-youV6xx ml-[10rpx]" v-if="detail.delivery_type == 'local_delivery' && ['3','5'].indexOf(detail.status) != -1"></text>
+                                </view>
+                                <view class="text-[24rpx] text-[#fff] leading-[34rpx]">预计送达时间{{ expectedFinishTime }}</view>
+                            </view>
+                            <view v-else class="text-[#fff] text-[36rpx] font-500 leading-[42rpx]">{{ detail.status_name.name }}</view>
                         </view>
-                        <image v-if="detail.status == 1" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/payment.png')"  mode="aspectFit"/>
-                        <image v-if="detail.status == 2" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/deliver_goods.png')" mode="aspectFit"/>
-                        <image v-if="detail.status == 3" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/receive.png')" mode="aspectFit"  />
-                        <image v-if="detail.status == 5" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/complete.png')" mode="aspectFit" />
-                        <image v-if="detail.status == -1" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/close.png')"  mode="aspectFit" />
-                         <image v-if="detail.status == 6" class="w-[180rpx] h-[140rpx]" :src="img('addon/pintuan/detail/pintuaning.png')"  mode="aspectFit" />
+                        <view class="flex items-end relative -bottom-[6rpx]">
+                            <template v-if="detail.delivery_type == 'local_delivery' && isShowLocalDelivery">
+                                <image v-if="['1','2','3'].includes(detail.local_delivery_status)" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/deliver_goods.png')" mode="aspectFit"/>
+                                <image  v-if="['4'].includes(detail.local_delivery_status)" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/receive.png')" mode="aspectFit"  />
+                            </template>
+                            <template v-else>
+                                <image v-if="detail.status == 1" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/payment.png')"  mode="aspectFit"/>
+                                <image v-if="detail.status == 2" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/deliver_goods.png')" mode="aspectFit"/>
+                                <image v-if="detail.status == 3" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/receive.png')" mode="aspectFit"  />
+                                <image v-if="detail.status == 5" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/complete.png')" mode="aspectFit" />
+                                <image v-if="detail.status == -1" class="w-[180rpx] h-[140rpx]" :src="img('addon/mall/detail/close.png')"  mode="aspectFit" />
+                                <image v-if="detail.status == 6" class="w-[180rpx] h-[140rpx]" :src="img('addon/pintuan/detail/pintuaning.png')"  mode="aspectFit" />
+                            </template>
+                            <image class="w-[8rpx] h-[30rpx] mb-[20rpx]" :src="img('addon/mall/detail/head_002.png')" mode="aspectFit" />
+                        </view>
                     </view>
                 </view>
                <view class="sidebar-margin card-template mt-[-86rpx] relative" v-if="detail.delivery_type == 'local_delivery' && isShowLocalDelivery">
-                    <view class="flex items-center" @click="localeDeliveryFn">
-                        <view class="flex-1">
-                            <view class="mb-[20rpx] flex items-baseline leading-[40rpx] min-h-[46rpx]">
-                                <text class="text-[26rpx] font-500 mr-[10rpx]">预计</text>
-                                <text class="text-[46rpx] font-600">{{ expectedFinishTime }}</text>
-                            </view>
-                            <!-- <view class="mb-[20rpx] leading-[40rpx] text-[30rpx] font-500">{{ detail.local_delivery_status_name }}</view> -->
-                            
-                            
-                            <view class="flex">
-                                <text class="text-[26rpx] font-500 mr-[10rpx]">送至</text>
-                                <view class="flex flex-col">
-                                    <text class="text-[26rpx] mb-[12rpx] leading-[26rpx]">{{ detail.taker_full_address }}</text>
-                                    <view class="flex leading-[38rpx] overflow-hidden">
-                                        <text class="text-[26rpx]">{{ detail.taker_name }}</text>
-                                        <text class="text-[26rpx] ml-[15rpx]">{{ detail.taker_mobile }}</text>
-                                    </view>
+                <view class="relative mb-[30rpx]" v-if="mapData">
+                    <view class="flex items-center">
+                        <view class=" flex-1 flex items-center justify-center relative" v-for="(item,index) in mapData.step" :key="index">
+                            <view v-if="(index + 1) != mapData.step.length" class="w-[150rpx] h-[10rpx] bg-[#f6f6f6] absolute top-[25rpx] left-[75rpx]" :class="{'!bg-[#FD010E]': curIndex > index}"></view>
+                            <view class="flex flex-col items-center relative">
+                                <view class="w-[60rpx] h-[60rpx] rounded-full bg-[#f6f6f6] flex-center mb-[18rpx]" :class="{'!bg-[#FD010E]': curIndex >= index }">
+                                    <image v-if="curIndex >= index" class="w-[36rpx] h-[36rpx]" :src="img(item.logo_selected)"  mode="aspectFit"/>
+                                    <image v-else class="w-[36rpx] h-[36rpx]" :src="img(item.logo)" mode="aspectFit"/>   
                                 </view>
+                                <view class="text-[26rpx] font-600 text-[#555]">{{ item.desc }}</view>
                             </view>
                         </view>
-                        <text class="nc-iconfont nc-icon-youV6xx ml-[10rpx]" v-if="detail.delivery_type == 'local_delivery' && ['3','5'].indexOf(detail.status) != -1"></text>
                     </view>
-                    
+                </view>
+                    <map-show ref="mapShowRef" tradeType="mall" :tradeNo="detail.order_no" @comfirm="handleComfirm"  v-if="detail.order_no" />
                 </view>
                 <view class="sidebar-margin mt-[-86rpx] card-template" v-if="detail.delivery_type != 'virtual' && !isShowLocalDelivery">
                     <view v-if="detail.delivery_type == 'express'">
@@ -70,7 +72,7 @@
                         <view class="flex items-baseline pb-[22rpx] border-0 border-b-[1px] border-solid border-[#f5f5f5]">
                             <text class="nc-iconfont nc-icon-huocheV6mm text-primary text-[28rpx]"></text>
                             <text class="text-[28rpx] text-primary mx-[12rpx]">到店自提</text>
-                            <text class="text-[24rpx] text-[var(--text-color-light9)]">请尽快前往自提点取货</text>
+                            <text class="text-[24rpx] text-[var(--text-color-light9)]" v-if="detail.status != 1">请尽快前往自提点取货</text>
                         </view>
                         <view class="flex items-center justify-between mt-[14rpx] mb-[18rpx]">
                             <view class="max-w-[428rpx]">
@@ -151,7 +153,7 @@
                     </view>
                     <view class="mt-[30rpx]" v-for="(goodsItem, goodsIndex) in detail.order_goods" :key="goodsIndex">
                         <view class="order-goods-item flex justify-between flex-wrap">
-                            <view class="w-[150rpx] h-[150rpx] rounded-[var(--goods-rounded-big)] overflow-hidden" @click="goodsEvent(goodsItem.goods_id)">
+                            <view class="w-[150rpx] h-[150rpx] rounded-[var(--goods-rounded-big)] overflow-hidden" @click="goodsEvent(goodsItem)">
                                 <up-image class="overflow-hidden" radius="var(--goods-rounded-big)" width="150rpx" height="150rpx"
                                     :src="img(goodsItem.goods_image_thumb_small ? goodsItem.goods_image_thumb_small : '')"
                                     mode="aspectFill">
@@ -164,9 +166,9 @@
                             </view>
                             <view class="ml-[20rpx] flex flex-1 flex-col justify-between">
                                 <view>
-                                    <view class="text-[28rpx] max-w-[490rpx] truncate leading-[40rpx] text-[#333]">
+                                    <view class="text-[28rpx] max-w-[490rpx] truncate leading-[40rpx] text-[#333] flex items-center">
                                         <text v-if="detail.order_type_name" class="relative top-[-4rpx] inline-block mr-[4rpx] bg-primary text-[#fff] text-[18rpx] rounded-[4rpx] leading-[30rpx] px-[6rpx]">{{ detail.order_type_name }}</text>
-                                        {{ goodsItem.goods_name }}
+                                        <view class="max-w-[400rpx] truncate"> {{ goodsItem.goods_name }}</view> 
                                     </view>
                                     <view v-if="goodsItem.sku_name">
                                         <view class="text-[22rpx] mt-[14rpx] text-[var(--text-color-light9)] truncate max-w-[490rpx] leading-[28rpx]">{{ goodsItem.sku_name }}</view>
@@ -181,7 +183,7 @@
                                     <text class="text-right text-[26rpx]">x{{ goodsItem.num }}</text>
                                 </view>
                             </view>
-                            <view class="flex justify-end  self-end w-[100%] mt-[30rpx]" v-if="(goodsItem.status != '1') || (goodsItem.is_enable_refund == 1 && detail.status != '6')">	
+                            <view class="flex justify-end  self-end w-[100%] mt-[30rpx]" v-if="(goodsItem.status != '1') || (goodsItem.is_enable_refund == 1 && detail.status != '6') && !goodsItem.is_gift ">	
                                 <view v-if="goodsItem.status != '1'"
                                     class="order-grey-hollow-btn"
                                     @click="redirect({ url: '/addon/mall/pages/refund/detail', param: { order_refund_no : goodsItem.order_refund_no } })">查看退款</view>
@@ -202,6 +204,23 @@
                     <diy-form-detail :record_id="detail.form_record_id" completeLayout="style-2" @callback="getOrderDiyFormDetailCallback" />
                 </view>
                 <view class="sidebar-margin mt-[var(--top-m)] card-template">
+                    <view class="justify-between card-template-item" v-if="detail.gift_order_goods && detail.gift_order_goods.length > 0" >
+                        <view class="text-[28rpx]">赠品</view>
+                        <view class="flex items-center text-[28rpx]" @click="giftGooodsRef.open(detail.gift_order_goods)">
+                            <view class="text-[24rpx] flex-1 flex gap-x-[10rpx] justify-end text-primary">
+                                <view v-for="(cItem, index) in detail.gift_order_goods" :key="index" class="flex">
+                                    <up-image radius="var(--goods-rounded-small)" width="60rpx" height="60rpx" :src="img(cItem.sku_image)" model="aspectFill" v-if="index < 5">
+                                        <template #error>
+                                            <image class="w-[60rpx] h-[60rpx] rounded-[var(--goods-rounded-small)] overflow-hidden" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill"/>
+                                        </template>
+                                    </up-image>
+                                </view>
+                            </view>
+                            <view class="text-[28rpx] ml-[10rpx]">共<text class="price-font">{{ getGiftNum(detail.gift_order_goods) }}</text>件</view>
+                            <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light9)]" :style="iconfontStyle"></text>
+
+                        </view>
+                    </view>
                     <view class="justify-between card-template-item">
                         <view class="text-[28rpx]">{{ t('orderNo') }}</view>
                         <view class="flex items-center text-[28rpx]">
@@ -233,8 +252,15 @@
                         <view class="text-[28rpx]">{{ t('payTime') }}</view>
                         <view class="text-[28rpx]">{{ detail.pay.pay_time }}</view>
                     </view>
+                    <view class="card-template-item justify-between" v-if="detail.delivery_type == 'virtual' && detail.sub_delivery_type == 'virtual' && detail.order_delivery_content">
+                        <view class="text-[28rpx] flex-shrink-0">商品内容</view>
+                        <view class="text-[28rpx] flex items-center" @click="handleDeliveryContent">
+                            <text class="using-hidden max-w-[300rpx]">{{ detail.order_delivery_content }}</text>
+                            <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light9)]"></text>
+                        </view>
+                    </view>
                 </view>
-                <view class="sidebar-margin mt-[var(--top-m)] card-template">
+                <view class="sidebar-margin mt-[var(--top-m)] card-template" v-if="detail.delivery_type != 'virtual'">
                     <view class="card-template-item justify-between">
                         <view class="text-[28rpx]">{{ t('deliveryType') }}</view>
                         <view class="text-[28rpx]">{{ detail.delivery_type_name }}</view>
@@ -260,13 +286,6 @@
                             <view class="text-[28rpx]">配送员电话</view>
                             <view class="text-[28rpx]">{{ detail.order_delivery[0].rider_mobile }}</view>
                         </view>
-                        <!-- <view class="card-template-item justify-between" v-if="detail.order_delivery[0].delivery_service && detail.order_delivery[0].delivery_service != 'merchant' && ['2','3','4','7'].indexOf(detail.order_delivery[0].local_delivery_status) != -1 " @click="redirect({url: '/addon/mall/pages/delivery/track', param: { order_no: detail.order_no, delivery_service: detail.order_delivery[0].delivery_service }})">
-                            <view class="text-[28rpx]">配送员轨迹</view>
-                            <view class="text-[28rpx]">
-                                <text class="text-primary">查看</text>
-                                <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light9)]"></text>
-                            </view>
-                        </view> -->
                     </template>
                 </view>
                 <!-- 核销码 -->
@@ -319,23 +338,7 @@
                             <text class="text-[28rpx]">.{{ parseFloat(detail.goods_money).toFixed(2).split('.')[1] }}</text>
                         </view>
                     </view>
-                    <view class="card-template-item justify-between">
-                        <view class="text-[28rpx]">{{ t('discountMoney') }}</view>
-                        <view class="price-font font-500">
-                            <text class="text-[28rpx]">-￥</text>
-                            <text class="text-[28rpx]">{{ parseFloat(detail.discount_money).toFixed(2).split('.')[0] }}</text>
-                            <text class="text-[28rpx]">.{{ parseFloat(detail.discount_money).toFixed(2).split('.')[1] }}</text>
-                        </view>
-                    </view>
-                    <view class="card-template-item justify-between">
-                        <view class="text-[28rpx]">{{ t('mallDiscountMoney') }}</view>
-                        <view class="price-font font-500">
-                            <text class="text-[28rpx]">-￥</text>
-                            <text class="text-[28rpx]">{{ parseFloat(detail.mall_discount_money).toFixed(2).split('.')[0] }}</text>
-                            <text class="text-[28rpx]">.{{ parseFloat(detail.mall_discount_money).toFixed(2).split('.')[1] }}</text>
-                        </view>
-                    </view>
-                    <view class="card-template-item justify-between">
+                    <view class="card-template-item justify-between" v-if="Number(detail.delivery_money) > 0">
                         <view class="text-[28rpx]">{{ t('deliveryMoney') }}</view>
                         <view class="price-font font-500">
                             <text class="text-[28rpx]">￥</text>
@@ -343,8 +346,61 @@
                             <text class="text-[28rpx]">.{{ parseFloat(detail.delivery_money).toFixed(2).split('.')[1] }}</text>
                         </view>
                     </view>
+                    <view class="card-template-item justify-between" v-if="Number(detail.discount_money) > 0">
+                        <view class="text-[28rpx]">{{ t('discountMoney') }}
+                            <!-- <template v-if="detail.discount_records && detail.discount_records.length>0">
+                                <text v-if="!discountRecordsShow" class="nc-iconfont !text-[var(--text-color-light3)] !text-[26rpx] nc-icon-xiaV6xx" @click="discountRecordsShow =!discountRecordsShow"></text>
+                                <text v-else class="nc-iconfont !text-[var(--text-color-light3)] !text-[26rpx] nc-icon-shangV6xx-1" @click="discountRecordsShow =!discountRecordsShow"></text>
+                            </template>        -->
+                        </view>
+                        <view class="price-font font-500 text-[var(--price-text-color)]" @click="handleShopDiscount(detail)">
+                            <text class="text-[28rpx]">-￥</text>
+                            <text class="text-[28rpx]">{{ parseFloat(detail.discount_money).toFixed(2).split('.')[0] }}</text>
+                            <text class="text-[28rpx]">.{{ parseFloat(detail.discount_money).toFixed(2).split('.')[1] }}</text>
+                            <text class="nc-iconfont nc-icon-youV6xx -mb-[2rpx] text-[26rpx] text-[var(--text-color-light9)]"></text>
+                        </view>
+                    </view>
+                    <!-- <view class="card-template-item justify-between !mt-[-14rpx]" v-if="detail.discount_records && detail.discount_records.length>0 && discountRecordsShow">
+                        <view class="flex-1">
+                            <view v-for="(item,key) in detail.discount_records" :key="key" class="flex items-center justify-between">
+                                <view class="text-[26rpx] ml-[26rpx]">{{ item.discount_type_name }}</view>
+                                <view class="price-font font-500">
+                                    <text class="text-[26rpx] ">-￥</text>
+                                    <text class="text-[26rpx] ">{{ parseFloat(item.money).toFixed(2).split('.')[0] }}</text>
+                                    <text class="text-[26rpx] ">.{{ parseFloat(item.money).toFixed(2).split('.')[1] }}</text>
+                                </view>
+                            </view>
+                        </view>
+                    </view> -->
+                    <view class="card-template-item justify-between" v-if="Number(detail.mall_discount_money) > 0">
+                        <view class="text-[28rpx]">{{ t('mallDiscountMoney') }}
+                            <!-- <template v-if="detail.platform_discount_records && detail.platform_discount_records.length>0">
+                                <text v-if="!platformdiscountRecordsShow" class="nc-iconfont !text-[var(--text-color-light3)] !text-[26rpx] nc-icon-xiaV6xx" @click="platformdiscountRecordsShow =!platformdiscountRecordsShow"></text>
+                                <text v-else class="nc-iconfont !text-[var(--text-color-light3)] !text-[26rpx] nc-icon-shangV6xx-1" @click="platformdiscountRecordsShow =!platformdiscountRecordsShow"></text>
+                            </template> -->
+                        </view>
+                        <view class="price-font font-500 text-[var(--price-text-color)]" @click="handlePlatformDiscount(detail)">
+                            <text class="text-[28rpx]">-￥</text>
+                            <text class="text-[28rpx]">{{ parseFloat(detail.mall_discount_money).toFixed(2).split('.')[0] }}</text>
+                            <text class="text-[28rpx]">.{{ parseFloat(detail.mall_discount_money).toFixed(2).split('.')[1] }}</text>
+                            <text class="nc-iconfont nc-icon-youV6xx -mb-[2rpx] text-[26rpx] text-[var(--text-color-light9)]"></text>
+                        </view>
+                    </view>
+                    <!-- <view class="card-template-item justify-between !mt-[-14rpx]" v-if="detail.platform_discount_records && detail.platform_discount_records.length >0 && platformdiscountRecordsShow">
+                        <view class="flex-1">
+                            <view v-for="(item,key) in detail.platform_discount_records" class="flex items-center justify-between">
+                                <view class="text-[26rpx] ml-[26rpx]">{{ item.discount_type_name }}</view>
+                                <view class="price-font font-500">
+                                    <text class="text-[26rpx]">-￥</text>
+                                    <text class="text-[26rpx]">{{ parseFloat(item.money).toFixed(2).split('.')[0] }}</text>
+                                    <text class="text-[26rpx]">.{{ parseFloat(item.money).toFixed(2).split('.')[1] }}</text>
+                                </view>
+                            </view>
+                        </view>  
+                    </view> -->
+
                     <view class="card-template-item justify-between items-baseline">
-                        <view class="text-[28rpx]">{{ t('orderMoney') }}：</view>
+                        <view class="text-[28rpx]">{{ t('orderMoney') }}</view>
                         <view class="text-[var(--price-text-color)] price-font">
                             <text class="text-[28rpx]">￥</text>
                             <text class="text-[28rpx]">{{ parseFloat(detail.order_money).toFixed(2).split('.')[0] }}</text>
@@ -373,6 +429,10 @@
             
             </view>
             <view class="tab-bar-placeholder"></view>
+            <!-- 店铺优惠 -->
+            <shop-discount ref="shopDiscountRef" />
+            <!-- 平台优惠 -->
+            <platform-discount ref="platformDiscountRef" />
             <pay ref="payRef" @close="payClose"></pay>
             <logistics-tracking ref="materialRef"></logistics-tracking>
             <delivery-record ref="deliveryRecordRef"></delivery-record>
@@ -384,7 +444,10 @@
 		<group-pay ref="groupPayRef"></group-pay>
         <!-- 组合关闭订单 -->
 		<group-close ref="groupCloseRef" @confirm="closeGroupOrder"></group-close>
-
+        <!-- 赠品 -->
+        <gift-goods ref="giftGooodsRef"/>
+        <!-- 发货内容 -->
+        <delivery-content ref="deliveryContentRef"></delivery-content>
         <!-- #ifdef MP-WEIXIN -->
         <!-- 小程序隐私协议 -->
         <wx-privacy-popup ref="wxPrivacyPopupRef"></wx-privacy-popup>
@@ -396,20 +459,26 @@
 import { ref, reactive, computed,nextTick } from 'vue';
 import { onLoad, onShow, onPageScroll } from '@dcloudio/uni-app'
 import { t } from '@/locale'
-import { img, redirect, copy, goback, distance } from '@/utils/common';
+import { img, redirect, copy, goback,isWeixinBrowser, distance } from '@/utils/common';
 import { getMallOrderDetail, orderClose, orderFinish, getMallOrderPay,getMallOrderClose } from '@/addon/mall/api/order';
 import { getEvaluateConfig } from '@/addon/mall/api/shop';
 import { getVerifyCode } from '@/app/api/verify';
-
 import logisticsTracking from '@/addon/mall/pages/order/components/logistics-tracking/logistics-tracking.vue'
 import deliveryRecord from '@/addon/mall/pages/order/components/delivery-record/delivery-record.vue'
+import deliveryContent from '@/addon/mall/pages/order/components/delivery-content/delivery-content.vue';
+import giftGoods from '@/addon/mall/pages/order/components/gift-goods/gift-goods.vue'
+import mapShow from '@/addon/mall/pages/order/components/map-show/map-show.vue'
+
 import useConfigStore from "@/stores/config";
 import { topTabar } from '@/utils/topTabbar'
 import groupPay from './components/group-pay/group-pay.vue'
 import groupClose from './components/group-close/group-close.vue'
+import shopDiscount from './components/shop-discount/shop-discount.vue'
+import platformDiscount from './components/platform-discount/platform-discount.vue'
 import diyFormDetail from '@/addon/components/diy-form-detail/index.vue'
 import useSystemStore from '@/stores/system';
 import { useLocation } from '@/hooks/useLocation'
+import wechat from '@/utils/wechat'
 
 /********* 自定义头部 - start ***********/
 const topTabarObj = topTabar()
@@ -417,6 +486,7 @@ let topTabbarData = topTabarObj.setTopTabbarParam({ title: '订单详情' })
 /********* 自定义头部 - end ***********/
 
 const systemStore = useSystemStore();
+const giftGooodsRef = ref()
 
 const isShowLocalDelivery = ref(false)
 const detail = ref<any>({});
@@ -429,6 +499,9 @@ const evaluateConfig = ref<Object>({});
 const sendMessageTitle = ref('')
 const sendMessagePath = ref('')
 const sendMessageImg = ref('')
+
+const discountRecordsShow = ref(false) //优惠
+const platformdiscountRecordsShow = ref(false); // 平台优惠
 
 const wxPrivacyPopupRef:any = ref(null)
 
@@ -462,8 +535,24 @@ onShow(() => {
 })
 
 
-
-
+//赠品数量
+const getGiftNum = (data) => { 
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    return data.reduce((total, item) => {
+        const giftNum = Number(item.num) || 0;
+        return total + giftNum;
+    }, 0);
+};
+const iconfontStyle = computed(() => {
+	let style = "";
+    // #ifdef H5
+    style += "position: relative;top: 1rpx;";
+    // #endif
+    // #ifdef MP
+    style += "position: relative;top: 4rpx;";
+    // #endif
+    return style;
+})
 getEvaluateConfig().then(({ data }) => {
     evaluateConfig.value = data
 })
@@ -504,12 +593,20 @@ const orderDetailFn = (id: any) => {
 
 // 是否展示地图
 let expectedFinishTime = ref()
+const mapData = ref<any>(null)
+const curIndex = ref(0)
 const handleComfirm = (val: any) => {
     if(val){
         isShowLocalDelivery.value = true
     } else {
         isShowLocalDelivery.value = false
     }
+    mapData.value = val
+    mapData.value.step.forEach((item:any,index:number) => {
+        if(item.status.includes(Number(detail.value.local_delivery_status))){
+            curIndex.value = index
+        }
+    })
     expectedFinishTime.value = val?.expected_finish_time
 
 }
@@ -615,7 +712,7 @@ const finish = (item: any) => {
     // #endif
 }
 
-const goodsEvent = (id: number) => {
+const goodsEvent = (data: any) => {
     if(detail.value.order_type == 'pintuan') {
         redirect({
             url: '/addon/pintuan/pages/goods/detail',
@@ -623,11 +720,19 @@ const goodsEvent = (id: number) => {
                 pintuan_id: detail.value.extend_field_1
             }
         })
+    }  else if (detail.value.order_type == 'seckill'){
+        redirect({
+            url: '/addon/seckill/pages/goods/detail',
+            param: {
+                seckill_id: detail.value.extend_field_1,
+                sku_id: data.sku_id
+            }
+        })
     } else {
         redirect({
             url: '/addon/mall/pages/goods/detail',
             param: {
-                goods_id: id
+                goods_id: data.goods_id
             }
         })
     }
@@ -785,13 +890,30 @@ const callFn = () => {
 		phoneNumber: detail.value.store.mobile
 	})
 }
-
+// #ifdef H5
+if (isWeixinBrowser()) {
+    wechat.init();
+}// #endif
 const getDistance  = () => {
+    // #ifdef H5
+    if (isWeixinBrowser()) {
+        wechat.openLocation({
+            latitude: Number(detail.value.store.latitude),
+            longitude: Number(detail.value.store.longitude),
+            name: detail.value.store.full_address,
+            address: detail.value.store.full_address
+        })
+    }
+    // #endif
+    // #ifdef MP
     uni.openLocation({
 		latitude: Number(detail.value.store.latitude),
 		longitude: Number(detail.value.store.longitude),
+        name: detail.value.store.full_address,
+        address: detail.value.store.full_address,
 		success: function () { }
 	});
+    // #endif
 }
 // 商品表单信息
 const goodsDiyFormData = ref([]);
@@ -817,10 +939,32 @@ const localeDeliveryFn = () => {
         deliveryRecordRef.value?.open(detail.value.local_delivery_order_log);
     }
 }
+
+// 发货内容
+const deliveryContentRef = ref(null)
+const handleDeliveryContent = () => {
+    deliveryContentRef.value?.open(detail.value.order_delivery_content);
+}
+
+// 店铺优惠
+const shopDiscountRef = ref()
+const handleShopDiscount = (data: any) =>{
+    shopDiscountRef.value.open(data)
+}
+
+// 平台优惠
+const platformDiscountRef = ref()
+const handlePlatformDiscount = (data: any) =>{
+    platformDiscountRef.value.open(data)
+}
 </script>
 <style lang="scss" scoped>
 .distance-wrap{
     box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, .0784);
+}
+.line-wrap{
+    left: 50%;
+    transform: translateX(-50%);
 }
 .triangle{
     content: "";

@@ -5,7 +5,7 @@ import request from '@/utils/request'
  * @returns
  */
 export function getOrderList(params: Record<string, any>) {
-    return request.get('mall/site/order/list', {params})
+    return request.get('mall/site/order/list', { params })
 }
 
 /**
@@ -61,7 +61,7 @@ export function orderClose(order_id: number) {
  * @return
  */
 export function orderDelete(params: Record<string, any>) {
-    return request.post(`mall/site/order/delete`,params, { showSuccessMessage: true })
+    return request.post(`mall/site/order/delete`, params, { showSuccessMessage: true })
 }
 
 
@@ -70,7 +70,7 @@ export function orderDelete(params: Record<string, any>) {
  * @return
  */
 export function getOrderDeliveryType(params: Record<string, any>) {
-    return request.get(`mall/site/order/delivery_type`, {params})
+    return request.get(`mall/site/order/delivery_type`, { params })
 }
 
 /**
@@ -102,7 +102,7 @@ export function orderFinish(order_id: number) {
  * @return
  */
 export function deliveryPackage(params: Record<string, any>) {
-    return request.get(`mall/site/order/delivery/package`, {params})
+    return request.get(`mall/site/order/delivery/package`, { params })
 }
 
 /**
@@ -119,7 +119,7 @@ export function deliveryPackageList(params: Record<string, any>) {
  * @return
  */
 export function orderRefund(params: Record<string, any>) {
-    return request.get(`mall/site/order/refund`, {params})
+    return request.get(`mall/site/order/refund`, { params })
 }
 
 /**
@@ -227,7 +227,7 @@ export function getOrderBatchDeliveryType() {
  * @return
  */
 export function getSelectOrderGoodsWeight(params: Record<string, any>) {
-    return request.get(`mall/site/order/select/weight`, {params})
+    return request.get(`mall/site/order/select/weight`, { params })
 }
 
 /**
@@ -235,5 +235,5 @@ export function getSelectOrderGoodsWeight(params: Record<string, any>) {
  * @return
  */
 export function getDeliveryFee(params: Record<string, any>) {
-    return request.get(`mall/site/order/delivery/fee`, {params})
+    return request.get(`mall/site/order/delivery/fee`, { params })
 }

@@ -26,8 +26,6 @@ interface Config {
     login: loginConfig,
     tabbarList: any,
     tabbar: tabbarConfig | null,
-    shop_tabbar: String | Number,
-    shop_source: String | Number,
     addon: String,
     themeColor: any
 }
@@ -50,8 +48,6 @@ const useConfigStore = defineStore('config', {
             },
             tabbarList: {},
             tabbar: null,
-            shop_tabbar: '',
-            shop_source: '',
             addon: '',
             themeColor: ''
         }

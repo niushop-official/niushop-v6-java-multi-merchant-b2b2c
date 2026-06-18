@@ -10,6 +10,7 @@ import com.niu.mall.service.admin.marketing.IPlatformCouponService;
 import com.niu.mall.service.admin.marketing.param.MallCouponParam;
 import com.niu.mall.service.admin.marketing.param.MallCouponSearchParam;
 import com.niu.mall.service.admin.marketing.param.MallCouponSelectParam;
+import com.niu.mall.service.site.marketing.param.MallCouponSendParam;
 import com.niu.mall.service.admin.marketing.vo.MallCouponInfoVo;
 import com.niu.mall.service.admin.marketing.vo.MallCouponListVo;
 import com.niu.mall.service.admin.marketing.vo.MallCouponMemberListVo;
@@ -162,6 +163,18 @@ public class PlatformCouponController {
     @PutMapping("invalid/{id}")
     public Result<Object> couponInvalid(@Validated @PathVariable("id") Integer id) {
         couponService.couponInvalid(id);
+        return Result.success();
+    }
+
+    /**
+     * 平台优惠券批量发放
+     *
+     * @param param
+     * @return
+     */
+    @PostMapping("/send")
+    public Result<Object> sendCoupon(@Validated @RequestBody MallCouponSendParam param) {
+        couponService.sendCoupon(param.getCouponData(), param.getMemberIds());
         return Result.success();
     }
 }

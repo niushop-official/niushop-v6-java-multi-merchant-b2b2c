@@ -6,7 +6,7 @@
                     <!-- #ifdef MP-WEIXIN -->
                     <top-tabbar :data="param" :scrollBool="topTabarObj.getScrollBool()" class="top-header" />
                     <!-- #endif -->
-                    <view class="text-[70rpx] leading-[90rpx] text-[#fff] pl-[60rpx] font-500 pt-[77rpx] price-font">{{ pointInfo.point || 0 }}</view>
+                    <view class="text-[70rpx] leading-[90rpx] text-[#fff] pl-[60rpx] font-500 pt-[77rpx] price-font">{{ parseInt(pointInfo.point) || 0 }}</view>
                     <view class="flex items-center pl-[60rpx]">
                         <image class="h-[36rpx] w-[36rpx] -mb-[4rpx]" :src="img('static/resource/images/member/point/icon.png')" mode="heightFix" />
                         <view class="text-[26rpx] leading-[36rpx] text-[#fff] ml-[10rpx]">我的积分</view>
@@ -23,17 +23,17 @@
                     </view>
                     <view class="flex items-center px-[30rpx] rounded-[var(--rounded-big)] !rounded-tl-none bg-[#fff] h-[173rpx] box-border">
                         <view class="w-[196rpx] flex-shrink-0 text-center">
-                            <view class="text-[#333] text-[42rpx] leading-[54rpx] price-font">{{ pointInfo.point_get || 0 }}</view>
+                            <view class="text-[#333] text-[42rpx] leading-[54rpx] price-font">{{ parseInt(pointInfo.point_get) || 0 }}</view>
                             <view class="mt-[8rpx] text-[var(--text-color-light6)] text-[26rpx] leading-[36rpx] font-400">累计积分</view>
                         </view>
                         <view class="w-[1rpx] h-[50rpx] flex-shrink-0 bg-[var(--temp-bg)] mx-[10rpx]"></view>
                         <view class="w-[196rpx] flex-shrink-0 text-center">
-                            <view class="text-[#333] text-[42rpx] leading-[54rpx] price-font">{{ pointInfo.use || 0 }}</view>
+                            <view class="text-[#333] text-[42rpx] leading-[54rpx] price-font">{{ parseInt(pointInfo.use) || 0 }}</view>
                             <view class="mt-[8rpx] text-[var(--text-color-light6)] text-[26rpx] leading-[36rpx] font-400">累计消费</view>
                         </view>
                         <view class="w-[1rpx] h-[50rpx] flex-shrink-0 bg-[var(--temp-bg)] mx-[10rpx]"></view>
                         <view class="w-[196rpx] min-w-[209.33rpx] flex-shrink-0 text-center">
-                            <view class="text-[#333] text-[42rpx] leading-[54rpx] price-font">{{ pointInfo.point || 0 }}</view>
+                            <view class="text-[#333] text-[42rpx] leading-[54rpx] price-font">{{ parseInt(pointInfo.point) || 0 }}</view>
                             <view class="mt-[8rpx] text-[var(--text-color-light6)] text-[26rpx] leading-[36rpx] font-400">可用积分</view>
                         </view>
                     </view>

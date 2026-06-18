@@ -10,6 +10,7 @@
                         </span>
                         <input class="w-[400px] h-[40px] outline-none pl-[10px] text-[18px] bg-transparent"
                             v-model="verifycode" />
+                        <span class="nc-iconfont nc-icon-cuohaoV6xx text-[24rpx] text-[#999] ml-auto mr-[10px] cursor-pointer" v-if="verifycode" @click="verifycode = ''"></span>
                     </div>
                     <div class="bg-primary h-[45px] flex items-center px-[20px] rounded-[10px] ml-[10px] text-[#fff] cursor-pointer"
                         @click="handelVerify">
@@ -57,7 +58,7 @@
                 <div class="mt-[15px]">
                     <h3 class="panel-title !text-sm">{{ t('商品信息') }}</h3>
                     <el-table :data="verifyGoodsList" size="large">
-                        <el-table-column :label="t('商品名称')" align="left" width="300">
+                        <el-table-column :label="t('商品名称')" align="left" min-width="250">
                             <template #default="{ row }">
                                 <div class="flex">
                                     <div class="flex items-center flex-shrink-0 mr-[10px]">
@@ -72,11 +73,12 @@
                                     </div>
                                     <div class="flex flex-col">
                                         <p class="multi-hidden text-[14px]">{{ row.name }}</p>
+                                        <div class="text-primary">{{ row.un_use_msg }}</div>
                                     </div>
                                 </div>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="num" :label="t('数量')" min-width="50" align="right" />
+                        <el-table-column prop="num" :label="t('数量')" min-width="80" align="right" />
                     </el-table>
                 </div>
             </div>

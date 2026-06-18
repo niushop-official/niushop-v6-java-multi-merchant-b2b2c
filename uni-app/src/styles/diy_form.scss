@@ -114,6 +114,9 @@
 					display: block;
 				}
 			}
+			.layout-two-content-left{
+				text-align: left !important;
+			}
 			.layout-two-input-placeholder{
 				color: var(--text-color-light9);
 			}
@@ -151,7 +154,7 @@
 			justify-content: space-between;
 			align-items: center;
 			.detail-two-content-label{
-				
+				flex-shrink: 0;
 			}
 			.detail-two-content-value {
 				line-height: 1.4;

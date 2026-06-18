@@ -4,17 +4,16 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.event.sys.VerifyCreateEventDefiner;
-import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.enums.order.OrderDeliveryStatusEnum;
 import com.niu.mall.enums.order.OrderGoodsRefundEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
 import jakarta.annotation.Resource;
@@ -32,9 +31,6 @@ public class VerifyCreateListener extends VerifyCreateEventDefiner {
 
     @Resource
     MallOrderMapper mallOrderMapper;
-
-    @Resource
-    MallGoodsMapper mallGoodsMapper;
 
     @Override
     public VerifyCreateEventResult handleCallback(VerifyCreateEvent event) {
@@ -57,10 +53,11 @@ public class VerifyCreateListener extends VerifyCreateEventDefiner {
                 throw new CommonException("订单已关闭或已完成");
             }
 
-            MallGoods goods = mallGoodsMapper.selectById(orderGoods.getGoodsId());
-            Assert.notNull(goods, "商品不存在");
-
-            if (!goods.getVirtualReceiveType().equals("verify")) throw new CommonException("当前商品不支持核销");
+            JSONObject goodsConfig = ObjectUtil.isNotEmpty(orderGoods.getGoodsConfig())
+                    ? JSONUtil.parseObj(orderGoods.getGoodsConfig()) : new JSONObject();
+            if (!"verify".equals(goodsConfig.getStr("virtual_delivery_type", ""))) {
+                throw new CommonException("当前商品不支持核销");
+            }
 
             Integer count = orderGoods.getNum() - orderGoods.getVerifyCount();
 
@@ -129,6 +126,10 @@ public class VerifyCreateListener extends VerifyCreateEventDefiner {
                 // 跳过已核销或已过期的商品
                 if (OrderDeliveryStatusEnum.TAKED.getStatus().equals(orderGoods.getDeliveryStatus())
                         || OrderDeliveryStatusEnum.EXPIRE.getStatus().equals(orderGoods.getDeliveryStatus())) {
+                    continue;
+                }
+                if (OrderGoodsRefundEnum.REFUNDING.getStatus().equals(orderGoods.getStatus()) ||
+                        OrderGoodsRefundEnum.REFUND_FINISH.getStatus().equals(orderGoods.getStatus())) {
                     continue;
                 }
 

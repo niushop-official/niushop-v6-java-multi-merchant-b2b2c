@@ -30,7 +30,18 @@
       "desc": "在线充值到会员账户",
       "icon": "static/resource/images/recharge/icon.png",
       "key": "recharge",
-      "url": "/recharge/config"
+      "url": "/recharge/config",
+      "group_key": "tool",
+      "addon_key": ""
+    },
+    {
+      "title": "会员签到",
+      "desc": "会员签到",
+      "icon": "static/resource/images/sign/icon.png",
+      "key": "sign",
+      "url": "/marketing/sign/config",
+      "group_key": "tool",
+      "addon_key": ""
     }
   ]
 }

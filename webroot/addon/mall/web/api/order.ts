@@ -50,7 +50,7 @@ export function orderFinish(order_id: number) {
  * 订单创建计算
  */
 export function orderCreateCalculate(params: Record<string, any>) {
-    return request.get('mall/order_create/calculate', params)
+    return request.post('mall/order_create/calculate', params)
 }
 
 /**
@@ -64,17 +64,24 @@ export function orderCreate(params: Record<string, any>) {
  * 查询订单可用优惠券
  */
 export function orderCoupon(params: Record<string, any>) {
-    return request.get('mall/order_create/coupon', params)
+    return request.post('mall/order_create/coupon', params)
 }
 /**
  * 查询订单可用平台优惠券
  */
 export function orderPlatformCoupon(params: Record<string, any>) {
-    return request.get('mall/order_create/platform_coupon', params)
+    return request.post('mall/order_create/platform_coupon', params)
 }
 /**
  * 查询物流信息
  */
 export function getMaterialflowList(params: Record<string, any>) {
     return request.get('mall/order/logistics', params)
+}
+
+/**
+ * 积分抵扣配置
+ */
+export function getPointDeduct() {
+    return request.get('point_deduct')
 }

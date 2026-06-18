@@ -16,7 +16,7 @@
             <scroll-view :scroll-x="true" class="w-[100%] whitespace-nowrap">
                 <view class="flex items-start">
                     <view class="inline-block min-h-[432rpx]" :class="{'mr-[20rpx]': (index + 1) != shopList.length }" :style="itemStyle" v-for="(item, index) in shopList" :key="index" @click="toSite(item)">
-                        <view class="w-[660rpx] p-[20rpx] box-border">
+                        <view class="w-[660rpx] p-[20rpx] box-border" v-if="diyComponent.type == 1">
                             <view class="flex items-center mb-[22rpx]">
                                 <view class="w-[70rpx] h-[70rpx] rounded-[12rpx] overflow-hidden mr-[16rpx] flex-center">
 									<up-image radius="12rpx" width="70rpx" height="70rpx" :src="diyShop.siteLogo(item)" mode="aspectFill">
@@ -50,18 +50,120 @@
                                 </view>
                             </view>
                         </view>
+                        <view class="w-[660rpx] p-[20rpx] box-border" v-else-if="diyComponent.type == 2">
+                            <view class="flex items-center">
+                                <view class="w-[70rpx] h-[70rpx] rounded-[12rpx] flex items-center justify-center">
+                                    <up-image radius="12rpx" width="70rpx" height="70rpx" :src="diyShop.siteLogo(item)" mode="aspectFill">
+                                        <template #error>
+                                            <image :src="img('addon/mall/shop/shop_default.png')" class="w-[70rpx] h-[70rpx] rounded-[12rpx] align-middle"></image>
+                                        </template>
+                                    </up-image>
+                                </view>
+                                <view class="ml-[20rpx] flex flex-col justify-between py-[4rpx]">
+                                    <view class="text-[28rpx] text-[#333] truncate max-w-[530rpx]" :style="{ color : diyComponent.siteNameStyle.color, fontWeight : diyComponent.siteNameStyle.fontWeight }">{{ diyShop.siteName(item) }}</view>
+                                    <view class="flex items-center text-[22rpx] text-[#999]">
+                                        <text class="mr-[16rpx]">{{item.category_name}}</text>
+                                        <text v-if="diyComponent.distance.isShow && item.distance">{{ distance(item.distance) }}</text>
+                                    </view>
+                                </view>
+                            </view>
+                            <view class="flex justify-between mt-[20rpx]" v-if="item.goods_list.length">
+                                <view class="w-[410rpx] h-[410rpx] relative overflow-hidden" :style="{'border-radius': imageRounded.val}" v-if="item.goods_list[0]" @click.stop="toLink(item.goods_list[0])">
+                                    <up-image :radius="imageRounded.val" width="410rpx" height="410rpx" :src="img(item.goods_list[0]?.goods_cover_thumb_mid || '')" mode="aspectFill">
+                                        <template #error>
+                                            <image :style="{'border-radius': imageRounded.val}" :src="img('static/resource/images/diy/shop_default.jpg')" class="w-[410rpx] h-[410rpx]"></image>
+                                        </template>
+                                    </up-image>
+                                    <view class="h-[60rpx] absolute left-0 right-0 bottom-0 bg-[rgba(51,51,51,0.7)] flex items-center justify-between px-[12rpx]">
+                                        <view class="text-[28rpx] font-500 text-[#fff] truncate max-w-[260rpx] ">{{ item.goods_list[0].goods_name }}</view>
+                                        <view class="text-[#fff] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
+                                            <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
+                                            <text class="text-[32rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(item.goods_list[0])).toFixed(2) }}</text>
+                                        </view>
+                                    </view>
+                                </view>
+                                <view class="flex flex-col justify-between">
+                                    <view class="w-[190rpx] h-[190rpx] relative overflow-hidden" :style="{'border-radius': imageRounded.val}" v-if="item.goods_list[1]" @click.stop="toLink(item.goods_list[1])">
+                                        <up-image :radius="imageRounded.val" width="190rpx" height="190rpx" :src="img(item.goods_list[1]?.goods_cover_thumb_mid || '')" mode="aspectFill">
+                                            <template #error>
+                                                <image :style="{'border-radius': imageRounded.val}" :src="img('static/resource/images/diy/shop_default.jpg')" class="w-[190rpx] h-[190rpx]"></image>
+                                            </template>
+                                        </up-image>
+                                        <view class="h-[40rpx] absolute left-0 right-0 bottom-0 bg-[rgba(51,51,51,0.7)] flex items-center justify-end px-[12rpx]">
+                                            <view class="text-[#fff] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
+                                                <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
+                                                <text class="text-[28rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(item.goods_list[1])).toFixed(2) }}</text>
+                                            </view>
+                                        </view>
+                                    </view>
+                                    <view class="w-[190rpx] h-[190rpx] relative  overflow-hidden" :style="{'border-radius': imageRounded.val}" v-if="item.goods_list[2]" @click.stop="toLink(item.goods_list[2])">
+                                        <up-image :radius="imageRounded.val" width="190rpx" height="190rpx" :src="img(item.goods_list[2]?.goods_cover_thumb_mid || '')" mode="aspectFill">
+                                            <template #error>
+                                                <image :style="{'border-radius': imageRounded.val}" :src="img('static/resource/images/diy/shop_default.jpg')" class="w-[190rpx] h-[190rpx]"></image>
+                                            </template>
+                                        </up-image>
+                                        <view class="h-[40rpx] absolute left-0 right-0 bottom-0 bg-[rgba(51,51,51,0.7)] flex items-center justify-end px-[12rpx]">
+                                            <view class="text-[#fff] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
+                                                <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
+                                                <text class="text-[28rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(item.goods_list[2])).toFixed(2) }}</text>
+                                            </view>
+                                        </view>
+                                    </view>
+                                </view>
+                            </view>
+                        </view>
+                        <view class="w-[660rpx] box-border overflow-hidden" v-else-if="diyComponent.type == 3">
+                            <view class="relative overflow-hidden" :style="itemTypeStyleTop">
+                                <image :src="img(item.shop.background_h5)" mode="aspectFill" @error="item.shop.background_h5 = 'addon/mall/site_index_bg.jpg'" class="w-full h-[226rpx] align-middle" :show-menu-by-longpress="true"/>
+                                <view class="img-bg-box absolute top-0 left-0 right-0 bottom-0 "></view>
+                            </view>
+                            <view class="relative z-10 -mt-[136rpx] flex px-[30rpx]">
+                                <view class="w-[100rpx] h-[100rpx] border-[1rpx] border-[#fff] border-solid rounded-[12rpx] flex items-center justify-center">
+                                    <up-image radius="5" width="100rpx" height="100rpx" :src="diyShop.siteLogo(item)" mode="aspectFill">
+                                        <template #error>
+                                            <image :src="img('addon/mall/shop/shop_default.png')" class="w-[100rpx] h-[100rpx] rounded-[10rpx] align-middle"></image>
+                                        </template>
+                                    </up-image>
+                                </view>
+                                <view class="ml-[10rpx] flex flex-col justify-between py-[4rpx]">
+                                    <view class="text-[#fff] text-[30rpx] font-500 truncate max-w-[530rpx]" :style="{ color : diyComponent.siteNameStyle.color, fontWeight : diyComponent.siteNameStyle.fontWeight }">{{ diyShop.siteName(item) }}</view>
+                                    <view class="flex items-center text-[22rpx] text-[#333]">
+                                        <text class=" mr-[16rpx]">{{item.category_name}}</text>
+                                        <text v-if="diyComponent.distance.isShow && item.distance">{{ distance(item.distance) }}</text>
+                                    </view>
+                                </view>
+                            </view>
+                            <view class="relative -mt-[50rpx] bg-[#fff] rounded-t-[var(--rounded-big)] px-[20rpx] pt-[70rpx]" :style="itemTypeStyleBottom" v-if="item.goods_list.length">		
+                                <view class="gird-wrap box-border">
+                                    <view class="w-[196rpx] bg-[#fff]" :style="imageRounded.style" v-for="(subItem, subIndex) in item.goods_list" @click.stop="toLink(subItem)">
+                                        <up-image width="196rpx" height="196rpx" :radius="imageRounded.val" :src="img(subItem.goods_cover || '')" model="aspectFill">
+                                            <template #error>
+                                                <image class="w-[196rpx] h-[196rpx]" :style="imageRounded.style" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill" />
+                                            </template>
+                                        </up-image>
+                                        <view class="relative min-h-[40rpx] px-[10rpx] pt-[16rpx] pb-[20rpx]">
+                                            <view class="text-[24rpx] text-[#333] using-hidden mb-[10rpx] ">{{ subItem.goods_name }}</view>
+                                            <view class="text-[var(--price-text-color)] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
+                                                <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
+                                                <text class="text-[32rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(subItem)).toFixed(2) }}</text>
+                                            </view>
+                                        </view>
+                                    </view>
+                                </view>
+                            </view>
+                        </view>
                     </view>
                 </view>
             </scroll-view>
         </block>
         <block v-if="diyComponent.style == 'style-2'">
             <view :class="{'mb-[20rpx]': (index + 1) != shopList.length }" :style="itemStyle" v-for="(item, index) in shopList" :key="index" @click="toSite(item)">
-                <view class="p-[20rpx] box-border">
+                <view class="p-[20rpx] box-border" v-if="diyComponent.type == 1">
                     <view class="flex items-center mb-[22rpx]">
                         <view class="w-[70rpx] h-[70rpx] rounded-[12rpx] overflow-hidden mr-[16rpx]">
                             <up-image radius="12rpx" width="70rpx" height="70rpx" :src="diyShop.siteLogo(item)" mode="aspectFill">
                                 <template #error>
-                                    <image :src="img('addon/mall/shop/shop_default.png')" class="w-[70rpx] h-[70rpx] rounded-[12rpx]"></image>
+                                    <image :src="img('addon/mall/shop/shop_default.png')" class="w-[70rpx] h-[70rpx] rounded-[12rpx] align-middle"></image>
                                 </template>
                             </up-image>
                         </view>
@@ -85,6 +187,108 @@
                                 <view class="text-[var(--price-text-color)] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
                                     <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
                                     <text class="text-[32rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(subItem)).toFixed(2) }}</text>
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+                <view class="p-[20rpx] box-border" v-else-if="diyComponent.type == 2">
+                    <view class="flex">
+                        <view class="w-[70rpx] h-[70rpx] rounded-[12rpx] flex items-center justify-center">
+                            <up-image radius="12rpx" width="70rpx" height="70rpx" :src="diyShop.siteLogo(item)" mode="aspectFill">
+                                <template #error>
+                                    <image :src="img('addon/mall/shop/shop_default.png')" class="w-[70rpx] h-[70rpx] rounded-[12rpx] align-middle"></image>
+                                </template>
+                            </up-image>
+                        </view>
+                        <view class="ml-[20rpx] flex flex-col justify-between py-[4rpx]">
+                            <view class="text-[28rpx] text-[#333] truncate max-w-[530rpx]" :style="{ color : diyComponent.siteNameStyle.color, fontWeight : diyComponent.siteNameStyle.fontWeight }">{{ diyShop.siteName(item) }}</view>
+                            <view class="flex items-center text-[22rpx] text-[#999]">
+                                <text class="mr-[16rpx]">{{item.category_name}}</text>
+                                <text v-if="diyComponent.distance.isShow && item.distance">{{ distance(item.distance) }}</text>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="flex justify-between mt-[20rpx]" v-if="item.goods_list.length">
+                        <view class="w-[440rpx] h-[440rpx] relative overflow-hidden" :style="{'border-radius': imageRounded.val}" v-if="item.goods_list[0]" @click.stop="toLink(item.goods_list[0])">
+                            <up-image :radius="imageRounded.val" width="440rpx" height="440rpx" :src="img(item.goods_list[0]?.goods_cover_thumb_mid || '')" mode="aspectFill">
+                                <template #error>
+                                    <image :style="{'border-radius': imageRounded.val}" :src="img('static/resource/images/diy/shop_default.jpg')" class="w-[440rpx] h-[440rpx]"></image>
+                                </template>
+                            </up-image>
+                            <view class="h-[60rpx] absolute left-0 right-0 bottom-0 bg-[rgba(51,51,51,0.7)] flex items-center justify-between px-[12rpx]">
+                                <view class="text-[28rpx] font-500 text-[#fff] truncate max-w-[260rpx] ">{{ item.goods_list[0].goods_name }}</view>
+                                <view class="text-[#fff] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
+                                    <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
+                                    <text class="text-[32rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(item.goods_list[0])).toFixed(2) }}</text>
+                                </view>
+                            </view>
+                        </view>
+                        <view class="flex flex-col justify-between">
+                            <view class="w-[210rpx] h-[210rpx] relative overflow-hidden" :style="{'border-radius': imageRounded.val}" v-if="item.goods_list[1]" @click.stop="toLink(item.goods_list[1])">
+                                <up-image :radius="imageRounded.val" width="210rpx" height="210rpx" :src="img(item.goods_list[1]?.goods_cover_thumb_mid || '')" mode="aspectFill">
+                                    <template #error>
+                                        <image :style="{'border-radius': imageRounded.val}" :src="img('static/resource/images/diy/shop_default.jpg')" class="w-[210rpx] h-[210rpx]"></image>
+                                    </template>
+                                </up-image>
+                                <view class="h-[40rpx] absolute left-0 right-0 bottom-0 bg-[rgba(51,51,51,0.7)] flex items-center justify-end px-[12rpx]">
+                                    <view class="text-[#fff] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
+                                        <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
+                                        <text class="text-[28rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(item.goods_list[1])).toFixed(2) }}</text>
+                                    </view>
+                                </view>
+                            </view>
+                            <view class="w-[210rpx] h-[210rpx] relative  overflow-hidden" :style="{'border-radius': imageRounded.val}" v-if="item.goods_list[2]" @click.stop="toLink(item.goods_list[2])">
+                                <up-image :radius="imageRounded.val" width="210rpx" height="210rpx" :src="img(item.goods_list[2]?.goods_cover_thumb_mid || '')" mode="aspectFill">
+                                    <template #error>
+                                        <image :style="{'border-radius': imageRounded.val}" :src="img('static/resource/images/diy/shop_default.jpg')" class="w-[210rpx] h-[210rpx]"></image>
+                                    </template>
+                                </up-image>
+                                <view class="h-[40rpx] absolute left-0 right-0 bottom-0 bg-[rgba(51,51,51,0.7)] flex items-center justify-end px-[12rpx]">
+                                    <view class="text-[#fff] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
+                                        <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
+                                        <text class="text-[28rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(item.goods_list[2])).toFixed(2) }}</text>
+                                    </view>
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+                <view class="box-border overflow-hidden" v-else-if="diyComponent.type == 3">
+                    <view class="relative  overflow-hidden" :style="itemTypeStyleTop">
+                        <image :src="img(item.shop.background_h5)" mode="aspectFill" @error="item.shop.background_h5 = 'addon/mall/site_index_bg.jpg'" class="w-full h-[226rpx] align-middle" :show-menu-by-longpress="true"/>
+                        <view class="img-bg-box absolute top-0 left-0 right-0 bottom-0 "></view>
+                    </view>
+                    <view class="relative z-10 -mt-[136rpx] flex px-[30rpx]">
+                        <view class="w-[100rpx] h-[100rpx] border-[1rpx] border-[#fff] border-solid rounded-[12rpx] flex items-center justify-center">
+                            <up-image radius="5" width="100rpx" height="100rpx" :src="diyShop.siteLogo(item)" mode="aspectFill">
+                                <template #error>
+                                    <image :src="img('addon/mall/shop/shop_default.png')" class="w-[100rpx] h-[100rpx] rounded-[10rpx] align-middle"></image>
+                                </template>
+                            </up-image>
+                        </view>
+                        <view class="ml-[10rpx] flex flex-col justify-between py-[4rpx]">
+                            <view class="text-[#fff] text-[30rpx] font-500 truncate max-w-[530rpx]" :style="{ color : diyComponent.siteNameStyle.color, fontWeight : diyComponent.siteNameStyle.fontWeight }">{{ diyShop.siteName(item) }}</view>
+                            <view class="flex items-center text-[22rpx] text-[#333]">
+                                <text class=" mr-[16rpx]">{{item.category_name}}</text>
+                                <text v-if="diyComponent.distance.isShow && item.distance">{{ distance(item.distance) }}</text>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="relative -mt-[50rpx] bg-[#fff] rounded-t-[var(--rounded-big)] px-[20rpx] pt-[70rpx]" :style="itemTypeStyleBottom" v-if="item.goods_list.length">		
+                        <view class="gird-wrap box-border">
+                            <view class="bg-[#fff]" :style="itemCss" v-for="(subItem, subIndex) in item.goods_list" @click.stop="toLink(subItem)">
+                                <up-image :width="style2Width"  :height="style2Width" :radius="imageRounded.val" :src="img(subItem.goods_cover || '')" model="aspectFill">
+                                    <template #error>
+                                        <image :style="{'width': style2Width,'height': style2Width, 'border-radius': imageRounded.val}" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill" />
+                                    </template>
+                                </up-image>
+                                <view class="relative min-h-[40rpx] px-[10rpx] pt-[16rpx] pb-[20rpx]">
+                                    <view class="text-[24rpx] text-[#333] using-hidden mb-[10rpx] ">{{ subItem.goods_name }}</view>
+                                    <view class="text-[var(--price-text-color)] font-bold price-font block truncate max-w-[160rpx] leading-[1] overflow-hidden">
+                                        <text class="text-[20rpx] font-400 mr-[2rpx]">￥</text>
+                                        <text class="text-[32rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(subItem)).toFixed(2) }}</text>
+                                    </view>
                                 </view>
                             </view>
                         </view>
@@ -166,6 +370,19 @@ const itemStyle = computed(() => {
     return style;
 })
 
+const itemTypeStyleTop = computed(() => {
+    var style = '';
+    if (diyComponent.value.topElementRounded) style += 'border-top-left-radius:' + diyComponent.value.topElementRounded * 2 + 'rpx;';
+    if (diyComponent.value.topElementRounded) style += 'border-top-right-radius:' + diyComponent.value.topElementRounded * 2 + 'rpx;';
+    return style;
+})
+const itemTypeStyleBottom = computed(() => { 
+    var style = '';
+    if (diyComponent.value.bottomElementRounded) style += 'border-bottom-left-radius:' + diyComponent.value.bottomElementRounded * 2 + 'rpx;';
+    if (diyComponent.value.bottomElementRounded) style += 'border-bottom-right-radius:' + diyComponent.value.bottomElementRounded * 2 + 'rpx;';
+    return style;
+})
+
 const itemCss = computed(() => {
 	var style = '';
     style += 'border-radius:' + diyComponent.value.imgElementRounded * 2 + 'rpx;';
@@ -209,6 +426,9 @@ const refresh = () => {
             site_name: "店铺名称",
             category_name:"分类名称",
             logo:"",
+            shop:{
+                background_h5: ''
+            },
             goods_list:[{
                 goods_name:"商品名称",
                 goods_cover:"",
@@ -263,5 +483,8 @@ const toSite = (data:any) => {
     grid-template-rows: auto;
     grid-template-columns: repeat(3, 1fr);
     grid-gap: 16rpx;
+}
+.img-bg-box{
+	background: linear-gradient(90deg, rgba(51,51,51,0.92) 6.57%, rgba(51,51,51,0.5) 61.03%, rgba(51,51,51,0.92) 100%);
 }
 </style>

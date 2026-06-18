@@ -3,6 +3,7 @@ package com.niu.mall.service.core.order.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.pay.ICorePayService;
@@ -10,7 +11,6 @@ import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderRefund;
 import com.niu.mall.enums.order.*;
-import com.niu.mall.event.marketing.GoodsMarketCalculateEventDefiner;
 import com.niu.mall.event.order.OrderCloseAfterEvent;
 import com.niu.mall.event.pintuan.MallSetOrderCloseTimeoutEventDefiner;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
@@ -19,7 +19,6 @@ import com.niu.mall.mapper.order.MallOrderRefundMapper;
 import com.niu.mall.service.core.order.*;
 import com.niu.mall.service.core.order.param.OrderCloseParam;
 import com.niu.mall.service.core.order.param.OrderFinishParam;
-import com.niu.mall.service.core.order.vo.MallOrderCloseVo;
 import com.niu.mall.service.core.order.vo.OrderConfigVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -65,9 +64,10 @@ public class CoreOrderCloseServiceImpl implements ICoreOrderCloseService {
         QueryWrapper<MallOrder> queryWrapper = new QueryWrapper<MallOrder>().eq("order_id", param.getOrderId());
         MallOrder order = mallOrderMapper.selectOne(queryWrapper);
         if (order == null) throw new CommonException("订单不存在");
-        if (order.getStatus().equals(OrderStatusEnum.CLOSE.getStatus().toString())) throw new CommonException("订单已关闭");
+        if (order.getStatus().equals(OrderStatusEnum.CLOSE.getStatus().toString()))
+            throw new CommonException("订单已关闭");
         //关闭订单组
-        if(!param.getCloseType().equals(OrderCloseTypeEnum.REFUND_CLOSE.getType())) {
+        if (!param.getCloseType().equals(OrderCloseTypeEnum.REFUND_CLOSE.getType())) {
 
             coreOrderGroupService.cancel(order.getGroupId());
         }
@@ -88,10 +88,17 @@ public class CoreOrderCloseServiceImpl implements ICoreOrderCloseService {
         order = mallOrderMapper.selectById(order.getOrderId());
 
         // 订单关闭之后事件
-        if(ObjectUtil.isNotEmpty(order.getSupplyOrderId()) && order.getSupplyOrderId() > 0){
+        if (ObjectUtil.isNotEmpty(order.getSupplyOrderId()) && order.getSupplyOrderId() > 0) {
             OrderCloseAfterEvent event = new OrderCloseAfterEvent();
             event.setSiteId(order.getSiteId());
             event.addAppSign("supply");
+            event.setName("OrderCloseAfterEvent");
+            event.setOrder(order);
+            EventAndSubscribeOfPublisher.publishAll(event);
+        } else {
+            OrderCloseAfterEvent event = new OrderCloseAfterEvent();
+            event.setSiteId(order.getSiteId());
+            event.addAppSign("seckill");
             event.setName("OrderCloseAfterEvent");
             event.setOrder(order);
             EventAndSubscribeOfPublisher.publishAll(event);
@@ -141,18 +148,18 @@ public class CoreOrderCloseServiceImpl implements ICoreOrderCloseService {
         MallOrder order = mallOrderMapper.selectById(orderId);
         MallSetOrderCloseTimeoutEventDefiner.MallSetOrderCloseTimeoutEvent event = new MallSetOrderCloseTimeoutEventDefiner.MallSetOrderCloseTimeoutEvent();
         event.setSiteId(order.getSiteId());
-        event.setOrderData( order);
-        event.setTime( timeout);
+        event.setOrderData(order);
+        event.setTime(timeout);
         List<MallSetOrderCloseTimeoutEventDefiner.MallSetOrderCloseTimeoutResult> marketData = EventAndSubscribeOfPublisher.publishAndCallback(event);
         Boolean er = false;
-        if(!marketData.isEmpty()){
-            for (MallSetOrderCloseTimeoutEventDefiner.MallSetOrderCloseTimeoutResult result : marketData){
-                if(ObjectUtil.isNotEmpty(result) && ObjectUtil.isNotEmpty(result.getEr())){
+        if (!marketData.isEmpty()) {
+            for (MallSetOrderCloseTimeoutEventDefiner.MallSetOrderCloseTimeoutResult result : marketData) {
+                if (ObjectUtil.isNotEmpty(result) && ObjectUtil.isNotEmpty(result.getEr())) {
                     er = result.getEr();
                 }
             }
         }
-        if(!er){
+        if (!er) {
             // 订单关闭任务
             OrderConfigVo orderConfig = coreOrderConfigService.getConfig();
             if (orderConfig != null && orderConfig.getCloseOrderInfo() != null) {
@@ -160,10 +167,9 @@ public class CoreOrderCloseServiceImpl implements ICoreOrderCloseService {
                 Boolean isCloseEr = closeOrderInfo.getIsCloseEr();
                 Integer closeLength = closeOrderInfo.getCloseLength();
                 if (Boolean.TRUE.equals(isCloseEr) && closeLength != null && closeLength > 0) {
-                    MallOrder orderClass = new MallOrder();
-                    orderClass.setOrderId(orderId);
-                    orderClass.setTimeout(timeout + closeLength * 60);
-                    mallOrderMapper.updateById(order);
+                    mallOrderMapper.update(null, new LambdaUpdateWrapper<MallOrder>()
+                            .eq(MallOrder::getOrderId, orderId)
+                            .set(MallOrder::getTimeout, timeout + closeLength * 60L));
                 }
             }
         }

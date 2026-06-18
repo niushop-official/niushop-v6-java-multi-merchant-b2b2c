@@ -16,7 +16,7 @@ public class MallOrderCreateParam implements Serializable {
     private String orderKey;
     private Map<Integer, Body> body;
     private MallDiscount mallDiscount;
-    private OrderHelperParam.Delivery delivery;
+    private OrderHelperParam.Delivery delivery = new OrderHelperParam.Delivery();
     private JSONObject formData;
     private Long buyerId;
     private String mainType;
@@ -30,7 +30,7 @@ public class MallOrderCreateParam implements Serializable {
         private List<Integer> cartIds;
         private List<OrderHelperParam.SkuItem> skuData;
         private OrderHelperParam.Discount discount;
-        private OrderHelperParam.Delivery delivery;
+        private OrderHelperParam.Delivery delivery = new OrderHelperParam.Delivery();
         private OrderHelperParam.InvoiceCreateParam invoice;
         private JSONObject extendData;
     }

@@ -38,7 +38,9 @@ public class RefundDetailVo implements Serializable {
     private String refundType;  // 退款方式 
     private String reason;  // 退款原因 
     private Integer memberId;  // 会员id
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
     private BigDecimal applyMoney;  // 申请退款
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
     private BigDecimal money;  // 实际退款
     private String status;  // 退款状态
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
@@ -93,10 +95,15 @@ public class RefundDetailVo implements Serializable {
         private String outTradeNo;  // 支付流水号
         private String status;  // 订单状态
         private Map<String, Object> statusName;
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal goodsMoney;  // 商品金额
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal deliveryMoney;  // 配送金额
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal discountMoney;  // 优惠金额
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal orderMoney;  // 订单金额
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal payMoney;  // 支付金额
         private Integer invoiceId;  // 发票id，0表示不开发票
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
@@ -159,8 +166,10 @@ public class RefundDetailVo implements Serializable {
         private String goodsImage; // 商品图片
         private String goodsImageThumbSmall;
         private String skuImage; // sku规格图片
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal price; // 商品单价
         private Integer num; // 购买数量
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal goodsMoney; // 商品总价
         private Integer isEnableRefund; // 是否允许退款
         private Integer deliveryId;
@@ -168,6 +177,7 @@ public class RefundDetailVo implements Serializable {
         private String orderRefundNo; // 退款单号
         private String goodsType; // 商品类型
         private String deliveryStatus; // 配送状态
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal discountMoney;
 
         private ICoreUploadService coreUploadService() {

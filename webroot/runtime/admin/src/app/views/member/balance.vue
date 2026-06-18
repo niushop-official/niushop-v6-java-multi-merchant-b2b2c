@@ -263,7 +263,7 @@ checkBalanceStatus()
 const checkAccountType = () => {
     let accountType = memberAccountLogTableData.searchParam.balance_type
 
-    if (accountType == '') {
+    if (accountType == '' || accountType == undefined) {
         accountType = 'balance'
     }
     getAccountType({

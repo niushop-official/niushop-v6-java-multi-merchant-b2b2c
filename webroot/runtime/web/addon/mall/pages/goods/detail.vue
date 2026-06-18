@@ -87,11 +87,11 @@
 								</div>
 							</div>
 						</div>
-						<div class="flex items-center mb-[20px]" v-if="detail.label_info">
+						<div class="flex mb-[20px]" v-if="detail.label_info">
 							<span class="text-[14px] w-[80px] mr-[10px] text-[#999]">{{ t('goodsLabel') }}</span>
-							<div class="flex flex-nowrap overflow-hidden max-w-[540px]">
+							<div class="flex flex-wrap gap-[10px] overflow-hidden max-w-[540px]">
 								<template v-for="(item, index) in detail.label_info" :key="index">
-									<div  class="tag-item px-[10px] leading-[20px]  whitespace-nowrap border-[1px] border-solid border-[var(--el-color-primary)] text-[var(--el-color-primary)] mr-[10px]">
+									<div  class="tag-item px-[10px] leading-[20px]  whitespace-nowrap border-[1px] border-solid border-[var(--el-color-primary)] text-[var(--el-color-primary)]">
 										{{ item.label_name }}
 									</div>
 								</template>
@@ -143,7 +143,7 @@
 										<!-- 立即购买 -->
 										<el-button v-if="isShowSingleSku" plain  @click="buyFn('buy_now')" class="w-[150px] !h-[50px] !border-primary !text-primary !text-[16px] !rounded-[100px] !ml-[0]  mr-[10px] oppoSans-M">{{t('buyNow')}}</el-button>
 										<!-- 加入购物车 -->
-										<el-button v-if="goodsDetail.goods.goods_type == 'real' || (goodsDetail.goods.goods_type == 'virtual' && goodsDetail.goods.virtual_receive_type != 'verify')"  type="primary" class="!h-[50px] !w-[150px]  !text-[16px] !rounded-[100px] !m-0 oppoSans-M" @click="buyFn('join_cart')">
+										<el-button v-if="goodsDetail.goods.goods_type == 'real'"  type="primary" class="!h-[50px] !w-[150px]  !text-[16px] !rounded-[100px] !m-0 oppoSans-M" @click="buyFn('join_cart')">
 											<span class="text-[#fff]">{{t('addCart')}}</span>
 										</el-button>
 										<!-- 已售罄 -->

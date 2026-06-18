@@ -132,7 +132,8 @@ public class CouponController {
      */
     @GetMapping("/coupon/qrcode/{id}")
     public Result<Object> qrcode(@PathVariable("id") Integer id) {
-        return null;
+        Object obj = couponService.getQrcode(id);
+        return Result.success(obj);
     }
 
     /**

@@ -18,7 +18,7 @@
                                 </el-image>
                             </div>
                         </el-form-item>
-                        <el-form-item :label="t('平台分类')">
+                        <el-form-item :label="t('商品类目')">
                             <div class="input-width">{{ godosDetail.goods_mall_category_name }}</div>
                         </el-form-item>
                         <el-form-item :label="t('商品分类')">
@@ -63,7 +63,7 @@
                         </el-form-item>
                         <el-form-item :label="t('商品规格')">
                             <el-table :data="godosDetail.sku_list" border>
-                                <el-table-column prop="sku_name" label="规格名称" min-width="120" />
+                                <el-table-column prop="sku_name" label="规格名称" min-width="120" v-if="godosDetail.spec_type == 'multi'" />
                                 <el-table-column label="图片" min-width="120">
                                      <template #default="{ row }">
                                         <el-image v-if="row.sku_image" class="w-[50px] h-[50px]" :src="img(row.sku_image)" fit="contain">

@@ -1,5 +1,10 @@
 <template>
     <div>
+        <el-card class="box-card !border-none" shadow="never">
+            <div class="flex justify-between items-center">
+                <span class="text-page-title">{{ pageName }}</span>
+            </div>
+        </el-card>
         <el-card class="box-card mt-[15px] !border-none" shadow="never" v-for="(item, key) in screne" :key="key">
            <div class="flex  items-center mb-[20px]">
                 <h3 class="text-[14px] mr-[20px]">{{ item.name }}</h3>
@@ -65,6 +70,10 @@ import { t } from '@/lang'
 import { getTransferScene, setSceneId, setTradeScene } from '@/app/api/pay'
 import { cloneDeep } from 'lodash-es'
 import { FormInstance } from 'element-plus'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const pageName = route.meta.title
 
 const screne = ref<any>({})
 const loading = ref(false)

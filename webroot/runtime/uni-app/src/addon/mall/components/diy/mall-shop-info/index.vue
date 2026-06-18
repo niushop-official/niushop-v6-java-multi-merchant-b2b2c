@@ -1,6 +1,74 @@
 <template>
-	<view :style="warpCss" class="shop-info-search-wrap">
-        <view class="relative" v-if="currentSource == 'home'">
+	<view :style="warpCss" class="shop-info-search-wrap" :class="[diyComponent.style]">
+		<view class="relative" v-if="diyComponent.style == 'style-1'">
+            <view class="bg-img" :class="{'!-bottom-[200rpx]': diyComponent.bgGradient == true}">
+				<video v-if="diyComponent.bgVideo && diyComponent.curBgImg == diyComponent.bgVideo" id="bgVideo" class="w-full h-full" :src="img(diyComponent.bgVideo)" objectFit="cover" :muted="true" :autoplay="true" :loop="true" :controls="false" :show-center-play-btn="false" ref="videoRef"></video>
+				<image v-else-if="diyComponent.curBgImg" :src="img(diyComponent.curBgImg)" mode="aspectFill" class="w-full h-full"/>
+				<view v-else class="w-full h-full bg-[#ccc]"></view>
+				<view class="bg-img-box" :style="bgImgBoxStyle"></view>
+			</view>
+			
+            <view class="fixed-wrap" :style="fixedStyle">
+				<!-- 搜索 -->
+				<view class="diy-search-wrap relative z-10" @click.stop="toLink" :style="!props.global.topStatusBar.isShow ? navbarInnerStyle : ''">
+					<view class="search-left flex-center h-[60rpx] rounded-[30rpx] box-border arrow-left pl-[12rpx] pr-[20rpx] leading-[1]" :style="navbarInnerArrowStyle">
+						<text class="nc-iconfont text-[#fff] nc-icon-zuoV6xx text-[18px]" :style="{color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }" @click.stop="backToPrevious()"></text>
+						<text class="w-[2rpx] h-[26rpx] bg-[#fff] ml-[8rpx] mr-[16rpx]" :style="{backgroundColor: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }"></text>
+						<text class="iconfont iconshouyev6mm text-[#fff] text-[16px]" @click.stop="redirect({ url: '/app/pages/index/index', mode: 'reLaunch' })" :style="{color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }"></text>
+					</view>
+
+					<view class="search-content" @click.stop="toLink" :style="{backgroundColor: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ?  diyComponent.fixedSearch.bgColor : diyComponent.search.bgColor }">
+						<text class="input-content text-[#fff] text-[24rpx] leading-[68rpx]" :style="{color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }">{{isShowSearchPlaceholder ? diyComponent.search.text : ''}}</text>
+						<text class="nc-iconfont nc-icon-sousuo-duanV6xx1 w-[80rpx] h-[52rpx] flex items-center justify-center rounded-[50rpx] text-[28rpx] text-[#fff]" :style="{backgroundColor: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.btnBgColor : diyComponent.search.btnBgColor, color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.btnColor  : diyComponent.search.btnColor }"></text>
+						<swiper class="swiper-wrap" :interval="diyComponent.search.hotWord.interval * 1000" autoplay="true" vertical="true" circular="true" v-if="!isShowSearchPlaceholder">
+							<swiper-item class="swiper-item" v-for="(item) in diyComponent.search.hotWord.list" :key="item.id">
+								<view class="leading-[64rpx] text-[24rpx]" :style="{color:  props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }">{{ item.text }}</view>
+							</swiper-item>
+						</swiper>
+					</view>
+				</view>
+
+				<view class="bg-img search-bg-img" v-if="fixedStyleBg">
+					<image v-if="diyComponent.curBgImg"
+                        :src="img(diyComponent.curBgImg)" mode="widthFix" class="w-full h-full"
+                        :show-menu-by-longpress="true" />
+                    <view v-else class="w-full h-full bg-[#ccc]"></view>
+				</view>
+			</view>
+            <!-- 解决fixed定位后导航栏塌陷的问题 -->
+			<template v-if="diyStore.mode != 'decorate'">
+				<view v-if="diyComponent.positionWay == 'fixed' && props.scrollBool != undefined && props.scrollBool != -1" class="u-navbar-placeholder" :style="{ width: '100%', paddingTop: moduleHeight }"></view>
+			</template>
+
+			<!-- 店铺信息 -->
+			<view class="relative mt-[200rpx] mx-[20rpx] rounded-[24rpx] box-border">
+				<view class="flex items-center" @click="toDetail" v-if="Object.keys(shopInfo).length">
+					<view class="flex items-center">
+						<view class="text-[30rpx] font-600 truncate max-w-[260rpx]" :style="{ color : diyComponent.shop.textColor }">{{ shopInfo.siteName }}</view>
+						<view class="flex items-center text-[24rpx] ml-[8rpx]" :style="{ color : diyComponent.shop.textColor }">{{shopInfo.follow_number}}人关注</view>
+					</view>
+					<view class="flex-1 flex justify-end">
+						<view @click.stop="followShop" class="px-[18rpx] py-[8rpx] rounded-[50rpx] flex-center box-border" :class="{'bg-[#fff]':  isFollow == 0,'border-[2rpx] border-solid border-[#fff]': isFollow == 1}">
+							<text class="text-[22rpx] text-primary" :class="{'ml-[8rpx] !text-[#fff]': isFollow == 1 }">{{ isFollow  == 0 ? t('unFollowed') : t('followed') }}</text>
+						</view>
+					</view>
+				</view>
+			</view>
+			
+			<!-- 轮播图 -->
+			<scroll-view :scroll-x="true" class="px-[20rpx] mt-[20rpx] box-border" v-if="diyComponent.bgImgStyle == 'custom' && diyComponent.bgImgArr">
+				<view class="w-full flex items-center gap-[10rpx] mb-[14rpx]">
+					<view v-if="diyComponent.bgVideo" class="flex-shrink-0 w-[140rpx] h-[88rpx] rounded-[8rpx] overflow-hidden items-center justify-center relative box-border" @click.stop="changeItemBg(diyComponent.bgVideo)">
+						<video :src="img(diyComponent.bgVideo)" :controls="false" :autoplay="false" :loop="false" :muted="true" objectFit="cover" class="w-full h-full video-box"></video>
+						<view class="absolute left-[0] right-[0] bottom-[0] top-[0] z-[1000]"></view>
+					</view>
+					<view v-for="(item,index) in diyComponent.bgImgArr.split(',')" :key="index" class="flex-shrink-0 w-[140rpx] h-[88rpx] rounded-[8rpx] overflow-hidden inline-flex items-center justify-center relative box-border" @click="changeItemBg(item)">
+						<image :src="img(item)" class="w-[140rpx] h-[88rpx] align-middle" mode="aspectFill"></image>
+					</view>
+				</view>
+			</scroll-view>
+        </view>
+        <view class="relative" v-if="diyComponent.style == 'style-2'">
             <view class="bg-img" :class="{'!-bottom-[200rpx]': diyComponent.bgGradient == true}">
 				<image v-if="diyComponent.swiper.control && diyComponent.swiper.list && diyComponent.swiper.list[swiperIndex]?.imageUrl"
                     :src="img(diyComponent.swiper.list[swiperIndex]?.imageUrl)" mode="scaleToFill" class="w-full h-full"
@@ -10,25 +78,25 @@
 			</view>
             <view class="fixed-wrap" :style="fixedStyle">
 				<!-- 搜索 -->
-				<view class="diy-search-wrap relative z-10" @click.stop="toLink" :style="navbarInnerStyle">
+				<view class="diy-search-wrap relative z-10" @click.stop="toLink" :style="!props.global.topStatusBar.isShow ? navbarInnerStyle : ''">
 					<view class="search-left flex-center h-[60rpx] rounded-[30rpx] box-border arrow-left pl-[12rpx] pr-[20rpx] leading-[1]" :style="navbarInnerArrowStyle">
-						<text class="nc-iconfont text-[#fff] nc-icon-zuoV6xx text-[18px]" :style="{color: props.scrollBool == 1 ? diyComponent.fixedSearch.color : diyComponent.search.color }" @click.stop="backToPrevious()"></text>
-						<text class="w-[2rpx] h-[26rpx] bg-[#fff] ml-[8rpx] mr-[16rpx]" :style="{backgroundColor: props.scrollBool == 1 ? diyComponent.fixedSearch.color : diyComponent.search.color }"></text>
-						<text class="iconfont iconshouyev6mm text-[#fff] text-[16px]" @click.stop="redirect({ url: '/app/pages/index/index', mode: 'reLaunch' })" :style="{color: props.scrollBool == 1 ? diyComponent.fixedSearch.color : diyComponent.search.color }"></text>
+						<text class="nc-iconfont text-[#fff] nc-icon-zuoV6xx text-[18px]" :style="{color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }" @click.stop="backToPrevious()"></text>
+						<text class="w-[2rpx] h-[26rpx] bg-[#fff] ml-[8rpx] mr-[16rpx]" :style="{backgroundColor: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }"></text>
+						<text class="iconfont iconshouyev6mm text-[#fff] text-[16px]" @click.stop="redirect({ url: '/app/pages/index/index', mode: 'reLaunch' })" :style="{color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }"></text>
 					</view>
 
-					<view class="search-content" @click.stop="toLink" :style="{backgroundColor: props.scrollBool == 1 ?  diyComponent.fixedSearch.bgColor : diyComponent.search.bgColor }">
-						<text class="input-content text-[#fff] text-[24rpx] leading-[68rpx]" :style="{color: props.scrollBool == 1 ? diyComponent.fixedSearch.color : diyComponent.search.color }">{{isShowSearchPlaceholder ? diyComponent.search.text : ''}}</text>
-						<text class="nc-iconfont nc-icon-sousuo-duanV6xx1 w-[80rpx] h-[52rpx] flex items-center justify-center rounded-[50rpx] text-[28rpx] text-[#fff]" :style="{backgroundColor: props.scrollBool == 1 ? diyComponent.fixedSearch.btnBgColor : diyComponent.search.btnBgColor, color: props.scrollBool == 1 ? diyComponent.fixedSearch.btnColor  : diyComponent.search.btnColor }"></text>
+					<view class="search-content" @click.stop="toLink" :style="{backgroundColor: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ?  diyComponent.fixedSearch.bgColor : diyComponent.search.bgColor }">
+						<text class="input-content text-[#fff] text-[24rpx] leading-[68rpx]" :style="{color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }">{{isShowSearchPlaceholder ? diyComponent.search.text : ''}}</text>
+						<text class="nc-iconfont nc-icon-sousuo-duanV6xx1 w-[80rpx] h-[52rpx] flex items-center justify-center rounded-[50rpx] text-[28rpx] text-[#fff]" :style="{backgroundColor: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.btnBgColor : diyComponent.search.btnBgColor, color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.btnColor  : diyComponent.search.btnColor }"></text>
 						<swiper class="swiper-wrap" :interval="diyComponent.search.hotWord.interval * 1000" autoplay="true" vertical="true" circular="true" v-if="!isShowSearchPlaceholder">
 							<swiper-item class="swiper-item" v-for="(item) in diyComponent.search.hotWord.list" :key="item.id">
-								<view class="leading-[64rpx] text-[24rpx]" :style="{color:  props.scrollBool == 1 ? diyComponent.fixedSearch.color : diyComponent.search.color }">{{ item.text }}</view>
+								<view class="leading-[64rpx] text-[24rpx]" :style="{color:  props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }">{{ item.text }}</view>
 							</swiper-item>
 						</swiper>
 					</view>
 				</view>
 
-				<view class="bg-img" v-if="fixedStyleBg">
+				<view class="bg-img  aaa" v-if="fixedStyleBg">
 					<image v-if="diyComponent.swiper.control && diyComponent.swiper.list && diyComponent.swiper.list[swiperIndex].imageUrl"
                         :src="img(diyComponent.swiper.list[swiperIndex].imageUrl)" mode="widthFix" class="w-full h-full"
                         :show-menu-by-longpress="true" />
@@ -109,48 +177,25 @@
                 <!-- #endif -->
             </view>
         </view>
-		<shop-head :shop-head ="shopInfo" :diy-info="diyComponent" :scrollBool="scrollBool" :global="global"  @follow="handleFollow" v-else></shop-head>
-		<!-- 展示微页面数据 -->
-		<template v-if="currentSource == 'diy_page'">
-			<view class="child-diy-template-wrap bg-index" :style="nextComponentMarginBottom">
-				<diy-group :data="diyPageData"></diy-group>
-			</view>
-		</template>
-		<!-- 店铺信息tab页切换 -->
-		<template v-if="currentSource == 'shop_tab'">
-			<view class="child-diy-template-wrap bg-index" :style="nextComponentMarginBottom">
-				<diy-mall-shop-coupon-list :component="couponData" v-if="currentBottomTab == 'shop_coupon_list'" />
-				<view v-else-if="currentBottomTab == 'shop_goods_list'" class="p-[var(--top-m)]">
-					<diy-mall-goods-list :component="goodsData"  />
-				</view>
-				<view v-else-if="currentBottomTab == 'shop_goods_category'">
-					<diy-mall-goods-category/>
-				</view>
-			</view>
-		</template>
 	</view>
 </template>
 
 <script lang="ts" setup>
 import { computed, reactive, ref, watch,onMounted, nextTick,getCurrentInstance } from 'vue'
-import { img,  redirect,getToken,currRoute, distance } from '@/utils/common'
+import { img,  redirect,getToken,currRoute, distance, getTopFixedStatusName } from '@/utils/common'
 import { t } from '@/locale'
 import useDiyStore from '@/app/stores/diy'
 import { useLogin } from '@/hooks/useLogin'
-import { getShopInfo,editShopCollect } from '@/addon/mall/api/shop';
-import { getDiyInfo } from '@/app/api/diy';
+import { editShopCollect } from '@/addon/mall/api/shop';
 import useConfigStore from '@/stores/config'
 import useSystemStore from '@/stores/system'
-import { onPageScroll, onHide, onShow, onUnload } from '@dcloudio/uni-app';
-import shopHead from './shop-head.vue'
-import diyMallShopCouponList from '@/addon/mall/components/diy/mall-shop-coupon-list/index.vue';  
-import diyMallGoodsList from '@/addon/mall/components/ns-goods-list-page/index.vue';
-import diyMallGoodsCategory from '@/addon/mall/components/ns-shop-category/category.vue'
+import useShopStore from '@/addon/mall/stores/shop';
 
 const instance = getCurrentInstance();
 const props = defineProps(['component', 'index', 'pullDownRefreshCount', 'global', 'scrollBool','overallData']);
 
 const systemStore = useSystemStore()
+const shopStore = useShopStore()
 
 // 获取系统状态栏的高度
 let systemInfo = uni.getSystemInfoSync();
@@ -165,16 +210,6 @@ const diyComponent = computed(() => {
 	} else {
 		return props.component;
 	}
-})
-
-// 获取下个组件的外边距
-const nextComponentMarginBottom = computed(() => {
-	var style = '';
-  console.log("1111111",props);
-	if(diyComponent.value.bgGradient == true) {
-		style += 'margin-top:' + ((props.overallData[props.index + 1]?.margin.top * 2) - 20) + 'rpx;';
-	}
-	return style;
 })
 
 
@@ -257,9 +292,9 @@ const setModuleLocation = ()=> {
 const fixedStyleBg = ref(false);
 const fixedStyle = computed(()=>{
 	let style = '';
-	if (diyComponent.value.swiper && diyComponent.value.swiper.swiperStyle == 'style-3') {
-        style += 'position: absolute;z-index: 99;left: 0;right: 0;';
-    }
+	if (diyComponent.value.style == 'style-1' && diyComponent.value.swiper && diyComponent.value.swiper.swiperStyle == 'style-3') {
+		style += 'position: absolute;z-index: 99;left: 0;right: 0;';
+	}
 	// #ifdef H5
 	if(props.global.topStatusBar.isShow && props.global.topStatusBar.style == 'style-4') {
 		style += 'top:' + diyStore.topTabarHeight + 'px;';
@@ -294,6 +329,11 @@ const fixedStyle = computed(()=>{
 			let num = diyComponent.value.fixedBgColor ? parseInt(arr[arr.length-1]) : 0;
 			if (!diyComponent.value.fixedBgColor || num == 0) {
 				fixedStyleBg.value = true;
+				// 风格二时，选中视频，搜索框滚动到顶部的背景色默认为白色
+				if(diyComponent.value.style == 'style-2' && diyComponent.value.curBgImg == diyComponent.value.bgVideo){
+					fixedStyleBg.value = false;
+					style += 'background-color: #fff;';
+				}
 			} else {
 				fixedStyleBg.value = false;
 				style += 'background-color:' + diyComponent.value.fixedBgColor + ';';
@@ -369,7 +409,6 @@ const swiperWarpCss = computed(() => {
     return style;
 })
 
-let menuButtonInfo: any = {};
 const navbarInnerStyle = ref('')
 // 如果是小程序，获取右上角胶囊的尺寸信息，避免导航栏右侧内容与胶囊重叠(支付宝小程序非本API，尚未兼容)
 // #ifdef MP-WEIXIN || MP-BAIDU || MP-TOUTIAO || MP-QQ
@@ -418,9 +457,9 @@ onMounted(() => {
 });
 
 const shopInfo:any = ref({})
+const videoRef = ref(null)
 const refresh = () => {
 	setModuleLocation();
-	tabConfirm({ source: 'home' },-1)
 	if(diyComponent.value.swiper && diyComponent.value.swiper.list){
 		diyComponent.value.swiper.list.forEach((item: any) => {
 			if (item.imageUrl == '') {
@@ -441,29 +480,26 @@ const refresh = () => {
 			follow_number: 0
 		};
 	} else {
-		getShopInfoFn();
+		setShopInfo();
 	}
 }
 
-const getShopInfoFn = ()=> {
+const setShopInfo = ()=> {
 	if (diyStore.siteId) {
-		getShopInfo(diyStore.siteId,{ position: systemStore.diyAddressInfo }).then((res: any) => {
-			if (res.data) {
-				shopInfo.value = {
-					siteId: res.data.site_id,
-					icon: res.data.front_end_logo ? res.data.front_end_logo : res.data.icon,
-					siteName: res.data.site_name,
-					typeName: res.data.is_self == 1 ? '自营店铺' : '直营店铺',
-					follow_number: res.data.follow_number,
-					rate: 5,
-					isFollow: res.data.member_info?.is_follow,
-					distance: res.data.distance,
-					background_h5: res.data.background_h5,
-				}
-				isFollow.value = shopInfo.value.isFollow
-			}
-		})
+		if(shopStore.shopInfo[diyStore.siteId]){
+			shopInfo.value = shopStore.shopInfo[diyStore.siteId];
+			isFollow.value = shopInfo.value.isFollow;
+		} else {
+			shopStore.getShopInfoFn(diyStore.siteId,(data:any)=>{
+				shopInfo.value = data
+				isFollow.value = shopInfo.value.isFollow;
+			})
+		}
 	}
+}
+
+const changeItemBg = (data: any) => {
+	diyComponent.value.curBgImg = data;
 }
 
 const toDetail = ()=>{
@@ -504,9 +540,7 @@ const followShop = ()=> {
 		shopInfo.value.isFollow = isFollow.value
 	})
 }
-const handleFollow = (data:any)=>{
-	isFollow.value = data;
-}
+
 // 跳转查询商品
 const toLink = () =>{
 	if(diyStore.siteId){
@@ -538,166 +572,19 @@ if(componentsScrollVal && (typeof componentsScrollVal == "object")){
 }
 /******************************* 存储滚动值-end ***********************/ 
 
-/* tab - start */
-const shopInfoTabIsShow = ref(true)
-const currentSource = ref('home')
-const currTabIndex = ref(-1)
-const tabConfirm = (data:any, index:any)=> {
-    currTabIndex.value = index;
-	currentSource.value = data.source;
-	if (data.source == 'home') {
-		// 首页
-		diyStore.topFixedStatus = 'home'
-		configStore.shop_source = 'home'
-	} else if (data.source == 'diy_page') {
-		// 查询微页面数据
-		diyStore.topFixedStatus = 'diy'
-		configStore.shop_source = 'diy_page'
-		getDiyInfoFn(data.diy_id);
-	}
-}
-const diyPageData = reactive({
-    pageMode: 'diy',
-    title: '',
-    global: {},
-    value: []
-});
-
-const getDiyInfoFn = (id: any) => {
-    if (!id) {
-        diyPageData.pageMode = 'diy';
-        diyPageData.title = '';
-        diyPageData.global = {};
-        diyPageData.value = [];
-        return;
-    }
-    getDiyInfo({
-        id,
-		site_id: diyStore.siteId
-    }).then((res: any) => {
-        if (res.data.value) {
-            let data = res.data;
-            diyPageData.pageMode = data.mode;
-            diyPageData.title = data.title;
-
-            let sources = JSON.parse(data.value);
-            diyPageData.global = sources.global;
-            diyPageData.global.topStatusBar.isShow = false; // 子页面不需要展示顶部导航栏
-            diyPageData.global.bottomTabBar.isShow = false; // 子页面不需要展示底部导航
-            diyPageData.value = sources.value;
-
-            diyPageData.value.forEach((item: any, index) => {
-				item.componentIsShow = true // 是否显示
-                item.pageStyle = '';
-                if (item.pageStartBgColor) {
-                    if (item.pageStartBgColor && item.pageEndBgColor) item.pageStyle += `background:linear-gradient(${ item.pageGradientAngle },${ item.pageStartBgColor },${ item.pageEndBgColor });`;
-                    else item.pageStyle += 'background-color:' + item.pageStartBgColor + ';';
-                }
-
-                if (item.margin) {
-                    if (item.margin.top > 0) {
-                        item.pageStyle += 'padding-top:' + item.margin.top * 2 + 'rpx' + ';';
-                    }
-                    item.pageStyle += 'padding-bottom:' + item.margin.bottom * 2 + 'rpx' + ';';
-                    item.pageStyle += 'padding-right:' + item.margin.both * 2 + 'rpx' + ';';
-                    item.pageStyle += 'padding-left:' + item.margin.both * 2 + 'rpx' + ';';
-                }
-            });
-            uni.setNavigationBarTitle({
-                title: diyPageData.title
-            })
-        }
-    });
-}
-onPageScroll((e) => {
-	if(diyComponent.value && diyComponent.value.positionWay == 'fixed') {
-		if(e.scrollTop >= 76){
-			shopInfoTabIsShow.value = false
-		}else{
-			shopInfoTabIsShow.value = true
-		}
-	}
-})
-/* tab - end */
-
-/******************************* 底部导航切换-start ***********************/ 
-const currentBottomTab = ref('')
-watch(() => configStore.shop_tabbar, (newValue, oldValue) => {
-	if(newValue){
-		currentSource.value = 'shop_tab'
-	}
-
-	if(newValue == 'shop_index'){
-		currentBottomTab.value = 'shop_index'
-		tabConfirm({ source: 'home' }, -1)
-	} else if(newValue == 'shop_goods_category') {
-		diyStore.topFixedStatus = 'diy'
-		currentBottomTab.value ='shop_goods_category'
-	} else if(newValue == 'shop_goods_list')  {
-		diyStore.topFixedStatus = 'diy'
-		currentBottomTab.value ='shop_goods_list'
-	} else if(newValue =='shop_coupon_list')  {
-		diyStore.topFixedStatus = 'diy'
-		currentBottomTab.value ='shop_coupon_list'
-	}
-})
-const goodsData = reactive({
-	style: 'style-1',
-	source: 'all',
-	topElementRounded: 12,
-    bottomElementRounded: 12,
-	imgElementRounded: 10,
-    margin: {
-        both: 10,
-        bottom: 0,
-        top: 0
-    },
-    priceStyle: {
-        mainColor: "#FF4142",
-        control: true
-    },
-    goodsNameStyle: {
-        color: "#303133",
-        control: true,
-        fontWeight: "normal"
-    },
-    saleStyle: {
-        color: "#999",
-        control: true
-    },
-    labelStyle: {
-        isShow: true,
-        control: true
-    },
-	distanceStyle: {
-        control: false
-    },
-    position:{
-        control: false
-    },
-    localDelivery:{
-        control: false
-    },
-    btnStyle: {
-        fontWeight: false,
-        padding: 0,
-        aroundRadius: 25,
-        textColor: "#fff",
-        startBgColor: '#FF4142',
-        endBgColor: '#FF4142',
-        style: 'nc-icon-gouwuche1',
-        control: true
-    }
-})
-
-const couponData = reactive({
-	num: 30
-})
-
-/******************************* 底部导航切换-end ***********************/  
 </script>
 
 <style lang="scss" scoped>
+.video-box{
+	:deep(.uni-video-cover-duration){
+		margin-top: 10rpx;
+		font-size: 24rpx;
+	}
+	:deep(.uni-video-cover-play-button){
+		width: 40rpx;
+		height: 40rpx;
+	}
+}
 .shop-info-search-wrap{
 	.bg-img {
         position: absolute;
@@ -752,6 +639,16 @@ const couponData = reactive({
 			right: 0;
 			bottom: 0;
 			left: 0;
+		}
+	}
+	&.style-1{
+		.bg-img:not(.search-bg-img){
+			uni-image, image {
+				-webkit-filter: blur(0);
+				filter: blur(0);
+				-webkit-transform: scale(1) translateY(0);
+				transform: scale(1) translateY(0);
+			}
 		}
 	}
 }
@@ -823,6 +720,79 @@ const couponData = reactive({
 		}
 	}
 
+}
+.diy-search-wrap-style2{
+	display: flex;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	align-items: center;
+	padding: 20rpx;
+	.img-wrap{
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 140rpx;
+		height: 60rpx;
+		margin-right: 30rpx;
+		image{
+			width: 100%;
+			height:100%;
+		}
+	}
+	.search-left{
+		border-radius: 50rpx;
+		background-color: rgba(255,255,255,.2);
+		margin-right: 20rpx;
+	}
+	.search-content {
+		display: flex;
+		align-items: center;
+		padding-left: 32rpx;
+		padding-right: 6rpx;
+		border-radius: 50rpx;
+		background-color: rgba(255, 255, 255, .2);
+		flex: 1;
+		position: relative;
+
+		.input-content, .uni-input {
+			box-sizing: border-box;
+			display: block;
+			height: 64rpx;
+			line-height: 64rpx;
+			width: 100%;
+			padding-right: 20rpx;
+			color: #fff;
+			background: none;
+		}
+		.iconfont {
+			font-size: 30rpx;
+			font-weight: bold;
+			color: #fff;
+		}
+		.swiper-wrap{
+			position: absolute;
+			width:80%;
+			height: 64rpx;
+			line-height: 64rpx;
+			color:#fff;
+		}
+	}
+}
+.info-gradient{
+	background-image: linear-gradient(rgba(248, 248, 248, 0), rgba(248, 248, 248, 0) 65%, #f8f8f8);
+}
+.info-bg{
+	width: 100%;
+    height: 580rpx;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
 }
 
 .swiper-animation {

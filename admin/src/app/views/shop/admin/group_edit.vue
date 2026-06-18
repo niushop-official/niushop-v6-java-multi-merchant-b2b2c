@@ -50,30 +50,32 @@
                     <div class="text-gray-400" v-if="!addonList.length">{{ t('appListEmpty') }}</div>
                     <el-checkbox-group v-model="formData.addon" class="flex flex-wrap w-full" v-else>
                         <template #default>
-                            <div class="flex w-[300px]" v-for="(item, index) in addonList" :key="index">
-                                <el-checkbox :label="item.key" name="" class="w-full !h-auto border border-solid p-[10px] !mr-[10px] !mb-[10px] rounded-md" :disabled="formData.create_by != 'user'">
-                                    <template #default>
-                                        <div class="w-full">
-                                            <div class="flex">
-                                                <div class="w-[60px] h-[60px] mr-[10px] rounded-md overflow-hidden">
-                                                    <el-image :src="img(item.icon)" v-if="item.icon" class="w-full h-full" />
-                                                    <el-image v-else class="w-full h-full">
-                                                        <template #error>
-                                                            <div class="image-error">
-                                                                <el-icon><icon-picture /></el-icon>
-                                                            </div>
-                                                        </template>
-                                                    </el-image>
-                                                </div>
-                                                <div class="flex-1 w-0 flex flex-col justify-center">
-                                                    <div class="font-bold truncate">{{ item.title }}</div>
-                                                    <div class="text-gray-400 mt-[10px] truncate" :title="item.desc">{{ item.desc }}</div>
+                            <template v-for="(item, index) in addonList" :key="index">
+                                <div class="flex w-[300px]"  v-show="item.support_app == '' || formData.app.includes(item.support_app)">
+                                    <el-checkbox :label="item.key" name="" class="w-full !h-auto border border-solid p-[10px] !mr-[10px] !mb-[10px] rounded-md" :disabled="formData.create_by != 'user'">
+                                        <template #default>
+                                            <div class="w-full">
+                                                <div class="flex">
+                                                    <div class="w-[60px] h-[60px] mr-[10px] rounded-md overflow-hidden">
+                                                        <el-image :src="img(item.icon)" v-if="item.icon" class="w-full h-full" />
+                                                        <el-image v-else class="w-full h-full">
+                                                            <template #error>
+                                                                <div class="image-error">
+                                                                    <el-icon><icon-picture /></el-icon>
+                                                                </div>
+                                                            </template>
+                                                        </el-image>
+                                                    </div>
+                                                    <div class="flex-1 w-0 flex flex-col justify-center">
+                                                        <div class="font-bold truncate">{{ item.title }}</div>
+                                                        <div class="text-gray-400 mt-[10px] truncate" :title="item.desc">{{ item.desc }}</div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </template>
-                                </el-checkbox>
-                            </div>
+                                        </template>
+                                    </el-checkbox>
+                                </div>
+                            </template>
                         </template>
                     </el-checkbox-group>
                 </el-form-item>
@@ -130,7 +132,7 @@ const getInstalledAddonListFn = async () => {
             const item = data[key]
             item.type == 'addon' ? addons.push(item) : apps.push(item)
         })
-        console.log(apps, addons)
+
         appList.value = apps
         addonList.value = addons
     }).catch()

@@ -1,6 +1,17 @@
 <template>
 	<!-- 内容 -->
 	<div class="content-wrap" v-show="diyStore.editTab == 'content'">
+        <div class="edit-attr-item-wrap">
+            <h3 class="mb-[10px]">{{ t('风格选择') }}</h3>
+            <el-form label-width="100px" class="px-[10px]">
+                <el-form-item :label="t('风格选择')">
+					<el-radio-group v-model="diyStore.editComponent.style">
+						<el-radio label="style-1">样式1</el-radio>
+						<el-radio label="style-2">样式2</el-radio>
+					</el-radio-group>
+				</el-form-item>
+            </el-form>
+        </div>
 		<div class="edit-attr-item-wrap">
 			<h3 class="mb-[10px]">{{ t('shopInfoShowPosition') }}</h3>
 			<el-form label-width="100px" class="px-[10px]">
@@ -34,7 +45,7 @@
 			</el-form>
 		</div>
 
-		<div class="edit-attr-item-wrap">
+		<div class="edit-attr-item-wrap mt-[18px]">
 			<h3 class="mb-[10px]">{{ t('shopInfoHotWordSet') }}</h3>
 			<el-form label-width="100px" class="px-[10px]">
 
@@ -62,7 +73,35 @@
 			</el-form>
 		</div>
 
-		<el-collapse v-model="activeNames" @change="handleChange" class="collapse-wrap">
+        <div class="edit-attr-item-wrap mt-[18px]" v-if="['style-1'].indexOf(diyStore.editComponent.style) != -1">
+            <h3 class="mb-[10px]">{{ t('图片设置') }}</h3>
+            <el-form label-width="80px" class="px-[10px]">
+                <el-form-item :label="t('背景图片')">
+					<div class="flex-1">
+                        <div class="grid grid-cols-5 gap-x-[5px] gap-y-[10px]">
+                            <div class="h-[35px] border-[1px] border-solid border-[#ebedf0] p-[1px] box-border cursor-pointer" :class="{'!border-primary': item == diyStore.editComponent.curBgImg }" v-for="(item,index) in bgDefaultList" :key="index" @click="handleBgImg(item)">
+                                <img :src="img(item)" alt="" class="w-full h-full">
+                            </div>
+                        </div>
+                        <div class="mt-[10px]">
+                            <el-radio-group v-model="diyStore.editComponent.bgImgStyle" fill="#409eff" @change="handleBgImgChange">
+                                <el-radio-button label="自定义" value="custom" />
+                            </el-radio-group>
+                        </div>
+                    </div>
+				</el-form-item>
+                <template v-if="diyStore.editComponent.bgImgStyle == 'custom'">
+                    <el-form-item :label="t('背景图')">
+                        <upload-image v-model="diyStore.editComponent.bgImgArr" :limit="10" width="70px" height="70px" @change="updateCustomBgImg" />
+                    </el-form-item>
+                    <el-form-item :label="t('店铺视频')">
+                        <upload-video v-model="diyStore.editComponent.bgVideo" :limit="1" width="80px" height="80px" @change="updateCustomBgVideo" />
+                    </el-form-item>
+                </template>
+            </el-form>
+        </div>
+
+		<el-collapse v-model="activeNames" @change="handleChange" class="collapse-wrap mt-[18px]" v-if="diyStore.editComponent.style == 'style-2'">
 			<el-collapse-item :title="t('carouselSearchSwiperSet')" name="swiper">
                 <el-form label-width="100px" class="px-[10px]">
                     <el-form-item :label="t('carouselSearchSwiperControl')">
@@ -98,14 +137,6 @@
 
 	<!-- 样式 -->
 	<div class="style-wrap" v-show="diyStore.editTab == 'style'">
-        <div class="edit-attr-item-wrap">
-			<h3 class="mb-[10px]">{{ t('textSet') }}</h3>
-			<el-form label-width="80px" class="px-[10px]">
-				<el-form-item :label="t('textColor')">
-					<el-color-picker v-model="diyStore.editComponent.shop.textColor" />
-				</el-form-item>
-			</el-form>
-		</div>
 
 		<div class="edit-attr-item-wrap">
 			<h3 class="mb-[10px]">{{ t('carouselSearchStyle') }}</h3>
@@ -137,7 +168,7 @@
 			</el-form>
 		</div>
 
-		<div class="edit-attr-item-wrap">
+		<div class="edit-attr-item-wrap" v-if="diyStore.editComponent.style == 'style-2'">
             <h3 class="mb-[10px]">{{ t('carouselSearchSwiperSet') }}</h3>
             <el-form label-width="100px" class="px-[10px]">
                 <el-form-item :label="t('carouselSearchSwiperStyle')" @change="changeSwiperStyle">
@@ -156,7 +187,7 @@
             </el-form>
         </div>
 
-        <div class="edit-attr-item-wrap">
+        <div class="edit-attr-item-wrap" v-if="diyStore.editComponent.style == 'style-2'">
             <h3 class="mb-[10px]">{{ t('carouselSearchSwiperIndicatorSet') }}</h3>
             <el-form label-width="100px" class="px-[10px]">
                 <el-form-item :label="t('carouselSearchSwiperIndicatorStyle')">
@@ -181,9 +212,15 @@
                 </el-form-item>
             </el-form>
         </div>
-
-		
-
+        
+        <div class="edit-attr-item-wrap">
+			<h3 class="mb-[10px]">{{ t('商家信息样式') }}</h3>
+			<el-form label-width="80px" class="px-[10px]">
+				<el-form-item :label="t('textColor')">
+					<el-color-picker v-model="diyStore.editComponent.shop.textColor" />
+				</el-form-item>
+			</el-form>
+		</div>
 
 		<!-- 组件样式 -->
 		<!-- <slot name="style"></slot> -->
@@ -197,7 +234,6 @@ import useDiyStore from '@/stores/modules/diy'
 import { ref, watch, onMounted, nextTick, reactive } from 'vue'
 import Sortable from 'sortablejs'
 import { cloneDeep, range } from 'lodash-es'
-
 
 const diyStore = useDiyStore()
 diyStore.editComponent.ignore = ['componentBgColor', 'componentBgUrl', 'marginTop', 'marginBottom', 'topRounded', 'bottomRounded', 'pageBgColor', 'marginBoth'] // 忽略公共属性
@@ -214,7 +250,7 @@ diyStore.editComponent.verify = (index: number) => {
         }
     })
 
-    if (diyStore.value[index].swiper.control) {
+    if (diyStore.value[index].swiper.control && diyStore.editComponent.style == 'style-2') {
         diyStore.value[index].swiper.list.forEach((item: any) => {
             if (item.imageUrl == '') {
                 res.code = false
@@ -331,6 +367,39 @@ const handleHeight = (isCalcHeight: boolean = false) => {
             }
         }
     })
+}
+
+const bgDefaultList = reactive([
+    'addon/mall/diy/shop_info/img-1.png',
+    'addon/mall/diy/shop_info/img-2.png',
+    'addon/mall/diy/shop_info/img-3.png',
+    'addon/mall/diy/shop_info/img-4.png',
+    'addon/mall/diy/shop_info/img-5.png',
+    'addon/mall/diy/shop_info/img-6.png',
+    'addon/mall/diy/shop_info/img-7.png',
+    'addon/mall/diy/shop_info/img-8.png',
+    'addon/mall/diy/shop_info/img-9.png',
+    'addon/mall/diy/shop_info/img-10.png'
+])
+const handleBgImg = (data: any) => {
+    diyStore.editComponent.curBgImg = data
+    diyStore.editComponent.bgImgStyle = 'default'
+}
+
+const handleBgImgChange = (value: any) => {
+    if (diyStore.editComponent.bgVideo) {
+        diyStore.editComponent.curBgImg = diyStore.editComponent.bgVideo
+    } else {
+        diyStore.editComponent.curBgImg = diyStore.editComponent.bgImgArr.split(',')[0] || ''
+    }
+}
+const updateCustomBgImg = () => {
+    if (diyStore.editComponent.bgImgArr != '' && diyStore.editComponent.bgVideo == '') {
+        diyStore.editComponent.curBgImg = diyStore.editComponent.bgImgArr.split(',')[0]
+    }
+}
+const updateCustomBgVideo = () => {
+    diyStore.editComponent.curBgImg = diyStore.editComponent.bgVideo
 }
 defineExpose({})
 

@@ -4,7 +4,7 @@
             <view :class="mode === 'pop' ? 'verifybox' : ''" :style="{ 'max-width': `${parseInt(imgSize.width) + 30}px` }">
                 <view class="verifybox-top" v-if="mode === 'pop'">
                     请完成安全验证
-                    <text class="verifybox-close" @click="clickShow = false">
+                    <text class="verifybox-close" @click="handleColse">
                     <text class="iconfont icon-close"></text>
                     </text>
                 </view>
@@ -101,7 +101,7 @@ const props = defineProps({
 })
 
 // 定义 emits
-const emit = defineEmits(['success'])
+const emit = defineEmits(['success','close'])
 
 // 响应式数据
 const clickShow = ref(false)
@@ -152,6 +152,12 @@ const uuid = () => {
 // 验证成功回调
 const handleSuccess = (e) => {
     emit('success', e)
+}
+
+// 关闭弹窗
+const handleColse = () => {
+    clickShow.value = false
+    emit('close')
 }
 
 // 刷新验证码

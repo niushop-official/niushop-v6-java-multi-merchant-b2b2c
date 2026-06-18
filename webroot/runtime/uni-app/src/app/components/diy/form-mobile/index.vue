@@ -47,7 +47,7 @@
                     <text class="required" v-if="diyComponent.field.required">{{ diyComponent.field.required ? '*' : '' }}</text>
                     <text class="name" :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx' ,'font-weight': diyComponent.fontWeight}">{{ diyComponent.field.name }}</text>
                 </view>
-                <input type="number" class="layout-two-content no-flex" :placeholder="inputPlaceholder"
+                <input type="number" class="layout-two-content no-flex" :class="{'layout-two-content-left': diyGlobal.contentAlign == 'left' }" :placeholder="inputPlaceholder"
                        placeholderClass="layout-two-input-placeholder"
                        :placeholder-style="{'font-size': (diyComponent.fontSize * 2) + 'rpx'}"
                        :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx'}"

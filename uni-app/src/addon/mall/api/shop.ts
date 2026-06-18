@@ -54,5 +54,5 @@ export function getShopFollowList(params: Record<string, any>) {
  * 获取店铺组件
  */
 export function getShopComponents(params: Record<string, any>) {
-    return request.get(`shop/web/shop/component`, params)
+    return request.post(`shop/web/shop/component`, params)
 }

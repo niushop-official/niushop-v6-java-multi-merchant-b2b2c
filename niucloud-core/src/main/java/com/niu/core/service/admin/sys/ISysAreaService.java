@@ -8,6 +8,8 @@ import com.niu.core.service.admin.sys.param.SysAreaSearchParam;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.service.admin.sys.vo.SysAreaByCodeVo;
 import com.niu.core.service.admin.sys.vo.SysAreaListVo;
+import com.niu.core.service.admin.sys.vo.SysAreaResolveVo;
+import com.niu.core.service.api.sys.param.SysAreaAddressByLatlngParam;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +28,21 @@ public interface ISysAreaService {
     Integer getAreaId(String name, Integer level);
 
     String getAreaName(Integer id);
+
+    /**
+     * 根据省市区名称解析区划 ID
+     */
+    SysAreaResolveVo resolveAreaByName(String province, String city, String district);
+
+    /**
+     * 根据拼接的省市区文本解析区划 ID
+     */
+    SysAreaResolveVo resolveAreaByText(String areaText);
+
+    /**
+     * 根据区划 ID 拼接省市区展示文本
+     */
+    String buildAreaText(Integer provinceId, Integer cityId, Integer districtId);
 
     /**
      * 地址列表

@@ -30,8 +30,8 @@ public class FriendPay extends BasePay {
     }
 
     @Override
-    public void scan() {
-
+    public Object scan(PayParam param) {
+        return null;
     }
 
     @Override

@@ -37,8 +37,8 @@ public interface IOrderCreateService {
 
     /**
      * 查询平台优惠券
-     * @param orderKeys
+     * @param request 请求体，至少含 body（与前端 orderPlatformCoupon 一致）
      * @return
      */
-    List<MallMemberCouponListVo> getPlatformCoupon(List<Object> orderKeys);
+    List<MallMemberCouponListVo> getPlatformCoupon(Map<String, Object> request);
 }

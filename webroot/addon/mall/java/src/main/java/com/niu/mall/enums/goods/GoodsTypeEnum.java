@@ -3,16 +3,13 @@ package com.niu.mall.enums.goods;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Getter
 @AllArgsConstructor
 public enum GoodsTypeEnum {
-    REAL("real","实物商品",  "物流发货", "/mall/goods/real_edit"),
-    VIRTUAL("virtual","虚拟商品", "无需物流", "/mall/goods/virtual_edit");
+    REAL("real", "实物商品", "物流发货", "/mall/goods/real_edit"),
+    VIRTUAL("virtual", "虚拟商品", "无需物流", "/mall/goods/virtual_edit");
 
     private final String type;
 
@@ -24,8 +21,7 @@ public enum GoodsTypeEnum {
 
     public static Map<String, Map<String, Object>> getMap() {
         Map<String, Map<String, Object>> map = new HashMap<>();
-        for(GoodsTypeEnum item : GoodsTypeEnum.values())
-        {
+        for (GoodsTypeEnum item : GoodsTypeEnum.values()) {
             Map<String, Object> mapItem = new HashMap<>();
             mapItem.put("type", item.getType());
             mapItem.put("name", item.getName());
@@ -36,16 +32,23 @@ public enum GoodsTypeEnum {
         return map;
     }
 
+    public static LinkedHashMap<String, String> getSimpleMap() {
+        LinkedHashMap<String, String> map = new LinkedHashMap<>();
+        for (GoodsTypeEnum item : GoodsTypeEnum.values()) {
+            map.put(item.getType(), item.getName());
+        }
+        return map;
+    }
+
     /**
      * 通过type获取当前名称
+     *
      * @param type
      * @return
      */
-    public static String getNameByType(String type){
-        for(GoodsTypeEnum item : GoodsTypeEnum.values())
-        {
-            if(item.getType().equals(type))
-            {
+    public static String getNameByType(String type) {
+        for (GoodsTypeEnum item : GoodsTypeEnum.values()) {
+            if (item.getType().equals(type)) {
                 return item.getName();
             }
         }

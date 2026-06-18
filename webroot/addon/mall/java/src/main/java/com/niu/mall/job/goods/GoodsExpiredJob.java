@@ -9,8 +9,6 @@ import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.enums.goods.GoodsStatusEnum;
 import com.niu.mall.enums.goods.GoodsTypeEnum;
 import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.order.MallOrderMapper;
-import com.niu.mall.service.admin.goods.IMallGoodsStatService;
 import com.niu.mall.service.core.goods.ICoreGoodsStatusService;
 import com.niu.mall.service.core.goods.param.GoodsStatusEditParam;
 import org.quartz.JobExecutionContext;
@@ -33,20 +31,20 @@ public class GoodsExpiredJob extends AbstractJobProvider implements IJobProvider
     public void exec(JobExecutionContext context) {
         QueryWrapper<MallGoods> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("goods_type", GoodsTypeEnum.VIRTUAL.getType());
-        queryWrapper.eq("virtual_receive_type", "verify");
+        queryWrapper.eq("virtual_delivery_type", "verify");
         queryWrapper.eq("virtual_verify_type", 2);
         queryWrapper.gt("virtual_indate", 0);
         queryWrapper.le("virtual_indate", System.currentTimeMillis() / 1000);
         queryWrapper.in("status", GoodsStatusEnum.ONLINE.getStatus(), GoodsStatusEnum.WAIT_AUDIT.getStatus());
         queryWrapper.select("goods_id", "site_id");
         List<MallGoods> goodsList = mallGoodsMapper().selectList(queryWrapper);
-        if (!goodsList.isEmpty()){
+        if (!goodsList.isEmpty()) {
             List<GoodsStatusEditParam> params = new ArrayList<>();
             goodsList.forEach(goods -> {
                 GoodsStatusEditParam param = new GoodsStatusEditParam();
                 param.setGoodsId(goods.getGoodsId());
                 param.setSiteId(goods.getSiteId());
-                params.add( param);
+                params.add(param);
             });
             coreGoodsStatusService().editStatus(params);
         }

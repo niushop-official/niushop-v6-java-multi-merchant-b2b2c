@@ -9,13 +9,14 @@ import com.niu.mall.service.site.marketing.ICouponService;
 import com.niu.mall.service.site.marketing.param.MallCouponParam;
 import com.niu.mall.service.site.marketing.param.MallCouponSearchParam;
 import com.niu.mall.service.site.marketing.param.MallCouponSelectParam;
+import com.niu.mall.service.site.marketing.param.MallCouponSendParam;
 import com.niu.mall.service.site.marketing.vo.MallCouponInfoVo;
 import com.niu.mall.service.site.marketing.vo.MallCouponListVo;
 import com.niu.mall.service.site.marketing.vo.MallCouponMemberListVo;
+import com.niu.mall.service.site.marketing.vo.MallCouponStatVo;
+import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.annotation.Resource;
 
 /**
  * 优惠券控制器
@@ -105,12 +106,19 @@ public class CouponController {
      * @return
      */
     @GetMapping("/records")
-    public Result<PageResult<MallCouponMemberListVo>> getMemberCoupon(@Validated PageParam pageParam, @RequestParam("id") Integer id, @RequestParam("keywords") String keywords) {
-        return Result.success(couponService.getMemberCoupon(pageParam, id, keywords));
+    public Result<PageResult<MallCouponMemberListVo>> getMemberCoupon(@Validated PageParam pageParam,
+                                                                      @RequestParam(value = "id", required = false) String id,
+                                                                      @RequestParam(value = "keywords", required = false, defaultValue = "") String keywords) {
+        Integer couponId = null;
+        if (id != null && !id.isBlank()) {
+            couponId = Integer.valueOf(id);
+        }
+        return Result.success(couponService.getMemberCoupon(pageParam, couponId, keywords));
     }
 
     /**
      * 选中优惠券
+     *
      * @param pageParam
      * @param searchParam
      * @return
@@ -137,6 +145,17 @@ public class CouponController {
     }
 
     /**
+     * 店铺优惠券统计
+     *
+     * @param id 优惠券ID
+     * @return Result<MallCouponStatVo>
+     */
+    @GetMapping("/stat")
+    public Result<MallCouponStatVo> couponStat(@RequestParam(name = "id", required = false) Integer id) {
+        return Result.success(couponService.getCouponStat(id));
+    }
+
+    /**
      * 设置优惠券领用状态
      *
      * @param status
@@ -158,6 +177,18 @@ public class CouponController {
     @PutMapping("invalid/{id}")
     public Result<Object> couponInvalid(@Validated @PathVariable("id") Integer id) {
         couponService.couponInvalid(id);
+        return Result.success();
+    }
+
+    /**
+     * 批量发放优惠券
+     *
+     * @param param coupon_data : [['coupon_id'=>1, 'num'=>2],['coupon_id'=>2, 'num'=>3]], member_ids: [] 批量发放数据格式
+     * @return Result<Object>
+     */
+    @PostMapping("/send")
+    public Result<Object> sendCoupon(@Validated @RequestBody MallCouponSendParam param) {
+        couponService.sendCoupon(param);
         return Result.success();
     }
 }

@@ -1,18 +1,21 @@
 package com.niu.core.service.core.sys.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.niu.core.common.component.context.WebAppEnvs;
 import com.niu.core.common.utils.TreeUtils;
+import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.json.JacksonUtils;
 import com.niu.core.common.utils.json.JsonLoadUtils;
 import com.niu.core.common.config.dataization.AddonModuleContext;
 import com.niu.core.common.utils.json.JsonModuleLoader;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.sys.SysMenu;
+import com.niu.core.enums.sys.MenuSourceEnum;
 import com.niu.core.mapper.addon.AddonMapper;
 import com.niu.core.mapper.sys.SysMenuMapper;
 import com.niu.core.service.core.sys.ICoreMenuService;
@@ -82,11 +85,23 @@ public class CoreMenuServiceImpl extends ServiceImpl<SysMenuMapper,SysMenu> impl
     }
 
     private List<SysMenu> menuTreeToList(List<JSONObject> menuList, String addon, String appType) {
+        long createTime = DateUtils.currTime();
         for (JSONObject item : menuList) {
             item.put("addon", addon);
             item.put("app_type", appType);
+            item.put("source", MenuSourceEnum.SYSTEM.getCode());
+            item.put("create_time", createTime);
+            normalizeJsonArrayField(item, "support_addon");
+            normalizeJsonArrayField(item, "mount_key");
         }
         return JacksonUtils.toSnakeCaseList(menuList, SysMenu.class);
+    }
+
+    private void normalizeJsonArrayField(JSONObject item, String field) {
+        Object value = item.get(field);
+        if (value instanceof JSONArray) {
+            item.put(field, ((JSONArray) value).toString());
+        }
     }
 
     /**

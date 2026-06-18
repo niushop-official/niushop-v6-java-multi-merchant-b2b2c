@@ -45,7 +45,7 @@
                     <text class="name" :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx' ,'font-weight': diyComponent.fontWeight}">{{ diyComponent.field.name }}</text>
                 </view>
                 <viwe class="layout-two-content">
-                    <textarea class="w-[100%]" :placeholder="inputPlaceholder"
+                    <textarea class="w-[100%]" :class="{'layout-two-content-left': diyGlobal.contentAlign == 'left' }"  :placeholder="inputPlaceholder"
                               placeholderClass="layout-one-input-placeholder"
                               :placeholder-style="{'font-size': (diyComponent.fontSize * 2) + 'rpx' }"
                               :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx', 'height': textareaHeight}"

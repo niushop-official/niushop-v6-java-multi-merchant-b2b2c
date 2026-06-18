@@ -165,7 +165,27 @@ const getData = () => {
         relate_id: props.relate_id || 0 // 关联业务id
     }
 }
+// 回显数据
+const setFormData = (data: any) => {
+    if (!data) return;
+    let formDetailData = {}
+    if(data && data.recordsFieldList){
+        data.recordsFieldList.forEach((item: any) => {
+            formDetailData[item.field_key] = item.field_value;
+        })
+    }
+    diyFormData.value?.forEach((item: any) => {
+        if(formDetailData[item.id]){
+            try {
+                item.field.value = JSON.parse(formDetailData[item.id])
+            } catch (e) {
+                item.field.value = formDetailData[item.id]
+            }
+        }
+    });
+}
 
+// 清除数据
 const clearStorage = (keys: any = []) => {
     uni.removeStorageSync('diyFormStorage_' + props.form_sign)
     if (props.storage_name) uni.removeStorageSync(props.storage_name)
@@ -188,6 +208,7 @@ diy.onUnload();
 defineExpose({
     verify,
     getData,
+    setFormData,
     clearStorage
 })
 

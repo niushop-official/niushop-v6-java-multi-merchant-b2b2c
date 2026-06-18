@@ -17,15 +17,6 @@
                 <view class="ml-auto flex items-center text-[#343434] text-[26rpx] leading-[30rpx] font-400">{{ diyComponent.goods.delivery_type_name }}</view>
                 <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light6)] ml-[8rpx]"></text>
             </view>
-            <view @click="couponListShow = true" v-if="couponList.length && serviceConfig.includes('coupons')" class="card-template-item">
-                <text class="text-[#333] text-[26rpx] leading-[30rpx] font-400 flex-shrink-0 mr-[20rpx]">领券</text>
-                <view class="ml-auto flex-1 flex-nowrap flex items-center overflow-hidden h-[44rpx] content-between">
-                    <template v-for="(item, index) in couponList" :key="index">
-                        <text v-if="index < 3" class="tag-item whitespace-nowrap border-[2rpx] px-[6rpx] h-[40rpx] border-solid border-primary text-primary mt-[4rpx]" :class="{'mr-[12rpx]': couponList.length != (index + 1) && index < 2, 'ml-auto': index == 0}">{{ item.title }}</text>
-                    </template>
-                </view>
-                <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light6)] ml-[8rpx]"></text>
-            </view>
         </view>
         <!-- 服务 -->
         <view @touchmove.prevent.stop>
@@ -65,37 +56,6 @@
                 </view>
             </u-popup>
         </view>
-        <!-- 优惠券 -->
-        <view @touchmove.prevent.stop>
-            <u-popup class="popup-type" :show="couponListShow" @close="couponListShow = false">
-                <view class="min-h-[480rpx] popup-common" @touchmove.prevent.stop>
-                    <view class="title">优惠券</view>
-                    <scroll-view class="h-[520rpx]" scroll-y="true">
-                        <view class="px-[32rpx]">
-                            <view class="mb-[30rpx] flex items-center border-[2rpx] border-solid border-[rgba(0,0,0,.1)] rounded-[var(--rounded-small)]"
-                                v-for="(item, index) in couponList" :key="index">
-                                <view class="flex flex-col items-center my-[20rpx] w-[200rpx] border-0 border-r-[2rpx] border-dashed border-[rgba(0,0,0,.1)]">
-                                    <view class="text-xs price-font">
-                                        <text class="text-[28rpx]">￥</text>
-                                        <text class="text-[48rpx]">{{ Number(item.price) }}</text>
-                                    </view>
-                                    <text class="text-xs mt-[12rpx]">{{ Number(item.min_condition_money) ? ('满' + Number(item.min_condition_money) + '元可用') : '无门槛' }}</text>
-                                </view>
-                                <view class="ml-[20rpx] flex-1 flex flex-col py-[20rpx]">
-                                    <text class="text-xs font-500">{{ item.title }}</text>
-                                    <text class="text-xs text-[var(--text-color-light6)] mt-[12rpx]">{{ item.valid_type == 1 && ('领取之日起' + item.length + '天内有效') || item.valid_type == 2 && ('领取之日起至' + item.valid_end_time) }}</text>
-                                </view>
-                                <text v-if="item.btnType === 'collecting'" class="bg-[var(--primary-color)] mr-[20rpx] w-[106rpx] box-border text-center text-[#fff] h-[50rpx] text-[22rpx] px-[20rpx] leading-[50rpx] rounded-[100rpx]" @click="getCouponFn(item, index)">领取</text>
-                                <text v-else class="!bg-[var(--primary-help-color4)] mr-[20rpx] text-[#fff] mr-[20rpx] h-[50rpx] text-[22rpx] px-[20rpx] leading-[50rpx] rounded-[100rpx]">{{ item.btnType === 'collected' ? '已领完' : '已领取' }}</text>
-                            </view>
-                        </view>
-                    </scroll-view>
-                    <view class="btn-wrap">
-                        <button class="primary-btn-bg btn" @click="couponListShow = false">确定</button>
-                    </view>
-                </view>
-            </u-popup>
-        </view>
         <!-- 装修时，防止点击 -->
         <view v-if="diyStore.mode == 'decorate'" class="absolute z-10 top-0 right-0 bottom-0 left-0"></view>
     </view>
@@ -103,12 +63,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
-import { img } from '@/utils/common';
+import { img , redirect} from '@/utils/common';
 import useDiyStore from '@/app/stores/diy';
-import { getMallGoodsCoupon, getCoupon } from '@/addon/mall/api/coupon';
-import { useLogin } from '@/hooks/useLogin'
 import useMemberStore from '@/stores/member'
 import useGoodsDetailStore from '@/addon/mall/stores/goodsDetail'
+
 
 const props = defineProps(['component', 'index', 'value', 'global']);
 const diyStore = useDiyStore();
@@ -116,7 +75,7 @@ const emits = defineEmits(['update:componentIsShow']); //商品数据加载完�
 
 const servicesDataShow = ref<boolean>(false)
 const distributionDataShow = ref<boolean>(false) //配送
-const couponListShow = ref<boolean>(false) //优惠券
+
 
 // 会员信息
 const memberStore = useMemberStore()
@@ -167,61 +126,13 @@ const isGoodsPropertyTemp = () => {
     if (
         (diyComponent.value.service && diyComponent.value.service.length && serviceConfig.value.includes('goods_service')) ||
         (diyComponent.value.goodsSpec && diyComponent.value.goodsSpec.length && serviceConfig.value.includes('spec_select')) ||
-        (diyComponent.value.goods.goods_type == 'real' && diyComponent.value.goods.delivery_type_list && diyComponent.value.goods.delivery_type_list.length && serviceConfig.value.includes('delivery_info')) || 
-        (couponList.value && couponList.value.length && serviceConfig.value.includes('coupons')) || 
-        (serviceConfig.value.includes('activity')) || diyStore.mode == 'decorate'
+        (diyComponent.value.goods.goods_type == 'real' && diyComponent.value.goods.delivery_type_list && diyComponent.value.goods.delivery_type_list.length && serviceConfig.value.includes('delivery_info')) || diyStore.mode == 'decorate'
         ) {
         isShowTemplate.value = true;
     }
     emits('update:componentIsShow', isShowTemplate.value)
 }
 
-// 优惠券
-const couponList = ref([]);
-const getMallCouponListFn = () => {
-    getMallGoodsCoupon({
-        site_id: diyComponent.value.shop_info?.site_id || '',
-        category_id: diyComponent.value?.goods?.goods_category || '',
-        mall_category_id: diyComponent.value.goods?.goods_mall_category || '',
-        goods_id: diyComponent.value.goods_id || '',
-        brand_id: diyComponent.value.goods.brand_id || ''
-    }).then((res: any) => {
-        couponList.value = res.data.data.map((el: any) => {
-            if (el.sum_count != -1 && el.receive_count === el.sum_count) {
-                el.btnType = 'collected'//已领完
-            }
-            if (!userInfo.value) {
-                el.btnType = 'collecting'//领用
-            } else {
-                if (el.is_receive && el.limit_count === el.member_receive_count) {
-                    el.btnType = 'using'//去使用
-                } else {
-                    el.btnType = 'collecting'//领用
-                }
-            }
-            return el
-        });
-        isGoodsPropertyTemp()
-    })
-}
-
-// 领取优惠券
-const getCouponFn = (data: any, index: any) => {
-    // 检测是否登录
-    if (!userInfo.value) {
-        useLogin().setLoginBack({
-            url: '/addon/mall/pages/goods/detail',
-            param: { sku_id: diyComponent.value.sku_id, type: diyComponent.value.type }
-        })
-        return false
-    }
-    getCoupon({
-        coupon_id: data.id || '',
-        number: 1,
-    }).then(res => {
-        getMallCouponListFn();
-    })
-}
 
 
 /************ 选择配送方式-start ****************/
@@ -244,10 +155,6 @@ onMounted(() => {
     refresh()
     // 装修模式下刷新
     if (diyStore.mode == 'decorate') {
-        couponList.value = [
-            { title: '满20减5' },
-            { title: '满10减2' }
-        ]
         isGoodsPropertyTemp()
         watch(
             () => diyComponent.value,
@@ -260,8 +167,7 @@ onMounted(() => {
             }
         )
     } else {
-        // 获取优惠券列表
-        getMallCouponListFn();
+        isGoodsPropertyTemp()
         watch(
             () => diyComponent.value,
             (newValue, oldValue) => {

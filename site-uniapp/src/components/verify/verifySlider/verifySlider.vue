@@ -214,7 +214,7 @@ const end = () => {
 
             // 验证请求
             myRequest({
-                url: '/captcha/check',
+                url: 'captcha/check',
                 data: {
                 captcha_type: props.captchaType,
                 captcha_code: secretKey.value ? aesEncrypt(captchaData, secretKey.value) : captchaData,

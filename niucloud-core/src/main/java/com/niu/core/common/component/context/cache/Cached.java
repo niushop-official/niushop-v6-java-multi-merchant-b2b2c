@@ -34,6 +34,23 @@ public interface Cached {
     public void removeBatch(String pattern);
 
     /**
+     * 执行带事务的库存扣减操作
+     * @param key 缓存key
+     * @param reduceAmount 扣减数量
+     * @return 扣减结果：-1=失败，-2=库存不足，>=0=扣减后的库存
+     */
+    Integer atomicDecrement(String key, Integer reduceAmount);
+
+    /**
+     * 执行带事务的库存扣减操作（带组前缀）
+     * @param group 组名
+     * @param key 缓存key
+     * @param reduceAmount 扣减数量
+     * @return 扣减结果：-1=失败，-2=库存不足，>=0=扣减后的库存
+     */
+    Integer atomicDecrement(String group, String key, Integer reduceAmount);
+
+    /**
      * @param group
      * @return
      */
@@ -98,6 +115,14 @@ public interface Cached {
         public void clear() {
             if (StrUtil.isNotEmpty(this.group)) {
                 this.cached.removeBatch(this.group + ":*");
+            }
+        }
+
+        public Integer atomicDecrement(String key, Integer reduceAmount) {
+            if (StrUtil.isNotEmpty(this.group)) {
+                return this.cached.atomicDecrement(this.group, key, reduceAmount);
+            } else {
+                return this.cached.atomicDecrement(key, reduceAmount);
             }
         }
     }

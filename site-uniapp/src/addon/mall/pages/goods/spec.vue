@@ -95,7 +95,7 @@
                     <u-form labelPosition="left" :model="batchOperation" errorType='toast' labelWidth="160rpx" ref="formRef">
                         <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]">
                             <u-form-item label="价格" prop="prcie" :border-bottom="false">
-                                <u-input v-model="batchOperation.price" border="none" maxlength="40" placeholder="请输入价格"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]" />
+                                <u-input v-model="batchOperation.price" border="none" maxlength="40" placeholder="请输入价格"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]" :disabled="isDisabledPrice()" />
                             </u-form-item>
                         </view>
                         <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]">
@@ -113,14 +113,22 @@
                                 <u-input v-model="batchOperation.cost_price" border="none" maxlength="40" placeholder="请输入成本价"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]" />
                             </u-form-item>
                         </view>
-                        <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]" v-if="goodsType == 'real'">
+                        <view class="h-[88rpx] w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]" v-if="goodsType == 'real'">
                             <u-form-item label="重量" prop="weight" :border-bottom="false">
-                                <u-input v-model="batchOperation.weight" border="none" maxlength="40" placeholder="请输入重量"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]" />
+                                <u-input v-model="batchOperation.weight" border="none" maxlength="40" placeholder="请输入重量"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]">
+                                    <template #suffix>
+                                        <text class="text-[var(--text-color-light9)] text-[26rpx]">kg</text>
+                                    </template>
+                                </u-input>
                             </u-form-item>
                         </view>
-                        <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]" v-if="goodsType == 'real'">
-                            <u-form-item label="体积" prop="weight" :border-bottom="false">
-                                <u-input v-model="batchOperation.weight" border="none" maxlength="40" placeholder="请输入体积"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]" />
+                        <view class="h-[88rpx] w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]" v-if="goodsType == 'real'">
+                            <u-form-item label="体积" prop="volume" :border-bottom="false">
+                                <u-input v-model="batchOperation.volume" border="none" maxlength="40" placeholder="请输入体积"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]">
+                                    <template #suffix>
+                                        <text class="text-[var(--text-color-light9)] text-[26rpx]">m³</text>
+                                    </template>
+                                </u-input>
                             </u-form-item>
                         </view>
                         <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]">
@@ -147,7 +155,7 @@
                         </view>
                         <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]">
                             <u-form-item label="价格" prop="prcie" :border-bottom="false" required>
-                                <u-input v-model="singleOperation.price" border="none" maxlength="40" placeholder="请输入价格"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]" />
+                                <u-input v-model="singleOperation.price" border="none" maxlength="40" placeholder="请输入价格"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]" :disabled="isDisabledPrice()" />
                             </u-form-item>
                         </view>
                         <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]">
@@ -165,14 +173,22 @@
                                 <u-input v-model="singleOperation.cost_price" border="none" maxlength="40" placeholder="请输入成本价"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]" />
                             </u-form-item>
                         </view>
-                        <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]" v-if="goodsType == 'real'">
+                        <view class="h-[88rpx] w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]" v-if="goodsType == 'real'">
                             <u-form-item label="重量" prop="weight" :border-bottom="false">
-                                <u-input v-model="singleOperation.weight" border="none" maxlength="40" placeholder="请输入重量"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]" />
+                                <u-input v-model="singleOperation.weight" border="none" maxlength="40" placeholder="请输入重量"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]">
+                                    <template #suffix>
+                                        <text class="text-[var(--text-color-light9)] text-[26rpx]">kg</text>
+                                    </template>
+                                </u-input>
                             </u-form-item>
                         </view>
-                        <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]" v-if="goodsType == 'real'">
-                            <u-form-item label="体积" prop="weight" :border-bottom="false">
-                                <u-input v-model="singleOperation.weight" border="none" maxlength="40" placeholder="请输入体积"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]" />
+                        <view class="h-[88rpx] w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]" v-if="goodsType == 'real'">
+                            <u-form-item label="体积" prop="volume" :border-bottom="false">
+                                <u-input v-model="singleOperation.volume" border="none" maxlength="40" placeholder="请输入体积"  class="!bg-transparent"  fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]">
+                                    <template #suffix>
+                                        <text class="text-[var(--text-color-light9)] text-[26rpx]">m³</text>
+                                    </template>
+                                </u-input>
                             </u-form-item>
                         </view>
                         <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border border-solid border-[#aaa] border-[1rpx] mb-[30rpx]">
@@ -620,6 +636,10 @@ const handleSingle = (item: any,key: any) => {
     singleOperation.min_price = item.min_price
     singleOperation.max_price = item.max_price
     singleOperation.stock = item.stock
+    if(goodsType.value =='real'){
+    	singleOperation.weight = item.weight
+        singleOperation.volume = item.volume
+    }
     singleOperation.sku_no = item.sku_no
 }
 const saveSingle = () => {

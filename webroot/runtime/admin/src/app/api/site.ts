@@ -57,6 +57,14 @@ export function unlockUser(uid: number) {
     return request.put(`site/user/unlock/${uid}`)
 }
 
+/**
+ * 重置密码
+ * @param id 会员id
+ * @returns
+ */
+export function updateUserResetpwd(params: Record<string, any>) {
+    return request.put(`user/user/resetpwd/${params.uid}`, params, {showSuccessMessage: true});
+}
 
 /***************************************************** 操作日志 **************************************************/
 

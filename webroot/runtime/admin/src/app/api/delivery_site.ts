@@ -7,7 +7,7 @@ import request from '@/utils/request'
  * @returns
  */
 export function getCompanyList(params: Record<string, any>) {
-    return request.get(`delivery/site/delivery/company`, {params})
+    return request.get(`delivery/site/delivery/company`, { params })
 }
 
 /**
@@ -26,7 +26,7 @@ export function getCompanyInfo(company_id: number) {
  * @returns
  */
 export function getShippingTemplatePageList(params: Record<string, any>) {
-    return request.get(`delivery/site/shipping/template`, {params})
+    return request.get(`delivery/site/shipping/template`, { params })
 }
 
 /**
@@ -35,7 +35,7 @@ export function getShippingTemplatePageList(params: Record<string, any>) {
  * @returns
  */
 export function getShippingTemplateList(params: Record<string, any>) {
-    return request.get(`delivery/site/shipping/template/list`, {params})
+    return request.get(`delivery/site/shipping/template/list`, { params })
 }
 
 /**
@@ -53,7 +53,7 @@ export function getShippingTemplateInfo(template_id: number) {
  * @returns
  */
 export function addShippingTemplate(params: Record<string, any>) {
-    return request.post('delivery/site/shipping/template', params, {showErrorMessage: true, showSuccessMessage: true})
+    return request.post('delivery/site/shipping/template', params, { showErrorMessage: true, showSuccessMessage: true })
 }
 
 /**
@@ -74,7 +74,7 @@ export function editShippingTemplate(params: Record<string, any>) {
  * @returns
  */
 export function deleteShippingTemplate(template_id: number) {
-    return request.delete(`delivery/site/shipping/template/${template_id}`, {showErrorMessage: true, showSuccessMessage: true})
+    return request.delete(`delivery/site/shipping/template/${template_id}`, { showErrorMessage: true, showSuccessMessage: true })
 }
 
 /*********************************  电子面单  ***************************************/
@@ -102,7 +102,7 @@ export function getElectronicSheetList(params: Record<string, any>) {
  * @returns
  */
 export function getElectronicSheetInfo(id: number) {
-    return request.get(`delivery/site/electronic_sheet/${ id }`);
+    return request.get(`delivery/site/electronic_sheet/${id}`);
 }
 
 /**
@@ -123,7 +123,7 @@ export function addElectronicSheet(params: Record<string, any>) {
  * @returns
  */
 export function editElectronicSheet(params: Record<string, any>) {
-    return request.put(`delivery/site/electronic_sheet/${ params.id }`, params, {
+    return request.put(`delivery/site/electronic_sheet/${params.id}`, params, {
         showErrorMessage: true,
         showSuccessMessage: true
     })
@@ -135,7 +135,7 @@ export function editElectronicSheet(params: Record<string, any>) {
  * @returns
  */
 export function deleteElectronicSheet(id: number) {
-    return request.delete(`delivery/site/electronic_sheet/${ id }`, {
+    return request.delete(`delivery/site/electronic_sheet/${id}`, {
         showErrorMessage: true,
         showSuccessMessage: true
     })
@@ -147,7 +147,7 @@ export function deleteElectronicSheet(id: number) {
  * @returns
  */
 export function setDefaultElectronicSheet(params: Record<string, any>) {
-    return request.put(`delivery/site/electronic_sheet/setDefault/${ params.id }`, params, {
+    return request.put(`delivery/site/electronic_sheet/setDefault/${params.id}`, params, {
         showErrorMessage: true,
         showSuccessMessage: true
     })
@@ -328,7 +328,7 @@ export function getShopDeliverList(params: Record<string, any>) {
  * @returns
  */
 export function getShopDeliverInfo(staff_id: number) {
-    return request.get(`delivery/site/shop_delivery/staff/${ staff_id }`);
+    return request.get(`delivery/site/shop_delivery/staff/${staff_id}`);
 }
 
 /**
@@ -346,7 +346,7 @@ export function addShopDeliver(params: Record<string, any>) {
  * @returns
  */
 export function editShopDeliver(params: Record<string, any>) {
-    return request.put(`delivery/site/shop_delivery/staff/${ params.deliver_id }`, params, { showSuccessMessage: true })
+    return request.put(`delivery/site/shop_delivery/staff/${params.deliver_id}`, params, { showSuccessMessage: true })
 }
 
 /**
@@ -355,7 +355,7 @@ export function editShopDeliver(params: Record<string, any>) {
  * @returns
  */
 export function deleteShopDeliver(staff_id: number) {
-    return request.delete(`delivery/site/shop_delivery/staff/${ staff_id }`)
+    return request.delete(`delivery/site/shop_delivery/staff/${staff_id}`)
 }
 
 /*********************************  同城配送设置  ***************************************/
@@ -383,7 +383,7 @@ export function setLocal(params: Record<string, any>) {
  * @returns
  */
 export function getInUseLocalDeliveryList(params: Record<string, any>) {
-    return request.get('delivery/site/local_delivery/list', {params})
+    return request.get('delivery/site/local_delivery/list', { params })
 }
 
 /**
@@ -399,7 +399,7 @@ export function getLocalDeliveryServiceList() {
  * @returns
  */
 export function setLocalDeliveryService(params: Record<string, any>) {
-    return request.put(`delivery/site/local_delivery/service/${params.delivery_type}`, params, {showSuccessMessage: true})
+    return request.put(`delivery/site/local_delivery/service/${params.delivery_type}`, params, { showSuccessMessage: true })
 }
 
 /**
@@ -428,7 +428,7 @@ export function getLocalDeliveryStatus() {
  * @returns
  */
 export function getLocalDeliveryList(params: Record<string, any>) {
-    return request.get(`delivery/site/local_delivery/order`, {params})
+    return request.get(`delivery/site/local_delivery/order`, { params })
 }
 
 /**
@@ -437,7 +437,7 @@ export function getLocalDeliveryList(params: Record<string, any>) {
  * @returns
  */
 export function getLocalDeliveryInfo(id: number) {
-    return request.get(`delivery/site/local_delivery/order/${ id }`);
+    return request.get(`delivery/site/local_delivery/order/${id}`);
 }
 
 /**
@@ -446,7 +446,7 @@ export function getLocalDeliveryInfo(id: number) {
  * @returns
  */
 export function getLocalDeliveryCancelReason(params: Record<string, any>) {
-    return request.get('delivery/site/local_delivery/order/cancel_reason', {params})
+    return request.get('delivery/site/local_delivery/order/cancel_reason', { params })
 }
 
 /**
@@ -455,7 +455,7 @@ export function getLocalDeliveryCancelReason(params: Record<string, any>) {
  * @returns
  */
 export function getLocalDeliverySync(id: number) {
-    return request.put(`delivery/site/local_delivery/order/sync/${ id }`);
+    return request.put(`delivery/site/local_delivery/order/sync/${id}`);
 }
 
 /**
@@ -464,7 +464,7 @@ export function getLocalDeliverySync(id: number) {
  * @returns
  */
 export function setLocalDeliveryCancel(params: Record<string, any>) {
-   return request.put(`delivery/site/local_delivery/order/cancel/${ params.id }`, params, { showSuccessMessage: true })
+    return request.put(`delivery/site/local_delivery/order/cancel/${params.id}`, params, { showSuccessMessage: true })
 }
 
 /*********************************  商家配送记录  ***************************************/
@@ -483,7 +483,7 @@ export function getShopDeliveryStatus() {
  * @returns
  */
 export function getShopDeliveryOrderList(params: Record<string, any>) {
-    return request.get(`delivery/site/shop_delivery/order`, {params})
+    return request.get(`delivery/site/shop_delivery/order`, { params })
 }
 
 /**
@@ -492,7 +492,7 @@ export function getShopDeliveryOrderList(params: Record<string, any>) {
  * @returns
  */
 export function getShopDeliveryInfo(id: number) {
-    return request.get(`delivery/site/shop_delivery/order/${ id }`);
+    return request.get(`delivery/site/shop_delivery/order/${id}`);
 }
 
 /**
@@ -501,7 +501,7 @@ export function getShopDeliveryInfo(id: number) {
  * @returns
  */
 export function getShopDeliveryFinish(id: number) {
-    return request.put(`delivery/site/shop_delivery/order/finish/${ id }`);
+    return request.put(`delivery/site/shop_delivery/order/finish/${id}`);
 }
 
 /**
@@ -510,7 +510,7 @@ export function getShopDeliveryFinish(id: number) {
  * @returns
  */
 export function getDeliveryFinish(id: number) {
-    return request.put(`delivery/site/local_delivery/order/finish/${ id }`);
+    return request.put(`delivery/site/local_delivery/order/finish/${id}`);
 }
 
 /**
@@ -519,7 +519,7 @@ export function getDeliveryFinish(id: number) {
  * @returns
  */
 export function setShopDeliveryCancel(params: Record<string, any>) {
-   return request.put(`delivery/site/shop_delivery/order/cancel/${ params.id }`, params, { showSuccessMessage: true })
+    return request.put(`delivery/site/shop_delivery/order/cancel/${params.id}`, params, { showSuccessMessage: true })
 }
 
 /**
@@ -540,7 +540,7 @@ export function getShopDeliveryType() {
  * @returns
  */
 export function getDeliveryStoreList(params: Record<string, any>) {
-    return request.get(`delivery/site/delivery/store`, {params})
+    return request.get(`delivery/site/delivery/store`, { params })
 }
 
 /**
@@ -549,7 +549,7 @@ export function getDeliveryStoreList(params: Record<string, any>) {
  * @returns
  */
 export function getDeliveryStoreListAll(params: Record<string, any>) {
-    return request.get(`delivery/site/delivery/store/list`, {params})
+    return request.get(`delivery/site/delivery/store/list`, { params })
 }
 
 /**
@@ -565,7 +565,7 @@ export function getStorePickUpType() {
  * @returns
  */
 export function getDeliveryStoreDetail(id: number) {
-    return request.get(`delivery/site/delivery/store/${ id }`);
+    return request.get(`delivery/site/delivery/store/${id}`);
 }
 
 /**
@@ -574,7 +574,7 @@ export function getDeliveryStoreDetail(id: number) {
  * @returns
  */
 export function addDeliveryStore(params: Record<string, any>) {
-    return request.post('delivery/site/delivery/store', params, {showErrorMessage: true, showSuccessMessage: true})
+    return request.post('delivery/site/delivery/store', params, { showErrorMessage: true, showSuccessMessage: true })
 }
 
 /**
@@ -591,7 +591,7 @@ export function editDeliveryStore(params: Record<string, any>) {
  * @returns
  */
 export function deleteDeliveryStore(store_id: number) {
-    return request.delete(`delivery/site/delivery/store/${store_id}`, {showErrorMessage: true, showSuccessMessage: true})
+    return request.delete(`delivery/site/delivery/store/${store_id}`, { showErrorMessage: true, showSuccessMessage: true })
 }
 
 /**
@@ -608,4 +608,12 @@ export function editDeliveryStoreStatus(params: Record<string, any>) {
  */
 export function getStoreInit() {
     return request.get(`delivery/site/delivery/store/init`);
+}
+
+/**
+ * 获取商家发货地址
+ * @returns
+ */
+export function getOrderAddressList() {
+    return request.get('delivery/site/order/refund/address')
 }

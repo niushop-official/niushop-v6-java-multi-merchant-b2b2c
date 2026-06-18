@@ -26,6 +26,11 @@ public interface ICoreOrderCreateService {
     OrderCreateResultVo create(OrderCreateDataVo vo);
 
     /**
+     * 提交订单前按当前时间重算满减/满赠
+     */
+    void recheckFullActiveBeforeCreate(OrderCreateDataVo vo);
+
+    /**
      * 查询订单可用优惠券
      * @param orderKey
      */

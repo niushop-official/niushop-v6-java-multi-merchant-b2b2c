@@ -1,11 +1,16 @@
 package com.niu.core.service.admin.sys.impl;
 
 import cn.hutool.json.JSONUtil;
+import com.niu.core.common.component.context.WebAppEnvs;
 import com.niu.core.common.component.context.cache.Cached;
+import com.niu.core.common.component.context.queue.AsyncTask;
+import com.niu.core.common.component.context.queue.AsyncTaskManager;
+import com.niu.core.common.component.context.queue.AsyncTaskQueueManager;
 import com.niu.core.common.exception.AdminException;
-import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.QrcodeUtils;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.file.FileTools;
+import com.niu.core.job.sys.CheckJobService;
 import com.niu.core.service.admin.stat.vo.StatSystemVo;
 import com.niu.core.service.admin.stat.vo.StatVersionVo;
 import com.niu.core.service.admin.sys.ISystemService;
@@ -14,10 +19,12 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -49,6 +56,37 @@ public class SystemServiceImpl implements ISystemService {
     @Override
     public void clearCache() {
         cached.getAllKeys().stream().forEach(key -> cached.remove(key));;
+    }
+
+    @Override
+    public boolean checkJob() {
+        String secret = UUID.randomUUID().toString().replace("-", "");
+        String runtimeDir = WebAppEnvs.get().webRootDownRuntime;
+        FileTools.createDirs(runtimeDir);
+        String file = runtimeDir + secret + ".job";
+        try {
+            AsyncTask asyncTask = AsyncTaskManager.build(CheckJobService.class)
+                    .setMethodName("doJob")
+                    .addMethodParameter("file", file);
+            if (!AsyncTaskQueueManager.delayExecute(asyncTask)) {
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("校验消息队列异常", e);
+            return false;
+        }
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+        File marker = new File(file);
+        if (marker.exists()) {
+            FileTools.deleteFile(file);
+            return true;
+        }
+        return false;
     }
 
     @Override

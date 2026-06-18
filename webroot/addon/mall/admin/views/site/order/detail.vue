@@ -54,7 +54,7 @@
 					<el-form-item :label="t('takerName')" v-if="formData.delivery_type == 'express' || formData.delivery_type == 'local_delivery'">
 						<div class="input-width">{{ formData.taker_name }}</div>
 					</el-form-item>
-					<el-form-item :label="t('takerMobile')" v-if="formData.delivery_type == 'express' || formData.delivery_type == 'local_delivery' || formData.delivery_type == 'virtual'">
+					<el-form-item :label="t('takerMobile')" v-if="formData.delivery_type == 'express' || formData.delivery_type == 'local_delivery' || (formData.has_goods_types.includes('virtual') && formData.virtual_verify_mobile == 1)">
 						<div class="input-width">{{ formData.taker_mobile }}</div>
 					</el-form-item>
 					<el-form-item :label="t('takerFullAddress')" v-if="formData.delivery_type == 'express' || formData.delivery_type == 'local_delivery'">
@@ -72,6 +72,13 @@
 						</el-form-item>
 						<el-form-item :label="t('tradeTime')">
 							<div class="input-width">{{ formData.store.trade_time }}</div>
+						</el-form-item>
+					</template>
+					<template v-if="formData.delivery_type == 'virtual'">
+						<el-form-item :label="t('发货内容')" v-if="formData.sub_delivery_type == 'virtual'">
+							<div class="input-width">
+								<span class="cursor-pointer text-primary" @click="viewDeliveryContent()">{{ t('查看') }}</span>
+							</div>
 						</el-form-item>
 					</template>
 				</div>
@@ -126,6 +133,18 @@
 					<el-form-item :label="t('mallRefundCouponMoney')">
 						<div class="input-width">{{ formData.mall_refund_coupon_money }}</div>
 					</el-form-item>
+					<el-form-item :label="t('积分抵扣金额')">
+						<div class="input-width">{{ formData.point_deduct_money }}</div>
+					</el-form-item>
+					<el-form-item :label="t('返还积分抵扣金额')">
+						<div class="input-width">{{ formData.refund_point_deduct_money }}</div>
+					</el-form-item>
+					<el-form-item :label="t('使用积分')">
+						<div class="input-width">{{ formData.use_point }}</div>
+					</el-form-item>
+					<el-form-item :label="t('返还抵扣积分')">
+						<div class="input-width">{{ formData.refund_deduct_point }}</div>
+					</el-form-item>
 					<el-form-item v-if="formData.is_install_fenxiao" :label="t('shopCommission')">
 						<div class="input-width">{{ formData.shop_commission }}</div>
 					</el-form-item>
@@ -137,6 +156,9 @@
 					</el-form-item>
 					<el-form-item v-if="formData.supply_refund_money" :label="t('supplyRefundMoney')">
 						<div class="input-width">{{ formData.supply_refund_money }}</div>
+					</el-form-item>
+					<el-form-item :label="t('结算状态')">
+						<div class="input-width">{{ formData.settlement_status_name }}</div>
 					</el-form-item>
 				</div>
 
@@ -155,9 +177,9 @@
 						<template #default="{ row }">
 							<div class="flex">
 								<div class="flex items-center shrink-0">
-									<img class="w-[50px] h-[50px] mr-[10px]" :src="img(row.goods_image)" />
+									<img class="w-[50px] h-[50px] mr-[10px]" :src="img(row.goods_image_thumb_small)" />
 								</div>
-								<div class="flex flex-col">
+								<div class="flex flex-col items-start">
 									<p :title="row.goods_name" class="multi-hidden text-[14px] cursor-pointer">{{ row.goods_name }}</p>
 									<span class="text-[12px] text-[#999]">{{ row.sku_name }}</span>
 								</div>
@@ -193,6 +215,26 @@
                         </template>
                     </el-table-column>
 				</el-table>
+				<div class="py-[20px]" v-if="formData.order_gift_goods.length">
+					<h3 class="panel-title">{{ t('赠品') }}</h3>
+					<el-table :data="formData.order_gift_goods" size="large">
+						<el-table-column :label="t('goodsName')" align="left" min-width="300">
+							<template #default="{ row }">
+								<div class="flex">
+									<div class="flex items-center shrink-0">
+										<img class="w-[50px] h-[50px] mr-[10px]" :src="img(row.goods_image_thumb_small)" />
+									</div>
+									<div class="flex flex-col items-start">
+										<p :title="row.goods_name" class="multi-hidden text-[14px] cursor-pointer">{{ row.goods_name }}</p>
+										<span class="text-[12px] text-[#999]">{{ row.sku_name }}</span>
+										<div class="px-[4px] text-[12px] text-[#fff] rounded-[4px] bg-primary leading-[18px]">赠品</div>
+									</div>
+								</div>
+							</template>
+						</el-table-column>
+						<el-table-column prop="num" :label="t('数量')" min-width="150" />
+					</el-table>
+				</div>
 				<div class="py-[12px] px-[16px] border-b border-color flex justify-end">
 					<div class="w-[310px] flex flex-col text-right">
 						<div class="flex mb-[10px]">
@@ -200,12 +242,36 @@
 							<div class="text-base flex-1 pl-[30px]">{{ formData.goods_money }}</div>
 						</div>
 						<div class="flex mb-[10px]">
-							<div class="text-base flex-1">{{ t('discountMoney') }}</div>
-							<div class="text-base flex-1 pl-[30px]">{{ formData.discount_money }}</div>
+							<div class="text-base flex-1 flex items-center justify-end">
+								<span>{{ t('discountMoney') }}</span>
+                                <el-tooltip class="box-item" effect="light" placement="top" v-if="Number(formData.discount_details.shop_discount.discount_total.discount_money) && formData.discount_details.shop_discount.discount_list.length">
+                                    <template #content>
+                                        <div v-for="(item, index) in formData.discount_details.shop_discount.discount_list" :key="index">
+											{{ item.discount_type_name }}：-{{ item.discount_money }}
+                                        </div>
+                                    </template>
+                                    <el-icon color="#666">
+                                        <QuestionFilled />
+                                    </el-icon>
+                                </el-tooltip>
+                            </div>
+							<div class="text-base flex-1 pl-[30px]">{{ formData.discount_details.shop_discount.discount_total.discount_money }}</div>
 						</div>
 						<div class="flex mb-[10px]">
-							<div class="text-base flex-1">{{ t('mallDiscountMoney') }}</div>
-							<div class="text-base flex-1 pl-[30px]">{{ formData.mall_discount_money }}</div>
+							<div class="text-base flex-1 flex items-center justify-end">
+								<span>{{ t('mallDiscountMoney') }}</span>
+                                <el-tooltip class="box-item" effect="light" placement="top" v-if="Number(formData.discount_details.platform_discount.discount_total.discount_money) && formData.discount_details.platform_discount.discount_list.length">
+                                    <template #content>
+                                        <div class="flex items-center" v-for="(item, index) in formData.discount_details.platform_discount.discount_list" :key="index">
+											{{ item.discount_type_name }}：-{{ item.discount_money }}
+                                        </div>
+                                    </template>
+                                    <el-icon color="#666">
+                                        <QuestionFilled />
+                                    </el-icon>
+                                </el-tooltip>
+                            </div>
+							<div class="text-base flex-1 pl-[30px]">{{ formData.discount_details.platform_discount.discount_total.discount_money }}</div>
 						</div>
 						<div class="flex mb-[10px]">
 							<div class="text-base flex-1">{{ t('deliveryMoney') }}</div>
@@ -259,9 +325,10 @@
 		<delivery-action ref="deliveryActionDialog" @complete="setFormData(orderId)" />
 		<order-notes ref="orderNotesDialog" @complete="setFormData(orderId)" />
 		<delivery-package ref="packageDialog" />
-		<order-edit-address ref="orderEditAddressDialog" @complete="loadOrderList"/>
+		<order-edit-address ref="orderEditAddressDialog" @complete="setFormData(orderId)"/>
         <shop-active-refund ref="shopActiveRefundDialog" @complete="setFormData(orderId)" />
         <form-detail ref="formDetailDialog" />
+        <delivery-content ref="deliveryContentDialog" />
 	</div>
 </template>
 
@@ -278,10 +345,11 @@ import deliveryPackage from '@/addon/mall/views/site/order/components/delivery-p
 import ShopActiveRefund from '@/addon/mall/views/site/order/components/shop-active-refund.vue'
 import AdjustMoney from '@/addon/mall/views/site/order/components/adjust-money.vue'
 import FormDetail from '@/addon/mall/views/site/order/components/form-detail.vue'
+import DeliveryContent from '@/addon/mall/views/site/order/components/delivery-content.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { img } from '@/utils/common'
 import { getFormRecordsInfo } from '@/app/api/diy_form_site'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { cloneDeep } from 'lodash-es'
 
 const route = useRoute()
@@ -298,13 +366,15 @@ const formDetailEvent = (data: any) => {
     formDetailDialog.value.show(data)
 }
 
+// 发货内容弹框
+const deliveryContentDialog: Record<string, any> | null = ref(null)
+
 const setFormData = async (orderId: number = 0) => {
     loading.value = true
     formData.value = null
     try {
         const { data } = await getOrderDetail(orderId)
         formData.value = data
-
         let refundOrderNum = 0
         formData.value.form_details = null // 订单表单详情
         formData.value.order_goods.forEach((orderItem: any) => {
@@ -462,6 +532,14 @@ const refundEventLink = (row:any) => {
         query: { refund_id: row.refund_id }
     })
     window.open(routeUrl.href, '_blank')
+}
+
+/**
+ * 查看发货内容
+ */
+const viewDeliveryContent = () => {
+    deliveryContentDialog.value.setFormData(formData.value)
+    deliveryContentDialog.value.showDialog = true
 }
 
 </script>

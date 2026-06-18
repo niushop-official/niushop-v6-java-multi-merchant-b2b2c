@@ -9,6 +9,8 @@ import { useLogin } from '@/hooks/useLogin'
 import { useShare } from '@/hooks/useShare'
 
 onLaunch((data: any) => {
+    //解决店铺首页清除历史缓存
+    uni.removeStorageSync('diyPageBlank');
     // 添加初始化拦截器
     launchInterceptor()
     const systemStore = useSystemStore()
@@ -110,6 +112,8 @@ onLaunch((data: any) => {
         // 判断是否已登录
         if (getToken()) {
             const memberStore: any = useMemberStore()
+
+            memberStore.addVisit()
 
             await memberStore.setToken(getToken(), () => {
                 if (!uni.getStorageSync('openid')) {

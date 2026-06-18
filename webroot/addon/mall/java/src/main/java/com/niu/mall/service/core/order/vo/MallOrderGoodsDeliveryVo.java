@@ -52,4 +52,5 @@ public class MallOrderGoodsDeliveryVo {
 
     private BigDecimal weight; //商品规格重量
     private String unit; //单位
+    private String goodsConfig; // 商品对应配置（下单快照）
 }

@@ -9,7 +9,9 @@
       "filePath": "文件存储路径",
       "fileSize": "文件大小",
       "download": "下载",
-      "exportDeleteTips":"确定要删除该导出报表吗？",
+      "exportDeleteTips": "确定要删除该导出报表吗？",
       "startDate": "开始时间",
-	"endDate": "结束时间"
+      "endDate": "结束时间",
+      "checkCause": "查看失败原因",
+      "retryExport": "重新执行"
 }

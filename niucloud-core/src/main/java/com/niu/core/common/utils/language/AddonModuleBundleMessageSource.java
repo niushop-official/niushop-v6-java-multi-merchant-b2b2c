@@ -33,9 +33,10 @@ public class AddonModuleBundleMessageSource {
             boolean loadResult = false;
             try {
                 properties = AddonModuleContext.readResourceAsStreamToProperties(addonModule, relativePath + "_" + local + ".properties");
-                loadResult = true;
+                loadResult = properties != null && !properties.isEmpty();
             } catch (Exception e) {
-                e.printStackTrace();
+                log.debug("国际化文件加载失败，跳过： {}==>{}_{}.properties - {}",
+                        addonModule, relativePath, local, e.getMessage());
             }
             if (loadResult) {
                 log.info("国际化文件加载： " + addonModule + "==>" + relativePath + "_" + local + ".properties");

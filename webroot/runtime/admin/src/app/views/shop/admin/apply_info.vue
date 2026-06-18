@@ -7,7 +7,7 @@
             <el-form :model="detail" label-width="100px" ref="formRef" class="page-form" v-loading="loading"
                 label-position="left">
                 <el-card class="box-card !border-none" shadow="never">
-                    <el-row class="pl-[15px] mb-[20px]">
+                    <el-row class="pl-[15px]">
                         <el-col :span="8">
                             <el-form-item :label="t('siteName')">
                                 <span class="text-[14px] text-[#666666]">
@@ -78,7 +78,7 @@
                                 </span>
                             </el-form-item>
                         </el-col>
-                        <el-col :span="8" v-if="detail.refuse_reason">
+                        <el-col :span="8" v-if="detail.refuse_reason && detail.status == -1">
                             <el-form-item :label="t('refuseReason')">
                                 <span class="text-[14px] text-[#666666]">
                                     {{ detail.refuse_reason || '' }}
@@ -105,13 +105,22 @@
                         </el-col>
                     </el-row>
                 </el-card>
+                <el-card class="box-card !border-none" shadow="never">
+                    <el-row class="pl-[15px]">
+                        <el-col :span="8" v-for="(field, fieldKey) in detail.form_info?.recordsFieldList || []" :key="fieldKey">
+                             <el-form-item  :label="field.field_name" min-width="200">
+                                <component :is="detail.form_info?.recordsFieldList[fieldKey].detailComponent" :data="detail.form_info?.recordsFieldList[fieldKey]" />
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-card>
             </el-form>
         </el-card>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, defineAsyncComponent } from 'vue'
 import { t } from '@/lang'
 import { useRoute, useRouter } from 'vue-router'
 import { getShopApplyInfo } from '@/app/api/shop_admin'
@@ -124,11 +133,20 @@ const pageName = route.meta.title
 const apply_id: number = parseInt(route.query.id || 0)
 const loading = ref(false)
 const detail = ref({})
+const modules: any = import.meta.glob('@/**/*.vue')
 
 const getShopApplyInfoFn = () => {
     loading.value = true
     getShopApplyInfo(apply_id).then(({ data }) => {
         detail.value = data
+        const recordsFieldList = detail.value.form_info.recordsFieldList
+        for (const key in recordsFieldList) {
+            if (modules[recordsFieldList[key].detailComponent]) {
+                recordsFieldList[key].detailComponent = defineAsyncComponent(modules[recordsFieldList[key].detailComponent])
+            } else {
+                delete recordsFieldList[key]
+            }
+        }
         loading.value = false
     }).catch()
 }

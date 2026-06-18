@@ -24,18 +24,6 @@
                             <el-checkbox :label="item.service_id" v-for="(item, index) in serviceOptions" :key="index">{{ item.service_name }}</el-checkbox>
                         </el-checkbox-group>
                     </el-form-item>
-                    <!-- 虚拟销量 -->
-                    <el-form-item v-if="activeMenu === 'virtual_sale_num'" :label="t('virtualSaleNum')" prop="virtual_sale_num">
-                        <div>
-                            <el-input v-model.trim="formData.virtual_sale_num"
-                                :placeholder="t('virtualSaleNumPlaceholder')" class="input-width" show-word-limit
-                                maxlength="8" clearable @keyup="filterNumber($event)"
-                                @blur="formData.virtual_sale_num = $event.target.value">
-                                <template #append>{{ formData.unit ? formData.unit : '件' }}</template>
-                            </el-input>
-                            <div class="mt-[10px] text-[12px] text-[#999] leading-[20px]">{{ t('virtualSaleNumDesc') }}</div>
-                        </div>
-                    </el-form-item>
                     <!-- 商品类目 -->
                      <el-form-item v-if="activeMenu === 'plat_category'" prop="mall_goods_category" :label="t('goodsMallCategory')">
                         <el-cascader v-model="formData.mall_goods_category" :options="goodsMallCategoryOptions"

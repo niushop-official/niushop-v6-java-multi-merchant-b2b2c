@@ -2,183 +2,301 @@ package com.niu.core.service.admin.shop.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
-import java.io.Serializable;
-
 import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.enums.shop.ShopStatusEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.service.admin.site.vo.SiteAdminVo;
 import lombok.Data;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
+
 /**
-* 店铺扩展表列表
-*/
+ * 店铺扩展表列表
+ */
 @Data
 public class SiteShopListVo implements Serializable {
 
-private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-        /** 支付宝账号 */
-        private String alipayAccountNo;
+    /**
+     * 支付宝账号
+     */
+    private String alipayAccountNo;
 
-        /** 支付宝所属人姓名 */
-        private String alipayName;
+    /**
+     * 支付宝所属人姓名
+     */
+    private String alipayName;
 
-        /** 支付宝收款码图片 */
-        private String alipayPaymentCode;
+    /**
+     * 支付宝收款码图片
+     */
+    private String alipayPaymentCode;
 
-        /** 提现账号对应姓名 */
-        private String bankAccountName;
+    /**
+     * 提现账号对应姓名
+     */
+    private String bankAccountName;
 
-        /** 提现银行账号 */
-        private String bankAccountNo;
+    /**
+     * 提现银行账号
+     */
+    private String bankAccountNo;
 
-        /** 银行地址 */
-        private String bankAddress;
+    /**
+     * 银行地址
+     */
+    private String bankAddress;
 
-        /** 银行名称 */
-        private String bankName;
+    /**
+     * 银行名称
+     */
+    private String bankName;
 
-        /** 提现账户类型（1银行卡，2支付宝，3微信，4微信零钱） */
-        private Integer bankType;
+    /**
+     * 提现账户类型（1银行卡，2支付宝，3微信，4微信零钱）
+     */
+    private Integer bankType;
 
-        /** 营业执照 */
-        private String businessLicense;
+    /**
+     * 营业执照
+     */
+    private String businessLicense;
 
-        /** 商家分类id */
-        private Integer categoryId;
+    /**
+     * 商家分类id
+     */
+    private Integer categoryId;
 
-        private String categoryName;
+    private String categoryName;
 
 
-        /** 佣金比率 */
-        private BigDecimal commissionRate;
+    /**
+     * 佣金比率
+     */
+    private BigDecimal commissionRate;
 
-        /** 联系电话 */
-        private String contactMobile;
+    /**
+     * 联系电话
+     */
+    private String contactMobile;
 
-        /** 店铺关注数 */
-        private Integer followNumber;
+    /**
+     * 店铺关注数
+     */
+    private Integer followNumber;
 
-        /** 主键 */
-        private Integer id;
+    /**
+     * 主键
+     */
+    private Integer id;
 
-        /** 是否推荐 */
-        private Integer isRecommend;
+    /**
+     * 是否推荐
+     */
+    private Integer isRecommend;
 
-        /** 是否自营 */
-        private Integer isSelf;
+    /**
+     * 是否自营
+     */
+    private Integer isSelf;
 
-        /** 当前余额 */
-        private BigDecimal money;
+    /**
+     * 当前余额
+     */
+    private BigDecimal money;
 
-        /** 提现中 */
-        private BigDecimal moneyCashOuting;
+    /**
+     * 提现中
+     */
+    private BigDecimal moneyCashOuting;
 
-        /** 累计结算 */
-        private BigDecimal moneyGet;
+    /**
+     * 累计结算
+     */
+    private BigDecimal moneyGet;
 
-        /** 保证金 */
-        private BigDecimal shopDeposit;
+    /**
+     * 保证金
+     */
+    private BigDecimal shopDeposit;
 
-        /** 站点id */
-        private Integer siteId;
+    /**
+     * 站点id
+     */
+    private Integer siteId;
 
-        /** 微信账号 */
-        private String wechatAccountNo;
+    /**
+     * 微信账号
+     */
+    private String wechatAccountNo;
 
-        /** 微信所属人姓名 */
-        private String wechatName;
+    /**
+     * 微信所属人姓名
+     */
+    private String wechatName;
 
-        /** 微信收款码图片 */
-        private String wechatPaymentCode;
+    /**
+     * 微信收款码图片
+     */
+    private String wechatPaymentCode;
 
-        /** 供货商平台手续费比率 */
-        private BigDecimal supplyServiceRate = new BigDecimal("0.00");
+    /**
+     * 供货商平台手续费比率
+     */
+    private BigDecimal supplyServiceRate = new BigDecimal("0.00");
 
-        /** 站点名称 */
-        private String siteName;
-        /** 分组ID(0:不限制) */
-        private Integer groupId;
-        /** 站点套餐名称 */
-        private String groupName;
-        /** 关键字 */
-        private String keywords;
-        /** 站点类型 */
-        private String appType;
-        /** 站点logo */
-        private String logo;
-        /** 简介 */
-        private String desc;
-        /** 状态 1-正常 0-体验期 2-已到期 */
-        private Integer status;
-        /** 纬度 */
-        private String latitude;
-        /** 经度 */
-        private String longitude;
-        /** 省 */
-        private Integer provinceId;
-        /** 市 */
-        private Integer cityId;
-        /** 区 */
-        private Integer districtId;
-        /** 详细地址 */
-        private String address;
-        /** 完整地址 */
-        private String fullAddress;
-        /** 客服电话 */
-        private String phone;
-        /** 营业时间 */
-        private String businessHours;
+    /**
+     * 站点名称
+     */
+    private String siteName;
+    /**
+     * 分组ID(0:不限制)
+     */
+    private Integer groupId;
+    /**
+     * 站点套餐名称
+     */
+    private String groupName;
+    /**
+     * 关键字
+     */
+    private String keywords;
+    /**
+     * 站点类型
+     */
+    private String appType;
+    /**
+     * 站点logo
+     */
+    private String logo;
+    /**
+     * 简介
+     */
+    private String desc;
+    /**
+     * 状态 1-正常 0-体验期 2-已到期
+     */
+    private Integer status;
+    /**
+     * 纬度
+     */
+    private String latitude;
+    /**
+     * 经度
+     */
+    private String longitude;
+    /**
+     * 省
+     */
+    private Integer provinceId;
+    /**
+     * 市
+     */
+    private Integer cityId;
+    /**
+     * 区
+     */
+    private Integer districtId;
+    /**
+     * 详细地址
+     */
+    private String address;
+    /**
+     * 完整地址
+     */
+    private String fullAddress;
+    /**
+     * 客服电话
+     */
+    private String phone;
+    /**
+     * 营业时间
+     */
+    private String businessHours;
 
-        /** 营业状态 */
-        private Integer businessStatus;
+    /**
+     * 营业状态
+     */
+    private Integer businessStatus;
 
-        /** 营业状态 */
-        private String businessStatusName;
-        /** 创建时间 */
-        @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
-        private Long createTime;
-        /** 到期时间（如果是0 无限期） */
-        @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
-        private Long expireTime;
-        /** 前台名称*/
-        private String frontEndName;
-        /** 前台logo */
-        private String frontEndLogo;
-        /** 前台icon */
-        private String frontEndIcon;
-        /** 网站图标 */
-        private String icon;
-        /** 最大会员码值 */
-        private String memberNo;
-        /** 站点应用 */
-        @JsonSerialize(using = BeanJsonSerializer.StringToJSONObjectSerializer.class)
-        private String app;
-        /** 站点包含的插件 */
-        @JsonSerialize(using = BeanJsonSerializer.StringToJSONObjectSerializer.class)
-        private String addons;
+    /**
+     * 营业状态
+     */
+    private String businessStatusName;
+    /**
+     * 创建时间
+     */
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long createTime;
+    /**
+     * 到期时间（如果是0 无限期）
+     */
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long expireTime;
+    /**
+     * 前台名称
+     */
+    private String frontEndName;
+    /**
+     * 前台logo
+     */
+    private String frontEndLogo;
+    /**
+     * 前台icon
+     */
+    private String frontEndIcon;
+    /**
+     * 网站图标
+     */
+    private String icon;
+    /**
+     * 最大会员码值
+     */
+    private String memberNo;
+    /**
+     * 站点应用
+     */
+    @JsonSerialize(using = BeanJsonSerializer.StringToJSONObjectSerializer.class)
+    private String app;
+    /**
+     * 站点包含的插件
+     */
+    @JsonSerialize(using = BeanJsonSerializer.StringToJSONObjectSerializer.class)
+    private String addons;
 
-        private String siteAddons;
-        /** 站点已执行初始化方法的插件 */
-        private String initalledAddon;
-        /** 站点域名 */
-        private String siteDomain;
-        /** 站点管理员 */
-        private SiteAdminVo admin;
-        /** 状态名称 */
-        private String statusName;
+    private String siteAddons;
+    /**
+     * 站点已执行初始化方法的插件
+     */
+    private String initalledAddon;
+    /**
+     * 站点域名
+     */
+    private String siteDomain;
+    /**
+     * 站点管理员
+     */
+    private SiteAdminVo admin;
+    /**
+     * 状态名称
+     */
+    private String statusName;
 
-        /** 应用名称 */
-        private String appName;
+    /**
+     * 应用名称
+     */
+    private String appName;
 
-        private SiteShop shop;
+    private SiteShop shop;
 
-        public String getStatusName() {
-                return SiteStatusEnum.getNameByCode(this.status);
-        }
-        public String getBusinessStatusName() {
-                return ShopStatusEnum.getNameByKey(this.status);
-        }
+    public String getStatusName() {
+        return SiteStatusEnum.getNameByCode(this.status);
+    }
+
+    public String getBusinessStatusName() {
+        return ShopStatusEnum.getNameByKey(this.businessStatus);
+    }
 
 }

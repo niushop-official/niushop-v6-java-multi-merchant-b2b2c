@@ -30,7 +30,7 @@ public class MallVirtualGoodsInitVo implements Serializable {
 
     private String[] disableEditArea = new String[]{};
 
-    private String[] disableEditField  = new String[]{};
+    private String[] disableEditField = new String[]{};
 
     @Data
     public static class GoodsInfo {
@@ -62,7 +62,9 @@ public class MallVirtualGoodsInitVo implements Serializable {
         private Integer deliveryTemplateId;  // 运费模板
         private Object supplyId;  // 供应商id
         private Integer supplyGoodsId;
-        /** 供应商设置同步，1.开启，0.关闭 */
+        /**
+         * 供应商设置同步，1.开启，0.关闭
+         */
         private Integer supplySync;
         @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
         private String attrIds;  // 商品参数id
@@ -85,17 +87,56 @@ public class MallVirtualGoodsInitVo implements Serializable {
         private String pageTitle = "";
         private Integer supplySyncShow = 0;
 
-        /**商品平台分类*/
+        /**
+         * 商品平台分类
+         */
         private Integer goodsMallCategory;
-        /** 自定义详情 */
+        /**
+         * 自定义详情
+         */
         private Integer diyDetailId;
 
         private Integer virtualVerifyMobile;
-        /** 供应商是否有更新 */
+        /**
+         * 供应商是否有更新
+         */
         private Integer isSupplyUpdate;
+
+        /**
+         * 积分抵扣类型 custom:自定义 site:继承店铺
+         */
+        private String pointDeductType;
+
+        /**
+         * 积分抵扣比例
+         */
+        private BigDecimal pointDeductRate;
+        //	定时上架状态
+        private Integer timerOnStatus;
+        //定时上架时间
+        @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+        private Long timerOnTime;
+        //定时下架状态
+        private Integer timerOffStatus;
+        //定时下架时间
+        @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+        private Long timerOffTime;
+        //支持的支付方式
+        private List<String> supportPayType;
+        //是否允许退款
+        private Integer isEnableRefund;
+        //虚拟商品发货方式 auto/manual/verify
+        private String virtualDeliveryType;
+        //虚拟商品自动发货内容
+        private String virtualDeliveryContent;
+        //虚拟商品退款设置类型
+        private Integer virtualRefund;
+        //虚拟商品退款有效天数
+        private Integer virtualRefundDay;
     }
+
     @Data
-    public static class MallGoodsAttrVo{
+    public static class MallGoodsAttrVo {
 
         private Object attr_child_value_id;
 
@@ -109,6 +150,7 @@ public class MallVirtualGoodsInitVo implements Serializable {
 
         private String type;
     }
+
     @Data
     public static class SkuInfo {
         private Integer skuId;  // 商品sku_id

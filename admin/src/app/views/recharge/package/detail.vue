@@ -24,16 +24,16 @@
                                 </el-form-item>
                             </el-col>
                             <el-col :span="8">
-                                <el-form-item :label="t('price')">
+                                <el-form-item :label="t('faceValue')">
                                     <div class="input-width">
-                                        <span>{{ formData.price }}</span>
+                                        <span>{{ formData.face_value }}</span>
                                     </div>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="8">
-                                <el-form-item :label="t('giveMoney')">
+                                <el-form-item :label="t('price')">
                                     <div class="input-width">
-                                        <span>{{ formData.give_money }}</span>
+                                        <span>{{ formData.buy_price }}</span>
                                     </div>
                                 </el-form-item>
                             </el-col>

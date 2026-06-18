@@ -31,7 +31,8 @@ interface System {
         wechatOptions: any
         weappOptions: any
     },
-    copyright:any
+    copyright:any,
+    siteTabbarInfo: any
 }
 
 const useSystemStore = defineStore('system', {
@@ -69,7 +70,8 @@ const useSystemStore = defineStore('system', {
                 wechatOptions: {},
                 weappOptions: {}
             },
-            copyright:null
+            copyright:null,
+            siteTabbarInfo: {} // 底部导航信息
         }
     },
     actions: {
@@ -187,9 +189,8 @@ const useSystemStore = defineStore('system', {
                 site_id: siteId || 0
             }).then((res: any) => {
                 if (res.data) {
-                    let data = res.data;
-                   
-                    if (callback) callback(data)
+                    this.siteTabbarInfo[siteId] = res.data[0]
+                    if (callback) callback(res.data[0])
                 }
             })
 

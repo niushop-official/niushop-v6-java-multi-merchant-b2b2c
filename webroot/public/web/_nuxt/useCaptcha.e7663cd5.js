@@ -1,0 +1,1 @@
+import{i as r,c6 as n,__tla as _}from"./entry.def2de69.js";let c,l=Promise.all([(()=>{try{return _}catch{}})()]).then(async()=>{c=function(t){const e=r("");return{image:e,refresh:async()=>{try{await n().then(a=>{a.code==1&&(t.captcha_key=a.data.captcha_key,t.captcha_code="",e.value=a.data.img.replace(/\r\n/g,""))})}catch{}}}}});export{l as __tla,c as u};

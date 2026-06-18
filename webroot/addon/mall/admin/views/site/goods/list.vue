@@ -5,9 +5,10 @@
 
             <div class="flex justify-between items-center">
                 <span class="text-page-title">{{ pageName }}</span>
-                <el-button type="primary" @click="addEvent">
-                    {{ t('addGoods') }}
-                </el-button>
+                <div>
+                    <el-button type="primary" @click="router.push('/mall/goods/import')">{{ t('商品导入') }}</el-button>
+                    <el-button type="primary" @click="addEvent">{{ t('addGoods') }}</el-button>
+                </div>
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
@@ -57,13 +58,14 @@
                     <el-form-item>
                         <el-button type="primary" @click="loadGoodsList()">{{ t('search') }}</el-button>
                         <el-button @click="resetForm(searchFormRef)">{{ t('reset') }}</el-button>
+                        <el-button type="primary" @click="exportEvent">{{ t('export') }}</el-button>
                     </el-form-item>
                 </el-form>
             </el-card>
 
             <div class="mt-[10px]">
 
-                <el-tabs v-model="goodsTable.searchParam.status" class="goods-tabs" @tab-click="tabHandleClick">
+                <el-tabs v-model="goodsTable.searchParam.status_type" class="goods-tabs" @tab-click="tabHandleClick">
                     <el-tab-pane :label="t('all')" name=""></el-tab-pane>
                     <template v-for="item in goodsStatus" :key="item.value">
                         <el-tab-pane v-if="item.value != -4" :label="item.label" :name="item.value"></el-tab-pane>
@@ -81,7 +83,7 @@
                     <el-dropdown class="mr-[20px] !text-primary w-[125px]">
                         <span class="el-dropdown-link">
                             <span>{{ currentSelectMode === 'all' ? t('全选所有页') : t('全选当前页')}}</span>(<span class="text-center inline-block">{{ selectedCount }}</span>)
-                            <el-icon> 
+                            <el-icon>
                                 <arrow-down />
                             </el-icon>
                         </span>
@@ -97,8 +99,8 @@
                         </template>
                     </el-dropdown>
                     <!-- <el-checkbox v-model="toggleCheckbox" size="large" class="px-[14px]" @change="toggleChange" :indeterminate="isIndeterminate" /> -->
-                    <el-button @click="batchGoodsStatus(1)" size="small" v-if="goodsTable.searchParam.status != '1'">{{ t('batchOnGoods') }}</el-button>
-                    <el-button @click="batchGoodsStatus(0)" size="small" v-if="goodsTable.searchParam.status != '0'">{{ t('batchOffGoods') }}</el-button>
+                    <el-button @click="batchGoodsStatus(1)" size="small" v-if="goodsTable.searchParam.status_type != '1'">{{ t('batchOnGoods') }}</el-button>
+                    <el-button @click="batchGoodsStatus(0)" size="small" v-if="goodsTable.searchParam.status_type != '0'">{{ t('batchOffGoods') }}</el-button>
                     <el-button @click="batchDeleteGoods" size="small">{{ t('batchDeleteGoods') }}</el-button>
                     <el-button @click="batchSetGoods" size="small">{{ t('batchSetting') }}</el-button>
                 </div>
@@ -172,10 +174,14 @@
                         <template #default="{ row }">
                             <div v-if="row.status == 1">{{ t('statusOn') }}</div>
                             <div v-if="row.status == 0">{{ t('statusOff') }}</div>
-                            <div v-if="row.status == -1">{{ t('waitAudit') }}</div>
-                            <div class='text-primary cursor-pointer' v-if="row.status == -2" @click="handleAuditRefuse(row.audit_reason)">{{ t('auditrefuse') }}</div>
                             <div v-if="row.status == -3">{{ t('waitOffLine') }}</div>
                             <div v-if="row.status == 0 && row.is_supply_update == 1" class="text-primary">货源更新</div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="audit_status_name" :label="t('auditStatus')" min-width="100" >
+                        <template #default="{ row }">
+                            <div class='text-primary cursor-pointer' v-if="row.audit_status == -1" @click="handleAuditRefuse(row.audit_reason)">{{ row.audit_status_name }}</div>
+                            <div v-else>{{ row.audit_status_name }}</div>
                         </template>
                     </el-table-column>
                     <el-table-column prop="sort"  min-width="120" sortable="custom"  class-name="sort-column">
@@ -251,6 +257,8 @@
 
         <!-- 批量设置弹出框 -->
         <goods-batch-settings-popup ref="goodsBatchSettingPopupRef" @load="loadGoodsListReset" />
+
+        <export-sure ref="exportSureDialog" v-model:show="flag" type="shop_goods" isSite="true" :searchParam="goodsTable.searchParam" @close="handleClose" />
     </div>
 </template>
 
@@ -268,7 +276,7 @@ import goodsSpreadPopup from '@/addon/mall/views/site/goods/components/goods-spr
 import supplyDetailPopup from '@/addon/mall/views/site/goods/components/supply-detail-popup.vue'
 import goodsBatchSettingsPopup from '@/addon/mall/views/site/goods/components/goods-batch-settings-popup.vue'
 import { getCategoryTree, getBrandList } from '@/app/api/basic_site'
-import { getGoodsPageList, getGoodsStatus, getLabelList, editGoodsSort, editGoodsStatus, copyGoods, deleteGoods, getGoodsType, getGoodsSource } from '@/addon/mall/api/site/goods'
+import { getGoodsPageList, getGoodsStatusType, getLabelList, editGoodsSort, editGoodsStatus, copyGoods, deleteGoods, getGoodsType, getGoodsSource } from '@/addon/mall/api/site/goods'
 import { getMemberLevelAll } from '@/app/api/member'
 import spreadPopup from '@/components/spread-popup/index.vue'
 import userStore from '@/stores/modules/user'
@@ -298,7 +306,7 @@ const goodsTable = reactive({
         end_sale_num: '',
         start_price: '',
         end_price: '',
-        status: Object.keys(route.query).length ? (route.query.status === '' ? route.query.status : parseInt(route.query.status)) : '',
+        status_type: Object.keys(route.query).length ? (route.query.status === '' ? route.query.status : parseInt(route.query.status)) : '',
         order: '',
         sort: ''
     }
@@ -333,7 +341,7 @@ const labelOptions: any = reactive([])
 const goodsSource: any = reactive({})
 
 const getGoodsStatusFn = () => {
-    getGoodsStatus().then((res) => {
+    getGoodsStatusType().then((res) => {
         const data = res.data
         if (data) {
             Object.assign(goodsStatus, data)
@@ -403,7 +411,7 @@ const getBrandListFn = (query = '') => {
 
 // 当前选中tab页面
 const tabHandleClick = (tab: any, event: Event) => {
-    goodsTable.searchParam.status = tab.props.name
+    goodsTable.searchParam.status_type = tab.props.name
     isReset.value = true
     loadGoodsList()
 }
@@ -928,6 +936,18 @@ const handleAuditRefuse = (data:any) => {
 const supplyDetailPopupRef: any = ref(null)
 const supplyEvent = (data: any) => {
     supplyDetailPopupRef.value.show(data)
+}
+
+/**
+ * 商品导出
+ */
+const exportSureDialog = ref(null)
+const flag = ref(false)
+const handleClose = (val) => {
+    flag.value = val
+}
+const exportEvent = (data: any) => {
+    flag.value = true
 }
 </script>
 

@@ -84,14 +84,29 @@
                                     <view class="card-template !p-[0] !pt-[20rpx] -mb-[36rpx]" v-if="Number(subItem.goods.form_id) && userInfo.member_id">
                                         <diy-form ref="diyFormGoodsRef" :form_id="subItem.goods.form_id" :relate_id="subItem.sku_id"  :form_sign="'goodsDetail_' + subItem.sku_id+'_siteId_'+subItem.site_id+'_memberId_'+userInfo?.member_id+'_formId_'+subItem.goods.form_id" :storage_name="'diyFormStorageByGoodsDetail_' + subItem.sku_id+'_siteId_'+subItem.site_id+'_memberId_'+userInfo?.member_id" form_border="none"/>
                                     </view>
-                                </view>
+                                </view>  
                             </view>
                         </view>
                         
                         <view class="card-template py-[24rpx] mb-[var(--top-m)]">
-                            <diy-form v-if="item.form_id" class="mb-[18rpx] -mt-[10rpx]" ref="diyFormRef" :form_id="item.form_id" :relate_id="item.site_id" :form_sign="'siteId_'+ item.site_id +'_memberId_'+userInfo.member_id+'_formId_'+item.form_id" :storage_name="'diyFormStorageByOrderPayment'"/>
+                            <diy-form v-if="item.form_id" class="mb-[18rpx] -mt-[10rpx]" ref="diyFormRef" :form_id="item.form_id" :relate_id="item.site_id" :form_sign="'siteId_'+ item.site_id +'_memberId_'+userInfo.member_id+'_formId_'+item.form_id" :storage_name="'diyFormStorageByOrderPayment'"/> 
+                            <!-- 赠品 -->
+                            <view class="flex items-center text-[#303133] leading-[30rpx]" @click="giftGooodsRef.open(item.basic.full_gift_sku_list)" v-if="item.basic.full_gift_sku_list && item.basic.full_gift_sku_list.length">
+                                <view class="text-[28rpx] w-[150rpx] text-[#303133]">赠品</view>
+                                <view class="text-[24rpx] flex-1 flex gap-x-[10rpx] justify-end text-primary">
+                                    <view v-for="(cItem, index) in item.basic.full_gift_sku_list" :key="index" class="flex">
+                                        <up-image radius="var(--goods-rounded-small)" width="60rpx" height="60rpx" :src="img(cItem.sku_image)" model="aspectFill" v-if="index < 5">
+                                            <template #error>
+                                                <image class="w-[60rpx] h-[60rpx] rounded-[var(--goods-rounded-small)] overflow-hidden" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill"/>
+                                            </template>
+                                        </up-image>
+                                    </view>
+                                </view>
+                                <view class="text-[28rpx] ml-[10rpx]">共<text class="price-font">{{ getGiftNum(item.basic.full_gift_sku_list) }}</text>件</view>
+                                <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light9)]" :style="iconfontStyle"></text>
+                            </view>
                             <!-- 买家留言 -->
-                            <view class="bg-white flex items-center leading-[30rpx]" v-if="createData.body[key]">
+                            <view class="bg-white flex items-center leading-[30rpx] mt-[26rpx]" v-if="createData.body[key]">
                                 <view class="text-[28rpx] w-[150rpx] text-[#303133]">买家留言</view>
                                 <view class="flex-1 text-[#303133]">
                                     <input type="text" v-model="createData.body[key].member_remark" class="text-right text-[28rpx] text-[#333]" maxlength="50" placeholder="请输入留言信息给卖家" placeholder-class="text-[var(--text-color-light9)] text-[28rpx]">
@@ -166,24 +181,27 @@
                                 </view>
                                 <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light9)]" :style="iconfontStyle"></text>
                             </view>
-                            <!-- 优惠金额 -->
-                            <view class="flex items-center leading-[30rpx] mt-[36rpx]" v-if="parseFloat(item.basic.discount_money)">
-                                <view class="text-[28rpx] w-[150rpx] text-[#303133]">优惠金额</view>
-                                <view class="flex-1 w-0 text-right price-font text-[32rpx]">
-                                    -￥{{ parseFloat(item.basic.discount_money).toFixed(2)}}
-                                </view>
-                            </view>
                             <view class="mt-[36rpx]" v-if="couponData[key] && couponData[key].couponList.length && item.is_shop_coupon">
                                 <!-- 优惠券 -->
                                 <view class="flex items-center h-[40rpx] leading-[40rpx]" @click="couponRef.open(createData.body[key])">
                                     <view class="text-[28rpx] w-[150rpx] text-[#303133] flex-shrink-0">优惠券</view>
                                     <view class="flex-1 flex justify-end truncate">
-                                        <text v-if="item.discount && item.discount.coupon" class="text-[var(--primary-color)] text-[28rpx] truncate">
-                                            {{ item.discount.coupon.title }}
+                                        <text v-if="item.discount && item.discount.coupon" class="text-[var(--primary-color)] text-[28rpx] truncate price-font">
+                                            -{{ parseFloat(item.discount.coupon.money).toFixed(2) }}
                                         </text>
                                         <text class="text-[28rpx] text-gray-subtitle" v-else>请选择优惠券</text>
                                     </view>
                                     <text class="nc-iconfont nc-icon-youV6xx -mb-[2rpx] text-[26rpx] text-[var(--text-color-light9)]"></text>
+                                </view>
+                            </view>
+                            <!-- 优惠金额 -->
+                            <view class="mt-[36rpx]" v-if="parseFloat(item.basic.discount_money)">
+                                <view class="flex items-center leading-[30rpx]">
+                                    <view class="text-[28rpx] w-[150rpx] text-[#303133]">优惠金额</view>
+                                    <view class="flex-1 flex justify-end truncate" @click="handleShopDiscount(item.basic)">
+                                        <text class="text-right price-font text-[28rpx]">-￥{{ parseFloat(item.basic.discount_money).toFixed(2)}}</text>
+                                        <text class="nc-iconfont nc-icon-youV6xx -mb-[2rpx] text-[26rpx] text-[var(--text-color-light9)]"></text>
+                                    </view> 
                                 </view>
                             </view>
                             <view class="mt-[30rpx] flex justify-end items-center text-[28rpx]">
@@ -199,9 +217,7 @@
                     <view class="flex items-center h-[40rpx] leading-[40rpx]" @click="platformCouponRef.open(createData.mall_discount.platform_coupon_id)">
                         <view class="text-[28rpx] w-[150rpx] text-[#303133] flex-shrink-0">平台优惠券</view>
                         <view class="flex-1 flex justify-end truncate">
-                            <text  v-if="orderData.discount && orderData.discount.platform_coupon" class="text-[var(--primary-color)] text-[28rpx] truncate ">
-                                    {{ orderData.discount.platform_coupon.title }}
-                            </text>
+                            <text  v-if="orderData.discount && orderData.discount.platform_coupon" class="text-[var(--primary-color)] text-[28rpx] truncate price-font">-￥{{ parseFloat(orderData.discount.platform_coupon.money).toFixed(2) }} </text>
                             <text class="text-[28rpx] text-gray-subtitle" v-else>请选择优惠券</text>
                         </view>
                         <text class="nc-iconfont nc-icon-youV6xx -mb-[2rpx] text-[26rpx] text-[var(--text-color-light9)]"></text>
@@ -217,6 +233,14 @@
                         <input class="text-right" maxlength="11" placeholder-style="color:#B1B3B5;font-size:26rpx" placeholder="请输入" v-model="createData.delivery.taker_mobile" />
                     </view>
                 </view>
+                <!-- 积分抵扣 -->
+                <view class="mb-[var(--top-m)] card-template" v-if="pointConfig.is_open && orderData.basic.is_can_point_deduct">
+                    <view class="flex items-center h-[40rpx] leading-[40rpx]" >
+                            <view class="text-[28rpx] text-[#303133] flex-shrink-0">使用{{orderData.basic.pre_use_point}}积分可抵扣 <text class="price-font text-[var(--price-text-color)]">￥{{ parseFloat(orderData.basic.pre_point_deduct_money).toFixed(2)}}</text> </view>                        <view class="flex-1 flex justify-end truncate">
+                            <u-switch v-model="createData.is_use_point_deduct" activeColor="var(--primary-color)" size="20" :activeValue="1" :inactiveValue="0" @change="pointChange"></u-switch>
+                        </view>
+                    </view>
+                </view>
                 <view class="card-template">
                     <view class="title">价格明细</view>
                     <view class="card-template-item">
@@ -225,22 +249,23 @@
                             ￥{{ parseFloat(orderData.basic.goods_money).toFixed(2) }}
                         </view>
                     </view>
-                    <view class="card-template-item" v-if="orderData.basic.delivery_money">
+                    <view class="card-template-item" v-if="Number(orderData.basic.delivery_money) > 0">
                         <view class="text-[28rpx] w-[150rpx] leading-[30rpx] text-[#303133]">配送运费</view>
                         <view class="flex-1 w-0 text-right price-font text-[#333] text-[32rpx]">
                             ￥{{ parseFloat(orderData.basic.delivery_money).toFixed(2) }}
                         </view>
                     </view>
-                    <view class="card-template-item" v-if="orderData.basic.shop_discount_money">
-                        <view class="text-[28rpx] w-[150rpx] leading-[30rpx] text-[#303133]">优惠金额</view>
+                    <view class="card-template-item" v-if="Number(orderData.basic.shop_discount_money) > 0">
+                        <view class="text-[28rpx] w-[150rpx] leading-[30rpx] text-[#303133]">店铺优惠</view>
                         <view class="flex-1 w-0 text-right text-[var(--price-text-color)] text-[32rpx] price-font leading-[1]">
                             -￥{{ parseFloat(orderData.basic.shop_discount_money).toFixed(2) }}
                         </view>
                     </view>
-                    <view class="card-template-item" v-if="orderData.basic.mall_discount_money">
-                        <view class="text-[28rpx] w-[180rpx] leading-[30rpx] text-[#303133]">平台优惠金额</view>
-                        <view class="flex-1 w-0 text-right text-[var(--price-text-color)] text-[32rpx] price-font leading-[1]">
-                            -￥{{ parseFloat(orderData.basic.mall_discount_money).toFixed(2) }}
+                    <view class="card-template-item" v-if="Number(orderData.basic.mall_discount_money) > 0">
+                        <view class="text-[28rpx] w-[180rpx] leading-[30rpx] text-[#303133]">平台优惠</view>
+                        <view class="flex-1 flex items-center justify-end truncate" @click="handlePlatformDiscount(orderData.basic)">
+                            <text class="text-right price-font text-[32rpx] text-[var(--price-text-color)]">-￥{{ parseFloat(orderData.basic.mall_discount_money).toFixed(2) }}</text>
+                            <text class="nc-iconfont nc-icon-youV6xx -mb-[2rpx] text-[26rpx] text-[var(--text-color-light9)]"></text>
                         </view>
                     </view>
                 </view>
@@ -275,6 +300,12 @@
             <invoice ref="invoiceRef" @confirm="confirmInvoice" />
             <!-- 地址 -->
 			<address-list ref="addressRef" @confirm="confirmAddress" back="/addon/mall/pages/order/payment" />
+            <!-- 赠品 -->
+            <gift-goods ref="giftGooodsRef"/>
+            <!-- 店铺优惠 -->
+            <shop-discount ref="shopDiscountRef" />
+            <!-- 平台优惠 -->
+            <platform-discount ref="platformDiscountRef" />
 
             <pay ref="payRef" @close="payClose" />
         </view>
@@ -285,7 +316,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getLocal } from '@/app/api/basic'
-import { orderCreateCalculate, orderCreate } from '@/addon/mall/api/order'
+import { orderCreateCalculate, orderCreate ,getPointDeduct} from '@/addon/mall/api/order'
 import { redirect, img, mobileHide, deepClone, distance, isWeixinBrowser} from '@/utils/common'
 import { useSubscribeMessage } from '@/hooks/useSubscribeMessage'
 import selectDelivery from './components/select-delivery/select-delivery'
@@ -293,9 +324,12 @@ import selectStore from './components/select-store/select-store'
 import selectCoupon from './components/select-coupon/select-coupon'
 import platformCoupon from './components/platform-coupon/platform-coupon'
 import addressList from './components/address-list/address-list'
+import giftGoods from './components/gift-goods/gift-goods'
 import invoice from '@/components/invoice/invoice.vue'
 import nsSelectTime from '@/addon/mall/components/ns-select-time'
 import { topTabar } from '@/utils/topTabbar'
+import shopDiscount from './components/shop-discount/shop-discount.vue'
+import platformDiscount from './components/platform-discount/platform-discount.vue'
 import diyForm from '@/addon/components/diy-form/index.vue'
 import useMemberStore from '@/stores/member'
 import wechat from '@/utils/wechat'
@@ -327,12 +361,14 @@ const createData = ref({
         platform_coupon_id:''
     },
     form_data: {}, // 万能表单数据（商品+待付款订单）
-    position: ''
+    position: '',
+    is_use_point_deduct: 0,
 })
 const diyFormRef: any = ref(null)
 const diyFormGoodsRef: any = ref(null)
 const orderData = ref(null)
 const deliveryRef = ref()
+const giftGooodsRef = ref()
 const storeRef = ref()
 const couponRef = ref()
 const platformCouponRef = ref()
@@ -578,6 +614,15 @@ const verify = () => {
     return true
 }
 
+//赠品数量
+const getGiftNum = (data) => { 
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    return data.reduce((total, item) => {
+        const giftNum = Number(item.num) || 0;
+        return total + giftNum;
+    }, 0);
+};
+
 /**
  * 支付弹窗关闭
  */
@@ -644,12 +689,27 @@ const confirmSelectCoupon =  async (data:any) => {
    })
 
 }
+/**
+ * 积分抵扣
+ */
+const pointConfig = ref({})
+const getPointDeductFn = ()=> { 
+    getPointDeduct().then((res:any)=>{
+        pointConfig.value = res.data
+    }) 
+}
+getPointDeductFn()
+
+const pointChange = (value:any)=>{
+    calculate()
+}
 
 /**
  * 选择配送方式
  */
 const confirmDelivery = (data:any) =>{
     createData.value.body[data.site_id].delivery.delivery_type = data.delivery_type
+    createData.value.body[data.site_id].delivery.take_store_id = ''
     createData.value.order_key = ''
     for(let i in createData.value.body){
         createData.value.body[i].order_key = ''
@@ -751,6 +811,19 @@ const iconfontStyle = computed(() => {
     // #endif
     return style;
 })
+
+
+// 店铺优惠
+const shopDiscountRef = ref()
+const handleShopDiscount = (data: any) =>{
+    shopDiscountRef.value.open(data)
+}
+
+// 平台优惠
+const platformDiscountRef = ref()
+const handlePlatformDiscount = (data: any) =>{
+    platformDiscountRef.value.open(data)
+}
 </script>
 
 <style lang="scss" scoped>

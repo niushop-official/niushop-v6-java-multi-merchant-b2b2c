@@ -118,6 +118,7 @@ export function debounce(fn: (args?: any) => any, delay: number = 300) {
  * @returns
  */
 export function isUrl(str: string): boolean {
+    if (typeof str !== 'string') return false
     return str.indexOf('http://') != -1 || str.indexOf('https://') != -1
 }
 
@@ -127,6 +128,7 @@ export function isUrl(str: string): boolean {
  * @returns
  */
 export function img(path: string): string {
+    if (typeof path !== 'string' || path === '') return ''
     return isUrl(path) ? path : `${import.meta.env.VITE_IMG_DOMAIN || location.origin}/${path}`
 }
 

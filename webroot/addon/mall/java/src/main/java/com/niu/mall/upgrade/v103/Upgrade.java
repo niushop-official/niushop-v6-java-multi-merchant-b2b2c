@@ -27,8 +27,6 @@ public class Upgrade extends IUpgradeProvider {
         handleDeliveryData();
         //处理统计数据
         handleStatData();
-        //初始化系统个人中心微页面
-        //handleInitDefaultPage();
     }
 
     //处理订单发货数据
@@ -68,13 +66,6 @@ public class Upgrade extends IUpgradeProvider {
             }
             sysStatMapper.updateById(sysStat);
         }
-    }
-
-    //初始化系统个人中心微页面
-    public  void handleInitDefaultPage(){
-        IDiyService diyService = SpringContext.bean(IDiyService.class);
-        //初始化系统个人中心微页面
-        diyService.initDefaultPage(0, "DIY_MALL_GOODS_DETAIL", "mall");
     }
 
     /**

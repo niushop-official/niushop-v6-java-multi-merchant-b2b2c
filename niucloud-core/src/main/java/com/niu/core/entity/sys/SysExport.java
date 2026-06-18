@@ -35,8 +35,20 @@ public class SysExport implements Serializable {
     /** 导出状态 */
     private Integer exportStatus;
 
+    /** 导出成功数量 */
+    private Integer successNum;
+
+    /** 导出失败数量 */
+    private Integer failNum;
+
     /** 失败原因 */
     private String failReason;
+
+    /** 导出查询条件 */
+    private String searchCondition;
+
+    /** 导出数据列 */
+    private String dataColumn;
 
     /** 导出时间 */
     private Long createTime;

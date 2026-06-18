@@ -51,8 +51,25 @@
                             </view>
                         </view>
                     </view>
-                    <view class="flex justify-end mt-[20rpx]" v-if="(item.status != '1')">	
-                        <view class="order-grey-hollow-btn"  @click="redirect({ url: '/addon/mall/pages/refund/detail', param: { refund_id : item.refund_id } })">查看退款</view>            
+                    <view class="flex justify-end mt-[20rpx]" v-if="(item.status != '1') || item.form_record_show == 1">	
+                        <view class="order-grey-hollow-btn"  @click="redirect({ url: '/addon/mall/pages/refund/detail', param: { refund_id : item.refund_id } })">查看退款</view> 
+                        <view class="order-grey-hollow-btn ml-[20rpx]"  v-if="item.form_record_show == 1" @click="formDetailEvent(item.form_record_id)">表单详情</view>           
+                    </view>
+                </view>
+                <view class="justify-between card-template-item" v-if="detail.order_gift_goods && detail.order_gift_goods.length > 0" >
+                    <view class="text-[28rpx]">赠品</view>
+                    <view class="flex items-center text-[28rpx]" @click="handleGiftGoods">
+                        <view class="text-[24rpx] flex-1 flex justify-end text-primary">
+                            <view v-for="(cItem, key, index) in detail.order_gift_goods.slice(0,1)" :key="index" class="flex">
+                                <up-image radius="var(--goods-rounded-small)" width="60rpx" height="60rpx" :src="img(cItem.goods_image)" model="aspectFill">
+                                    <template #error>
+                                        <image class="w-[60rpx] h-[60rpx] rounded-[var(--goods-rounded-small)] overflow-hidden" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill"/>
+                                    </template>
+                                </up-image>
+                            </view>
+                        </view>
+                        <view class="text-[28rpx] ml-[10rpx]">共<text class="price-font">{{ getGiftNum(detail.order_gift_goods) }}</text>件</view>
+                        <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light9)]"></text>
                     </view>
                 </view>
                 <view class="justify-between card-template-item">
@@ -61,11 +78,17 @@
                 </view>
                 <view class="justify-between card-template-item">
                     <view class="text-[28rpx]">优惠金额</view>
-                    <view class="text-[28rpx]">{{ detail.discount_money }}</view>
+                    <view class="text-[28rpx]" @click="handleShopDiscount(detail)">
+                        <text>{{ detail.discount_details.shop_discount.discount_total.discount_money }}</text>
+                        <text class="nc-iconfont nc-icon-youV6xx -mb-[2rpx] text-[26rpx] text-[var(--text-color-light9)]"></text>
+                    </view>
                 </view>
                 <view class="justify-between card-template-item">
                     <view class="text-[28rpx]">平台优惠金额</view>
-                    <view class="text-[28rpx]">{{ detail.mall_discount_money }}</view>
+                    <view class="text-[28rpx]" @click="handlePlatformDiscount(detail)">
+                        <text>{{ detail.discount_details.platform_discount.discount_total.discount_money }}</text>
+                        <text class="nc-iconfont nc-icon-youV6xx -mb-[2rpx] text-[26rpx] text-[var(--text-color-light9)]"></text>
+                    </view>
                 </view>
                 <view class="justify-between card-template-item">
                     <view class="text-[28rpx]">配送金额</view>
@@ -132,7 +155,7 @@
                     <view class="text-[28rpx] flex-shrink-0 leading-[40rpx]">收货信息</view>
                     <view class="text-[28rpx] ml-[20rpx] text-right leading-[40rpx]">{{ detail.taker_name }}，{{ detail.taker_mobile }},{{ detail.taker_full_address }}</view>
                 </view>
-                <view class="justify-between card-template-item" v-if="detail.delivery_type == 'virtual'">
+                <view class="justify-between card-template-item" v-if="(detail.has_goods_types.includes('virtual') && detail.virtual_verify_mobile == 1)">
                     <view class="text-[28rpx]">收货人手机号</view>
                     <view class="text-[28rpx]">{{ detail.taker_mobile }}</view>
                 </view>
@@ -189,6 +212,22 @@
                     <view class="text-[28rpx]">返还平台优惠券补贴</view>
                     <view class="text-[28rpx]">{{ detail.mall_refund_coupon_money }}</view>
                 </view>
+                <view class="justify-between card-template-item">
+                    <view class="text-[28rpx]">积分抵扣金额</view>
+                    <view class="text-[28rpx]">{{ detail.point_deduct_money }}</view>
+                </view>
+                <view class="justify-between card-template-item">
+                    <view class="text-[28rpx]">返还积分抵扣金额</view>
+                    <view class="text-[28rpx]">{{ detail.refund_point_deduct_money }}</view>
+                </view>
+                <view class="justify-between card-template-item">
+                    <view class="text-[28rpx]">使用积分</view>
+                    <view class="text-[28rpx]">{{ detail.use_point }}</view>
+                </view>
+                <view class="justify-between card-template-item">
+                    <view class="text-[28rpx]">返还抵扣积分</view>
+                    <view class="text-[28rpx]">{{ detail.refund_deduct_point }}</view>
+                </view>
                 <view class="justify-between card-template-item" v-if="detail.is_install_fenxiao">
                     <view class="text-[28rpx]">店铺支付佣金</view>
                     <view class="text-[28rpx]">{{ detail.shop_commission }}</view>
@@ -204,6 +243,17 @@
                 <view class="justify-between card-template-item" v-if="Number(detail.supply_refund_money)">
                     <view class="text-[28rpx]">供货商货款退款</view>
                     <view class="text-[28rpx]">{{ detail.supply_refund_money }}</view>
+                </view>
+                <view class="justify-between card-template-item">
+                    <view class="text-[28rpx]">结算状态</view>
+                    <view class="text-[28rpx]">{{ detail.settlement_status_name }}</view>
+                </view>
+            </view>
+            <view class="sidebar-margin mt-[var(--top-m)] card-template" v-if="detail.form_record_show == 1 && detail.form_details">
+                <view class="title">表单详情</view>
+                <view class="justify-between card-template-item" v-for="(field, fieldKey) in detail.form_details[0]?.recordsFieldList || []" :key="fieldKey">
+                    <view class="text-[28rpx]">{{ field.field_name }}</view>
+                    <view class="text-[28rpx]">{{ detail.form_details[0]?.recordsFieldList[fieldKey].render_value }}</view>
                 </view>
             </view>
         </view>
@@ -245,6 +295,13 @@
         </u-popup>
         <!-- 提示 -->
         <tips-popup ref="tipsRef" />
+        <form-detail ref="formDetailRef" />
+        <!-- 店铺优惠 -->
+        <shop-discount ref="shopDiscountRef" />
+        <!-- 平台优惠 -->
+        <platform-discount ref="platformDiscountRef" />
+        <!-- 赠品 -->
+        <gift-goods ref="giftGoodsRef"/>
     </view>
 </template>
 
@@ -253,8 +310,13 @@ import { ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app'
 import { img, redirect, copy, goback } from '@/utils/common';
 import { getOrderDetail, orderClose, orderFinish  } from '@/addon/mall/api/order';
+import { getFormRecordsInfo } from '@/app/api/diy_form'
 import orderNotes from './components/order-notes.vue';
 import deliveryPackage from './components/delivery-package.vue';
+import formDetail from './components/form-detail.vue';
+import shopDiscount from './components/shop-discount.vue';
+import platformDiscount from './components/platform-discount.vue';
+import giftGoods from './components/gift-goods.vue';
 
 const detail = ref<any>({});
 const loading = ref<boolean>(true);
@@ -286,6 +348,15 @@ const orderDetailFn = (id: any) => {
             orderItem.form_details = null // 每个商品的表单详情
         })
         detail.value.is_refund_show = refundOrderNum > 0
+        // 获取订单的表单详情
+        if (detail.value.form_record_id) {
+            try {
+                getFormRecordsInfo(detail.value.form_record_id).then((res: any) => {
+                    detail.value.form_details = [res.data];
+                })
+            } catch (error) {
+            }
+        }
 		loading.value = false;
         detail.value.btnList = []
         detail.value.btnList.push({ name: '备注', type: 'notes'})
@@ -425,6 +496,37 @@ const packageEvent = () => {
         }
     })
     packageRef.value.open(arr)
+}
+
+// 查看表单详情
+const formDetailRef: any = ref(null)
+const formDetailEvent = (data: any) => {
+    formDetailRef.value.open(data)
+}
+
+// 店铺优惠
+const shopDiscountRef = ref()
+const handleShopDiscount = (data: any) =>{
+    shopDiscountRef.value.open(data)
+}
+
+// 平台优惠
+const platformDiscountRef = ref()
+const handlePlatformDiscount = (data: any) =>{
+    platformDiscountRef.value.open(data)
+}
+
+//赠品数量
+const getGiftNum = (data: any) => { 
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    return data.reduce((total, item) => {
+        const giftNum = Number(item.num) || 0;
+        return total + giftNum;
+    }, 0);
+};
+const giftGoodsRef = ref()
+const handleGiftGoods = () => {
+    giftGoodsRef.value.open(detail.value.order_gift_goods)
 }
 </script>
 

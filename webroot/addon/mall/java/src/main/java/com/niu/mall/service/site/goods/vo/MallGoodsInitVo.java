@@ -1,7 +1,5 @@
 package com.niu.mall.service.site.goods.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.entity.addon.Addon;
@@ -10,7 +8,6 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,7 +28,7 @@ public class MallGoodsInitVo implements Serializable {
 
     private String[] disableEditArea = new String[]{};
 
-    private String[] disableEditField  = new String[]{};
+    private String[] disableEditField = new String[]{};
 
     @Data
     public static class GoodsInfo {
@@ -65,7 +62,9 @@ public class MallGoodsInitVo implements Serializable {
         private Integer deliveryTemplateId;  // 运费模板
         private Object supplyId;  // 供应商id
         private Integer supplyGoodsId;
-        /** 供应商设置同步，1.开启，0.关闭 */
+        /**
+         * 供应商设置同步，1.开启，0.关闭
+         */
         private Integer supplySync;
 
         @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
@@ -85,16 +84,29 @@ public class MallGoodsInitVo implements Serializable {
         private Integer isGift;
         private Integer supplySyncShow = 0;
 
-        /** 自定义详情 */
+        /**
+         * 自定义详情
+         */
         private Integer diyDetailId;
 
-        /** 供应商是否有更新 */
+        /**
+         * 供应商是否有更新
+         */
         private Integer isSupplyUpdate;
 
+        /**
+         * 积分抵扣类型 custom:自定义 site:继承店铺
+         */
+        private String pointDeductType;
 
+        /**
+         * 积分抵扣比例
+         */
+        private BigDecimal pointDeductRate;
     }
+
     @Data
-    public static class MallGoodsAttrVo{
+    public static class MallGoodsAttrVo {
 
         private Object attr_child_value_id;
 
@@ -108,6 +120,7 @@ public class MallGoodsInitVo implements Serializable {
 
         private String type;
     }
+
     @Data
     public static class SkuInfo {
         private Integer skuId;  // 商品sku_id
@@ -126,10 +139,14 @@ public class MallGoodsInitVo implements Serializable {
         private BigDecimal volume;  // 体积（单位立方米）
         private Integer isDefault;  // 是否默认
         private Integer isSell;
-        /** 控价区间最大值 */
+        /**
+         * 控价区间最大值
+         */
         private BigDecimal maxPrice;
 
-        /** 控价区间最小值 */
+        /**
+         * 控价区间最小值
+         */
         private BigDecimal minPrice;
     }
 

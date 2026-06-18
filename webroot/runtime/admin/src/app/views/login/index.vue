@@ -110,7 +110,7 @@
                                             <div class="text-[24px] font-600 mb-[10px]">您可以进入以下管理后台</div>
                                             <div class="text-[16px] text-[#666] mb-[14px]">已绑定了以下组织，您可以进入以下任一组织</div>
                                             <div class="max-h-[270px] overflow-y-auto site-list-warp">
-                                                <div class="p-[22px] flex items-center rounded-[10px] mb-[10px] cursor-pointer" :class="{'site-style1':(index + 1) % 3 == 1,'site-style2': (index + 1) % 3 == 2, 'site-style3': (index + 1) % 3 == 0}" v-for="(item,index) in siteList" :key="index" @click="selectSite(item)">
+                                                <div class="p-[22px] flex items-center rounded-[10px] mb-[10px] cursor-pointer box-border" :class="{'site-style1':(index + 1) % 3 == 1,'site-style2': (index + 1) % 3 == 2, 'site-style3': (index + 1) % 3 == 0}" v-for="(item,index) in siteList" :key="index" @click="selectSite(item)">
                                                     <el-image class="w-[36px] h-[36px] rounded-full" :src="img(item.front_end_logo)" fit="contain">
                                                         <template #error>
                                                             <div class="w-[36px] h-[36px] rounded-full flex items-center justify-center" :class="{'bg-[#165dff]':(index + 1) % 3 == 1,'bg-[#FF7D00]': (index + 1) % 3 == 2, 'bg-[#722ed1]': (index + 1) % 3 == 0}">
@@ -118,7 +118,15 @@
                                                             </div>
                                                         </template>
                                                     </el-image>
-                                                    <div class="flex-1 ml-[10px]">{{ item.site_name }}</div>
+                                                    <div class="flex-1 h-full mx-[10px]">
+                                                        <div>{{ item.site_name }}</div>
+                                                        <div class="text-[#666] text-[12px] using-hidden">
+                                                            <template v-for="(subItem,subIndex) in  item.plugin" :key="subIndex">
+                                                                <span >{{ subItem }}</span>
+                                                                <span v-if="(subIndex + 1) != item.plugin.length">、</span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
                                                     <span class="nc-iconfont nc-icon-youV6xx text-[20px]"></span>
                                                 </div>
                                             </div>
@@ -309,25 +317,25 @@ const loginFn = (data = {}) => {
         if (type.value == 'mobile') {
             userStore.mobileLoginFn({ mobile: form.mobile, mobile_code: form.mobile_code, mobile_key: form.mobile_key, captcha_type: loginConfig.value.site_captcha_type, ...data }).then(res => {
                 storage.set({ key: 'app_type', data: loginType.value })
-                getHomeSiteList().then((res) => {
-                    siteList.value = res.data
-                    switchLogin.value = 'site'
-                })
+                getHomeSiteListFn()
             }).catch(() => {
                 loading.value = false
             })
         } else {
             userStore.login({ username: form.username, password: form.password, captcha_type: loginConfig.value.site_captcha_type, ...data }, loginType.value).then(res => {
                 storage.set({ key: 'app_type', data: loginType.value })
-                getHomeSiteList().then((res) => {
-                    siteList.value = res.data
-                    switchLogin.value = 'site'
-                })
+                getHomeSiteListFn()
             }).catch(() => {
                 loading.value = false
             })
         }
     }
+}
+const getHomeSiteListFn = () => {
+    getHomeSiteList().then((res) => {
+        siteList.value = res.data
+        switchLogin.value = 'site'
+    })
 }
 
 // 手机号登录

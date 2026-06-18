@@ -8,23 +8,27 @@ import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.exception.AdminException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.member.MemberAccountLog;
 import com.niu.core.enums.member.AccountTypeEnum;
+import com.niu.core.enums.member.MemberAccountTypeEnum;
 import com.niu.core.mapper.member.MemberAccountLogMapper;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.service.admin.member.IMemberAccountService;
+import com.niu.core.service.admin.member.param.AdjustAccountBatchParam;
 import com.niu.core.service.admin.member.param.AdjustAccountParam;
 import com.niu.core.service.admin.member.param.MemberAccountLogSearchParam;
 import com.niu.core.service.admin.member.vo.*;
 import com.niu.core.service.core.member.ICoreMemberAccountService;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import jakarta.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +37,7 @@ import java.util.List;
 /**
  * 会员账单实现
  */
+@Slf4j
 @Service
 public class MemberAccountServiceImpl implements IMemberAccountService {
 
@@ -66,7 +71,7 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
         queryWrapper.eq("mal.account_type", searchParam.getAccountType());
         queryWrapper.orderByDesc("mal.id");
 
-        if (ObjectUtil.isNotEmpty(searchParam.getKeywords())){
+        if (ObjectUtil.isNotEmpty(searchParam.getKeywords())) {
             queryWrapper.and(wrapper -> {
                 wrapper.like("m.member_no", searchParam.getKeywords()).or()
                         .like("m.username", searchParam.getKeywords()).or()
@@ -92,6 +97,8 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
             BeanUtils.copyProperties(item, memberInfoVo);
 
             vo.setMember(memberInfoVo);
+            vo.setFromTypeName(vo.getFromTypeName());
+            vo.setAccountTypeName(vo.getAccountTypeName());
             list.add(vo);
         }
         return PageResult.build(page, limit, iPage.getTotal()).setData(list);
@@ -242,5 +249,33 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
      */
     public void adjustBalance(AdjustAccountParam param) {
         coreMemberAccountService.addLog(RequestUtils.defaultSiteId(), param.getMemberId(), AccountTypeEnum.BALANCE.getType(), param.getAccountData(), "adjust", param.getMemo(), "");
+    }
+
+    @Override
+    public void adjustBatch(AdjustAccountBatchParam param) {
+        String accountType = param.getAccountType();
+        // 1. 校验账户类型是否存在
+        if (!MemberAccountTypeEnum.containsByType(accountType)) {
+            throw new AdminException("MEMBER_TYPE_NOT_EXIST");
+        }
+
+        // 2. 计算变动金额（调整类型为1表示增加，否则减少）
+        BigDecimal accountData = param.getAccountData();
+        if (param.getAdjustType() != 1) {
+            accountData = accountData.negate();
+        }
+        String memo = param.getMemo() == null ? "" : param.getMemo();
+
+        // 3. 批量处理每个会员
+        for (Integer memberId : param.getMemberIds()) {
+            try {
+                coreMemberAccountService.addLog(RequestUtils.defaultSiteId(), memberId, accountType, accountData.doubleValue(), "adjust", memo, "");
+            } catch (Exception e) {
+                String adjustTypeName = param.getAdjustType() == 1 ? "增加" : "减少";
+                log.error("批量变更账户失败，会员ID：{}，账户类型：{}，变动方式：{}，变动金额：{}，错误信息：{}",
+                        memberId, accountType, adjustTypeName, accountData, e.getMessage(), e);
+                // 继续执行下一个会员，不中断循环
+            }
+        }
     }
 }

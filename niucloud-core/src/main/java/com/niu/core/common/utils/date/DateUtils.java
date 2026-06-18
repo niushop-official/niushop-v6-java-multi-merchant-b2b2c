@@ -4,6 +4,7 @@ package com.niu.core.common.utils.date;
 import cn.hutool.core.date.DateUtil;
 
 import java.text.SimpleDateFormat;
+import java.time.*;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -13,6 +14,26 @@ import java.util.Date;
 public class DateUtils {
 
     public static final String STANDARD_DATE = "yyyy-MM-dd";
+
+    /**
+     * 获取当天的开始时间（00:00:00）
+     * @return
+     */
+    public static long getStartOfDayTimestamp() {
+        LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+        ZonedDateTime zonedDateTime = startOfDay.atZone(ZoneId.systemDefault());
+        return zonedDateTime.toInstant().getEpochSecond();
+    }
+
+    /**
+     * 获取当天的结束时间（23:59:59）
+     * @return
+     */
+    public static long getEndOfDayTimestamp() {
+        LocalDateTime endOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+        ZonedDateTime zonedDateTime = endOfDay.atZone(ZoneId.systemDefault());
+        return zonedDateTime.toInstant().getEpochSecond();
+    }
 
     /**
      * 时间戳转化成时间格式
@@ -261,4 +282,13 @@ public class DateUtils {
         return DateUtil.format(date, "MM-dd HH:mm");
     }
 
+    /**
+     * 将时分秒转成时间戳(HH:mm:ss)
+     */
+    public static Long timeToSeconds(String timeStr) {
+        String[] startTimeParts = timeStr.split(":");
+        return Long.parseLong(startTimeParts[0]) * 3600 +
+                Long.parseLong(startTimeParts[1]) * 60 +
+                Long.parseLong(startTimeParts[2]);
+    }
 }

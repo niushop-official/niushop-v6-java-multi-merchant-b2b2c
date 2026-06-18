@@ -25,11 +25,12 @@
 <script setup lang="ts">
 import { ref,nextTick } from 'vue';
 import { useDiy } from '@/hooks/useDiy'
-import { redirect } from '@/utils/common';
+import { getToken, redirect } from '@/utils/common';
 import diyGroup from '@/addon/components/diy/group/index.vue'
 import { getShopInfo } from '@/addon/mall/api/shop'
 import { onLoad } from '@dcloudio/uni-app';
 import useDiyStore from '@/app/stores/diy';
+import useMemberStore from '@/stores/member'
 import { useShare } from '@/hooks/useShare'
 const { setShare } = useShare()
 
@@ -50,6 +51,9 @@ diy.onLoad();
 onLoad((option: any)=>{
     if (diyStore.mode != 'decorate') {
         shopInfoFn(option.site_id)
+    }
+    if(getToken()){
+        useMemberStore().addVisit({site_id: option.site_id})
     }
 })
 
@@ -79,10 +83,7 @@ diy.onShow((data: any) => {
     })
     // #endif
     setTimeout(() => {
-        let share = {
-            title: '店铺首页',
-            desc: '',
-        }
+        let share = data.share;
 
         setShare({
             wechat: {
@@ -98,8 +99,11 @@ diy.onShow((data: any) => {
 // 监听页面隐藏
 diy.onHide();
 
+
 // 监听页面卸载
-diy.onUnload();
+diy.onUnload(()=>{
+   diyStore.siteId = '';
+});
 
 // 监听滚动事件
 diy.onPageScroll()

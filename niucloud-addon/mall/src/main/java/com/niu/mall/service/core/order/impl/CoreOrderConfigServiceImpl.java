@@ -4,20 +4,15 @@ package com.niu.mall.service.core.order.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.utils.RequestUtils;
-import com.niu.core.entity.diy_form.DiyForm;
-import com.niu.core.mapper.diy_form.DiyFormMapper;
 import com.niu.core.service.core.sys.ICoreConfigService;
-import com.niu.core.service.core.sys.vo.CoreSysConfigVo;
 import com.niu.mall.entity.order.config.*;
 import com.niu.mall.service.core.order.ICoreOrderConfigService;
 import com.niu.mall.service.core.order.param.OrderConfigParam;
-import com.niu.mall.service.core.order.vo.OrderConfigVo;
 import com.niu.mall.service.core.order.vo.MallOrderCloseVo;
-import org.springframework.stereotype.Service;
-
+import com.niu.mall.service.core.order.vo.OrderConfigVo;
 import jakarta.annotation.Resource;
+import org.springframework.stereotype.Service;
 
 @Service
 class CoreOrderConfigServiceImpl implements ICoreOrderConfigService {
@@ -29,25 +24,27 @@ class CoreOrderConfigServiceImpl implements ICoreOrderConfigService {
     @Override
     public void setConfig(OrderConfigParam param) {
         Integer siteId = RequestUtils.defaultSiteId();
-        
+
         JSONObject value = new JSONObject();
         value.set("order_close", JSONUtil.createObj()
-            .set("is_close", param.getIsClose())
-            .set("close_length", param.getCloseLength()));
+                .set("is_close", param.getIsClose())
+                .set("close_length", param.getCloseLength()));
         value.set("order_finish", JSONUtil.createObj()
-            .set("is_finish", param.getIsFinish())
-            .set("finish_length", param.getFinishLength()));
+                .set("is_finish", param.getIsFinish())
+                .set("finish_length", param.getFinishLength()));
         value.set("delay_spear", JSONUtil.createObj()
-            .set("is_delay_spear", param.getIsDelaySpear())
-            .set("delay_days", param.getDelayDays()));
+                .set("is_delay_spear", param.getIsDelaySpear())
+                .set("delay_days", param.getDelayDays()));
+        value.set("refund_info", JSONUtil.createObj()
+                .set("refund_audit_before_delivery", param.getRefundAuditBeforeDelivery()));
         coreConfigService.setConfig(siteId, "MALL_ORDER_CONFIG", value);
-        
+
         JSONObject evaluateInfo = JSONUtil.createObj()
-            .set("is_evaluate", param.getIsEvaluate())
-            .set("evaluate_is_to_examine", param.getEvaluateIsToExamine())
-            .set("is_self_evaluate", param.getIsSelfEvaluate())
-            .set("is_auto_good_evaluate", param.getIsAutoGoodEvaluate())
-            .set("good_evaluate_days", param.getGoodEvaluateDays());
+                .set("is_evaluate", param.getIsEvaluate())
+                .set("evaluate_is_to_examine", param.getEvaluateIsToExamine())
+                .set("is_self_evaluate", param.getIsSelfEvaluate())
+                .set("is_auto_good_evaluate", param.getIsAutoGoodEvaluate())
+                .set("good_evaluate_days", param.getGoodEvaluateDays());
         coreConfigService.setConfig(siteId, "MALL_GOODS_EVALUATE", evaluateInfo);
     }
 
@@ -55,9 +52,9 @@ class CoreOrderConfigServiceImpl implements ICoreOrderConfigService {
     public OrderConfigVo getConfig() {
         Integer siteId = RequestUtils.defaultSiteId();
         JSONObject data = coreConfigService.getConfigValue(siteId, "MALL_ORDER_CONFIG");
-        
+
         OrderConfigVo vo = new OrderConfigVo();
-        
+
         // 订单关闭配置
         MallOrderClose mallOrderClose = new MallOrderClose();
         if (ObjectUtil.isEmpty(data) || ObjectUtil.isEmpty(data.getJSONObject("order_close"))) {
@@ -77,7 +74,7 @@ class CoreOrderConfigServiceImpl implements ICoreOrderConfigService {
         MallOrderFinish mallOrderFinish = new MallOrderFinish();
         if (ObjectUtil.isEmpty(data) || ObjectUtil.isEmpty(data.getJSONObject("order_finish"))) {
             mallOrderFinish.setIsFinish(1);
-            mallOrderFinish.setIsFinishEr( true);
+            mallOrderFinish.setIsFinishEr(true);
             mallOrderFinish.setFinishLength(14);
         } else {
             JSONObject orderFinish = data.getJSONObject("order_finish");
@@ -120,6 +117,14 @@ class CoreOrderConfigServiceImpl implements ICoreOrderConfigService {
         }
         vo.setEvaluate(mallOrderEvaluate);
 
+        MallOrderRefundInfo refundInfo = new MallOrderRefundInfo();
+        if (ObjectUtil.isEmpty(data) || ObjectUtil.isEmpty(data.getJSONObject("refund_info"))) {
+            refundInfo.setRefundAuditBeforeDelivery(1);
+        } else {
+            JSONObject config = data.getJSONObject("refund_info");
+            refundInfo.setRefundAuditBeforeDelivery(config.getInt("refund_audit_before_delivery", 1));
+        }
+        vo.setRefundInfo(refundInfo);
         return vo;
     }
 
@@ -127,7 +132,7 @@ class CoreOrderConfigServiceImpl implements ICoreOrderConfigService {
     public MallOrderFinish orderConfirm() {
         JSONObject data = coreConfigService.getConfigValue(RequestUtils.defaultSiteId(), "MALL_ORDER_CONFIG");
         MallOrderFinish mallOrderFinish = new MallOrderFinish();
-        
+
         if (ObjectUtil.isEmpty(data) || ObjectUtil.isEmpty(data.getJSONObject("order_finish"))) {
             mallOrderFinish.setIsFinish(1);
             mallOrderFinish.setFinishLength(14);
@@ -144,7 +149,7 @@ class CoreOrderConfigServiceImpl implements ICoreOrderConfigService {
     public MallOrderEvaluate getEvaluateConfig() {
         JSONObject config = coreConfigService.getConfigValue(RequestUtils.defaultSiteId(), "MALL_GOODS_EVALUATE");
         MallOrderEvaluate mallOrderEvaluate = new MallOrderEvaluate();
-        
+
         if (ObjectUtil.isEmpty(config)) {
             mallOrderEvaluate.setIsEvaluate(1);
             mallOrderEvaluate.setEvaluateIsToExamine(0);
@@ -165,7 +170,7 @@ class CoreOrderConfigServiceImpl implements ICoreOrderConfigService {
     @Override
     public MallOrderCloseVo orderClose() {
         JSONObject data = coreConfigService.getConfigValue(RequestUtils.defaultSiteId(), "MALL_ORDER_CONFIG");
-        
+
         if (ObjectUtil.isEmpty(data) || ObjectUtil.isEmpty(data.getJSONObject("order_close"))) {
             return new MallOrderCloseVo(true, 120);
         }
@@ -178,7 +183,7 @@ class CoreOrderConfigServiceImpl implements ICoreOrderConfigService {
     public MallOrderDelaySpear orderDelaySpear() {
         JSONObject config = coreConfigService.getConfigValue(RequestUtils.defaultSiteId(), "MALL_ORDER_CONFIG");
         MallOrderDelaySpear delaySpear = new MallOrderDelaySpear();
-        
+
         if (ObjectUtil.isEmpty(config) || ObjectUtil.isEmpty(config.getJSONObject("delay_spear"))) {
             delaySpear.setIsDelaySpear(0);
             delaySpear.setDelayDays(0);
@@ -187,7 +192,22 @@ class CoreOrderConfigServiceImpl implements ICoreOrderConfigService {
             delaySpear.setIsDelaySpear(delaySpearData.getInt("is_delay_spear"));
             delaySpear.setDelayDays(delaySpearData.getInt("delay_days"));
         }
-        
+
         return delaySpear;
+    }
+
+    @Override
+    public MallOrderRefundInfo refundAudit() {
+        Integer siteId = RequestUtils.defaultSiteId();
+        JSONObject data = coreConfigService.getConfigValue(siteId, "MALL_ORDER_CONFIG");
+
+        MallOrderRefundInfo refundInfo = new MallOrderRefundInfo();
+        if (ObjectUtil.isEmpty(data) || ObjectUtil.isEmpty(data.getJSONObject("refund_info"))) {
+            refundInfo.setRefundAuditBeforeDelivery(1);
+        } else {
+            JSONObject config = data.getJSONObject("refund_info");
+            refundInfo.setRefundAuditBeforeDelivery(config.getInt("refund_audit_before_delivery", 1));
+        }
+        return refundInfo;
     }
 }

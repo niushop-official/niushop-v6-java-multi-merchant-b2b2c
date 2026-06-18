@@ -248,7 +248,8 @@ const addImageAd = () => {
 diyStore.editComponent.verify = (index: number) => {
     const res = { code: true, message: '' }
     if (diyStore.value[index].source == 'custom') {
-        if (diyStore.value[index].goods_ids.length == 0) {
+        const goodsIds = diyStore.value[index].goods_ids
+        if (!Array.isArray(goodsIds) || goodsIds.length == 0) {
             res.code = false
             res.message = t('goodsPlaceholder')
         }
@@ -272,6 +273,9 @@ const categoryTable = reactive({
     data: []
 })
 onMounted(() => {
+    if (!Array.isArray(diyStore.editComponent.goods_ids)) {
+        diyStore.editComponent.goods_ids = []
+    }
     loadCategoryList()
 })
 

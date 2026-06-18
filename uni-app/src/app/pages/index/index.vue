@@ -97,6 +97,12 @@ diy.onPageScroll()
 
     /* #endif */
 }
+// 微信隐私弹框在最高层
+.wx-privacy-popup {
+    :deep(.u-fade-enter-active){
+        z-index: 20070 !important;
+    }
+}
 </style>
 <style>
 /*  #ifdef MP  */   

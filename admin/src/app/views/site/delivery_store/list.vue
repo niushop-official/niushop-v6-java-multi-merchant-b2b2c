@@ -15,11 +15,6 @@
                             <el-option v-for="(item,key) in pickUpType" :key="key" :label="item" :value="key" />
                         </el-select>
                     </el-form-item>
-                    <el-form-item :label="t('营业时间')" prop="create_time">
-                        <el-date-picker v-model="deliveryStoreTable.searchParam.create_time" type="datetimerange"
-                            value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('开始时间')"
-                            :end-placeholder="t('结束时间')" />
-                    </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadDeliveryStoreList()">{{ t('search') }}</el-button>
                         <el-button @click="resetForm(searchFormRef)">{{ t('reset') }}</el-button>

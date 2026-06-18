@@ -21,7 +21,7 @@
             <view class="card-template mt-[var(--top-m)] sidebar-margin">
                 <view class="flex" :class="{'mb-[var(--top-m)]': (verifyInfo.value.list.length - 1 != index)}" v-for="(item,index) in verifyInfo.value.list" :key="index">
                     <image class="w-[150rpx] h-[150rpx] rounded-[var(--goods-rounded-big)]" mode="aspectFill" v-if="item.cover" :src="img(item.cover)"/>
-                    <image class="w-[150rpx] h-[150rpx] rounded-[var(--goods-rounded-big)]" mode="aspectFill" v-else :src="img('addon/tourism/tourism/member/hotel.png')"/>
+                    <image class="w-[150rpx] h-[150rpx] rounded-[var(--goods-rounded-big)]" mode="aspectFill" v-else :src="img('static/resource/images/diy/shop_default.jpg')"/>
                     <view class="flex flex-col flex-1 ml-[20rpx] py-[4rpx]">
                         <view class="leading-[1]">
                             <view class="leading-[40rpx] truncate max-w-[490rpx] text-[28rpx]">{{ item.name }}</view>

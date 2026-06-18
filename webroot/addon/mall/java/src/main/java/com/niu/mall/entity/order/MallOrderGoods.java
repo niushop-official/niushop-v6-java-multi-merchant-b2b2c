@@ -3,6 +3,7 @@ package com.niu.mall.entity.order;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -14,7 +15,7 @@ public class MallOrderGoods implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value="order_goods_id", type= IdType.AUTO)
+    @TableId(value = "order_goods_id", type = IdType.AUTO)
     private Integer orderGoodsId; // 
     private Integer siteId; // 站点id
     private Integer orderId; // 订单id
@@ -51,5 +52,26 @@ public class MallOrderGoods implements Serializable {
     private BigDecimal costGoodsMoney; // 商品成本总额相关
     private Integer supplyOrderId; // 供应商订单id
     private Integer supplyOrderGoodsId; // 供应商订单项id
+
+    /**
+     * 使用积分数
+     */
+    private Integer usePoint;
+
+    /**
+     * 积分抵扣金额
+     */
+    private BigDecimal pointDeductMoney;
+
+    /**
+     * 满减活动扣减金额
+     */
+    private BigDecimal fullReductionMoney;
+
+    private Integer isGift; // 是否是赠品
+
+    private String goodsConfig; // 商品对应配置
+
+    private Integer virtualRefundType; // 虚拟商品退款类型（0不允许退款 1主动退 2自动退）
 
 }

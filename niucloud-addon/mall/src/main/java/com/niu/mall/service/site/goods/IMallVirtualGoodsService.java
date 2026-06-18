@@ -1,6 +1,6 @@
 package com.niu.mall.service.site.goods;
 
-import com.niu.mall.service.site.goods.param.*;
+import com.niu.mall.service.site.goods.param.MallVirtualGoodsParam;
 import com.niu.mall.service.site.goods.vo.MallVirtualGoodsInitVo;
 
 /**
@@ -13,12 +13,12 @@ public interface IMallVirtualGoodsService {
      *
      * @param addParam 添加参数
      */
-    void add(MallVirtualGoodsParam addParam);
+    Integer add(MallVirtualGoodsParam addParam);
 
     /**
      * 商品编辑
      *
-     * @param id   主键
+     * @param id        主键
      * @param editParam 编辑参数
      */
     void edit(Integer id, MallVirtualGoodsParam editParam);

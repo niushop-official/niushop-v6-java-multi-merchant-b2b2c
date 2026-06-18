@@ -6,10 +6,12 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.mall.service.site.marketing.param.MallCouponParam;
 import com.niu.mall.service.site.marketing.param.MallCouponSearchParam;
 import com.niu.mall.service.site.marketing.param.MallCouponSelectParam;
+import com.niu.mall.service.site.marketing.param.MallCouponSendParam;
 import com.niu.mall.service.site.marketing.vo.MallCouponInfoVo;
 import com.niu.mall.service.site.marketing.vo.MallCouponListVo;
 import com.niu.mall.service.site.marketing.vo.MallCouponMemberListVo;
 import com.niu.mall.service.site.marketing.vo.MallCouponSelectVo;
+import com.niu.mall.service.site.marketing.vo.MallCouponStatVo;
 
 import java.util.List;
 
@@ -19,14 +21,16 @@ import java.util.List;
 public interface ICouponService {
 
     /**
-     *初始化
+     * 初始化
+     *
      * @return
      */
     JSONObject getInit();
 
     /**
      * 优惠券列表
-     * @param pageParam 分页参数
+     *
+     * @param pageParam   分页参数
      * @param searchParam 搜索参数
      * @return PageResult<ShopCouponListVo>
      */
@@ -34,8 +38,10 @@ public interface ICouponService {
 
 
     MallCouponSelectVo getSelectPage(PageParam pageParam, MallCouponSelectParam searchParam);
+
     /**
      * 查询指定优惠券
+     *
      * @param couponIds
      * @return
      */
@@ -43,6 +49,7 @@ public interface ICouponService {
 
     /**
      * 获取优惠券详情
+     *
      * @param couponId
      * @return
      */
@@ -50,12 +57,14 @@ public interface ICouponService {
 
     /**
      * 添加优惠券
+     *
      * @param addParam
      */
     void add(MallCouponParam addParam);
 
     /**
      * 编辑优惠券
+     *
      * @param couponId
      * @param mallCouponParam
      */
@@ -63,12 +72,14 @@ public interface ICouponService {
 
     /**
      * 删除优惠券
+     *
      * @param couponId
      */
     void delete(Integer couponId);
 
     /**
      * 获取会员优惠券
+     *
      * @param pageParam
      * @param id
      * @param keywords
@@ -78,6 +89,7 @@ public interface ICouponService {
 
     /**
      * 设置优惠券领用状态
+     *
      * @param couponId
      * @param status
      */
@@ -85,7 +97,18 @@ public interface ICouponService {
 
     /**
      * 设置优惠券失效
+     *
      * @param couponId
      */
     void couponInvalid(Integer couponId);
+
+    Boolean sendCoupon(MallCouponSendParam param);
+
+    /**
+     * 店铺优惠券统计
+     *
+     * @param id 优惠券ID，可选
+     * @return MallCouponStatVo
+     */
+    MallCouponStatVo getCouponStat(Integer id);
 }

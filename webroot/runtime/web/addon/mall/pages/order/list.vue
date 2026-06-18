@@ -30,8 +30,8 @@
                                 </div>
                             </div>
                             <div class="flex justify-between items-center pl-[20px] ">
-                                <div class="w-[786px] my-[20px] border-r-[1px] border-dashed border-[rgb(238, 238, 238)]" >
-                                    <div class="flex items-center mb-[20px]" v-for="(subItem,subIndex) in item.order_goods" :key="subIndex">
+                                <div class="w-[760px] my-[20px] border-r-[1px] border-dashed border-[rgb(238, 238, 238)]" >
+                                    <div class="flex items-center" :class="{'mb-[20px]': subIndex }" v-for="(subItem,subIndex) in item.order_goods" :key="subIndex">
                                         <div class="flex items-center cursor-pointer" @click="toLink(item)">
                                             <el-image class="rounded-[var(--rounded-mid)]" style="width: 100px; height: 100px" v-if="subItem.goods_image" :src="img(subItem.goods_image)" fit="cover">
                                                 <template #error>

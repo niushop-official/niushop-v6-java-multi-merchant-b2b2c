@@ -3,128 +3,178 @@
 		<el-card class="card !border-none mb-[15px]" shadow="never">
             <el-page-header :content="pageName" :icon="ArrowLeft" @back="router.push({ path: '/shop/member/list' })" />
         </el-card>
-		<el-card class="box-card !border-none" shadow="never" v-if="Object.keys(formData).length">
-			<el-tabs v-model="activeName" class="demo-tabs" @tab-change="handleClick">
-				<el-tab-pane :label="t('essentialInfo')" name=""></el-tab-pane>
-				<el-tab-pane :label="t('couponMember')" name="1"></el-tab-pane>
-			</el-tabs>
-			<div v-if="activeName != 1">
-				<el-card class="box-card !border-none" shadow="never">
-					<el-row>
-						<el-col :span="12">
-							<div class="bg-[#fff]">
-								<el-statistic :value="formData.comsum_num"></el-statistic>
-								<div class="statistic-footer">
-									<div class="text-[14px] text-[#666]">
-										<span>{{ t('consumeNum') }}</span>
-									</div>
-								</div>
-							</div>
-						</el-col>
-						<el-col :span="12">
-							<div class="bg-[#fff]">
-								<el-statistic :value="formData.comsum_money"></el-statistic>
-								<div class="statistic-footer">
-									<div class="text-[14px] text-[#666]">
-										<span>{{ t('comsumMoney') }}</span>
-									</div>
-								</div>
-							</div>
-						</el-col>
-					</el-row>
-				</el-card>
-				<el-card class="box-card !border-none" shadow="never">
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('headimg') }}</span>
-						<span class="text-[14px] text-[#666666]">
-							<img class="w-[50px] h-[50px] inline-block" v-if="formData.headimg" :src="img(formData.headimg)" alt="">
-							<img class="w-[50px] h-[50px] inline-block" v-else src="@/app/assets/images/default_headimg.png" alt="">
-						</span>
-					</div>
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] min-w-[110px] text-right mr-[20px]">UID</span>
-						<span class="member-info-item text-[14px] text-[#666666] font-bold w-[150px]">
-							{{ formData.member_no || t('notAvailable') }}
-						</span>
-					</div>
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('urserName') }}</span>
-						<span class="text-[14px] text-[#666666]">
-							{{ formData.username || t('notAvailable') }}
-						</span>
-					</div>
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('nickname') }}</span>
-						<span class="text-[14px] text-[#666666]">
-							{{ formData.nickname || t('notAvailable') }}
-						</span>
-					</div>
+		<div class="flex justify-between h-full">
+            <div class="w-[360px]">
+                <div class="bg-[#fff] h-full"> 
+                    <div class="flex flex-col justify-center p-[20px]">
+                        <div class="flex flex-col items-center justify-center">
+                            <img class="w-[50px] h-[50px]" v-if="formData.headimg" :src="img(formData.headimg)" alt="">
+                            <img class="w-[50px] h-[50px]" v-else src="@/app/assets/images/default_headimg.png" alt="">
+                            <div class="mt-[12px] text-[20px]"> 
+                                {{ formData.username || t('notAvailable') }}
+                            </div>
+                            <div class="flex items-center mt-[12px] text-[#666]">
+                                <span class="text-[14px] text-right mr-[5px]">UID：</span>
+                                <span class="member-info-item text-[14px] text-[#666666]">
+                                    {{ formData.member_no || t('notAvailable') }}
+                                </span>
+                            </div>
+                        </div>    
+                    </div>
+                    <div class="h-[1px] border-solid border-[#e5e7eb] border-b-[1px] my-[10px]"></div>
+                    
+                    <div class="p-[20px]">
+                        <el-tabs v-model="tabBaseType">
+                            <el-tab-pane name="basicInfo" label="基本信息">
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] flex-shrink-0 text-[#666666] mr-[20px]">{{ t('urserName') }}</span>
+                                    <span class="text-[14px] ">
+                                        {{ formData.username || t('notAvailable') }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] flex-shrink-0 text-[#666666] mr-[20px]">{{ t('nickname') }}</span>
+                                    <span class="text-[14px] ">
+                                        {{ formData.nickname || t('notAvailable') }}
+                                    </span>
+                                </div>
 
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('mobile') }}</span>
-						<span class="text-[14px] text-[#666666]">
-							{{ formData.mobile ? mobileHide(formData.mobile) : t('notAvailable') }}
-						</span>
-					</div>
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('memberLabel') }}</span>
-						<span class="text-[14px] text-[#666666]">
-							{{ formData.member_label_name.toString() || t('notAvailable') }}<el-icon @click="editMemberInfo('shop_member_label')" class="-bottom-[2px] -right-[4px] cursor-pointer">
-								<EditPen color="#273CE2" />
-							</el-icon>
-						</span>
-					</div>
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('birthday') }}</span>
-						<span class="text-[14px] text-[#666666]">
-							{{ formData.birthday || t('notAvailable') }}
-						</span>
-					</div>
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('sex') }}</span>
-						<span class="text-[14px] text-[#666666]">
-							{{ formData.sex == 1 && t('manSex') || formData.sex == 2 && t('girlSex') || t('secrecySex') }}
-						</span>
-					</div>
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('registeredSource') }}</span>
-						<span class="text-[14px] text-[#666666]">
-							{{ formData.register_channel_name || t('notAvailable') }}
-						</span>
-					</div>
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('firstConsumTime') }}</span>
-						<span class="text-[14px] text-[#666666]">
-							{{ formData.first_consum_time || t('notAvailable') }}
-						</span>
-					</div>
-					<div class="flex items-center mt-[15px]">
-						<span class="text-[14px] w-[130px] text-right mr-[20px]">{{ t('lastConsumTime') }}</span>
-						<span class="text-[14px] text-[#666666]">
-							{{ formData.last_consum_time || t('notAvailable') }}
-						</span>
-					</div>
-				</el-card>
-			</div>
-			<div v-else>
-				<el-table :data="formData.coupon_member" size="large">
-					<el-table-column prop="title" :label="t('title')" min-width="50" align="left" />
-					<el-table-column prop="price" :label="t('price')" min-width="50" align="left" />
-					<el-table-column prop="min_condition_money" :label="t('minConditionMoney')" min-width="50" align="left" />
-					<el-table-column prop="create_time" :label="t('createTime')" min-width="50" align="left" />
-					<el-table-column prop="expire_time" :label="t('expireTime')" min-width="50" align="left" />
-				</el-table>
-			</div>
-			<edit-member ref="editMemberDialog" @complete="getMemberInfoFn()" />
-		</el-card>
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] flex-shrink-0 text-[#666666] mr-[20px]">{{ t('mobile') }}</span>
+                                    <span class="text-[14px] ">
+                                        {{ formData.mobile || t('notAvailable') }}
+                                    </span>
+                                </div>
+                            
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] flex-shrink-0 text-[#666666] mr-[20px]">{{ t('birthday') }}</span>
+                                    <span class="text-[14px] ">
+                                        {{ formData.birthday || t('notAvailable') }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] flex-shrink-0 text-[#666666] mr-[20px]">{{ t('sex') }}</span>
+                                    <span class="text-[14px] ">
+                                        {{ formData.sex == 1 && t('manSex') || formData.sex == 2 && t('girlSex') || t('secrecySex') }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] flex-shrink-0 text-[#666666] mr-[20px]">{{ t('是否关注') }}</span>
+                                    <span class="text-[14px] ">
+                                        {{ formData.is_follow ? t('已关注') : t('未关注') }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] flex-shrink-0 text-[#666666] mr-[20px]">{{ t('registeredSource') }}</span>
+                                    <span class="text-[14px] ">
+                                        {{ formData.register_channel_name || t('notAvailable') }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] flex-shrink-0 text-[#666666] mr-[20px]">{{ t('firstConsumTime') }}</span>
+                                    <span class="text-[14px] ">
+                                        {{ formData.first_consum_time || t('notAvailable') }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] flex-shrink-0 text-[#666666] mr-[20px]">{{ t('lastConsumTime') }}</span>
+                                    <span class="text-[14px] ">
+                                        {{ formData.last_consum_time || t('notAvailable') }}
+                                    </span>
+                                </div>
+                            </el-tab-pane>
+                        </el-tabs>
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 ml-[10px]">
+                <el-card class="box-card !border-none" shadow="never"> 
+                    <template #header>
+                        <div class="card-header font-bold">
+                        消费统计
+                        </div>
+                    </template>
+					<div class="flex gap-4">
+						<div class="statistic-card">
+                            <div class="flex justify-between">
+                                <div>
+                                    <div class="text-[14px]">
+										{{ t('消费次数') }}
+									</div>
+                                    <div class="text-[22px] font-bold mt-1">
+										{{ formData.comsum_num }}
+									</div>
+                                </div>
+                                <div class="w-[46px] h-[46px] bg-[#EFF4FF] rounded-[8px] flex justify-center items-center">
+                                    <img :src="img('static/resource/images/member/detail/comsum_num.png')" class="w-[24px] h-[24px]" alt="">
+                                </div>
+                            </div>
+						</div>
+                        <div class="statistic-card">
+                            <div class="flex justify-between">
+                                <div>
+                                    <div class="text-[14px]">
+										{{ t('累计消费金额') }}
+									</div>
+                                    <div class="text-[22px] font-bold mt-1">
+										{{ formData.comsum_money }}
+									</div>
+                                </div>
+                                 <div class="w-[46px] h-[46px] bg-[#EFF4FF] rounded-[8px] flex justify-center items-center">
+                                    <img :src="img('static/resource/images/member/detail/comsum_money.png')" class="w-[24px] h-[24px]" alt="">
+                                </div>
+                            </div>		
+						</div>		
+                    </div>
+                </el-card>
+
+                <el-card class="box-card !border-none mt-[10px]" shadow="never"> 
+                    <template #header>
+                        <div class="card-header font-bold">
+                            会员属性
+                        </div>
+                    </template>
+                    <div>
+                        <el-row>
+                            <el-col :span="8">
+                                 <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] text-[#666666] text-right  mr-[20px]">{{ t('memberLabel') }}</span>
+                                    <span class="text-[14px] ">
+                                        {{ formData.member_label_name.toString() || t('notAvailable') }}<el-icon @click="editMemberInfo('shop_member_label')" class="-bottom-[2px] -right-[4px] cursor-pointer">
+                                            <EditPen color="#273CE2" />
+                                        </el-icon>
+                                    </span>
+                                </div>
+                            </el-col>       
+                        </el-row>
+                    </div>
+                </el-card>  
+                <el-card class="box-card !border-none mt-[10px]" shadow="never"> 
+                        <el-tabs v-model="activeName" class="demo-tabs ml-[15px]" @tab-change="handleMenuClick">
+                            <el-tab-pane v-for="(item,index) in typeList" :key="index" :name="item.key">
+                                <template #label>
+                                    <div class="flex items-center">
+                                        <span>{{ item.name }}</span>
+                                    </div>
+                                </template>
+                            </el-tab-pane>
+                        </el-tabs>
+                    <div>
+                        <component v-if="dynamicComponentName" :is="dynamicComponentName" :member_id="member_id" ref="dynamicComponentRefs" />
+                    </div>
+                </el-card>  
+            </div>
+        </div>
 	</div>
+    <edit-member ref="editMemberDialog" @complete="getMemberInfoFn()" />
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref ,defineAsyncComponent} from 'vue'
 import { t } from '@/lang'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { getShopMemberInfo, getShopMemberCoupon } from '@/app/api/shop_site'
+import { getShopMemberInfo, getShopMemberCoupon ,getMemberContentType } from '@/app/api/shop_site'
 import { ElMessage } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import { img, mobileHide } from '@/utils/common'
@@ -136,7 +186,7 @@ const pageName = route.meta.title
 const activeName = ref('')
 const id: number = parseInt(route.query.id || 0)
 const loading = ref(true)
-
+const tabBaseType = ref('basicInfo')
 const handleClick = (event: any) => {
     activeName.value = event
 }
@@ -187,6 +237,29 @@ const getMemberInfoFn = async () => {
 }
 getMemberInfoFn()
 
+const typeList = ref([])
+const modules: any = import.meta.glob('@/**/*.vue')
+const dynamicComponentName: any = ref('') // 动态组件名称
+
+const dynamicComponentRefs: any = ref(null) // 动态组件ref
+const getMemberContentTypeFn = async () => {
+    const res = await getMemberContentType()
+    typeList.value = Object.values(res.data)
+    activeName.value = typeList.value[0].key
+    handleMenuClick(activeName.value)
+}
+getMemberContentTypeFn()
+const handleMenuClick = (value: any) => {
+    const item = typeList.value.find((item: any) => item.key == value)
+    const component = item?.component
+    if (component) {
+        dynamicComponentName.value = component
+        dynamicComponentName.value = defineAsyncComponent(modules[dynamicComponentName.value])
+    } else {
+        dynamicComponentName.value = ''
+    }
+}
+
 const editMemberDialog: Record<string, any> | null = ref(null)
 
 /**
@@ -205,9 +278,6 @@ const editMemberInfo = (type: any) => {
 </script>
 
 <style lang="scss" scoped>
-.el-col {
-	background-color: #FAFAFD;
-}
 
 .member-info {
 	left: 0px
@@ -218,5 +288,21 @@ const editMemberInfo = (type: any) => {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	-o-text-overflow: ellipsis;
+}
+.statistic-card{
+    width: 20%;
+    background-color: #fff;
+    border:1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+:deep(.el-card__header){
+    padding: 15px;
+}
+:deep(.el-tabs__item:hover){
+    color: inherit !important;
 }
 </style>

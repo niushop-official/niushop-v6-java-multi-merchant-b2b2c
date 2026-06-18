@@ -5,9 +5,10 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
+import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
-import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
@@ -72,38 +73,54 @@ public class DiyFormRecordsExportDataListener extends ExportDataEventDefiner {
         }
         Integer formId = whereJson.getInt("form_id");
 
-        QueryWrapper<DiyFormRecords> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("form_id", formId);
-        if ((whereJson.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
-            QueryMapperUtils.buildByTime(queryWrapper, "create_time", StringUtils.jsonArrayToStringArray(createTimes));
+        MPJQueryWrapper<DiyFormRecords> queryWrapper = new MPJQueryWrapper<>();
+        queryWrapper.setAlias("r")
+                .leftJoin("?_member m ON r.member_id = m.member_id".replace("?_", GlobalConfig.tablePrefix));
+        queryWrapper.select("r.*");
+        queryWrapper.eq("r.form_id", formId);
+        Object createTime = whereJson.get("create_time");
+        if (ObjectUtil.isNotEmpty(createTime)) {
+            if ((whereJson.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
+                QueryMapperUtils.buildByTime(queryWrapper, "r.create_time", StringUtils.jsonArrayToStringArray(createTimes));
+            }
         }
-        queryWrapper.orderByDesc("create_time");
+        Object keyword = whereJson.get("keyword");
+        if (ObjectUtil.isNotEmpty(keyword)) {
+            queryWrapper.and(wrapper -> wrapper.like("m.nickname", keyword)
+                    .or().like("m.username", keyword)
+                    .or().like("m.member_no", keyword)
+                    .or().like("m.mobile", keyword)
+            );
+        }
+        queryWrapper.orderByDesc("r.create_time");
         PageParam pageParam = exportDataEvent.getPageParam();
         List<DiyFormRecords> recordsList = new ArrayList<>();
         if (pageParam.getPage() > 0 && pageParam.getLimit() > 0) {
-            Page<DiyFormRecords> page = diyFormRecordsMapper.selectPage(
-                    new Page<>(pageParam.getPage(), pageParam.getLimit()), 
+            Page<DiyFormRecords> page = diyFormRecordsMapper.selectJoinPage(
+                    new Page<>(pageParam.getPage(), pageParam.getLimit()),
+                    DiyFormRecords.class,
                     queryWrapper
             );
             recordsList = page.getRecords();
         } else {
-            recordsList = diyFormRecordsMapper.selectList(queryWrapper);
+            recordsList = diyFormRecordsMapper.selectJoinList(DiyFormRecords.class, queryWrapper);
         }
 
         if (recordsList.isEmpty()) {
-            throw new CommonException("表单为空");
+            exportDataEventResult.setResultData(result);
+            return exportDataEventResult;
         }
 
         DiyForm diyForm = diyFormMapper.selectById(formId);
         List<String> fieldKeyList = diyFormFieldsMapper.selectList(
-                new QueryWrapper<DiyFormFields>()
-                        .eq("form_id", formId)
-                        .eq("site_id", siteId)
-                        .orderByAsc("field_id")
-        ).stream()
+                        new QueryWrapper<DiyFormFields>()
+                                .eq("form_id", formId)
+                                .eq("site_id", siteId)
+                                .orderByAsc("field_id")
+                ).stream()
                 .map(DiyFormFields::getFieldKey)
                 .collect(Collectors.toList());
-        
+
         List<Integer> recordIds = recordsList.stream()
                 .map(DiyFormRecords::getRecordId)
                 .collect(Collectors.toList());
@@ -139,23 +156,9 @@ public class DiyFormRecordsExportDataListener extends ExportDataEventDefiner {
         String typeName = "";
         if (diyForm != null && ObjectUtil.isNotEmpty(diyForm.getType())) {
             JSONObject typeObj = diyFormTypeEnum.getType(diyForm.getType());
-            if (typeObj != null && typeObj.containsKey("name")) {
-                typeName = typeObj.getStr("name");
+            if (typeObj != null && typeObj.containsKey("title")) {
+                typeName = typeObj.getStr("title");
             }
-        }
-
-        Object keyword = whereJson.get("keyword");
-        final Map<Integer, Member> finalMemberMap = memberMap;
-        if (ObjectUtil.isNotEmpty(keyword)) {
-            String keywordStr = keyword.toString();
-            recordsList = recordsList.stream()
-                    .filter(record -> {
-                        Member member = finalMemberMap.get(record.getMemberId());
-                        if (member == null) return false;
-                        return (ObjectUtil.isNotEmpty(member.getNickname()) && member.getNickname().contains(keywordStr))
-                                || (ObjectUtil.isNotEmpty(member.getMobile()) && member.getMobile().contains(keywordStr));
-                    })
-                    .collect(Collectors.toList());
         }
 
         final String finalTypeName = typeName;

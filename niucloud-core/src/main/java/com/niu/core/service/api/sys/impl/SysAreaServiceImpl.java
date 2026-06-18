@@ -8,8 +8,9 @@ import com.niu.core.common.utils.CollectUtils;
 import com.niu.core.common.utils.object.ObjectGroupUtils;
 import com.niu.core.entity.sys.SysArea;
 import com.niu.core.mapper.sys.SysAreaMapper;
-import com.niu.core.service.admin.sys.vo.SysMapVo;
+import com.niu.core.service.admin.sys.vo.SysAreaResolveVo;
 import com.niu.core.service.api.sys.ISysAreaService;
+import com.niu.core.service.admin.sys.vo.SysMapVo;
 import com.niu.core.service.api.sys.param.SysAreaAddressByLatlngParam;
 import com.niu.core.service.api.sys.tools.TencentGeocoder;
 import com.niu.core.service.api.sys.vo.SysAreaLevelVo;
@@ -17,6 +18,7 @@ import com.niu.core.service.api.sys.vo.SysAreaListVo;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,9 @@ public class SysAreaServiceImpl implements ISysAreaService {
 
     @Autowired
     private ICoreSysConfigService coreSysConfigService;
+
+    @Resource
+    private com.niu.core.service.admin.sys.ISysAreaService adminSysAreaService;
 
     @Override
     public SysArea getAreaById(Integer id) {
@@ -200,12 +205,40 @@ public class SysAreaServiceImpl implements ISysAreaService {
         String key = sysMapVo.getKey();
         String addressJsonString = TencentGeocoder.getAddress(key, param.getLatlng(), param.getGetPoi());
         JSONObject jsonObjectResult = TencentGeocoder.formatData(addressJsonString);
+        String adcode = jsonObjectResult.getStr("adcode");
+        if (StringUtils.isNotBlank(adcode)) {
+            try {
+                JSONObject areaByCode = getAreaByAreaCode(Integer.parseInt(adcode));
+                JSONObject province = areaByCode.getJSONObject("province");
+                JSONObject city = areaByCode.getJSONObject("city");
+                JSONObject district = areaByCode.getJSONObject("district");
+                if (province != null) {
+                    jsonObjectResult.putOpt("province_id", province.getInt("id"));
+                }
+                if (city != null) {
+                    jsonObjectResult.putOpt("city_id", city.getInt("id"));
+                }
+                if (district != null) {
+                    jsonObjectResult.putOpt("district_id", district.getInt("id"));
+                }
+                return jsonObjectResult;
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
         String province = jsonObjectResult.getStr("province");
-        jsonObjectResult.putOpt("province_id", this.queryCodeByNameAndLevel(province, 1));
         String city = jsonObjectResult.getStr("city");
-        jsonObjectResult.putOpt("city_id", this.queryCodeByNameAndLevel(city, 2));
         String district = jsonObjectResult.getStr("district");
-        jsonObjectResult.putOpt("district_id", this.queryCodeByNameAndLevel(district, 3));
+        SysAreaResolveVo resolved = adminSysAreaService.resolveAreaByName(province, city, district);
+        if (resolved != null) {
+            jsonObjectResult.putOpt("province_id", resolved.getProvinceId());
+            jsonObjectResult.putOpt("city_id", resolved.getCityId());
+            jsonObjectResult.putOpt("district_id", resolved.getDistrictId());
+        } else {
+            jsonObjectResult.putOpt("province_id", this.queryCodeByNameAndLevel(province, 1));
+            jsonObjectResult.putOpt("city_id", this.queryCodeByNameAndLevel(city, 2));
+            jsonObjectResult.putOpt("district_id", this.queryCodeByNameAndLevel(district, 3));
+        }
         return jsonObjectResult;
     }
 
@@ -215,12 +248,24 @@ public class SysAreaServiceImpl implements ISysAreaService {
      * @return
      */
     private Integer queryCodeByNameAndLevel(String areaName, int level) {
+        if (StringUtils.isBlank(areaName)) {
+            return null;
+        }
         QueryWrapper<SysArea> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id");
         queryWrapper.eq("name", areaName);
         queryWrapper.eq("level", level);
         queryWrapper.last("limit 1");
         SysArea sysArea = this.sysAreaMapper.selectOne(queryWrapper);
+        if (sysArea != null) {
+            return sysArea.getId();
+        }
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id");
+        queryWrapper.like("name", areaName);
+        queryWrapper.eq("level", level);
+        queryWrapper.last("limit 1");
+        sysArea = this.sysAreaMapper.selectOne(queryWrapper);
         if (sysArea != null) {
             return sysArea.getId();
         }

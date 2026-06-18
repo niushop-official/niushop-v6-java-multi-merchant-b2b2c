@@ -102,8 +102,8 @@ public class Balancepay extends BasePay {
     /**
      * 扫码支付
      */
-    public void scan() {
-
+    public Object scan(PayParam param) {
+        return null;
     }
 
     /**

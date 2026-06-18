@@ -59,15 +59,17 @@
                     <text class="name" :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx' ,'font-weight': diyComponent.fontWeight}">{{ diyComponent.field.name }}</text>
                 </view>
                 <view class="layout-two-content" @click="openCalendar">
-                    <view class="text-overflow-ellipsis flex justify-center"
+                    <view class="flex-1 flex items-center justify-end" :class="{'!justify-start': diyGlobal.contentAlign == 'left'}">
+                        <view class="text-overflow-ellipsis flex justify-center"
                           :class="{'!text-[#999]' : !diyComponent.field.value.start.date && !diyComponent.defaultControl}"
                           :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx'}"
                           @click="startDatetime = true">{{ startTime }}</view>
-                    <view class="mx-[10rpx]" :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx'}">-</view>
-                    <view class="text-overflow-ellipsis flex justify-center"
-                          :class="{'!text-[#999]' : !diyComponent.field.value.end.date && !diyComponent.defaultControl}"
-                          :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx'}"
-                          @click="endDatetime = true">{{ endTime }}</view>
+                        <view class="mx-[10rpx]" :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx'}">-</view>
+                        <view class="text-overflow-ellipsis flex justify-center"
+                            :class="{'!text-[#999]' : !diyComponent.field.value.end.date && !diyComponent.defaultControl}"
+                            :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx'}"
+                            @click="endDatetime = true">{{ endTime }}</view>
+                    </view>
                     <text class="nc-iconfont !text-[var(--text-color-light9)] !text-[26rpx] nc-icon-youV6xx -mr-[8rpx]" :style="iconfontStyle"></text>
                 </view>
             </view>

@@ -21,7 +21,13 @@
                         </view>
                         <view class="h-[88rpx] flex w-full items-center px-[30rpx] rounded-[var(--goods-rounded-mid)] box-border bg-[#f8f8f8] mb-[30rpx]">
                             <u-form-item label="" prop="password" :border-bottom="false">
-                                <u-input v-model="formData.password" border="none" :password="isPassword" maxlength="40" :placeholder="t('passwordPlaceholder')" autocomplete="new-password" class="!bg-transparent" :disabled="real_name_input" fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]"></u-input>
+                                <u-input v-model="formData.password" border="none" :password="isPassword" maxlength="40" :placeholder="t('passwordPlaceholder')" autocomplete="new-password" class="!bg-transparent" :disabled="real_name_input" fontSize="26rpx" placeholderClass="!text-[var(--text-color-light9)] text-[26rpx]">
+                                <template #suffix>
+                                    <view @click="changePassword" v-if="formData.password">
+                                        <u-icon :name="isPassword?'eye-off':'eye-fill'" color="#b9b9b9" size="20"></u-icon>
+                                    </view>
+                                </template>
+                            </u-input>
                             </u-form-item>
                         </view>
                     </template>
@@ -43,6 +49,7 @@
                         </view>
                     </template>
                 </u-form>
+                <view v-if="type == 'username'" class="h-[34rpx] text-right text-[24rpx] text-[var(--text-color-light6)] leading-[34rpx] mt-[20rpx]" @click="toResetpwd">忘记密码</view>
                 <view class="mt-[100rpx]">
                     <button class="w-full h-[80rpx] !bg-[var(--primary-color)] text-[26rpx] rounded-[16rpx] leading-[80rpx] font-500 !text-[#fff] !mx-[0]" :loadingText="t('logining')" @click="handleLogin">{{ t('login') }}</button>
                 </view>
@@ -91,7 +98,9 @@ const type = ref('username')
 
 const isPassword = ref(true)
 
-
+const changePassword = () => {
+    isPassword.value = !isPassword.value
+}
 
 const formData = reactive({
     username: '',
@@ -230,8 +239,14 @@ const loginFn = () => {
     })
 }
 
+const toResetpwd = () =>{
+    redirect({ url: '/app/pages/auth/resetpwd' })
+}
 </script>
 <style lang="scss" scoped>
+:deep(.u-input__content__subfix-password-shower) {
+    display: none !important; 
+}
 :deep(.u-input) {
     background-color: transparent !important;
 }

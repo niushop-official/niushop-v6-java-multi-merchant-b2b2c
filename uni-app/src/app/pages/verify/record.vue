@@ -30,6 +30,7 @@
                                 <view class="max-w-[490rpx] leading-[1.3] truncate text-[28rpx] text-[#303133]">{{ dataItem.name }}</view>
                                 <view class="mt-[14rpx] truncate text-[24rpx] text-[var(--text-color-light9)] max-w-[490rpx] " v-if="item.sub_name">{{ item.sub_name }}</view>
                                 <view class="text-[24rpx] mt-[10rpx] text-[var(--text-color-light9)]">x{{dataItem.verify_num}}</view>
+                                <view class="text-[24rpx] mt-[20rpx] text-primary">{{ dataItem.un_use_msg }}</view>
                             </view>
                         </view>
                         <view class="flex bg-[var(--temp-bg)] py-[20rpx] px-[20rpx] rounded-[12rpx] mt-[20rpx]">

@@ -53,3 +53,38 @@ export function getAddonList(params: Record<string, any>) {
     return request.get('mall/site/stat/addon', { params })
 }
 
+
+/**
+ * 获取交易统计基础数据
+ */
+export function getTradeStatBasic(params: Record<string, any>) {
+    return request.get('mall/site/trade/stat/basic', { params })
+}
+
+/**
+ * 获取交易统计趋势数据
+ */
+export function getTradeTrend(params: Record<string, any>) {
+    return request.get('mall/site/trade/stat/trend', { params })
+}
+
+/**
+ * 获取交易转化统计数据
+ */
+export function getTradeConversion(params: Record<string, any>) {
+    return request.get('mall/site/trade/stat/conversion', { params })
+}
+
+/**
+ * 获取交易渠道统计数据
+ */
+export function getTradeChannel(params: Record<string, any>) {
+    return request.get('mall/site/trade/stat/channel', { params })
+}
+
+/**
+ * 获取成交客户统计数据
+ */
+export function getTradeDealMember(params: Record<string, any>) {
+    return request.get('mall/site/trade/stat/dealMember', { params })
+}

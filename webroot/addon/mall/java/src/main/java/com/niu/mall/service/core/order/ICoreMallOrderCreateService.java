@@ -35,8 +35,8 @@ public interface ICoreMallOrderCreateService {
 
     /**
      * 查询平台优惠券
-     * @param orderKeys
+     * @param param 与 calculate 相同结构的参数（至少含 body）
      * @return
      */
-    List<MallMemberCouponListVo> getPlatformCoupon(List<Object> orderKeys);
+    List<MallMemberCouponListVo> getPlatformCoupon(MallOrderCalculateParam param);
 }

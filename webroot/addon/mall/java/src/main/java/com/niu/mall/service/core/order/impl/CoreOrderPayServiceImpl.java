@@ -3,9 +3,7 @@ package com.niu.mall.service.core.order.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.niu.core.common.component.context.task.ThreadPoolManager;
 import com.niu.core.common.exception.CommonException;
-import com.niu.core.entity.member.Member;
 import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.mapper.shop.SiteShopMapper;
@@ -13,7 +11,12 @@ import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderGroup;
-import com.niu.mall.enums.order.*;
+import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.mall.enums.order.OrderDeliveryStatusEnum;
+import com.niu.mall.enums.order.OrderGroupEnum;
+import com.niu.mall.enums.order.OrderStatusEnum;
+import com.niu.mall.enums.order.OrderTypePayEnum;
+import com.niu.mall.event.order.MallOrderPayCustomEvent;
 import com.niu.mall.event.order.MallOrderPayEvent;
 import com.niu.mall.event.order.OrderPayAfterEvent;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
@@ -26,12 +29,11 @@ import com.niu.mall.service.core.order.param.OrderPayParam;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -65,59 +67,45 @@ public class CoreOrderPayServiceImpl implements ICoreOrderPayService {
      */
     @Transactional
     public void pay(OrderPayParam param) {
-        MallOrder order = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>().select("order_id,status").eq("order_id", param.getTradeId()));
+        MallOrder order = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>().select("order_id,status,order_type").eq("order_id", param.getTradeId()));
         if (order == null) throw new CommonException("订单不存在");
-        if (!order.getStatus().equals(OrderStatusEnum.WAIT_PAY.getStatus().toString())) throw new CommonException("订单状态异常");
+        if (!order.getStatus().equals(OrderStatusEnum.WAIT_PAY.getStatus().toString()) ||
+                OrderStatusEnum.CLOSE.getStatus().toString().equals(order.getStatus()))
+            throw new CommonException("订单状态异常");
 
-        // 变更订单状态
-        order.setStatus(OrderStatusEnum.WAIT_DELIVERY.getStatus().toString());
-        order.setTimeout(0L);
-        order.setIsEnableRefund(1);
-        order.setOutTradeNo(param.getOutTradeNo());
-        order.setPayTime(System.currentTimeMillis() / 1000);
-        mallOrderMapper.updateById(order);
+        OrderTypePayEnum type = OrderTypePayEnum.pintuan.getEnumByType(order.getOrderType());
+        boolean isCustom = type != null && type.isCustom();
 
-        // 变更订单项发货状态
-        MallOrderGoods orderGoods = new MallOrderGoods();
-        orderGoods.setDeliveryStatus(OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus());
-        orderGoods.setIsEnableRefund(1);
-        mallOrderGoodsMapper.update(orderGoods, new QueryWrapper<MallOrderGoods>().eq("order_id", order.getOrderId()));
+        if (isCustom) {
+            // 对照 PHP CoreOrderPayService::pay custom 路径，仅更新支付相关字段
+            MallOrder payUpdate = new MallOrder();
+            payUpdate.setOrderId(order.getOrderId());
+            payUpdate.setTimeout(0L);
+            payUpdate.setIsEnableRefund(1);
+            payUpdate.setOutTradeNo(param.getOutTradeNo());
+            payUpdate.setPayTime(System.currentTimeMillis() / 1000);
+            mallOrderMapper.updateById(payUpdate);
+        } else {
+            order.setStatus(OrderStatusEnum.WAIT_DELIVERY.getStatus().toString());
+            order.setTimeout(0L);
+            order.setIsEnableRefund(1);
+            order.setOutTradeNo(param.getOutTradeNo());
+            order.setPayTime(System.currentTimeMillis() / 1000);
+            mallOrderMapper.updateById(order);
+
+            MallOrderGoods orderGoods = new MallOrderGoods();
+            orderGoods.setDeliveryStatus(OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus());
+            orderGoods.setIsEnableRefund(1);
+            mallOrderGoodsMapper.update(orderGoods, new QueryWrapper<MallOrderGoods>().eq("order_id", order.getOrderId()));
+        }
 
         order = mallOrderMapper.selectById(order.getOrderId());
 
-        if(order.getOrderType().equals("mall")){
-            orderPayEvent(order,OrderStatusEnum.WAIT_DELIVERY.getStatus().toString());
+        if (isCustom) {
+            orderPayCustomEvent(order, param);
+        } else {
+            orderPayEvent(order, OrderStatusEnum.WAIT_DELIVERY.getStatus().toString(), param);
         }
-        order = mallOrderMapper.selectById(order.getOrderId());
-        MallOrder finalOrder = order;
-
-        //计算佣金
-        SiteShop shop = shopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", order.getSiteId()));
-        BigDecimal commissionRate = shop.getCommissionRate();
-        order.setMallRate(commissionRate);
-        if(commissionRate.compareTo(BigDecimal.ZERO) > 0 )
-        {
-            BigDecimal orderMoney = (order.getOrderMoney().subtract(order.getDeliveryMoney())).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal mallMoney = (orderMoney.multiply(commissionRate.divide(new BigDecimal(100)))).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal shopMoney = (order.getOrderMoney().subtract(mallMoney)).setScale(2, RoundingMode.HALF_UP);
-            if(order.getSupplyId() > 0){
-                order.setSupplyMoney(order.getCostGoodsMoney());
-            }
-            order.setMallMoney(mallMoney);
-            order.setShopMoney(shopMoney);
-        }
-        mallOrderMapper.updateById(order);
-
-        //同步订单成功，打印
-        coreOrderEventService.orderPayAfter(finalOrder, param);
-
-        // 订单支付之后事件
-        OrderPayAfterEvent event = new OrderPayAfterEvent();
-        event.setSiteId(order.getSiteId());
-        event.addAppSign("mall");
-        event.setName("OrderPayAfterEvent");
-        event.setOrder(order);
-        EventAndSubscribeOfPublisher.publishAll(event);
 
     }
 
@@ -125,10 +113,11 @@ public class CoreOrderPayServiceImpl implements ICoreOrderPayService {
     public void payOfGroup(OrderPayParam param) {
 
         MallOrderGroup orderGroup = mallOrderGroupMapper.selectOne(new QueryWrapper<MallOrderGroup>().eq("group_id", param.getTradeId()));
-        if(ObjectUtil.isEmpty(orderGroup)) throw new CommonException("订单信息不存在");
-        if(!orderGroup.getStatus().equals(OrderGroupEnum.WAIT_PAY.getStatus())) throw new CommonException("订单状态异常,请勿重复支付");
+        if (ObjectUtil.isEmpty(orderGroup)) throw new CommonException("订单信息不存在");
+        if (!orderGroup.getStatus().equals(OrderGroupEnum.WAIT_PAY.getStatus()))
+            throw new CommonException("订单状态异常,请勿重复支付");
         List<MallOrder> orderList = mallOrderMapper.selectList(new QueryWrapper<MallOrder>().eq("group_id", param.getTradeId()));
-        if(ObjectUtil.isEmpty(orderList)) throw new CommonException("订单信息不存在");
+        if (ObjectUtil.isEmpty(orderList)) throw new CommonException("订单信息不存在");
         for (MallOrder order : orderList) {
             OrderPayParam orderPayParam = new OrderPayParam();
             BeanUtil.copyProperties(param, orderPayParam);
@@ -153,7 +142,7 @@ public class CoreOrderPayServiceImpl implements ICoreOrderPayService {
         //订单到达发货状态
         this.orderGoodsPay(order.getOrderId(), status);
 
-        if (OrderStatusEnum.WAIT_DELIVERY.getStatus().toString().equals(status)){
+        if (OrderStatusEnum.WAIT_DELIVERY.getStatus().toString().equals(status)) {
             MallOrder orderEvent = mallOrderMapper.selectById(order.getOrderId());
             // 订单支付之后事件
             MallOrderPayEvent event = new MallOrderPayEvent();
@@ -165,12 +154,100 @@ public class CoreOrderPayServiceImpl implements ICoreOrderPayService {
         }
     }
 
-    private void orderGoodsPay(Integer orderId,String status){
+    @Override
+    @Transactional
+    public void orderPayEvent(MallOrder order, String status, OrderPayParam param) {
+        // 变更订单状态
+        MallOrder orderObj = new MallOrder();
+        orderObj.setOrderId(order.getOrderId());
+        orderObj.setStatus(status);
+        mallOrderMapper.updateById(orderObj);
+
+        //订单到达发货状态
+        this.orderGoodsPay(order.getOrderId(), status);
+
+        if (OrderStatusEnum.WAIT_DELIVERY.getStatus().toString().equals(status)) {
+            MallOrder orderEvent = mallOrderMapper.selectById(order.getOrderId());
+            // 订单支付之后事件
+            MallOrderPayEvent payEvent = new MallOrderPayEvent();
+            payEvent.setSiteId(order.getSiteId());
+            payEvent.addAppSign("mall");
+            payEvent.setName("MallOrderPayEvent");
+            payEvent.setOrder(orderEvent);
+            EventAndSubscribeOfPublisher.publishAll(payEvent);
+        }
+
+        order = mallOrderMapper.selectById(order.getOrderId());
+        MallOrder finalOrder = order;
+
+        //计算佣金
+        shopOrderCalc(order);
+
+        //同步订单成功，打印
+        coreOrderEventService.orderPayAfter(finalOrder, param);
+
+        // 订单支付之后事件
+        OrderPayAfterEvent event = new OrderPayAfterEvent();
+        event.setSiteId(order.getSiteId());
+        event.addAppSign("mall");
+        event.setName("OrderPayAfterEvent");
+        event.setOrder(order);
+        EventAndSubscribeOfPublisher.publishAll(event);
+    }
+
+    private void orderPayCustomEvent(MallOrder order, OrderPayParam param) {
+        // 发布自定义订单支付事件，供插件监听
+        MallOrderPayCustomEvent event = new MallOrderPayCustomEvent(order, param);
+        EventAndSubscribeOfPublisher.publishAll(event);
+    }
+
+    private void orderGoodsPay(Integer orderId, String status) {
         MallOrderGoods orderGoods = new MallOrderGoods();
         orderGoods.setIsEnableRefund(1);
-        if(OrderStatusEnum.WAIT_DELIVERY.getStatus().toString().equals( status)){
+        if (OrderStatusEnum.WAIT_DELIVERY.getStatus().toString().equals(status)) {
             orderGoods.setDeliveryStatus(OrderDeliveryStatusEnum.WAIT_DELIVERY.getStatus());
         }
         mallOrderGoodsMapper.update(orderGoods, new QueryWrapper<MallOrderGoods>().eq("order_id", orderId));
+        // 2. 检查不可退款的商品（虚拟商品核销且退款设置为0）
+        this.checkOrderGoodsNotRefund(orderId);
+    }
+
+    private void checkOrderGoodsNotRefund(Integer orderId) {
+        // 查询订单项中符合条件（虚拟商品、核销、退款=0）的 goods_id
+        List<MallOrderGoods> goodsList = mallOrderGoodsMapper.selectList(
+                new QueryWrapper<MallOrderGoods>()
+                        .eq("order_id", orderId)
+                        .eq("goods_type", GoodsTypeEnum.VIRTUAL.getType())
+                        .apply("JSON_EXTRACT(goods_config, '$.virtual_delivery_type') = 'verify'")
+                        .apply("JSON_EXTRACT(goods_config, '$.virtual_refund') = 0")
+        );
+        if (!goodsList.isEmpty()) {
+            List<Integer> orderGoodsIds = goodsList.stream().map(MallOrderGoods::getOrderGoodsId).collect(Collectors.toList());
+            MallOrderGoods update = new MallOrderGoods();
+            update.setIsEnableRefund(0);
+            mallOrderGoodsMapper.update(update, new QueryWrapper<MallOrderGoods>().in("order_goods_id", orderGoodsIds));
+        }
+    }
+
+    /**
+     * 计算佣金
+     *
+     * @param order
+     */
+    private void shopOrderCalc(MallOrder order) {
+        SiteShop shop = shopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", order.getSiteId()));
+        BigDecimal commissionRate = shop.getCommissionRate();
+        order.setMallRate(commissionRate);
+        if (commissionRate.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal orderMoney = (order.getOrderMoney().subtract(order.getDeliveryMoney())).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal mallMoney = (orderMoney.multiply(commissionRate.divide(new BigDecimal(100)))).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal shopMoney = (order.getOrderMoney().subtract(mallMoney)).setScale(2, RoundingMode.HALF_UP);
+            if (order.getSupplyId() > 0) {
+                order.setSupplyMoney(order.getCostGoodsMoney());
+            }
+            order.setMallMoney(mallMoney);
+            order.setShopMoney(shopMoney);
+        }
+        mallOrderMapper.updateById(order);
     }
 }

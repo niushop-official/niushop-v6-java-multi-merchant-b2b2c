@@ -53,8 +53,7 @@ public class GetVerifierByTradeListener extends GetVerifyInfoByTradeEventDefiner
                     return  result;
                 }
             }
-            if (order.getDeliveryType().equals(OrderDeliveryTypeEnum.STORE.getType()) &&  order.getStatus().equals(OrderStatusEnum.WAIT_DELIVERY.getStatus().toString())
-                    &&  orderGoodsList.size()  == 1){
+            if (order.getDeliveryType().equals(OrderDeliveryTypeEnum.STORE.getType()) &&  order.getStatus().equals(OrderStatusEnum.WAIT_DELIVERY.getStatus().toString()) ){
                 GetVerifyInfoByTradeResult  result = new GetVerifyInfoByTradeResult();
                 result.setType("shopPickUpOrder");
                 result.setData(Map.of("order_id",  order.getOrderId()));

@@ -1,190 +1,179 @@
 {
-	"MALL_BASE_LINK": {
-		"title": "商城",
-		"type": "folder",
-		"child_list": [
-			{
-				"name": "MALL_LINK",
-				"title": "基础链接",
-				"child_list": [
-					{
-						"name": "MALL_SHOP_STREET",
-						"title": "店铺街",
-						"url": "/addon/mall/pages/shop/list",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_GOODS_CATEGORY",
-						"title": "商品分类",
-						"url": "/addon/mall/pages/goods/category",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_GOODS_LIST",
-						"title": "商品列表",
-						"url": "/addon/mall/pages/goods/list",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_GOODS_RANK",
-						"title": "商品排行",
-						"url": "/addon/mall/pages/goods/rank",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_GOODS_SEARCH",
-						"title": "商品搜索",
-						"url": "/addon/mall/pages/goods/search",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_GOODS_CART",
-						"title": "购物车",
-						"url": "/addon/mall/pages/goods/cart",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_COUPON_LIST",
-						"title": "优惠券列表",
-						"url": "/addon/mall/pages/coupon/list",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_MY_COUPON",
-						"title": "我的优惠券",
-						"url": "/addon/mall/pages/member/my_coupon",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_ORDER_LIST",
-						"title": "订单列表",
-						"url": "/addon/mall/pages/order/list",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_REFUND_LIST",
-						"title": "退款列表",
-						"url": "/addon/mall/pages/refund/list",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_INVOICE",
-						"title": "发票管理",
-						"url": "/addon/mall/pages/invoice/list",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_COLLECT",
-						"title": "我的收藏",
-						"url": "/addon/mall/pages/collect/goods",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_BROWSE",
-						"title": "我的足迹",
-						"url": "/addon/mall/pages/member/browse",
-						"is_share": 1,
-						"action": ""
-					},
-					{
-						"name": "MALL_SHOP_APPLY",
-						"title": "申请入驻",
-						"url": "/addon/mall/pages/member/merchant_settled",
-						"is_share": 1,
-						"action": ""
-					}
-				]
-			},
-			{
-				"name": "MALL_LINK_TAB",
-				"title": "Tab页链接",
-				"child_list": [
-					{
-						"name": "MALL_SHOP_INDEX",
-						"title": "店铺首页",
-						"url": "shop_index",
-						"url_type": "tab",
-						"is_share": 1,
-						"action": "",
-						"link_type": "site"
-					},
-					{
-						"name": "MALL_SHOP_GOODS_CATEGORY",
-						"title": "店铺商品分类",
-						"url": "shop_goods_category",
-						"url_type": "tab",
-						"is_share": 1,
-						"action": "",
-						"link_type": "site"
-					},
-					{
-						"name": "MALL_SHOP_GOODS_LIST",
-						"title": "店铺商品列表",
-						"url": "shop_goods_list",
-						"url_type": "tab",
-						"is_share": 1,
-						"action": "",
-						"link_type": "site"
-					},
-					{
-						"name": "MALL_SHOP_COUPON_LIST",
-						"title": "店铺优惠券列表",
-						"url": "shop_coupon_list",
-						"url_type": "tab",
-						"is_share": 1,
-						"action": "",
-						"link_type": "site"
-					}
-				]
-			},
-			{
-				"name": "MALL_GOODS_SELECT",
-				"title": "商品选择",
-				"component": "/src/addon/mall/views/admin/goods/components/goods-select-content.vue",
-				"link_type": "admin"
-			},
-			{
-				"name": "MALL_GOODS_CATEGORY_SELECT",
-				"title": "商品分类选择",
-				"component": "/src/addon/mall/views/admin/goods/components/goods-category-select-content.vue",
-				"link_type": "admin"
-			},
-			{
-				"name": "MALL_COUPON_SELECT",
-				"title": "优惠券选择",
-				"component": "/src/addon/mall/views/admin/coupon/components/coupon-select-content.vue",
-				"link_type": "admin"
-			},
-			{
-				"name": "MALL_SHOP_GOODS_SELECT",
-				"title": "商品选择",
-				"component": "/src/addon/mall/views/site/goods/components/goods-select-content.vue",
-				"link_type": "site"
-			},
-			{
-				"name": "MALL_SHOP_GOODS_CATEGORY_SELECT",
-				"title": "商品分类选择",
-				"component": "/src/addon/mall/views/site/goods/components/goods-category-select-content.vue",
-				"link_type": "site"
-			},
-			{
-				"name": "MALL_SHOP_COUPON_SELECT",
-				"title": "优惠券选择",
-				"component": "/src/addon/mall/views/site/marketing/coupon/components/coupon-select-content.vue",
-				"link_type": "site"
-			}
-		]
-	}
+  "MALL_BASE_LINK": {
+    "title": "商城系统",
+    "type": "folder",
+    "child_list": [
+      {
+        "name": "MALL_LINK",
+        "title": "商城链接",
+        "child_list": [
+          {
+            "name": "MALL_SHOP_STREET",
+            "title": "店铺街",
+            "url": "/addon/mall/pages/shop/list",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_GOODS_CATEGORY",
+            "title": "商品分类",
+            "url": "/addon/mall/pages/goods/category",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_GOODS_LIST",
+            "title": "商品列表",
+            "url": "/addon/mall/pages/goods/list",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_GOODS_RANK",
+            "title": "商品排行榜",
+            "url": "/addon/mall/pages/goods/rank",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_GOODS_SEARCH",
+            "title": "商品搜索",
+            "url": "/addon/mall/pages/goods/search",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_GOODS_CART",
+            "title": "购物车",
+            "url": "/addon/mall/pages/goods/cart",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_COUPON_LIST",
+            "title": "优惠券列表",
+            "url": "/addon/mall/pages/coupon/list",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_MY_COUPON",
+            "title": "我的优惠券",
+            "url": "/addon/mall/pages/member/my_coupon",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_ORDER_LIST",
+            "title": "订单列表",
+            "url": "/addon/mall/pages/order/list",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_REFUND_LIST",
+            "title": "退款列表",
+            "url": "/addon/mall/pages/refund/list",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_COLLECT",
+            "title": "我的收藏",
+            "url": "/addon/mall/pages/collect/goods",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_BROWSE",
+            "title": "我的足迹",
+            "url": "/addon/mall/pages/member/browse",
+            "is_share": 1,
+            "action": ""
+          },
+          {
+            "name": "MALL_SHOP_APPLY",
+            "title": "申请入驻",
+            "url": "/addon/mall/pages/member/merchant_settled",
+            "is_share": 1,
+            "action": ""
+          }
+        ]
+      },
+      {
+        "name": "MALL_SHOP_LINK",
+        "title": "店铺链接",
+        "child_list": [
+          {
+            "name": "MALL_SHOP_INDEX",
+            "title": "店铺首页",
+            "url": "/addon/mall/pages/index",
+            "is_share": 1,
+            "action": "decorate",
+            "link_type": "site"
+          },
+          {
+            "name": "MALL_SHOP_GOODS_CATEGORY",
+            "title": "店铺商品分类",
+            "url": "/addon/mall/pages/home/category",
+            "is_share": 1,
+            "action": "",
+            "link_type": "site"
+          },
+          {
+            "name": "MALL_SHOP_GOODS_LIST",
+            "title": "店铺商品列表",
+            "url": "/addon/mall/pages/home/goods",
+            "is_share": 1,
+            "action": "",
+            "link_type": "site"
+          },
+          {
+            "name": "MALL_SHOP_COUPON_LIST",
+            "title": "店铺优惠券",
+            "url": "/addon/mall/pages/home/coupon",
+            "is_share": 1,
+            "action": "",
+            "link_type": "site"
+          }
+        ]
+      },
+      {
+        "name": "MALL_GOODS_SELECT",
+        "title": "选择商品",
+        "component": "/src/addon/mall/views/admin/goods/components/goods-select-content.vue",
+        "link_type": "admin"
+      },
+      {
+        "name": "MALL_GOODS_CATEGORY_SELECT",
+        "title": "商品分类",
+        "component": "/src/addon/mall/views/admin/goods/components/goods-category-select-content.vue",
+        "link_type": "admin"
+      },
+      {
+        "name": "MALL_COUPON_SELECT",
+        "title": "优惠券",
+        "component": "/src/addon/mall/views/admin/coupon/components/coupon-select-content.vue",
+        "link_type": "admin"
+      },
+      {
+        "name": "MALL_SHOP_GOODS_SELECT",
+        "title": "选择商品",
+        "component": "/src/addon/mall/views/site/goods/components/goods-select-content.vue",
+        "link_type": "site"
+      },
+      {
+        "name": "MALL_SHOP_GOODS_CATEGORY_SELECT",
+        "title": "商品分类",
+        "component": "/src/addon/mall/views/site/goods/components/goods-category-select-content.vue",
+        "link_type": "site"
+      },
+      {
+        "name": "MALL_SHOP_COUPON_SELECT",
+        "title": "优惠券",
+        "component": "/src/addon/mall/views/site/marketing/coupon/components/coupon-select-content.vue",
+        "link_type": "site"
+      }
+    ]
+  }
 }

@@ -3,6 +3,7 @@ package com.niu.mall.controller.siteapi.goods;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
+import com.niu.core.enums.pay.PayTypeEnum;
 import com.niu.mall.enums.goods.GoodsTypeEnum;
 import com.niu.mall.service.site.goods.IMallGoodsService;
 import com.niu.mall.service.site.goods.param.*;
@@ -10,10 +11,10 @@ import com.niu.mall.service.site.goods.vo.MallGoodsInfoVo;
 import com.niu.mall.service.site.goods.vo.MallGoodsListVo;
 import com.niu.mall.service.site.goods.vo.MallGoodsSkuListVo;
 import com.niu.mall.service.site.goods.vo.MallSelectGoodsListVo;
+import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public class GoodsController {
      *
      * @param pageParam   分页
      * @param searchParam 搜索条件
-     * @return Result<PageResult <MallGoodsListVo>>
+     * @return Result<PageResult < MallGoodsListVo>>
      */
     @GetMapping("")
     public Result<PageResult<MallGoodsListVo>> list(@Validated PageParam pageParam, @Validated MallGoodsSearchParam searchParam) {
@@ -115,7 +116,7 @@ public class GoodsController {
      * @return Result<Object>
      */
     @PutMapping("/status")
-        public Result<Object> editStatus(@Validated @RequestBody EditGoodsStatusParam param) {
+    public Result<Object> editStatus(@Validated @RequestBody EditGoodsStatusParam param) {
         goodsService.editStatus(param);
         return Result.success();
     }
@@ -129,6 +130,7 @@ public class GoodsController {
     public Result<Object> status() {
         return Result.success(goodsService.getStatus());
     }
+
     /**
      * 修改商品排序号
      *
@@ -226,7 +228,7 @@ public class GoodsController {
     /**
      * 查询商品SKU规格列表
      *
-     * @return Result<List <MallGoodsSkuListVo>>
+     * @return Result<List < MallGoodsSkuListVo>>
      */
     @GetMapping("/sku")
     public Result<List<MallGoodsSkuListVo>> getSkuList(@RequestParam("goods_id") Integer goodsId) {
@@ -280,14 +282,17 @@ public class GoodsController {
     public Result<?> buyGoodsSelected(BuyGoodsSelectedParam param) {
         return Result.success(goodsService.getBuyGoodsSelected(param));
     }
+
     @GetMapping("/source")
-    public Result source() {
+    public Result<?> source() {
         return Result.success(goodsService.getSource());
     }
+
     /**
      * 获取批量设置类型
+     *
+     * @return Result<Map < String, String>>
      * @description 获取批量设置类型
-     * @return Result<Map<String, String>>
      */
     @GetMapping("/batchSet/dict")
     public Result<Map<String, String>> getBatchSetDict() {
@@ -296,9 +301,10 @@ public class GoodsController {
 
     /**
      * 批量设置商品
-     * @description 批量设置商品
+     *
      * @param param 批量设置参数
      * @return Result<Object>
+     * @description 批量设置商品
      */
     @PutMapping("/batchSet")
     public Result<Object> batchSet(@Validated @RequestBody GoodsBatchSetParam param) {
@@ -310,8 +316,22 @@ public class GoodsController {
      * 查询商品同步数据
      */
     @GetMapping("/sync")
-    public Result sync(@RequestParam("goods_id") Integer goodsId,@RequestParam("supply_sync") Integer supplySync) {
-        return Result.success(goodsService.sync(goodsId,supplySync));
+    public Result sync(@RequestParam("goods_id") Integer goodsId, @RequestParam("supply_sync") Integer supplySync) {
+        return Result.success(goodsService.sync(goodsId, supplySync));
     }
 
+    @GetMapping("/status_type")
+    public Result<?> getStatusType() {
+        return Result.success(goodsService.getStatusType());
+    }
+
+    /**
+     * 订单支付方式
+     *
+     * @return
+     */
+    @GetMapping("/payTypeList")
+    public Result getPayType() {
+        return Result.success(PayTypeEnum.getType());
+    }
 }

@@ -24,7 +24,9 @@ public enum ConfigKeyEnum {
     WECHAT_TRANSFER_SCENE_CONFIG("WECHAT_TRANSFER_SCENE_CONFIG"),
     SHOP_CASH_OUT("shop_cash_out"),//店铺提现
     PINTUAN_ORDER_CONFIG("PINTUAN_ORDER_CONFIG"),//拼团订单配置
-    PINTUAN_CUSTOMER_CONFIG("PINTUAN_CUSTOMER_CONFIG");//拼团客服配置
-    
+    PINTUAN_CUSTOMER_CONFIG("PINTUAN_CUSTOMER_CONFIG"),//拼团客服配置
+    SHOP_APPLY("SHOP_APPLY"),//入驻配置
+    SHOP_MEMBER("SHOP_MEMBER");//店铺会员设置
+
     private final String name;
 }

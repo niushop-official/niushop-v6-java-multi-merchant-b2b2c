@@ -39,7 +39,7 @@
 			</view>
 			<mescroll-empty :option="{tip : '暂无发票记录'}" v-if="!list.length && loading"></mescroll-empty>
 		</mescroll-body>
-		<fab-float :layout="'circle'" :draggable="true" :autosorption="true" :position="[350, 999]"></fab-float>
+		<fab-float />
 	</view>
 </template>
 
@@ -52,7 +52,7 @@ import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue'
 import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.vue';
 import useMescroll from '@/components/mescroll/hooks/useMescroll.js';
 import { onLoad, onPageScroll, onReachBottom } from '@dcloudio/uni-app';
-import FabFloat from '@/components/fab-float/index.vue'
+import FabFloat from '@/components/fab-float/fab-float.vue'
 const { mescrollInit, downCallback, getMescroll } = useMescroll(onPageScroll, onReachBottom);
 let current = ref('all')
 const tabs = ref([

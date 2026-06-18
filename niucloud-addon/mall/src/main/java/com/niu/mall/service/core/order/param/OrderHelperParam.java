@@ -51,6 +51,8 @@ public class OrderHelperParam implements Serializable {
     @Data
     public static class Discount {
         private Integer couponId;
+        private Integer usePoint;
+        private Integer isUsePointDeduct;
     }
 
     @Data

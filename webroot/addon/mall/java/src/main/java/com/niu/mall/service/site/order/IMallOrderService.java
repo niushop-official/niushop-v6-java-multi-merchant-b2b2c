@@ -1,12 +1,13 @@
 package com.niu.mall.service.site.order;
 
+import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.mall.service.admin.order.vo.MallOrderInfoVo;
 import com.niu.mall.service.api.order.vo.OrderNumVo;
 import com.niu.mall.service.site.order.param.*;
-import com.niu.core.common.domain.PageParam;
 import com.niu.mall.service.site.order.vo.EditDeliveryVo;
-import com.niu.mall.service.admin.order.vo.MallOrderInfoVo;
 import com.niu.mall.service.site.order.vo.MallOrderListVo;
+import com.niu.mall.service.site.order.vo.MallOrderMemberConsumeListVo;
 
 import java.math.BigDecimal;
 
@@ -18,7 +19,8 @@ public interface IMallOrderService {
 
     /**
      * 订单列表
-     * @param pageParam 分页参数
+     *
+     * @param pageParam   分页参数
      * @param searchParam 搜索参数
      * @return PageResult<ShopOrderListVo>
      */
@@ -26,6 +28,7 @@ public interface IMallOrderService {
 
     /**
      * 订单详情
+     *
      * @param id 主键ID
      * @return ShopOrderInfoVo
      */
@@ -73,7 +76,7 @@ public interface IMallOrderService {
      * @param param
      * @return
      */
-    BigDecimal getSelectOrderGoodsWeight(MallOrderGoodsWeightParam  param);
+    BigDecimal getSelectOrderGoodsWeight(MallOrderGoodsWeightParam param);
 
     /**
      * 修改订单配送
@@ -85,5 +88,15 @@ public interface IMallOrderService {
      * 删除
      *
      */
-    void delete(MallOrderDeleteParam  param);
+    void delete(MallOrderDeleteParam param);
+
+    /**
+     * 会员消费记录
+     *
+     * @param pageParam
+     * @param memberId
+     * @return
+     */
+    PageResult<MallOrderMemberConsumeListVo> consumelists(PageParam pageParam, Integer memberId);
+
 }

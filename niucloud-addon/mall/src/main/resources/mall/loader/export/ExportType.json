@@ -2,6 +2,7 @@
   {
     "mall_order_goods": {
       "name": "订单项列表",
+      "app_type": "admin",
       "column": [
         {
           "order_no": {
@@ -174,6 +175,7 @@
   {
     "shop_order": {
       "name": "订单列表",
+      "app_type": "site",
       "column": [
         {
           "order_no": {
@@ -311,11 +313,6 @@
           }
         },
         {
-          "close_remark": {
-            "name": "关闭原因"
-          }
-        },
-        {
           "out_trade_no": {
             "name": "支付流水号"
           }
@@ -448,6 +445,7 @@
   {
     "mall_order": {
       "name": "订单列表",
+      "app_type": "admin",
       "column": [
         {
           "order_no": {
@@ -633,8 +631,340 @@
     }
   },
   {
-    "mall_order_goods": {
-      "name": "订单项列表",
+    "mall_order_refund": {
+      "name": "退款维权",
+      "app_type": "admin",
+      "column": [
+        {
+          "order_refund_no": {
+            "name": "退款单号"
+          }
+        },
+        {
+          "nickname": {
+            "name": "会员昵称"
+          }
+        },
+        {
+          "refund_type_name": {
+            "name": "退款方式"
+          }
+        },
+        {
+          "apply_money": {
+            "name": "申请退款金额"
+          }
+        },
+        {
+          "goods_info": {
+            "name": "退货商品信息"
+          }
+        },
+        {
+          "refund_num": {
+            "name": "退货数量"
+          }
+        },
+        {
+          "money": {
+            "name": "实际退款金额"
+          }
+        },
+        {
+          "status_name": {
+            "name": "退款状态"
+          }
+        },
+        {
+          "create_time": {
+            "name": "申请时间"
+          }
+        },
+        {
+          "transfer_time": {
+            "name": "转账时间"
+          }
+        },
+        {
+          "refund_no": {
+            "name": "退款交易号"
+          }
+        },
+        {
+          "reason": {
+            "name": "退款原因"
+          }
+        },
+        {
+          "shop_reason": {
+            "name": "拒绝原因"
+          }
+        },
+        {
+          "contact_name": {
+            "name": "退货联系人"
+          }
+        },
+        {
+          "refund_address": {
+            "name": "退货地址"
+          }
+        },
+        {
+          "express_number": {
+            "name": "退货物流单号"
+          }
+        },
+        {
+          "express_company": {
+            "name": "退货物流公司"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "shop_order_refund": {
+      "name": "退款维权",
+      "app_type": "site",
+      "column": [
+        {
+          "order_refund_no": {
+            "name": "退款单号"
+          }
+        },
+        {
+          "nickname": {
+            "name": "会员昵称"
+          }
+        },
+        {
+          "refund_type_name": {
+            "name": "退款方式"
+          }
+        },
+        {
+          "apply_money": {
+            "name": "申请退款金额"
+          }
+        },
+        {
+          "goods_info": {
+            "name": "退货商品信息"
+          }
+        },
+        {
+          "refund_num": {
+            "name": "退货数量"
+          }
+        },
+        {
+          "money": {
+            "name": "实际退款金额"
+          }
+        },
+        {
+          "status_name": {
+            "name": "退款状态"
+          }
+        },
+        {
+          "create_time": {
+            "name": "申请时间"
+          }
+        },
+        {
+          "transfer_time": {
+            "name": "转账时间"
+          }
+        },
+        {
+          "refund_no": {
+            "name": "退款交易号"
+          }
+        },
+        {
+          "reason": {
+            "name": "退款原因"
+          }
+        },
+        {
+          "shop_reason": {
+            "name": "拒绝原因"
+          }
+        },
+        {
+          "contact_name": {
+            "name": "退货联系人"
+          }
+        },
+        {
+          "refund_address": {
+            "name": "退货地址"
+          }
+        },
+        {
+          "express_number": {
+            "name": "退货物流单号"
+          }
+        },
+        {
+          "express_company": {
+            "name": "退货物流公司"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "shop_goods": {
+      "name": "商城商品列表",
+      "app_type": "site",
+      "column": [
+        {
+          "goods_id": {
+            "name": "商品ID",
+            "is_required": true
+          }
+        },
+        {
+          "sku_id": {
+            "name": "规格ID",
+            "is_required": true
+          }
+        },
+        {
+          "goods_name": {
+            "name": "商品名称"
+          }
+        },
+        {
+          "sku_name": {
+            "name": "规格名称"
+          }
+        },
+        {
+          "sku_no": {
+            "name": "sku编码"
+          }
+        },
+        {
+          "sku_spec_format": {
+            "name": "规格格式"
+          }
+        },
+        {
+          "goods_type_name": {
+            "name": "商品类型"
+          }
+        },
+        {
+          "goods_image": {
+            "name": "商品图片"
+          }
+        },
+        {
+          "sku_image": {
+            "name": "规格图片"
+          }
+        },
+        {
+          "sub_title": {
+            "name": "副标题"
+          }
+        },
+        {
+          "category_name": {
+            "name": "商品分类"
+          }
+        },
+        {
+          "goods_mall_category_name": {
+            "name": "平台分类"
+          }
+        },
+        {
+          "goods_desc": {
+            "name": "商品介绍"
+          }
+        },
+        {
+          "brand_name": {
+            "name": "商品品牌"
+          }
+        },
+        {
+          "label_name": {
+            "name": "商品标签"
+          }
+        },
+        {
+          "service_name": {
+            "name": "商品服务"
+          }
+        },
+        {
+          "unit": {
+            "name": "单位"
+          }
+        },
+        {
+          "price": {
+            "name": "价格"
+          }
+        },
+        {
+          "stock": {
+            "name": "库存"
+          }
+        },
+        {
+          "sale_num": {
+            "name": "销量"
+          }
+        },
+        {
+          "status_name": {
+            "name": "商品状态"
+          }
+        },
+        {
+          "delivery_type_name": {
+            "name": "支持配送方式"
+          }
+        },
+        {
+          "is_free_shipping_name": {
+            "name": "是否免邮"
+          }
+        },
+        {
+          "is_discount_name": {
+            "name": "是否参与限时折扣"
+          }
+        },
+        {
+          "is_limit_name": {
+            "name": "商品是否限购"
+          }
+        },
+        {
+          "limit_type_name": {
+            "name": "限购类型"
+          }
+        },
+        {
+          "supply_site_name": {
+            "name": "供货商店铺名称"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "shop_order_goods": {
+      "name": "商城订单项列表",
+      "app_type": "site",
       "column": [
         {
           "order_no": {
@@ -689,6 +1019,11 @@
         {
           "discount_money": {
             "name": "优惠金额"
+          }
+        },
+        {
+          "mall_discount_money": {
+            "name": "平台优惠金额"
           }
         },
         {
@@ -799,190 +1134,6 @@
         {
           "status_name": {
             "name": "退款状态"
-          }
-        }
-      ]
-    }
-  },
-  {
-    "mall_order_refund": {
-      "name": "退款维权",
-      "column": [
-        {
-          "order_refund_no": {
-            "name": "退款单号"
-          }
-        },
-        {
-          "nickname": {
-            "name": "会员昵称"
-          }
-        },
-        {
-          "refund_type_name": {
-            "name": "退款方式"
-          }
-        },
-        {
-          "apply_money": {
-            "name": "申请退款金额"
-          }
-        },
-        {
-          "goods_info": {
-            "name": "退货商品信息"
-          }
-        },
-        {
-          "refund_num": {
-            "name": "退货数量"
-          }
-        },
-        {
-          "money": {
-            "name": "实际退款金额"
-          }
-        },
-        {
-          "status_name": {
-            "name": "退款状态"
-          }
-        },
-        {
-          "create_time": {
-            "name": "申请时间"
-          }
-        },
-        {
-          "transfer_time": {
-            "name": "转账时间"
-          }
-        },
-        {
-          "refund_no": {
-            "name": "退款交易号"
-          }
-        },
-        {
-          "reason": {
-            "name": "退款原因"
-          }
-        },
-        {
-          "shop_reason": {
-            "name": "拒绝原因"
-          }
-        },
-        {
-          "contact_name": {
-            "name": "退货联系人"
-          }
-        },
-        {
-          "refund_address": {
-            "name": "退货地址"
-          }
-        },
-        {
-          "express_number": {
-            "name": "退货物流单号"
-          }
-        },
-        {
-          "express_company": {
-            "name": "退货物流公司"
-          }
-        }
-      ]
-    }
-  },
-  {
-    "shop_order_refund": {
-      "name": "退款维权",
-      "column": [
-        {
-          "order_refund_no": {
-            "name": "退款单号"
-          }
-        },
-        {
-          "nickname": {
-            "name": "会员昵称"
-          }
-        },
-        {
-          "refund_type_name": {
-            "name": "退款方式"
-          }
-        },
-        {
-          "apply_money": {
-            "name": "申请退款金额"
-          }
-        },
-        {
-          "goods_info": {
-            "name": "退货商品信息"
-          }
-        },
-        {
-          "refund_num": {
-            "name": "退货数量"
-          }
-        },
-        {
-          "money": {
-            "name": "实际退款金额"
-          }
-        },
-        {
-          "status_name": {
-            "name": "退款状态"
-          }
-        },
-        {
-          "create_time": {
-            "name": "申请时间"
-          }
-        },
-        {
-          "transfer_time": {
-            "name": "转账时间"
-          }
-        },
-        {
-          "refund_no": {
-            "name": "退款交易号"
-          }
-        },
-        {
-          "reason": {
-            "name": "退款原因"
-          }
-        },
-        {
-          "shop_reason": {
-            "name": "拒绝原因"
-          }
-        },
-        {
-          "contact_name": {
-            "name": "退货联系人"
-          }
-        },
-        {
-          "refund_address": {
-            "name": "退货地址"
-          }
-        },
-        {
-          "express_number": {
-            "name": "退货物流单号"
-          }
-        },
-        {
-          "express_company": {
-            "name": "退货物流公司"
           }
         }
       ]

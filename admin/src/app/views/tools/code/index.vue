@@ -7,7 +7,7 @@
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
 
-            <el-tabs v-model="activeName" class="mt-[20px]">
+            <!-- <el-tabs v-model="activeName" class="mt-[20px]">
                 <el-tab-pane :label="t('codeGeneration')" name="codeGeneration">
                     <el-steps :active="5" direction="vertical">
                         <el-step>
@@ -134,7 +134,71 @@
                         </div>
                     </div>
                 </el-tab-pane>
-            </el-tabs>
+            </el-tabs> -->
+
+            <el-steps :active="5" direction="vertical" class="mt-[20px]">
+                <el-step>
+                    <template #title>
+                        <p class="text-[14px] font-[700]">
+                            {{ t("step1") }}
+                        </p>
+                    </template>
+                    <template #description>
+                        <span class="text-[#999]">{{ t("describe1") }}</span>
+                        <div class="mt-[20px] mb-[40px] h-[32px]">
+                            <el-button type="primary" class="w-[100px]" @click="addEvent">{{ t('btn1') }}</el-button>
+                        </div>
+                    </template>
+                </el-step>
+
+                <el-step>
+                    <template #title>
+                        <p class="text-[14px] font-[700]">
+                            {{ t("step2") }}
+                        </p>
+                    </template>
+                    <template #description>
+                        <span class="text-[#999]">{{ t("describe2") }}</span>
+                        <div class="mt-[20px] mb-[40px] h-[32px]"></div>
+                    </template>
+                </el-step>
+
+                <el-step>
+                    <template #title>
+                        <p class="text-[14px] font-[700]">
+                            {{ t("step3") }}
+                        </p>
+                    </template>
+                    <template #description>
+                        <span class="text-[#999]">{{ t("describe3") }}</span>
+                        <div class="mt-[20px] mb-[40px] h-[32px]"></div>
+                    </template>
+                </el-step>
+
+                <el-step>
+                    <template #title>
+                        <p class="text-[14px] font-[700]">
+                            {{ t("step4") }}
+                        </p>
+                    </template>
+                    <template #description>
+                        <span class="text-[#999]">{{ t("describe4") }}</span>
+                        <div class="mt-[20px] mb-[40px] h-[32px]"></div>
+                    </template>
+                </el-step>
+
+                <el-step>
+                    <template #title>
+                        <p class="text-[14px] font-[700]">
+                            {{ t("step5") }}
+                        </p>
+                    </template>
+                    <template #description>
+                        <span class="text-[#999]">{{ t("describe5") }}</span>
+                        <div class="mt-[20px] mb-[40px] h-[32px]"></div>
+                    </template>
+                </el-step>
+            </el-steps>
 
             <add-table ref="addCodeDialog" />
 
@@ -174,7 +238,7 @@
 import { reactive, ref, onMounted } from 'vue'
 import { t } from '@/lang'
 import { getGenerateTableList, deleteGenerateTable, generateCreate, generatePreview, generatorCheckFile, getAddonDevelop } from '@/app/api/tools'
-import { img } from '@/utils/common'
+import { img, setTablePageStorage, getTablePageStorage } from '@/utils/common'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import AddTable from '@/app/views/tools/code/components/add-table.vue'
 import type { FormInstance } from 'element-plus'
@@ -228,6 +292,7 @@ const loadGenerateTableList = (page: number = 1) => {
         codeTableData.loading = false
         codeTableData.data = res.data.data
         codeTableData.total = res.data.total
+        setTablePageStorage(codeTableData.page, codeTableData.limit, codeTableData.searchParam)
     }).catch(() => {
         codeTableData.loading = false
     })
@@ -263,7 +328,7 @@ const deleteEvent = (id: number) => {
         }
     ).then(() => {
         deleteGenerateTable(id).then(() => {
-            loadGenerateTableList()
+            loadGenerateTableList(getTablePageStorage(codeTableData.searchParam).page)
         }).catch(() => {
         })
     })
@@ -280,16 +345,16 @@ const editEvent = (data: any) => {
 /**
  * 同步校验
  */
-const generatorCheckFileFn = ((id: any) => {
+const generatorCheckFileFn = (id: any) => {
     generatorCheckFile({ id }).then((res: any) => {
         codeTableData.loading = false
         ElMessageBox.confirm(
-                res.msg != '2' ? t('saveAndSyncText') : t('saveAndSyncText1'),
-                t('warning'),
-                {
-                    confirmButtonText: t('confirm'),
-                    cancelButtonText: t('cancel')
-                }
+            res.msg != '2' ? t('saveAndSyncText') : t('saveAndSyncText1'),
+            t('warning'),
+            {
+                confirmButtonText: t('confirm'),
+                cancelButtonText: t('cancel')
+            }
         ).then(() => {
             generateCreateFn(id, 3)
         }).catch(() => {
@@ -297,7 +362,7 @@ const generatorCheckFileFn = ((id: any) => {
     }).catch(() => {
         codeTableData.loading = false
     })
-})
+}
 
 /**
  * 同步or下载
@@ -313,7 +378,7 @@ const generateCreateFn = (id: any, generate_type: any) => {
             codeTableData.loading = false
             window.open(img(res.data.file), '_blank')
         } else {
-            loadGenerateTableList()
+            loadGenerateTableList(getTablePageStorage(codeTableData.searchParam).page)
         }
     }).catch(() => {
         codeTableData.loading = false
@@ -367,7 +432,7 @@ const listToTree = (arr:any) => {
                     }
                 }
                 if (!obj) {
-                    obj = { name: name, path: name.indexOf('.') < 0 ? '' : arr[i], key: 'k' + i + j + k }
+                    obj = { name, path: name.indexOf('.') < 0 ? '' : arr[i], key: 'k' + i + j + k }
                     if (name.indexOf('.') < 0) obj.children = []
                     if (obj.path === arr[0]) treeKey.value = obj.key
                     _ret.push(obj)

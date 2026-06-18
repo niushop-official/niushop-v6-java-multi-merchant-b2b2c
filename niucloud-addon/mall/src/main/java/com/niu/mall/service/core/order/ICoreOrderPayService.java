@@ -25,4 +25,9 @@ public interface ICoreOrderPayService {
      *
      */
     void orderPayEvent(MallOrder order, String status);
+
+    /**
+     * 订单支付成功（含支付后完整处理）
+     */
+    void orderPayEvent(MallOrder order, String status, OrderPayParam param);
 }

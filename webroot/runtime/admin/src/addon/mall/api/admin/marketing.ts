@@ -37,7 +37,14 @@ export function addPlatformCoupon(params: Record<string, any>) {
 export function getPlatformCouponList(params: Record<string, any>) {
     return request.get(`mall/admin/goods/platform_coupon`, {params})
 }
-
+/**
+ * 获取会员优惠券列表
+ * @param params
+ * @returns
+ */
+export function getMemberPlatformCouponList(member_id: number,params: Record<string, any>) {
+    return request.get(`mall/admin/member/platform_coupon/list/${member_id}`,{ params})
+}
 /**
  * 获取优惠券领取记录
  * @param params
@@ -254,4 +261,75 @@ export function modifyGoodsRankSort(params: Record<string, any>) {
  */
 export function getSelectRankPageList(params: Record<string, any>) {
     return request.get(`mall/admin/good/rank/select`, { params })
+}
+
+/**
+ * 获取悬浮按钮
+ */
+export function getPointDeductConfig() {
+    return request.get(`mall/admin/point_deduct/config`)
+}
+
+/**
+ * 获取悬浮按钮
+ */
+export function setPointDeductConfig(params: Record<string, any>) {
+    return request.post(`mall/admin/point_deduct/config`, params, { showSuccessMessage: true })
+}
+
+/***************************************************** 满减 ****************************************************/
+
+/**
+ * 获取满减列表
+ * @param params
+ * @returns
+ */
+export function getFullReductionList(params: Record<string, any>) {
+    return request.get(`mall/admin/full_reduction/list`,{ params })
+}
+
+/**
+ * 获取满减详情
+ * @param params
+ * @returns
+ */
+export function getFullReductionInfo(id: number) {
+    return request.get(`mall/admin/full_reduction/info/${id}`)
+}
+
+/**
+ * 获取满减初始化
+ * @param params
+ * @returns
+ */
+export function getFullReductionInit() {
+    return request.get(`mall/admin/full_reduction/init`)
+}
+/***************************************************** 满赠 ****************************************************/
+
+/**
+ * 获取满赠列表
+ * @param params
+ * @returns
+ */
+export function getFullGiftList(params: Record<string, any>) {
+    return request.get(`mall/admin/full_gift/list`,{ params })
+}
+
+/**
+ * 获取满赠详情
+ * @param params
+ * @returns
+ */
+export function getFullGiftInfo(id: number) {
+    return request.get(`mall/admin/full_gift/info/${id}`)
+}
+
+/**
+ * 获取满减初始化
+ * @param params
+ * @returns
+ */
+export function getFullGiftInit() {
+    return request.get(`mall/admin/full_gift/init`)
 }

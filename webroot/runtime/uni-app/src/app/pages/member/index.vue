@@ -29,8 +29,6 @@ import { useShare } from '@/hooks/useShare'
 import { redirect } from '@/utils/common';
 import diyGroup from '@/addon/components/diy/group/index.vue'
 import useMemberStore from '@/stores/member'
-import useDiyStore from '@/app/stores/diy'
-import { onShow } from '@dcloudio/uni-app';
 
 // 会员信息
 const memberStore = useMemberStore()
@@ -40,13 +38,10 @@ const { setShare } = useShare()
 const diy = useDiy({
     name: 'DIY_MEMBER_INDEX'
 })
-const diyStore = useDiyStore();
+
 const diyGroupRef = ref(null)
 
 const wxPrivacyPopupRef: any = ref(null)
-onShow(() => {
-    diyStore.siteId = ''
-})
 
 // 监听页面加载
 diy.onLoad();

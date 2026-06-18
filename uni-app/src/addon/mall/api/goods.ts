@@ -103,3 +103,35 @@ export function getGoodsConfigSearch() {
 export function getShopRecommendComponents(params: Record<string, any>) {
     return request.get(`mall/goods/shop_recommend/components`, params)
 }
+
+/**
+ *  获取商品满减送信息
+ */
+export function getShopMarketingList(params: Record<string, any>) {
+    return request.post(`mall/marketing/list`, params)
+}
+
+/**
+ *  获取商品满减送信息详情
+ */
+export function getShopMarketingInfo(params: Record<string, any>) {
+    return request.get(`mall/marketing/detail`, params)
+}
+
+export function getMarketingGoodsList(type: string, id: number,params: Record<string, any>) {
+    return request.get(`mall/marketing/${type}/${id}/goods`, params)
+}
+
+/**
+ *  查询优惠信息列表
+ */
+export function getGoodsSkuPromotionList(params: Record<string, any>) {
+    return request.get(`mall/goods/sku_promotion/list`, params)
+}
+
+/**
+ *  商品优惠信息详情
+ */
+export function getGoodsSkuPromotionDetail(params: Record<string, any>) {
+    return request.get(`mall/goods/sku_promotion/detail`, params)
+}

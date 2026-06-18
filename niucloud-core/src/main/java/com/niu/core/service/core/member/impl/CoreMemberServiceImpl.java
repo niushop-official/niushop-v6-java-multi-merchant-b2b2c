@@ -1,11 +1,15 @@
 package com.niu.core.service.core.member.impl;
 
+import cn.hutool.core.util.ClassLoaderUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import cn.hutool.core.util.ClassLoaderUtil;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.CommonUtils;
 import com.niu.core.common.utils.StringUtils;
+import com.niu.core.common.utils.crypto.PasswordEncipher;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.site.Site;
@@ -22,12 +26,12 @@ import com.niu.core.service.core.member.ICoreMemberConfigService;
 import com.niu.core.service.core.member.ICoreMemberService;
 import com.niu.core.service.core.member.dto.MemberInfoDto;
 import com.niu.core.service.core.member.param.MemberStatSearchParam;
+import jakarta.annotation.Resource;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
@@ -129,7 +133,7 @@ public class CoreMemberServiceImpl implements ICoreMemberService {
                 queryWrapper.le("last_visit_time", endLastVisitTime);
             }
         }
-            Long memberCount = memberMapper.selectCount(queryWrapper);
+        Long memberCount = memberMapper.selectCount(queryWrapper);
         return memberCount.intValue();
     }
 
@@ -144,7 +148,7 @@ public class CoreMemberServiceImpl implements ICoreMemberService {
     public JSONObject getGiftContent(Integer siteId, JSONObject gifts, String scene) {
         JSONObject giftEnum = GiftEnum.getType();
 
-        if(gifts != null){
+        if (gifts != null) {
             for (String key : gifts.keySet()) {
                 try {
                     JSONObject config = gifts.getJSONObject(key);
@@ -419,7 +423,7 @@ public class CoreMemberServiceImpl implements ICoreMemberService {
         Member member = memberMapper.selectById(memberId);
         MemberInfoDto result = new MemberInfoDto();
         BeanUtils.copyProperties(member, result);
-        if(StringUtils.isNotEmpty(member.getHeadimg())){
+        if (StringUtils.isNotEmpty(member.getHeadimg())) {
             result.setHeadimgSmall(CommonUtils.thumbImageSmall(member.getSiteId(), member.getHeadimg()));
             result.setHeadimgMiddle(CommonUtils.thumbImageMiddle(member.getSiteId(), member.getHeadimg()));
             result.setHeadimgBig(CommonUtils.thumbImageBig(member.getSiteId(), member.getHeadimg()));
@@ -468,5 +472,50 @@ public class CoreMemberServiceImpl implements ICoreMemberService {
             }
         }
         return member;
+    }
+
+    @Override
+    public void modifyRecommender(Integer memberId, Integer pid) {
+        // 1. 如果 pid 不为 0，进行校验
+        if (pid != null && pid != 0) {
+            if (memberId.equals(pid)) {
+                throw new CommonException("MEMBER_RECOMMENDER_CAN_NOT_BE_ITSELF");
+            }
+            Member parent = memberMapper.selectOne(new LambdaQueryWrapper<Member>().eq(Member::getMemberId, pid));
+            if (parent == null) {
+                throw new CommonException("MEMBER_RECOMMENDER_NOT_EXIST");
+            }
+        } else {
+            // pid 为 0 表示清除推荐人
+            pid = 0;
+        }
+
+        // 2. 更新会员的 pid 字段
+        LambdaUpdateWrapper<Member> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(Member::getMemberId, memberId)
+                .set(Member::getPid, pid);
+        int updated = memberMapper.update(null, wrapper);
+        if (updated == 0) {
+            throw new CommonException("MEMBER_NOT_EXIST");
+        }
+
+        // 3. 发布事件（异步或同步）
+//        eventPublisher.publishEvent(new AfterMemberRecommenderChangeEvent(this, memberId, pid));
+    }
+
+    @Override
+    public void modifyPassword(Integer memberId, String password) {
+        Member member = memberMapper.selectById(memberId);
+        if (member == null) throw new CommonException("MEMBER_NOT_EXIST");
+
+        //todo  需要考虑一下,新的密码和原密码一样能否通过验证
+        String passwordHash = PasswordEncipher.encode(password);
+        memberMapper.update(new LambdaUpdateWrapper<Member>()
+                .eq(Member::getMemberId, memberId)
+                .set(Member::getPassword, passwordHash));
+
+
+        //todo 清除登录状态
+//        TokenAuth::clearToken($member_id, AppTypeDict::API);
     }
 }

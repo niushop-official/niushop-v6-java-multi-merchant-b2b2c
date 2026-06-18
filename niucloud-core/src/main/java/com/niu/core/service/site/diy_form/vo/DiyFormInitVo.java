@@ -39,6 +39,8 @@ public class DiyFormInitVo implements Serializable {
 
     private String typeName;
 
+    /** 是否显示表单提交组件 */
+    private Boolean showSubmit;
 
     /** 表单数据，json格式，包含展示组件 */
     private String value;

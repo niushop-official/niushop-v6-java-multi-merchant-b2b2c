@@ -140,12 +140,6 @@ const router = useRouter()
 const loading = ref(true)
 const pageName = route.meta.title
 const formRef = ref<FormInstance>()
-interface addressType{
-    full_address:string
-    lat:string
-    lng:string
-}
-const defaultDeliveryAddress:any = ref<addressType|null>(null)
 
 const deliveryStoreList = ref<any>([])
 const curDelivery = ref<any>({
@@ -166,12 +160,6 @@ const getDeliveryStoreListAllFn = async () => {
     curDelivery.value = deliveryStoreList.value[0]
 }
 getDeliveryStoreListAllFn()
-const getDefaultDeliveryAddress = async () => {
-    await getShopDefaultDeliveryAddressInfo().then(({ data }) => {
-        defaultDeliveryAddress.value = data
-    }).catch()
-}
-getDefaultDeliveryAddress()
 
 const formData = ref({
     center: {
@@ -199,16 +187,6 @@ const regExp = {
 // 表单验证规则
 const formRules = computed(() => {
     return {
-        delivery_address: [
-            {
-                validator: (rule: any, value: any, callback: any) => {
-                    if (!defaultDeliveryAddress.value) {
-                        callback(new Error(t('defaultDeliveryAddressEmpty')))
-                    }
-                    callback()
-                }
-            }
-        ],
         distance: [
             {
                 validator: (rule: any, value: any, callback: any) => {

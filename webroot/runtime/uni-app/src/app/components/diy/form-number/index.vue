@@ -45,7 +45,7 @@
                     <text class="name" :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx' ,'font-weight': diyComponent.fontWeight}">{{ diyComponent.field.name }}</text>
                 </view>
                 <view class="layout-two-content">
-                    <input type="number" :placeholder="inputPlaceholder" placeholderClass="layout-two-input-placeholder"
+                    <input type="number" :placeholder="inputPlaceholder" placeholderClass="layout-two-input-placeholder" class="w-[100%]" :class="{'layout-two-content-left': diyGlobal.contentAlign == 'left' }"
                            :placeholder-style="{'font-size': (diyComponent.fontSize * 2) + 'rpx'}"
                            :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx'}"
                            v-model="diyComponent.field.value" :disabled="isDisabled" />

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { setToken, removeToken, redirect } from '@/utils/common'
-import { getMemberInfo as getMemberInfoApi, bindMobile as bindMobileApi } from '@/app/api/member'
+import { getMemberInfo as getMemberInfoApi, bindMobile as bindMobileApi, addVisit as addVisitApi } from '@/app/api/member'
 import { logout } from '@/app/api/auth'
 import useConfigStore from '@/stores/config'
 import { useLogin } from '@/hooks/useLogin'
@@ -116,6 +116,9 @@ const useMemberStore = defineStore('member', {
                 uni.showToast({ title: msg, icon: 'none' })
             }
 
+        },
+        addVisit(data: any) {
+            addVisitApi(data).then(() => { })
         }
     }
 })

@@ -2,8 +2,6 @@ package com.niu.mall.service.api.order.vo;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.component.context.SpringContext;
@@ -18,11 +16,13 @@ import com.niu.mall.entity.order.MallOrderDiscount;
 import com.niu.mall.enums.order.OrderDeliveryTypeEnum;
 import com.niu.mall.enums.order.OrderLogMainTypeEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
+import com.niu.mall.enums.order.OrderTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -105,7 +105,13 @@ public class MallOrderInfoVo implements Serializable {
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long buyerAskDeliveryTime;
     private Boolean showLocalDeliveryInfo;
+    private Integer localDeliveryStatus;
+    private String localDeliveryStatusName;
     private List<LocalDeliveryOrderLogInfo> localDeliveryOrderLog;
+
+    public String getLocalDeliveryStatusName() {
+        return LocalDeliveryStatusEnum.getNameByStatus(this.localDeliveryStatus);
+    }
 
     private Site site;
     private BigDecimal mallDiscountMoney = BigDecimal.ZERO;//平台优惠金额
@@ -117,11 +123,36 @@ public class MallOrderInfoVo implements Serializable {
     private String extendField1; //扩展字段1
     @JsonProperty("extend_field_2")
     private String extendField2; //扩展字段2
+
+    //26-04-23 新增
+    private String subDeliveryType;
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+    private BigDecimal usePoint = BigDecimal.ZERO; // 使用积分
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+    private BigDecimal pointDeductMoney;
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+    private BigDecimal mallCouponMoney;
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+    private BigDecimal fullReductionMoney;
+    private String orderDeliveryContent;
+    //===
+    //赠品列表（与 PHP order_gift_goods / gift_order_goods 一致）
+    private List<OrderGiftGoods> orderGiftGoods = new ArrayList<>();
+    private List<Map<String, Object>> giftOrderGoods = new ArrayList<>();
+    /**
+     * 与 PHP order_status_data、与 status_name 同源（对象，非数组）
+     */
+    private Map<String, Object> orderStatusData = new LinkedHashMap<>();
+    private List<MallOrderDiscount> discountRecords = new ArrayList<>();
+    private List<MallOrderDiscount> platformDiscountRecords = new ArrayList<>();
+
     @Data
-    public static class Site{
+    public static class Site {
         private Integer siteID;
         private String siteName;
+        private String frontEndLogo;
     }
+
     @Data
     public static class OrderGoods {
         private Integer orderGoodsId; //
@@ -151,6 +182,10 @@ public class MallOrderInfoVo implements Serializable {
         private String extend;
         private Integer isGift;
         private Integer formRecordId;
+        private String goodsConfig; // 商品对应配置
+
+        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        private String orderGoods;
 
         private ICoreUploadService coreUploadService() {
             return SpringContext.bean(ICoreUploadService.class);
@@ -161,11 +196,36 @@ public class MallOrderInfoVo implements Serializable {
         }
 
         public JSONObject getExtend() {
-            if(StringUtils.isEmpty(this.extend)){
+            if (StringUtils.isEmpty(this.extend)) {
                 return null;
             }
             //if (this.extend.isEmpty()) return null;
             return JSONUtil.parseObj(this.extend);
+        }
+    }
+
+    @Data
+    public static class OrderGiftGoods {
+        private Integer orderGiftId;
+        private Integer siteId;
+        private Integer orderId;
+        private Integer memberId;
+        private Integer goodsId;
+        private Integer skuId;
+        private String goodsName;
+        private String skuName;
+        private String goodsImage;
+        private String skuImage;
+        private BigDecimal price;
+        private Integer num;
+        private BigDecimal goodsMoney;
+
+        private ICoreUploadService coreUploadService() {
+            return SpringContext.bean(ICoreUploadService.class);
+        }
+
+        public String getGoodsImageThumbSmall() {
+            return coreUploadService().thumb(this.siteId, this.getGoodsImage(), UploadThumbTypeEnum.SMALL.getType()).getDataMap().get(UploadThumbTypeEnum.SMALL.getType());
         }
     }
 
@@ -175,12 +235,15 @@ public class MallOrderInfoVo implements Serializable {
         private Integer status; // 状态
         private Integer isBundlePay; // 是否只能捆绑支付
     }
+
     @Data
     public static class Pay {
         private String type;
         private String typeName;
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
         private Long payTime;
+        private String tradeNo;
+        private String outTradeNo;
     }
 
     @Data
@@ -223,6 +286,7 @@ public class MallOrderInfoVo implements Serializable {
         public String getDeliveryServiceName() {
             return LocalDeliveryTypeEnum.getName(this.deliveryService);
         }
+
         public String getLocalDeliveryStatusName() {
             return LocalDeliveryStatusEnum.getNameByStatus(this.localDeliveryStatus);
         }
@@ -231,41 +295,63 @@ public class MallOrderInfoVo implements Serializable {
 
     @Data
     public static class LocalDeliveryOrderLogInfo {
-        /** 主键ID */
+        /**
+         * 主键ID
+         */
         private Integer id;
 
-        /** 订单ID */
+        /**
+         * 订单ID
+         */
         private Integer orderId;
 
-        /** 操作人ID */
+        /**
+         * 操作人ID
+         */
         private Integer mainId;
 
-        /** 操作人类型 */
+        /**
+         * 操作人类型
+         */
         private String mainType;
 
         private String mainTypeName;
 
-        /** 操作人名称 */
+        /**
+         * 操作人名称
+         */
         private String mainName;
 
-        /** 操作类型 */
+        /**
+         * 操作类型
+         */
         private String operate;
 
-        /** 操作描述 */
+        /**
+         * 操作描述
+         */
         private String operateDesc;
 
-        /** 操作后配送状态 */
+        /**
+         * 操作后配送状态
+         */
         private String status;
 
-        /** 配送时间 */
+        /**
+         * 配送时间
+         */
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
         private Long createTime;
 
-        /** 备注 */
+        /**
+         * 备注
+         */
         private String remark;
+
         public String getMainTypeName() {
             return OrderLogMainTypeEnum.getNameByType(this.mainType);
         }
+
         @JsonProperty("localDeliveryOrder")
         private LocalDeliveryOrderInfo localDeliveryOrder;
     }
@@ -274,105 +360,169 @@ public class MallOrderInfoVo implements Serializable {
     public static class LocalDeliveryOrderInfo {
         private Integer id;
 
-        /** 站点ID */
+        /**
+         * 站点ID
+         */
         private Integer siteId;
 
-        /** 配送方标识 */
+        /**
+         * 配送方标识
+         */
         private String deliveryService;
 
-        /** 配送单号 */
+        /**
+         * 配送单号
+         */
         private String deliveryNo;
 
-        /** 三方配送单号 */
+        /**
+         * 三方配送单号
+         */
         private String outDeliveryNo;
 
-        /** 交易类型，mall商城 supply供货商 */
+        /**
+         * 交易类型，mall商城 supply供货商
+         */
         private String tradeType;
 
-        /** 交易单号 */
+        /**
+         * 交易单号
+         */
         private String tradeNo;
 
-        /** 交易ID */
+        /**
+         * 交易ID
+         */
         private Integer tradeId;
 
-        /** 配送费用 */
+        /**
+         * 配送费用
+         */
         private BigDecimal deliveryMoney;
 
-        /** 配送起点（发货点） */
+        /**
+         * 配送起点（发货点）
+         */
         private String deliveryStart;
 
-        /** 配送起点省 */
+        /**
+         * 配送起点省
+         */
         private Integer deliveryStartProvinceId;
 
-        /** 配送起点市 */
+        /**
+         * 配送起点市
+         */
         private Integer deliveryStartCityId;
 
-        /** 配送起点区 */
+        /**
+         * 配送起点区
+         */
         private Integer deliveryStartDistrictId;
 
-        /** 配送起点经度 */
+        /**
+         * 配送起点经度
+         */
         private String deliveryStartLng;
 
-        /** 配送起点纬度 */
+        /**
+         * 配送起点纬度
+         */
         private String deliveryStartLat;
 
-        /** 配送终点（收货点） */
+        /**
+         * 配送终点（收货点）
+         */
         private String deliveryEnd;
 
-        /** 配送终点省 */
+        /**
+         * 配送终点省
+         */
         private Integer deliveryEndProvinceId;
 
-        /** 配送终点市 */
+        /**
+         * 配送终点市
+         */
         private Integer deliveryEndCityId;
 
-        /** 配送终点区 */
+        /**
+         * 配送终点区
+         */
         private Integer deliveryEndDistrictId;
 
-        /** 配送终点经度 */
+        /**
+         * 配送终点经度
+         */
         private String deliveryEndLng;
 
-        /** 配送终点纬度 */
+        /**
+         * 配送终点纬度
+         */
         private String deliveryEndLat;
 
-        /** 配送距离 */
+        /**
+         * 配送距离
+         */
         private BigDecimal deliveryDistance;
 
-        /** 配送状态 */
+        /**
+         * 配送状态
+         */
         private String status;
 
-        /** 三方配送状态 */
+        /**
+         * 三方配送状态
+         */
         private String outStatus;
 
-        /** 配送时间 */
+        /**
+         * 配送时间
+         */
         private Long createTime;
 
-        /** 送达时间 */
+        /**
+         * 送达时间
+         */
         private Long finishTime;
 
-        /** 取消时间 */
+        /**
+         * 取消时间
+         */
         private Long cancelTime;
 
-        /** 骑手姓名 */
+        /**
+         * 骑手姓名
+         */
         private String riderName;
 
-        /** 骑手电话 */
+        /**
+         * 骑手电话
+         */
         private String riderMobile;
 
-        /** 违约金 */
+        /**
+         * 违约金
+         */
         private BigDecimal deductMoney;
 
-        /** 备注 */
+        /**
+         * 备注
+         */
         private String remark;
 
-        /** 配送产品信息 */
+        /**
+         * 配送产品信息
+         */
         private String body;
 
-        /** 实际消费费用(订单取消或完成后实际定义) */
+        /**
+         * 实际消费费用(订单取消或完成后实际定义)
+         */
         private BigDecimal actualMoney;
     }
 
     public String getOrderTypeName() {
-        return "";
+        return OrderTypeEnum.getOrderTypeName(this.orderType);
     }
 
     public String getOrderFromName() {
@@ -384,6 +534,6 @@ public class MallOrderInfoVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType,this.orderType);
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status), this.deliveryType, this.orderType);
     }
 }

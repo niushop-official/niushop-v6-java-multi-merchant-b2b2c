@@ -11,17 +11,19 @@
                 </div>
                 <span :class="['ml-[10px]']">{{ meta.title }}</span>
             </template>
-            <menu-item v-for="(route, index) in routes.children" :routes="route" :key="index" />
+            <menu-item v-for="(route, index) in routes.children" :routes="route" :key="index" :level="props.level + 1" />
         </el-sub-menu>
         <template v-else>
             <el-menu-item :index="String(routes.name)" @click="router.push({ name: routes.name })">
                 <template #title>
                     <div class="w-[25px] h-full flex items-center justify-center">
-                        <template v-if="meta.icon">
-                            <el-image class="w-[16px] h-[16px] overflow-hidden" :src="meta.icon" fit="fill" v-if="isUrl(meta.icon)"/>
-                            <icon :name="meta.icon" v-else />
-                        </template>
-                        <icon v-else :name="'iconfont iconshezhi1'" />
+                        <div v-if="props.level == 1">
+                            <template v-if="meta.icon">
+                                <el-image class="w-[16px] h-[16px] overflow-hidden" :src="meta.icon" fit="fill" v-if="isUrl(meta.icon)"/>
+                                <icon :name="meta.icon" v-else />
+                            </template>
+                            <icon v-else :name="'iconfont iconshezhi1'" />
+                        </div>
                     </div>
                     <span :class="[{'text-[15px]': routes.meta.class == 1}, {'text-[14px]': routes.meta.class != 1}, {'ml-[10px]': routes.meta.class == 2, 'ml-[15px]': routes.meta.class == 3}]">{{ meta.title }}</span>
                 </template>
@@ -44,6 +46,10 @@ const props = defineProps({
     routes: {
         type: Object,
         required: true
+    },
+    level: {
+        type: Number,
+        default: 1
     }
 })
 const userStore = useUserStore()

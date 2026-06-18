@@ -1,6 +1,5 @@
 package com.niu.core.enums.shop;
 
-import com.niu.core.enums.order.OrderDeliveryEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,6 +14,8 @@ public enum ShopAccountEnum {
     REFUND("refund", "退款", 0, 1),
     COUPON("coupon", "优惠券补贴", 1, 0),
     COUPON_REFUND("coupon_refund", "返还优惠券补贴", 0, 1),
+    POINT_PERK("point_perk", "积分补贴", 1, 0),
+    POINT_PERK_REFUND("point_perk_refund", "退还积分补贴", 0, 1),
     CASH_OUT("cash_out", "提现", 0, 1),
     SITE_SEPARATE("site_separate", "商户分账", 1, 0),
     SUPPLY_SEPARATE("supply_separate", "商户分账", 1, 0);
@@ -31,12 +32,12 @@ public enum ShopAccountEnum {
 
     /**
      * 获取枚举map
+     *
      * @return
      */
     public static Map<String, Map<String, String>> getMap() {
         Map<String, Map<String, String>> map = new HashMap<>();
-        for(ShopAccountEnum item : ShopAccountEnum.values())
-        {
+        for (ShopAccountEnum item : ShopAccountEnum.values()) {
             Map<String, String> itemMap = new HashMap<>();
             itemMap.put("name", item.getName());
             itemMap.put("type", item.getType());
@@ -48,14 +49,13 @@ public enum ShopAccountEnum {
 
     /**
      * 通过type获取当前信息
+     *
      * @param type
      * @return
      */
-    public static ShopAccountEnum getNameByType(String type){
-        for(ShopAccountEnum item : ShopAccountEnum.values())
-        {
-            if(item.getType().equals(type))
-            {
+    public static ShopAccountEnum getNameByType(String type) {
+        for (ShopAccountEnum item : ShopAccountEnum.values()) {
+            if (item.getType().equals(type)) {
                 return item;
             }
         }

@@ -813,6 +813,7 @@ public class DiyServiceImpl implements IDiyService {
     @Override
     public int initDefaultPage(Integer siteId, String flag, String addon) {
         JSONObject template = getFirstPageData(flag, addon);
+        if(template == null) return 0;
         Long count = diyPageMapper.selectCount(new QueryWrapper<DiyPage>()
         .eq("site_id", siteId).eq("name", flag).eq("is_default", 1).eq("template", template.getStr("template")));
         if(count.intValue() == 0){

@@ -46,4 +46,9 @@ public interface ICoreRefundService {
      * @param applyRefundMoney
      */
     OrderRefundMoneyVo refundCheck(Integer[] orderGoodsIds, BigDecimal applyRefundMoney);
+
+    /**
+     * 获取订单项可退金额（不含运费，已扣减积分抵扣等平台优惠）
+     */
+    BigDecimal getItemRefundableMoney(Integer orderGoodsId);
 }

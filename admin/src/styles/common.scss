@@ -76,6 +76,12 @@ src: url('./font/OPPOSans-R.ttf') format('truetype');
     .input-width {
         width: 300px;
     }
+    .input-mid-width {
+        width: 180px;
+    }
+    .input-small-width {
+        width: 120px;
+    }
 }
 
 .el-form {

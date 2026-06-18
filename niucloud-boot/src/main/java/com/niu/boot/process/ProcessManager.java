@@ -264,6 +264,9 @@ public class ProcessManager {
                             for (String line : change) {
                                 String[] content = line.split(" ");
                                 if (content[0].equals("-")) {
+                                    if (content[2].replace("\\", "/").endsWith("jar/addon/addon.json")) {
+                                        continue;
+                                    }
                                     try {
                                         File file = new File(rootDir, content[2]);
                                         if (file.exists()) {
@@ -286,7 +289,8 @@ public class ProcessManager {
                             ".env.production",
                             ".env.dev",
                             ".env.product",
-                            "web-app-boot-exec.jar"
+                            "web-app-boot-exec.jar",
+                            "addon.json"
                         });
                         File[] childFile = new File(codeDir, version.getVersionNo()).listFiles();
                         for (File file : childFile) {

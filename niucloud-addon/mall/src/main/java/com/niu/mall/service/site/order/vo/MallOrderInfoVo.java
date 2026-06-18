@@ -122,6 +122,8 @@ public class MallOrderInfoVo implements Serializable {
         private Integer verifyExpireTime; // 过期时间 0 为永久
         private Integer isVerify; // 是否需要核销
         private BigDecimal discountMoney;
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+        private BigDecimal mallDiscountMoney; // 平台优惠
         @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
         private String extend;
         private String unit;
@@ -130,6 +132,8 @@ public class MallOrderInfoVo implements Serializable {
         private BigDecimal shopActiveRefundMoney; //商家主动退款金额
         private Integer formRecordId;
         private Boolean formRecordShow;
+        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        private String goodsConfig; // 商品对应配置
 
         private ICoreUploadService coreUploadService() {
             return SpringContext.bean(ICoreUploadService.class);
@@ -201,7 +205,7 @@ public class MallOrderInfoVo implements Serializable {
     }
 
     public String getOrderTypeName() {
-        return "";
+        return OrderTypeEnum.getOrderTypeName(this.orderType);
     }
 
     public String getOrderFromName() {

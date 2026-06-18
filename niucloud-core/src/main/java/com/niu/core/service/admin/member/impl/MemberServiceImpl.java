@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -23,29 +24,22 @@ import com.niu.core.entity.member.MemberLabel;
 import com.niu.core.entity.member.MemberLevel;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.common.SexEnum;
-import com.niu.core.enums.member.MemberRegisterChannelEnum;
-import com.niu.core.enums.member.MemberRegisterTypeEnum;
-import com.niu.core.enums.member.StatusEnum;
+import com.niu.core.enums.member.*;
+import com.niu.core.enums.sys.AppTypeEnum;
 import com.niu.core.event.member.MemberRegisterEvent;
 import com.niu.core.mapper.member.MemberLabelMapper;
 import com.niu.core.mapper.member.MemberLevelMapper;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.service.admin.member.IMemberService;
-import com.niu.core.service.admin.member.param.MemberAddParam;
-import com.niu.core.service.admin.member.param.MemberModifyParam;
-import com.niu.core.service.admin.member.param.MemberParam;
-import com.niu.core.service.admin.member.param.MemberSearchParam;
-import com.niu.core.service.admin.member.vo.MemberAllListVo;
-import com.niu.core.service.admin.member.vo.MemberInfoVo;
-import com.niu.core.service.admin.member.vo.MemberLabelAllListVo;
-import com.niu.core.service.admin.member.vo.MemberListVo;
+import com.niu.core.service.admin.member.param.*;
+import com.niu.core.service.admin.member.vo.*;
 import com.niu.core.service.core.member.ICoreMemberService;
+import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import jakarta.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -83,7 +77,7 @@ public class MemberServiceImpl implements IMemberService {
         MPJQueryWrapper<Member> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("m").leftJoin("?_member_level ml ON ml.level_id = m.member_level".replace("?_", GlobalConfig.tablePrefix));
         queryWrapper.select("m.*, ml.level_name as member_level_name");
-        if(siteId != 0){
+        if (siteId != 0) {
             queryWrapper.eq("m.site_id", siteId);
         }
 
@@ -130,7 +124,9 @@ public class MemberServiceImpl implements IMemberService {
         if (ObjectUtil.isNotEmpty(levelIds)) {
             levelMap = memberLevelMapper.selectBatchIds(levelIds).stream().collect(Collectors.toMap(MemberLevel::getLevelId, e -> e));
         }
-        
+
+        Map<Integer, Member> parentMemberMap = buildParentMemberMap(memberList);
+
         List<MemberListVo> list = new LinkedList<>();
         for (Member item : memberList) {
             MemberListVo vo = new MemberListVo();
@@ -139,6 +135,7 @@ public class MemberServiceImpl implements IMemberService {
             vo.setStatusName(StatusEnum.getNameByStatus(item.getStatus()));
             vo.setRegisterChannelName(ChannelEnum.getNameByCode(item.getRegisterChannel()));
             vo.setMemberLevelName(levelMap.getOrDefault(item.getMemberLevel(), new MemberLevel()).getLevelName());
+            vo.setParentMember(buildParentMember(item.getPid(), parentMemberMap));
 
             if (!item.getMemberLabel().isEmpty()) {
                 JSONArray memberLabelArrays = JSONUtil.parseArray(vo.getMemberLabel());
@@ -186,7 +183,7 @@ public class MemberServiceImpl implements IMemberService {
             JSONArray memberLabelArrays = JSONUtil.parseArray(vo.getMemberLabel());
             if (memberLabelArrays != null && memberLabelArrays.size() > 0) {
                 List<MemberLabelAllListVo> memberLabelArray = new LinkedList<>();
-                List<MemberLabel> labelList = memberLabelMapper.selectList(new QueryWrapper<MemberLabel>().select("label_name","label_id").in("label_id", memberLabelArrays));
+                List<MemberLabel> labelList = memberLabelMapper.selectList(new QueryWrapper<MemberLabel>().select("label_name", "label_id").in("label_id", memberLabelArrays));
                 for (MemberLabel item : labelList) {
                     MemberLabelAllListVo labelVo = new MemberLabelAllListVo();
                     BeanUtils.copyProperties(item, labelVo);
@@ -195,6 +192,7 @@ public class MemberServiceImpl implements IMemberService {
                 vo.setMemberLabelArray(memberLabelArray);
             }
         }
+        vo.setParentMember(buildParentMember(model.getPid(), buildParentMemberMap(Collections.singletonList(model))));
         return vo;
     }
 
@@ -320,6 +318,44 @@ public class MemberServiceImpl implements IMemberService {
         memberMapper.update(model, updateWrapper);
     }
 
+    @Override
+    public void batchModify(MemberBatchModifyParam editParam) {
+        Integer siteId = RequestUtils.defaultSiteId();
+
+        Member model = new Member();
+
+        switch (editParam.getField()) {
+            case "nickname":
+                model.setNickname(String.valueOf(editParam.getValue()));
+                break;
+            case "headimg":
+                model.setHeadimg(String.valueOf(editParam.getValue()));
+                break;
+            case "member_label":
+                String value = String.valueOf(editParam.getValue());
+                if ("".equals(value.trim())) {
+                    model.setMemberLabel("[]");
+                } else {
+                    model.setMemberLabel(value);
+                }
+                break;
+            case "member_level":
+                model.setMemberLevel(Integer.parseInt(String.valueOf(editParam.getValue())));
+                break;
+            case "birthday":
+                model.setBirthday(String.valueOf(editParam.getValue()));
+                break;
+            case "sex":
+                model.setSex(Integer.parseInt(String.valueOf(editParam.getValue())));
+                break;
+        }
+
+        UpdateWrapper<Member> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("site_id", siteId)
+                .in("member_id", editParam.getMemberIds());
+        memberMapper.update(model, updateWrapper);
+    }
+
     /**
      * 会员删除
      *
@@ -436,4 +472,101 @@ public class MemberServiceImpl implements IMemberService {
     public JSONObject getMemberGiftDict() {
         return iCoreMemberService.getGiftDict(RequestUtils.defaultSiteId());
     }
+
+    @Override
+    public Map<String, Map<String, Object>> getMemberContentType() {
+        if (RequestUtils.appType().equals(AppTypeEnum.ADMIN.getName()))
+            return MemberContentTypeAdminEnum.getMap();
+        if (RequestUtils.appType().equals(AppTypeEnum.SITE.getName()))
+            return MemberContentTypeSiteEnum.getMap();
+        return new HashMap<>();
+    }
+
+    @Override
+    public Map<String, String> getMemberSendComponentByType(String type) {
+        if (RequestUtils.appType().equals(AppTypeEnum.ADMIN.getName()))
+            return MemberSendTypeAdminEnum.getEnumMapByKey(type);
+        if (RequestUtils.appType().equals(AppTypeEnum.SITE.getName()))
+            return MemberSendTypeSiteEnum.getEnumMapByKey(type);
+        return new HashMap<>();
+    }
+
+    @Override
+    public PageResult<MemberRecommenderSelectVo> getRecommenderSelectlists(PageParam pageParam, MemberRecommenderSelectParam param) {
+        // 构建查询条件
+        LambdaQueryWrapper<Member> wrapper = new LambdaQueryWrapper<>();
+        wrapper.ne(Member::getMemberId, param.getMemberId());
+        if (StrUtil.isNotBlank(param.getKeyword())) {
+            wrapper.and(w -> w.like(Member::getNickname, param.getKeyword())
+                    .or().like(Member::getMobile, param.getKeyword())
+                    .or().like(Member::getMemberNo, param.getKeyword())
+                    .or().like(Member::getUsername, param.getKeyword()));
+        }
+        wrapper.orderByDesc(Member::getMemberId);
+
+        // 分页查询
+        IPage<Member> page = memberMapper.selectPage(new Page<>(pageParam.getPage(), pageParam.getLimit()), wrapper);
+        Map<Integer, MemberLevel> levelMap = Collections.emptyMap();
+        Set<Integer> levelIds = CollStreamUtil.toSet(page.getRecords(), Member::getMemberLevel);
+        if (ObjectUtil.isNotEmpty(levelIds)) {
+            levelMap = memberLevelMapper.selectBatchIds(levelIds).stream().collect(Collectors.toMap(MemberLevel::getLevelId, e -> e));
+        }
+        List<MemberRecommenderSelectVo> voList = new LinkedList<>();
+        for (Member member : page.getRecords()) {
+            MemberRecommenderSelectVo vo = new MemberRecommenderSelectVo();
+            BeanUtils.copyProperties(member, vo);
+            vo.setMemberId(member.getMemberId());
+            vo.setMemberLevelName(levelMap.getOrDefault(member.getMemberLevel(), new MemberLevel()).getLevelName());
+            voList.add(vo);
+
+        }
+
+        return PageResult.build(pageParam.getPage(), pageParam.getLimit(), page.getTotal()).setData(voList);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void modifyRecommender(Integer memberId, Integer pid) {
+        iCoreMemberService.modifyRecommender(memberId, pid);
+    }
+
+    @Override
+    public void resetPassword(Integer memberId, String password) {
+        iCoreMemberService.modifyPassword(memberId, password);
+    }
+
+    /**
+     * 批量查询上级推荐人
+     */
+    private Map<Integer, Member> buildParentMemberMap(List<Member> memberList) {
+        Set<Integer> pidSet = memberList.stream()
+                .map(Member::getPid)
+                .filter(pid -> ObjectUtil.isNotNull(pid) && pid > 0)
+                .collect(Collectors.toSet());
+        if (ObjectUtil.isEmpty(pidSet)) {
+            return Collections.emptyMap();
+        }
+        return memberMapper.selectBatchIds(pidSet).stream()
+                .collect(Collectors.toMap(Member::getMemberId, e -> e));
+    }
+
+    /**
+     * 组装上级推荐人信息
+     */
+    private MemberParentVo buildParentMember(Integer pid, Map<Integer, Member> parentMemberMap) {
+        if (ObjectUtil.isNull(pid) || pid <= 0) {
+            return null;
+        }
+        Member parentMember = parentMemberMap.get(pid);
+        if (parentMember == null) {
+            return null;
+        }
+        MemberParentVo vo = new MemberParentVo();
+        vo.setMemberId(parentMember.getMemberId());
+        vo.setNickname(parentMember.getNickname());
+        vo.setHeadimg(parentMember.getHeadimg());
+        return vo;
+    }
+
+
 }

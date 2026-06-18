@@ -33,7 +33,7 @@
                 </el-select>
             </el-form-item>
 
-            <el-form-item :label="t('apieceFillQuantity')" :class="{ '!mb-[5px]' : formData.member_write_type == 'diy' }" v-if="formData.form.type != 'DIY_FORM_MEMBER_INFO'">
+            <el-form-item :label="t('apieceFillQuantity')" :class="{ '!mb-[5px]' : formData.member_write_type == 'diy' }" v-if="formData.form.type != 'DIY_FORM_MEMBER_INFO' && formData.form.type != 'DIY_FORM_MERCHANT_INFO'">
                 <el-radio-group v-model="formData.member_write_type">
                     <el-radio label="no_limit">{{t('noLimit')}}</el-radio>
                     <el-radio label="diy">{{t('diy')}}</el-radio>
@@ -53,7 +53,7 @@
                 </div>
             </el-form-item>
 
-            <el-form-item :label="t('fillQuantityTotal')" :class="{ '!mb-[5px]' : formData.form_write_type == 'diy' }" v-if="formData.form.type != 'DIY_FORM_MEMBER_INFO'">
+            <el-form-item :label="t('fillQuantityTotal')" :class="{ '!mb-[5px]' : formData.form_write_type == 'diy' }" v-if="formData.form.type != 'DIY_FORM_MEMBER_INFO' && formData.form.type != 'DIY_FORM_MERCHANT_INFO'">
                 <el-radio-group v-model="formData.form_write_type">
                     <el-radio label="no_limit">{{t('noLimit')}}</el-radio>
                     <el-radio label="diy">{{t('diy')}}</el-radio>

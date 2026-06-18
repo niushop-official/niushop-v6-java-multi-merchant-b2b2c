@@ -44,4 +44,10 @@ private static final long serialVersionUID = 1L;
     /** 站点id */
     private Integer siteId;
 
+    /** 创建时间 */
+    private Long createTime;
+
+    /** 是否老用户，1是 0否 */
+    private Integer isOld;
+
 }

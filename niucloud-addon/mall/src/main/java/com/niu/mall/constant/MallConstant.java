@@ -7,4 +7,7 @@ public interface MallConstant {
     String MEMBER_PRICE = "member_price";
 
     String DISCOUNT_PRICE = "discount_price";
+
+    Integer SINGLE_TIME = 1;//单次限购
+    Integer SINGLE_PERSON = 2;//单人限购
 }

@@ -1,6 +1,6 @@
 <template>
-    <view @touchmove.prevent.stop>
-		<u-popup :show="showPop" type="bottom" @close="disPopUp">
+    <view @touchmove.prevent.stop class="wx-privacy-popup">
+		<u-popup :show="showPop" type="bottom" @close="disPopUp" zIndex="20075">
 			<view class="privacy-popup-wrap">
 				<view class="p-[30rpx]">
 					<view class="privacy-title">用户隐私保护提示</view>
@@ -173,7 +173,6 @@ defineExpose({
     align-items: center;
     justify-content: center;
 }
-
 .privacy-wrap {
     width: 632rpx;
     padding: 48rpx 30rpx;

@@ -33,7 +33,7 @@ public interface ICoreExportService {
      *
      * @return
      */
-    Map<String, String> getExportDataType();
+    Map<String, String> getExportDataType(String appType);
 
     /**
      * 获取导出数据列

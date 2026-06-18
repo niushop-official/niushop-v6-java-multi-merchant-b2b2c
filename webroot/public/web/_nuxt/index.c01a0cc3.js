@@ -1,0 +1,1 @@
+import{j as a,u as r,__tla as s}from"./entry.def2de69.js";let e,l=Promise.all([(()=>{try{return s}catch{}})()]).then(async()=>{e=({from:m,replacement:o,scope:_,version:c,ref:i,type:p="API"},t)=>{a(()=>r(t),n=>{},{immediate:!0})}});export{l as __tla,e as u};

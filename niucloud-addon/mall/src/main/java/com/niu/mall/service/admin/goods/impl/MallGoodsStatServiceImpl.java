@@ -23,6 +23,7 @@ import com.niu.mall.enums.goods.GoodsStatisticTypeEnum;
 import com.niu.mall.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.goods.MallGoodsStatMapper;
 import com.niu.mall.service.admin.goods.IMallGoodsStatService;
+import com.niu.mall.service.core.goods.ICoreGoodsBrowseStatService;
 import com.niu.mall.service.admin.goods.model.GoodsStatCount;
 import com.niu.mall.service.admin.goods.param.GoodsStatGetRankParam;
 import com.niu.mall.service.admin.goods.param.MallGoodsStatDateParam;
@@ -47,6 +48,7 @@ public class MallGoodsStatServiceImpl implements IMallGoodsStatService {
     private final MallGoodsMapper mallGoodsMapper;
     private final ICoreUploadService coreUploadService;
     private final MallGoodsStatMapper mallGoodsStatMapper;
+    private final ICoreGoodsBrowseStatService coreGoodsBrowseStatService;
 
     @Override
     public void syncStatGoods() {
@@ -134,10 +136,13 @@ public class MallGoodsStatServiceImpl implements IMallGoodsStatService {
             vo.setAccessNum(vo.getAccessNum() + stat.getAccessNum());
             vo.setCollectNum(vo.getCollectNum() + stat.getCollectNum());
             vo.setEvaluateNum(vo.getEvaluateNum() + stat.getEvaluateNum());
-            vo.setGoodsVisitMemberCount(vo.getGoodsVisitMemberCount() + stat.getGoodsVisitMemberCount());
             vo.setPayMoney(stat.getPayMoney().add(NumberUtil.toBigDecimal(vo.getPayMoney())).intValue());
             vo.setRefundMoney(stat.getRefundMoney().add(NumberUtil.toBigDecimal(vo.getRefundMoney())).intValue());
         }
+
+        long[] timeRange = resolveBrowseTimeRange(dates.get(0), dates.get(1));
+        vo.setGoodsVisitMemberCount(coreGoodsBrowseStatService.countDistinctMembers(
+                RequestUtils.siteId(), timeRange[0], timeRange[1]));
 
         return vo;
     }
@@ -234,6 +239,19 @@ public class MallGoodsStatServiceImpl implements IMallGoodsStatService {
             }
         }
 
+        long[] timeRange = resolveBrowseTimeRange(dateArr.get(0), dateArr.get(1));
+        Map<String, Integer> visitByDate = coreGoodsBrowseStatService.countDistinctMembersByDate(
+                RequestUtils.siteId(), timeRange[0], timeRange[1]);
+        Map<String, Integer> visitByMonth = "month".equals(dateType)
+                ? coreGoodsBrowseStatService.countDistinctMembersByMonth(RequestUtils.siteId(), timeRange[0], timeRange[1])
+                : Collections.emptyMap();
+        for (String curDate : allDates) {
+            int visitCount = "month".equals(dateType)
+                    ? visitByMonth.getOrDefault(curDate, 0)
+                    : visitByDate.getOrDefault(curDate, 0);
+            statCount.getGoodsVisitMemberCount().put(curDate, visitCount);
+        }
+
         List<MallGoodsStatTrendVo.DataItem> items = new ArrayList<>(8);
         ReflectionUtils.doWithFields(statCount.getClass(), field -> {
             field.setAccessible(true);
@@ -259,6 +277,11 @@ public class MallGoodsStatServiceImpl implements IMallGoodsStatService {
         }
 
         String[] dateArr = date.split("-");
+        long[] timeRange = resolveBrowseTimeRange(dateArr[0], dateArr[1]);
+        String browseTable = GlobalConfig.tablePrefix + "mall_goods_browse";
+        String visitCountSql = "(SELECT COUNT(DISTINCT b.member_id) FROM " + browseTable
+                + " b WHERE b.goods_id = stat.goods_id AND b.browse_time >= " + timeRange[0]
+                + " AND b.browse_time <= " + timeRange[1] + ") AS goods_visit_member_count";
         MPJQueryWrapper<MallGoodsStat> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.eq("stat.site_id", RequestUtils.siteId())
                 .between("date_time", DateUtils.StringToTimestamp(dateArr[0]), DateUtils.StringToTimestamp(dateArr[1]))
@@ -266,7 +289,8 @@ public class MallGoodsStatServiceImpl implements IMallGoodsStatService {
                 .setAlias("stat")
                 .leftJoin("?_mall_goods goods on stat.goods_id=goods.goods_id".replace("?_", GlobalConfig.tablePrefix))
                 .groupBy("stat.goods_id")
-                .select("stat.site_id,stat.goods_id,sum(stat.cart_num) as cart_num,sum(stat.sale_num) as sale_num,sum(stat.pay_num) as pay_num,sum(stat.pay_money) as pay_money,sum(stat.refund_num) as refund_num,sum(stat.refund_money) as refund_money,sum(stat.collect_num) as collect_num,sum(stat.evaluate_num) as evaluate_num,sum(stat.access_num) as access_num,sum(goods_visit_member_count) as goods_visit_member_count,goods_name,goods_cover,is_gift");
+                .select("stat.site_id,stat.goods_id,sum(stat.cart_num) as cart_num,sum(stat.sale_num) as sale_num,sum(stat.pay_num) as pay_num,sum(stat.pay_money) as pay_money,sum(stat.refund_num) as refund_num,sum(stat.refund_money) as refund_money,sum(stat.collect_num) as collect_num,sum(stat.evaluate_num) as evaluate_num,sum(stat.access_num) as access_num,"
+                        + visitCountSql + ",goods_name,goods_cover,is_gift");
 
         if (ObjectUtil.isNotEmpty(param.getType())) {
             queryWrapper.orderByDesc(param.getType());
@@ -335,6 +359,12 @@ public class MallGoodsStatServiceImpl implements IMallGoodsStatService {
         }
 
         return months;
+    }
+
+    private long[] resolveBrowseTimeRange(String startDate, String endDate) {
+        long startTime = DateUtils.StringToTimestamp(startDate.replace('/', '-'));
+        long endTime = DateUtils.StringToTimestamp(endDate.replace('/', '-')) + 86400 - 1;
+        return new long[]{startTime, endTime};
     }
 
 }

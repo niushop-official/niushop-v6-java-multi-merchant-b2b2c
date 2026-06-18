@@ -30,11 +30,11 @@ import com.niu.core.service.api.login.vo.MobileCodeCacheVo;
 import com.niu.core.service.api.login.vo.SendMobileCodeVo;
 import com.niu.core.service.core.member.ICoreMemberConfigService;
 import com.niu.core.service.core.notice.ICoreNoticeService;
+import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,6 +65,7 @@ public class LoginServiceImpl implements ILoginService {
 
     /**
      * 账号登录
+     *
      * @param param
      * @return
      */
@@ -80,6 +81,7 @@ public class LoginServiceImpl implements ILoginService {
 
     /**
      * 手机号登录
+     *
      * @param param
      * @return
      */
@@ -89,13 +91,13 @@ public class LoginServiceImpl implements ILoginService {
             throw new CommonException("手机号登录注册未开启");
         }
         Member member = memberMapper.selectOne(new QueryWrapper<Member>().eq("mobile", param.getMobile()));
-        if (ObjectUtil.isEmpty( member)){
+        if (ObjectUtil.isEmpty(member)) {
             //开启强制绑定手机号，登录会自动注册并绑定手机号
             if (config.getIsBindMobile() == 1) {
                 MobileRegisterParam registerParam = new MobileRegisterParam();
                 BeanUtils.copyProperties(param, registerParam);
                 return registerService.mobile(registerParam);
-            }else{
+            } else {
                 throw new CommonException("账号不存在");
             }
         }
@@ -105,12 +107,13 @@ public class LoginServiceImpl implements ILoginService {
 
     /**
      * 登录
+     *
      * @param member
      * @return
      */
     public LoginVo login(Member member) {
         member = memberMapper.selectById(member.getMemberId());
-        if (StatusEnum.OFF.equals(member.getStatus())) throw new CommonException("账号被锁定");
+        if (StatusEnum.OFF.getStatus().equals(member.getStatus())) throw new CommonException("账号被锁定");
 
         member.setLoginTime(System.currentTimeMillis() / 1000);
         member.setLoginIp(RequestUtils.ip());
@@ -132,7 +135,7 @@ public class LoginServiceImpl implements ILoginService {
 
         LoginVo vo = new LoginVo();
         vo.setToken(saTokenInfo.getTokenValue());
-        vo.setExpiresTime(DateUtils.currTime()+saTokenInfo.getTokenTimeout());
+        vo.setExpiresTime(DateUtils.currTime() + saTokenInfo.getTokenTimeout());
         vo.setMobile(member.getMobile());
 
         // 会员登录事件
@@ -147,6 +150,7 @@ public class LoginServiceImpl implements ILoginService {
 
     /**
      * 重置密码
+     *
      * @param param
      */
     public void resetPassword(ResetPasswordParam param) {
@@ -159,6 +163,7 @@ public class LoginServiceImpl implements ILoginService {
 
     /**
      * 获取登录注册配置
+     *
      * @return
      */
     public LoginConfigVo getLoginConfig() {
@@ -167,16 +172,17 @@ public class LoginServiceImpl implements ILoginService {
 
     /**
      * 发送手机验证码
+     *
      * @param param
      */
     public SendMobileCodeVo sendMobileCode(SendMobileCodeParam param) {
-        if (!SmsConst.SCENE_TYPE.contains(param.getType())){
+        if (!SmsConst.SCENE_TYPE.contains(param.getType())) {
             throw new AuthException("无效的短信验证码");
         }
         String keyType = "";
-        if (SmsConst.MERCHANT_SETTLED.equals(param.getType())){
+        if (SmsConst.MERCHANT_SETTLED.equals(param.getType())) {
             keyType = "merchant_settled_verify_code";
-        }else{
+        } else {
             keyType = "member_verify_code";
         }
 
@@ -192,8 +198,8 @@ public class LoginServiceImpl implements ILoginService {
         coreNoticeService.send(param.siteId(), keyType, data);
 
         String key = DigestUtil.md5Hex(IdUtil.fastUUID());
-        clearMobileCode(param.getMobile(),param.getType());
-        this.cached.put(key, cache,600);
+        clearMobileCode(param.getMobile(), param.getType());
+        this.cached.put(key, cache, 600);
 
         SendMobileCodeVo vo = new SendMobileCodeVo();
         vo.setKey(key);
@@ -202,14 +208,13 @@ public class LoginServiceImpl implements ILoginService {
 
     /**
      * 退出登录
-     *
      */
     public void logout() {
         StpUtil.logout();
     }
 
-    private void clearMobileCode(String mobile,String type){
-        String cacheTagName = "mobile_key_"+mobile+type;
+    private void clearMobileCode(String mobile, String type) {
+        String cacheTagName = "mobile_key_" + mobile + type;
         cached.tag(cacheTagName).clear();
     }
 }

@@ -14,7 +14,7 @@ public class ShopSearchParam {
     // 每页数量
     private Integer limit = 10;
     private Integer num=0;
-    private String[] siteIds;
+    private Object siteIds;
     private String keyword;
     private String order;
     private Integer groupId;
@@ -23,4 +23,14 @@ public class ShopSearchParam {
     private Integer isLocalDelivery;
     private Integer isLocation;
     private List<String> deliveryType;
+    private Position position;
+    @Data
+    public static class Position {
+        protected String latitude;
+        protected String longitude;
+        protected String provinceId;
+        protected String districtId;
+        protected String cityId;
+
+    }
 }

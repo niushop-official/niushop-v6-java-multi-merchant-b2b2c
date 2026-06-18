@@ -5,9 +5,11 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.exception.CommonException;
+import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.sys.SysUser;
@@ -45,7 +47,7 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
     @Resource
     MemberMapper memberMapper;
     @Resource
-     Cached cached;
+    Cached cached;
     private static final String CACHE_VERIFY = "verify";
 
     @Override
@@ -203,6 +205,18 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
             throw new RuntimeException("您没有对应店铺核销权限，请联系管理员");
         }
 
+        VerifyCheckEventDefiner.VerifyCheckEvent event = new VerifyCheckEventDefiner.VerifyCheckEvent();
+        event.setVerifyData(value);
+        List<VerifyCheckEventDefiner.VerifyCheckResult> data = EventAndSubscribeOfPublisher.publishAndCallback(event);
+        if (!data.isEmpty()) {
+            for (var item : data) {
+                if (!data.isEmpty()) {
+                    value = item.getProcessedData();
+                    break;
+                }
+            }
+        }
+
 
         Map<String, Object> dataMap = (Map<String, Object>) value.get("data");
         VerifierCheckEventDefiner.VerifierCheckEvent verifierEvent = new VerifierCheckEventDefiner.VerifierCheckEvent();
@@ -264,6 +278,87 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
         return true;
     }
 
+    public Boolean adminVerify(Integer siteId, String code) {
+
+        SysUser user = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>()
+                .eq(SysUser::getUid, RequestUtils.uid()));
+        // 获取核销码数据
+        Map<String, Object> value = this.getCodeData(code);
+        // 检测核销员身份
+        Integer vSiteId = (Integer) value.get("site_id");
+        // 检查当前核销员是否有权限
+        if (!vSiteId.equals(siteId)) {
+            throw new RuntimeException("该店铺无核销权限");
+        }
+
+        VerifyCheckEventDefiner.VerifyCheckEvent event = new VerifyCheckEventDefiner.VerifyCheckEvent();
+        event.setVerifyData(value);
+        List<VerifyCheckEventDefiner.VerifyCheckResult> data = EventAndSubscribeOfPublisher.publishAndCallback(event);
+        if (!data.isEmpty()) {
+            for (var item : data) {
+                if (!data.isEmpty()) {
+                    value = item.getProcessedData();
+                    break;
+                }
+            }
+        }
+
+
+        Map<String, Object> dataMap = (Map<String, Object>) value.get("data");
+        VerifierCheckEventDefiner.VerifierCheckEvent verifierEvent = new VerifierCheckEventDefiner.VerifierCheckEvent();
+        verifierEvent.setVerifyMemberId(RequestUtils.uid());
+        verifierEvent.setType((String) value.get("type"));
+        verifierEvent.setData(dataMap);
+        verifierEvent.setSiteId(siteId);
+        List<VerifierCheckEventDefiner.VerifierCheckResult> verifierResults = EventAndSubscribeOfPublisher.publishAndCallback(verifierEvent);
+        // 获取核销员ID列表
+        List<Integer> verifyMemberIds = new ArrayList<>();
+        if (!verifierResults.isEmpty()) {
+            VerifierCheckEventDefiner.VerifierCheckResult firstResult = verifierResults.get(0);
+            if (firstResult != null && firstResult.getVerifyMemberIds() != null) {
+                verifyMemberIds = firstResult.getVerifyMemberIds();
+            }
+        }
+
+        // 核销操作
+        Map<String, Object> verifyDataMap = new HashMap<>();
+        verifyDataMap.put("site_id", value.get("site_id"));
+        verifyDataMap.put("code", code);
+        verifyDataMap.put("data", value.get("data"));
+        verifyDataMap.put("value", JSONUtil.toJsonStr(value.get("value")));
+        verifyDataMap.put("type", value.get("type"));
+        verifyDataMap.put("body", value.get("body"));
+        verifyDataMap.put("relate_tag", value.get("relate_tag") != null ? String.valueOf(value.get("relate_tag")) : "0");
+        verifyDataMap.put("create_time", DateUtils.currTime());
+        verifyDataMap.put("verifier_member_id", RequestUtils.uid());
+        verifyDataMap.put("verifier_name", user != null ? user.getUsername() : "");
+        verifyDataMap.put("verifier_headimg", user != null ? user.getHeadImg() : "");
+        verifyDataMap.put("verifier_type", VerifierTypeEnum.SITE.getType());
+        // 核销
+        VerifyEventDefiner.VerifyEvent verifyEvent = new VerifyEventDefiner.VerifyEvent();
+        verifyEvent.setSiteId(siteId);
+        verifyEvent.build(verifyDataMap);
+        EventAndSubscribeOfPublisher.publishAndCallback(verifyEvent);
+        // 添加核销记录
+        Verify model = new Verify();
+        model.setSiteId(verifyEvent.getSiteId());
+        model.setCode(verifyEvent.getCode());
+        model.setData(JSONUtil.toJsonStr(verifyEvent.getData()));
+        model.setValue(verifyEvent.getValue());
+        model.setType(verifyEvent.getType());
+        model.setBody(verifyEvent.getBody());
+        model.setRelateTag(verifyEvent.getRelateTag());
+        model.setCreateTime(verifyEvent.getCreateTime());
+        model.setVerifierMemberId(verifyEvent.getVerifierMemberId());
+        model.setVerifierName(verifyEvent.getVerifierName());
+        model.setVerifierHeadimg(verifyEvent.getVerifierHeadimg());
+        model.setVerifierType(verifyEvent.getVerifierType());
+        model.setIsAdmin(0); // 非后台核销
+        verifyMapper.insert(model);
+        // 核销码失效
+        this.clearCode(code);
+        return true;
+    }
 
 
     private Map<String, Object> getCodeData(String verifyCode) {

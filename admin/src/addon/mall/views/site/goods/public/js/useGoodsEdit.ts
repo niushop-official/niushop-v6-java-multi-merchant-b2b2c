@@ -7,8 +7,14 @@ import { debounce, deepClone } from '@/utils/common'
 import { useRoute, useRouter } from 'vue-router'
 import Test from '@/utils/test'
 import { getDiyList } from '@/app/api/diy'
-import { getGoodsType, getLabelList, getSupplierList, getGoodsSync } from '@/addon/mall/api/site/goods'
-import {  getCategoryTree,getAttrList, getAttrInfo, getBrandList, getServeList, } from '@/app/api/basic_site'
+import { getGoodsType, getLabelList, getSupplierList, getGoodsSync, getPayTypeList } from '@/addon/mall/api/site/goods'
+import {
+    getCategoryTree,
+    getAttrList,
+    getAttrInfo,
+    getBrandList,
+    getServeList
+} from '@/app/api/basic_site'
 import { getCategoryTree as getMallCategoryTree, getAttrList as getMallAttrList} from '@/app/api/basic_admin'
 import userStore from '@/stores/modules/user'
 import { getDiyFormList } from '@/app/api/diy_form_site'
@@ -43,7 +49,14 @@ export function useGoodsEdit(params: any = {}) {
         service_ids: [],
         supplier_id: '',
         status: '1',
+        timer_off_status: 0,
+        timer_on_time: 0,
+        timer_on_status: 0,
+        timer_off_time: 0,
         shop_sort: '',
+        support_pay_type: [],
+        is_enable_refund: 1,
+        is_enable_point_deduct: 0,
 
         addon_shop_supplier: [],
 
@@ -367,6 +380,20 @@ export function useGoodsEdit(params: any = {}) {
 
     refreshGoodsService()
 
+    // 支付方式
+    const payTypeOptions = reactive([])
+    // 获取支付方式列表
+    const refreshPayType = () => {
+        getPayTypeList({}).then((res) => {
+            const data = res.data
+            if (data) {
+                // @ts-ignore
+                payTypeOptions.splice(0, payTypeOptions.length, ...data)
+            }
+        })
+    }
+    refreshPayType();
+
     // 供货商列表下拉框
     const supplierOptions = reactive([])
 
@@ -457,6 +484,23 @@ export function useGoodsEdit(params: any = {}) {
             } else {
                 formData.status = '0'
             }
+            // 定时上下架 - 优化时间格式处理（时间戳转字符串）
+            if (formData.status == '0') {
+                formData.timer_on_status = data.goods_info.timer_on_status
+                // 时间戳转YYYY-MM-DD HH:mm:ss格式
+                formData.timer_on_time = formData.timer_on_status == 0 ? '' : data.goods_info.timer_on_time
+                formData.timer_off_status = 0
+                formData.timer_off_time = ''
+            } else {
+                formData.timer_off_status = data.goods_info.timer_off_status
+                // 时间戳转YYYY-MM-DD HH:mm:ss格式
+                formData.timer_off_time = formData.timer_off_status == 0 ? '' : data.goods_info.timer_off_time
+                formData.timer_on_status = 0
+                formData.timer_on_time = ''
+            }
+            formData.support_pay_type = data.goods_info.support_pay_type
+            formData.is_enable_refund = data.goods_info.is_enable_refund
+            formData.is_enable_point_deduct = data.goods_info.is_enable_point_deduct
 
             /*************** 商品参数-start ****************/
             formData.attr_format = data.goods_info.attr_format ? data.goods_info.attr_format : []
@@ -991,7 +1035,8 @@ export function useGoodsEdit(params: any = {}) {
         required: /[\S]+/,
         number: /^\d{0,10}$/,
         digit: /^\d{0,10}(.?\d{0,2})$/,
-        special: /^\d{0,10}(.?\d{0,3})$/
+        special: /^\d{0,10}(.?\d{0,3})$/,
+        datetime: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/ // YYYY-MM-DD HH:mm:ss格式
     }
 
     // 表单验证规则
@@ -1033,6 +1078,94 @@ export function useGoodsEdit(params: any = {}) {
             // ],
             goods_mall_category: [
                 { required: true, message: t('goodsMallCategoryPlaceholder'), trigger: 'blur' }
+            ],
+            // ========== 新增：上下架状态校验 ==========
+            status: [
+                {
+                    required: true,
+                    message: t('goodsStatusPlaceholder'),
+                    trigger: 'change'
+                }
+            ],
+            // ========== 新增：定时下架开关校验 ==========
+            timer_off_status: [
+                {
+                    trigger: 'change',
+                    validator: (rule: any, value: any, callback: any) => {
+                        if (![0, 1].includes(Number(value))) {
+                            callback(new Error(t('timerOffStatusTips')));
+                        } else {
+                            callback();
+                        }
+                    }
+                }
+            ],
+            // ========== 新增：定时上架开关校验 ==========
+            timer_on_status: [
+                {
+                    trigger: 'change',
+                    validator: (rule: any, value: any, callback: any) => {
+                        if (![0, 1].includes(Number(value))) {
+                            callback(new Error(t('timerOnStatusTips')));
+                        } else {
+                            callback();
+                        }
+                    }
+                }
+            ],
+            // ========== 新增：定时下架时间校验 ==========
+            timer_off_time: [
+                {
+                    trigger: 'change',
+                    validator: (rule: any, value: any, callback: any) => {
+                        // 上架状态且开启定时下架时，必填
+                        if (Number(formData.status) === 1 && Number(formData.timer_off_status) === 1) {
+                            if (!value) {
+                                callback(new Error(t('timerOffTimePlaceholder')));
+                            } else if (!regExp.datetime.test(value)) {
+                                callback(new Error(t('timerTimeFormatTips')));
+                            } else {
+                                // 校验时间是否大于当前时间
+                                const now = new Date().getTime();
+                                const targetTime = new Date(value).getTime();
+                                if (targetTime <= now) {
+                                    callback(new Error(t('timerTimeGreaterThanNowTips')));
+                                } else {
+                                    callback();
+                                }
+                            }
+                        } else {
+                            callback();
+                        }
+                    }
+                }
+            ],
+            // ========== 新增：定时上架时间校验 ==========
+            timer_on_time: [
+                {
+                    trigger: 'change',
+                    validator: (rule: any, value: any, callback: any) => {
+                        // 下架状态且开启定时上架时，必填
+                        if (Number(formData.status) === 0 && Number(formData.timer_on_status) === 1) {
+                            if (!value) {
+                                callback(new Error(t('timerOnTimePlaceholder')));
+                            } else if (!regExp.datetime.test(value)) {
+                                callback(new Error(t('timerTimeFormatTips')));
+                            } else {
+                                // 校验时间是否大于当前时间
+                                const now = new Date().getTime();
+                                const targetTime = new Date(value).getTime();
+                                if (targetTime <= now) {
+                                    callback(new Error(t('timerTimeGreaterThanNowTips')));
+                                } else {
+                                    callback();
+                                }
+                            }
+                        } else {
+                            callback();
+                        }
+                    }
+                }
             ],
             shop_sort: [
                 {
@@ -1851,7 +1984,8 @@ export function useGoodsEdit(params: any = {}) {
         addAttr,
         delAttr,
         attrRadioChange,
-        attrCheckboxChange
+        attrCheckboxChange,
+        payTypeOptions
 
     }
 }

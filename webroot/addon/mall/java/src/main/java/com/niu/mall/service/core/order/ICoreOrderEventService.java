@@ -33,6 +33,11 @@ public interface ICoreOrderEventService {
     void orderPayAfter(MallOrder order, OrderPayParam param);
 
     /**
+     * 虚拟商品支付后自动发货
+     */
+    void handleVirtualOrderDelivery(MallOrder order);
+
+    /**
      * 订单发货之后
      *
      * @param orderDeliveryDataParam

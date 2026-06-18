@@ -59,10 +59,10 @@
                 <view class="layout-two-label" :class="{'justify-start': diyGlobal.completeAlign == 'left', 'justify-end': diyGlobal.completeAlign == 'right'}"><text class="required">{{ diyComponent.field.required ? '*' : '' }}</text>
                     <text class="name" :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx' ,'font-weight': diyComponent.fontWeight}">{{ diyComponent.field.name }}</text>
                 </view>
-                <view class="layout-two-content" v-if="diyComponent.style == 'style-1'">
+                <view class="layout-two-content" :class="{'!justify-start': diyGlobal.contentAlign == 'left'}" v-if="diyComponent.style == 'style-1'">
                     <view class="justify-end">
                         <u-radio-group v-model="selectedRadioId" @change="groupChange" iconPlacement="left">
-                            <view v-for="(item, index) in diyComponent.options" :key="index" class="ml-[30rpx]">
+                            <view v-for="(item, index) in diyComponent.options" :key="index" :class="{'ml-[30rpx]': diyGlobal.contentAlign == 'right', 'mr-[30rpx]' : diyGlobal.contentAlign == 'left'}">
                                 <u-radio activeColor="var(--primary-color)"
                                          :labelSize="(diyComponent.fontSize * 2) + 'rpx'"
                                          :labelColor="diyComponent.textColor" :label="item.text"

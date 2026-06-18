@@ -18,7 +18,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("api/mall/order")
-//@SaCheckLogin
+@SaCheckLogin
 public class OrderController {
 
     @Resource

@@ -1,0 +1,1 @@
+import{c as t}from"./order-57151b04.js";function _(){return{handleBatchDelivery:(e,d)=>{const o=new Map;e.goods.forEach(r=>{o.has(r.order_id)||o.set(r.order_id,{order_id:r.order_id,order_goods_ids:[]}),o.get(r.order_id).order_goods_ids.push(r.order_goods_id)});const s=Array.from(o.values()),a={type:e.type,data:{list:s,...e.formData}};t(a).then(()=>{d&&d()})}}}export{_ as u};

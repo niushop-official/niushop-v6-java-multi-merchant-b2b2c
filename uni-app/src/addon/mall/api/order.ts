@@ -94,3 +94,11 @@ export function orderPlatformCoupon(params: Record<string, any>) {
 export function getMaterialflowList(params: Record<string, any>) {
     return request.get('mall/order/logistics', params)
 }
+
+/**
+ * 积分抵扣配置
+ */
+export function getPointDeduct() {
+    return request.get('point_deduct')
+}
+

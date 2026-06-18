@@ -29,6 +29,14 @@ public interface ICoreDiyConfigService {
     BottomConfigVo getBottomConfig(Integer siteId, String key);
 
     /**
+     * 批量获取自定义导航配置
+     * @param siteId
+     * @param keys
+     * @return
+     */
+    List<BottomConfigVo> getBottomConfigList(Integer siteId, List<String> keys);
+
+    /**
      * 自定义导航配置
      * @param siteId
      * @param bottomConfigValue

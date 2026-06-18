@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.niu.core.common.domain.Result;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.utils.CommonUtils;
+import com.niu.core.common.utils.RequestParamUtils;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.enums.poster.PosterTypeEnum;
 import com.niu.core.service.admin.sys.ISysPosterService;
@@ -19,6 +20,7 @@ import com.niu.core.service.admin.sys.param.PreviewPosterParam;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.List;
@@ -165,7 +167,8 @@ public class SysPosterController {
      * @return
      */
     @GetMapping("/generate")
-    public Result<?> poster(GetPosterParam param) {
+    public Result<?> poster(HttpServletRequest request) {
+        GetPosterParam param = RequestParamUtils.buildGetPosterParam(request);
         param.setSiteId(RequestUtils.siteId());
         param.setChannel(ObjectUtil.defaultIfNull(param.getChannel(), "h5"));
         return Result.success("", corePosterService.get(param));

@@ -76,23 +76,20 @@ const deleteHistoryList =()=> {
 
 //搜索
 const search = ()=> {
-    if (inputValue.value.trim() != '') {
+    // 对历史搜索处理,判断有无,最近搜索显示在最前
+	let historyList = uni.getStorageSync('goodsSearchHistory');
+	let array = [];
+	if (historyList.length) {
+		array = historyList.filter(v => {
+			return v != inputValue.value.trim();
+		});
+		array.push(inputValue.value.trim());
+	} else {
+		array.push(inputValue.value.trim());
+	}
+	uni.setStorageSync('goodsSearchHistory', array);
 
-        // 对历史搜索处理,判断有无,最近搜索显示在最前
-        let historyList = uni.getStorageSync('goodsSearchHistory');
-        let array = [];
-        if (historyList.length) {
-            array = historyList.filter(v => {
-                return v != inputValue.value.trim();
-            });
-            array.push(inputValue.value.trim());
-        } else {
-            array.push(inputValue.value.trim());
-        }
-        uni.setStorageSync('goodsSearchHistory', array);
-
-        redirect({ url: '/addon/mall/pages/goods/list', param: { goods_name: inputValue.value.trim() }, mode: 'navigateTo' })
-    }
+	redirect({ url: '/addon/mall/pages/goods/list', param: { goods_name: inputValue.value.trim() }, mode: 'navigateTo' })
 }
 
 // 点击历史搜索

@@ -158,8 +158,8 @@ import { getShopList } from '@/app/api/shop_admin'
 
 const prop = defineProps({
     modelValue: {
-        type: String,
-        default: ''
+        type: [String, Array],
+        default: () => []
     },
     max: {
         type: Number,
@@ -571,6 +571,9 @@ const resetForm = (formEl: FormInstance | undefined) => {
 }
 
 const show = () => {
+    if (!Array.isArray(goodsIds.value)) {
+        goodsIds.value = []
+    }
     for (let k in selectGoods) {
         delete selectGoods[k];
     }

@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 /**
  * 配送方式设置参数
-*/
+ */
 @Data
 public class DeliverySearchConfigParam implements Serializable {
 
@@ -22,6 +22,6 @@ public class DeliverySearchConfigParam implements Serializable {
 
     private String kd100AppKey = "";
 
-    private Integer kd100Customer = 0;
+    private String kd100Customer = "";
 
 }

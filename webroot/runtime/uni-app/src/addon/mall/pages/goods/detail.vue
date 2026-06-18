@@ -95,7 +95,7 @@ diy.onShow((data: any) => {
                 posterParam.value.sku_id = useGoodsDetailStore().goodsDetail.sku_id;
                 if (diy.data.global.goodsParameter.type) posterParam.value.active = diy.data.global.goodsParameter.type;
                 if (userInfo.value && userInfo.value.member_id) posterParam.value.member_id = userInfo.value.member_id;
-                sharePosterRef.value.loadPoster();
+                // sharePosterRef.value.loadPoster();
             }
         }, 500);
     })

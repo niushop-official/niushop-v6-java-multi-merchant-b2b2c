@@ -89,6 +89,14 @@ export function getGoodsStatus() {
 }
 
 /**
+ * 获取商品状态
+ * @returns
+ */
+export function getGoodsStatusType() {
+    return request.get(`mall/site/goods/status_type`);
+}
+
+/**
  * 获取商品标签列表
  * @param params
  * @returns

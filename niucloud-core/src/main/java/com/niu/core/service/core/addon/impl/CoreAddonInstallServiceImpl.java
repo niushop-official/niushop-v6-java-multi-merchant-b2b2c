@@ -139,7 +139,10 @@ public class CoreAddonInstallServiceImpl extends CoreAddonBaseService implements
         }
         JSONObject installTask = this.getInstallTask();
         if (ObjectUtil.isNotEmpty(installTask)) {
-            throw new CommonException("有正在安装中的插件");
+            if (isInstallTaskInProgress(installTask)) {
+                throw new CommonException("有正在安装中的插件");
+            }
+            this.cancleInstall();
         }
         installTask = new JSONObject();
         installTask.put("mode", mode);
@@ -185,9 +188,16 @@ public class CoreAddonInstallServiceImpl extends CoreAddonBaseService implements
      * 取消安装任务
      */
     public void cancleInstall() {
-        if (ObjectUtil.isNotEmpty(this.getInstallTask())) {
-            cached.remove("addon_install_task");
-        }
+        cached.remove("addon_install_task");
+        cached.remove("addon_install_check");
+    }
+
+    /**
+     * 安装任务是否仍在进行中
+     */
+    private boolean isInstallTaskInProgress(JSONObject installTask) {
+        String status = installTask.getStr("status", "");
+        return "installing".equals(status) || "restart".equals(status);
     }
 
     /**

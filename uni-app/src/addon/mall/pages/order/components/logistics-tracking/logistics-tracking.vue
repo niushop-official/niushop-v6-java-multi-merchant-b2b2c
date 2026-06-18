@@ -47,71 +47,67 @@
 </template>
 
 <script setup lang="ts">
-    import {ref} from 'vue'
-    import {t} from '@/locale'
-    import {img, redirect, copy} from '@/utils/common';
-    import {getMaterialflowList} from '@/addon/mall/api/order';
-   
+import {ref} from 'vue'
+import {t} from '@/locale'
+import {img, redirect, copy, deepClone} from '@/utils/common';
+import {getMaterialflowList} from '@/addon/mall/api/order';
 
-	const showpop = ref(false)
-    const packageList = ref([])
-    const showList = ref({})
-    const loadList = async (params: any) => {
-		if(showList.value?.traces?.list.length){
-			showList.value.traces.list = []
-		}
-        let data = await getMaterialflowList(params)
-        showList.value = data.data
-    }
 
-	const current = ref(0)
-	const  subActive = ref(0)
-    const open = (params: any) => {
-		current.value= params.id
-        loadList(params)
-        showpop.value = true
-    }
-    const close = () => {
-        showpop.value = false
-    }
-  
-    const handleClick = (item: any,index:number) => {
-        current.value = item.id
-		subActive.value = index
-        let params = {
-            id: item.id,
-            mobile: item.mobile
-        }
-        loadList(params)
-    }
-    defineExpose({
-        packageList,
-        open
-    })
+const showpop = ref(false)
+const packageList = ref([])
+const showList = ref({})
+const loadList = async (params: any) => {
+	let res = await getMaterialflowList(params)
+	showList.value = deepClone(res.data)
+}
+const current = ref(0)
+const  subActive = ref(0)
+const open = (params: any) => {
+	current.value= params.id
+	loadList(params)
+	showpop.value = true
+}
+const close = () => {
+	showpop.value = false
+}
+
+const handleClick = (item: any,index:number) => {
+	current.value = item.id
+	subActive.value = index
+	let params = {
+		id: item.id,
+		mobile: item.mobile
+	}
+	loadList(params)
+}
+defineExpose({
+	packageList,
+	open
+})
 </script>
 
 <style lang="scss" scoped>
-	.parcel :deep(.u-text__value) {
-		font-size: 24rpx !important;
-		line-height: 42rpx !important;
-	}
+.parcel :deep(.u-text__value) {
+	font-size: 24rpx !important;
+	line-height: 42rpx !important;
+}
 
-	.parcel :deep(.u-steps-item__content) {
-		margin-left: 20rpx !important;
-	}
-	.class-select {
-		position: relative;
-		font-weight: 500;
+.parcel :deep(.u-steps-item__content) {
+	margin-left: 20rpx !important;
+}
+.class-select {
+	position: relative;
+	font-weight: 500;
 
-		&::before {
-			content: "";
-			position: absolute;
-			bottom: -6rpx;
-			height: 4rpx;
-			background-color: $u-primary;
-			width: 26rpx;
-			left: 50%;
-			transform: translateX(-50%);
-		}
+	&::before {
+		content: "";
+		position: absolute;
+		bottom: -6rpx;
+		height: 4rpx;
+		background-color: $u-primary;
+		width: 26rpx;
+		left: 50%;
+		transform: translateX(-50%);
 	}
+}
 </style>

@@ -365,7 +365,7 @@
                             <div class="text-[16px] text-[#9699B6] mt-[10px]" v-if="upgradeDuration>0">本次安装用时{{ formatUpgradeDuration }}</div>
                             <div class="mt-[20px]">
                                 <el-button @click="handleBack()" v-if="installType=='cloud'" class="!w-[90px]">返回</el-button>
-                                <el-button @click="installShowDialog=false" type="primary" class="!w-[90px]">完成</el-button>
+                                <el-button @click="handleInstallComplete()" type="primary" class="!w-[90px]">完成</el-button>
                             </div>
                         </template>
                     </el-result>
@@ -380,7 +380,7 @@
                                 {{errorMsg}}
                             </el-scrollbar>
                             <el-button @click="handleBack()" v-if="installType=='cloud'" class="!w-[90px]">错误信息</el-button>
-                            <el-button @click="installShowDialog=false" type="primary" class="!w-[90px]">完成</el-button>
+                            <el-button @click="handleInstallComplete()" type="primary" class="!w-[90px]">完成</el-button>
                         </template>
                     </el-result>
                 </div>
@@ -491,6 +491,7 @@ import 'vue-web-terminal/lib/theme/dark.css'
 import { Terminal, TerminalFlash } from 'vue-web-terminal'
 import { findFirstValidRoute } from '@/router/routers'
 import storage from '@/utils/storage'
+import { setAddonInstallRestarting } from '@/utils/addon-install-state'
 import { useRouter, useRoute } from 'vue-router'
 import useUserStore from '@/stores/modules/user'
 import Upgrade from '@/app/components/upgrade/index.vue'
@@ -754,6 +755,31 @@ const upgradeDuration = ref(0) // 单位：秒
 let upgradeTimer: ReturnType<typeof setInterval> | null = null
 let notificationEl = null
 let restarting = false
+
+const clearInstallTask = async () => {
+    try {
+        if (currAddon.value) {
+            await cancelInstall(currAddon.value)
+        }
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+const handleInstallComplete = async () => {
+    await clearInstallTask()
+    setAddonInstallRestarting(false)
+    restarting = false
+    if (upgradeTimer) {
+        clearInterval(upgradeTimer)
+        upgradeTimer = null
+    }
+    flashInterval && clearInterval(flashInterval)
+    installShowDialog.value = false
+    activeNameTabFn('installed')
+    location.reload()
+}
+
 const getInstallTask = (first: boolean = true) => {
     getAddonInstalltask().then((res) => {
         if (!Test.empty(res.data)) {
@@ -793,8 +819,9 @@ const getInstallTask = (first: boolean = true) => {
                         localListFn()
                         localInstalling.value = false
                         res.data.tips && (installAfterTips.value = res.data.tips)
-                        cancelInstall(currAddon.value)
+                        setAddonInstallRestarting(false)
                         restarting = false
+                        clearInstallTask()
                         break;
                     case "fail":
                         installStep.value = 3
@@ -805,11 +832,13 @@ const getInstallTask = (first: boolean = true) => {
                             clearInterval(upgradeTimer)
                             upgradeTimer = null
                         }
+                        setAddonInstallRestarting(false)
                         restarting = false
-                        cancelInstall(currAddon.value)
+                        clearInstallTask()
                         break;
                     case "installing":
                         restarting = true
+                        setAddonInstallRestarting(true)
                         getCloudInstallLog()
                         setTimeout(() => {
                             getInstallTask(false)
@@ -817,6 +846,7 @@ const getInstallTask = (first: boolean = true) => {
                         break;
                     case "restart":
                         restarting = true
+                        setAddonInstallRestarting(true)
                         setTimeout(() => {
                             getInstallTask();
                         }, 5000)
@@ -824,12 +854,14 @@ const getInstallTask = (first: boolean = true) => {
                 }
             }
         } else if (restarting) {
+            setAddonInstallRestarting(true)
             setTimeout(() => {
                 getInstallTask();
             }, 5000)
         }
     }).catch((e) => {
         console.log(e)
+        setAddonInstallRestarting(true)
         setTimeout(() => {
             getInstallTask();
         }, 5000)
@@ -881,12 +913,16 @@ const handleInstall = () => {
     }, 1000)
 
     installAddon({ addon: currAddon.value }).then((res) => {
-        if (res.data.status == "restart") restarting = true
+        if (res.data.status == "restart") {
+            restarting = true
+            setAddonInstallRestarting(true)
+        }
         setTimeout(() => {
             getInstallTask(false);
         }, 5000)
     }).catch((res) => {
         localInstalling.value = false
+        setAddonInstallRestarting(false)
     })
 }
 
@@ -909,10 +945,13 @@ const handleCloudInstall = () => {
         installStep.value = 1
         terminalRef.value.execute('clear')
         terminalRef.value.execute('开始安装插件')
+        restarting = true
+        setAddonInstallRestarting(true)
         getInstallTask()
         cloudInstalling.value = false
     }).catch((res) => {
         cloudInstalling.value = false
+        setAddonInstallRestarting(false)
     })
 }
 
@@ -1042,6 +1081,8 @@ const installShowDialogClose = (done: () => {}) => {
             type: 'warning'
         }).then(() => {
             cancelInstall(currAddon.value)
+            setAddonInstallRestarting(false)
+            restarting = false
             if (upgradeTimer) {
                 clearInterval(upgradeTimer)
                 upgradeTimer = null
@@ -1051,9 +1092,8 @@ const installShowDialogClose = (done: () => {}) => {
             errorDialog.value = false
             done()
         })
-    } else if (installStep.value == 2) {
-        activeNameTabFn('installed')
-        location.reload()
+    } else if (installStep.value == 2 || (installStep.value == 3 && errorDialog.value)) {
+        handleInstallComplete()
     } else {
         done()
     }

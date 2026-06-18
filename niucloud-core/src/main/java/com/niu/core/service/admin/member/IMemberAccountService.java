@@ -1,11 +1,10 @@
 package com.niu.core.service.admin.member;
 
-import com.niu.core.common.domain.PageResult;
-import com.niu.core.common.domain.Result;
-import com.niu.core.service.admin.member.param.AdjustAccountParam;
-import com.niu.core.service.admin.member.param.MemberAccountLogParam;
-import com.niu.core.service.admin.member.param.MemberAccountLogSearchParam;
 import com.niu.core.common.domain.PageParam;
+import com.niu.core.common.domain.PageResult;
+import com.niu.core.service.admin.member.param.AdjustAccountBatchParam;
+import com.niu.core.service.admin.member.param.AdjustAccountParam;
+import com.niu.core.service.admin.member.param.MemberAccountLogSearchParam;
 import com.niu.core.service.admin.member.vo.*;
 
 /**
@@ -16,7 +15,8 @@ public interface IMemberAccountService {
 
     /**
      * 会员账单列表
-     * @param pageParam 分页参数
+     *
+     * @param pageParam   分页参数
      * @param searchParam 搜索参数
      * @return PageResult<MemberAccountLogListVo>
      */
@@ -24,18 +24,21 @@ public interface IMemberAccountService {
 
     /**
      * 佣金统计
+     *
      * @param searchParam
      */
     SumCommissionVo sumCommission(MemberAccountLogSearchParam searchParam);
 
     /**
      * 余额统计
+     *
      * @param searchParam
      */
     SumBalanceVo sumBalance(MemberAccountLogSearchParam searchParam);
 
     /**
      * 积分统计
+     *
      * @param searchParam
      */
     SumPointVo sumPoint(MemberAccountLogSearchParam searchParam);
@@ -50,4 +53,6 @@ public interface IMemberAccountService {
     void adjustPoint(AdjustAccountParam param);
 
     void adjustBalance(AdjustAccountParam param);
+
+    void adjustBatch(AdjustAccountBatchParam param);
 }

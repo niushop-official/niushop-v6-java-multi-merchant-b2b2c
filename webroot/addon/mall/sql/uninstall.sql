@@ -53,3 +53,19 @@ DROP TABLE IF EXISTS `{{prefix}}mall_order_refund_log`;
 DROP TABLE IF EXISTS `{{prefix}}mall_shop_category`;
 
 DROP TABLE IF EXISTS `{{prefix}}mall_web_floor`;
+
+DROP TABLE IF EXISTS `{{prefix}}mall_full_gift`;
+
+DROP TABLE IF EXISTS `{{prefix}}mall_full_gift_goods`;
+
+DROP TABLE IF EXISTS `{{prefix}}mall_full_reduction`;
+
+DROP TABLE IF EXISTS `{{prefix}}mall_full_reduction_goods`;
+
+DROP TABLE IF EXISTS `{{prefix}}mall_goods_import_record`;
+
+DROP TABLE IF EXISTS `{{prefix}}mall_goods_import_rows`;
+
+DROP TABLE IF EXISTS `{{prefix}}mall_order_gift_goods`;
+
+DROP TABLE IF EXISTS `{{prefix}}mall_order_delivery_content`;

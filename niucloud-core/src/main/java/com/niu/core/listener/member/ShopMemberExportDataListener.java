@@ -11,7 +11,6 @@ import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.shop.SiteShopMember;
-import com.niu.core.enums.member.MemberRegisterChannelEnum;
 import com.niu.core.enums.shop.ShopMemberIsFollowEnum;
 import com.niu.core.event.sys.ExportDataEventDefiner;
 import com.niu.core.mapper.shop.SiteShopMemberMapper;
@@ -31,7 +30,7 @@ public class ShopMemberExportDataListener extends ExportDataEventDefiner {
 
     @Override
     public ExportDataEventResult handleCallback(ExportDataEvent event) {
-        if(!"shop_member".equals(event.getType())){
+        if (!"shop_member".equals(event.getType())) {
             return new ExportDataEventResult();
         }
         MPJQueryWrapper<SiteShopMember> queryWrapper = new MPJQueryWrapper<>();
@@ -41,7 +40,7 @@ public class ShopMemberExportDataListener extends ExportDataEventDefiner {
 
         queryWrapper.eq("ssm.site_id", RequestUtils.siteId());
         JSONObject where = event.getWhere();
-        if(where != null){
+        if (where != null) {
             Object keyword = where.get("keyword");
             // 查询条件
             if (ObjectUtil.isNotEmpty(keyword)) {
@@ -51,16 +50,16 @@ public class ShopMemberExportDataListener extends ExportDataEventDefiner {
                         .like("m.mobile", keyword));
             }
             Object isFollow = where.get("is_follow");
-            if(ObjectUtil.isNotEmpty(isFollow)){
-                queryWrapper.eq("ssm.is_follow",isFollow);
+            if (ObjectUtil.isNotEmpty(isFollow)) {
+                queryWrapper.eq("ssm.is_follow", isFollow);
             }
             Object shopMemberLabel = where.get("shop_member_label");
-            if(ObjectUtil.isNotEmpty(shopMemberLabel)){
-                queryWrapper.eq("ssm.shop_member_label",shopMemberLabel);
+            if (ObjectUtil.isNotEmpty(shopMemberLabel)) {
+                queryWrapper.eq("ssm.shop_member_label", shopMemberLabel);
             }
             Object registerChannel = where.get("register_channel");
-            if(ObjectUtil.isNotEmpty(registerChannel)){
-                queryWrapper.eq("m.register_channel",registerChannel);
+            if (ObjectUtil.isNotEmpty(registerChannel)) {
+                queryWrapper.eq("m.register_channel", registerChannel);
             }
             if ((where.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
                 QueryMapperUtils.buildByTime(queryWrapper, "ssm.create_time", StringUtils.jsonArrayToStringArray(createTimes));
@@ -68,9 +67,9 @@ public class ShopMemberExportDataListener extends ExportDataEventDefiner {
         }
         PageParam pageParam = event.getPageParam();
         List<SiteShopMemberListVo> list = new ArrayList<>();
-        if(pageParam.getPage() > 0 && pageParam.getLimit() > 0){
+        if (pageParam.getPage() > 0 && pageParam.getLimit() > 0) {
             list = siteShopMemberMapper.selectJoinList(SiteShopMemberListVo.class, queryWrapper);
-        }else{
+        } else {
             list = siteShopMemberMapper.selectJoinList(SiteShopMemberListVo.class, queryWrapper);
         }
 
@@ -78,15 +77,15 @@ public class ShopMemberExportDataListener extends ExportDataEventDefiner {
 
         JSONArray jsonArray = new JSONArray();
 
-        for(SiteShopMemberListVo vo : list){
+        for (SiteShopMemberListVo vo : list) {
             JSONObject jsonObject = new JSONObject();
-            jsonObject.set("nickname",vo.getNickname())
-                    .set("mobile",vo.getMobile())
-                    .set("comsum_num",vo.getComsumNum())
-                    .set("comsum_money",vo.getComsumMoney())
-                    .set("register_channel_name", MemberRegisterChannelEnum.getNameByType(vo.getRegisterChannelName()))
+            jsonObject.set("nickname", vo.getNickname())
+                    .set("mobile", vo.getMobile())
+                    .set("comsum_num", vo.getComsumNum())
+                    .set("comsum_money", vo.getComsumMoney())
+                    .set("register_channel_name", vo.getRegisterChannelName())
                     .set("first_consum_time", DateUtils.timestampToString(vo.getFirstConsumTime()))
-                    .set("last_consum_time",DateUtils.timestampToString(vo.getLastConsumTime()))
+                    .set("last_consum_time", DateUtils.timestampToString(vo.getLastConsumTime()))
                     .set("is_follow_name", ShopMemberIsFollowEnum.getNameByStatus(vo.getIsFollow()));
             jsonArray.add(jsonObject);
         }

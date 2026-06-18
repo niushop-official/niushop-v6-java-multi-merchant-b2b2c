@@ -31,4 +31,11 @@ public interface IMallOrderBatchDeliveryService {
     MallOrderBatchDeliveryInfoVo info(Integer id);
 
     void addBatchOrderDelivery(MallOrderAddBatchDeliveryParam param);
+
+    /**
+     * 手动执行任务
+     *
+     * @param id 批量发货ID
+     */
+    void execute(Integer id);
 }

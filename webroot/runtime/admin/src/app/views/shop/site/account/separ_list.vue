@@ -1,10 +1,10 @@
 <template>
     <div class="main-container">
-        <div class="p-[20px]" :class="{'bg-[#fff] min-h-[50vh]': !separList.length && !loading }">
+        <div class="p-[20px]" v-loading="loading" :class="{'bg-[#fff] min-h-[50vh]': !separList.length && !loading }">
             <div class="flex justify-between items-center mb-[20px]">
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
-            <el-row :gutter="20" v-if="Object.keys(separList).length && !loading">
+            <el-row :gutter="20" v-if="separList.length && !loading">
                 <el-col :span="8" v-for="(item,index) in separList" :key="index">
                     <div class="p-[20px] bg-[#fff] rounded-[4px]">
                         <div class="flex justify-between items-center">
@@ -25,10 +25,13 @@
                         </div>
                         <div class="flex justify-between items-center mt-[30px]">
                             <div>
-                                <el-switch v-model="item.site_payment.status" active-value="on" inactive-value="off" active-text="开" inactive-text="关" inline-prompt  @change="handleChange(item)" v-if="item.site_payment.is_settle == 2"/>
+                                <el-switch v-model="item.site_payment.status" active-value="on" inactive-value="off" active-text="开" inactive-text="关" inline-prompt  @change="handleChange(item)" v-if="!isEmptyPayment(item.site_payment) && item.site_payment.is_settle == 3"/>
                             </div>
-                            <div class="text-[14px] text-primary border-[1px] border-solid border-primary w-[80px] h-[30px] text-center leading-[28px] box-border rounded-[4px] cursor-pointer tracking-[2px]" @click="toInfo(item)" v-if="item.site_payment.is_settle == 2">查看</div>
-                            <div class="text-[14px] text-primary border-[1px] border-solid border-primary w-[80px] h-[30px] text-center leading-[28px] box-border rounded-[4px] cursor-pointer tracking-[2px]" @click="toLink(item)" v-else>配置</div>
+                            <div class="flex items-center">
+                                <div class="text-[14px] text-primary border-[1px] border-solid border-primary w-[80px] h-[30px] text-center leading-[28px] box-border rounded-[4px] cursor-pointer tracking-[2px]" @click="toLink(item)" v-if="isEmptyPayment(item.site_payment)">配置</div>
+                                <div class="text-[14px] text-primary border-[1px] border-solid border-primary w-[80px] h-[30px] text-center leading-[28px] box-border rounded-[4px] cursor-pointer tracking-[2px]" @click="toInfo(item)" v-if="hasPaymentInfos(item.site_payment)">查看</div>
+                                <div class="text-[14px] text-primary border-[1px] border-solid border-primary w-[80px] h-[30px] text-center leading-[28px] box-border rounded-[4px] cursor-pointer tracking-[2px] ml-[10px]" @click="toLink(item)" v-if="!isEmptyPayment(item.site_payment) && item.site_payment.is_settle != 2">修改</div>
+                            </div>
                         </div>
                     </div>
                 </el-col>
@@ -44,33 +47,45 @@ import { ref } from 'vue'
 import { img } from '@/utils/common'
 import { useRoute, useRouter } from 'vue-router'
 import { getSitePayment, setSitePaymentStatus } from '@/app/api/shop_site'
-import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
 const pageName = route.meta.title
 
-const separList = ref<any>({})
+const isEmptyPayment = (payment: any) => {
+    return !payment || Array.isArray(payment) || Object.keys(payment).length === 0
+}
+const hasPaymentInfos = (payment: any) => {
+    return payment && !Array.isArray(payment) && payment.infos && Object.keys(payment.infos).length > 0
+}
+
+const separList = ref<any[]>([])
 const loading = ref(false)
 const getSitePaymentFn = () => {
     loading.value = true
-    getSitePayment().then((res:any) => {
-        separList.value = res.data
-        loading.value = false
-    })
+    getSitePayment()
+        .then((res: any) => {
+            separList.value = res.data || []
+        })
+        .catch(() => {
+            separList.value = []
+        })
+        .finally(() => {
+            loading.value = false
+        })
 }
 getSitePaymentFn()
 
-const handleChange = (data:any) => {
-    setSitePaymentStatus({id: data.site_payment.id, status: data.site_payment.status}).then((res:any) => {
+const handleChange = (data: any) => {
+    setSitePaymentStatus({ id: data.site_payment.id, status: data.site_payment.status }).then(() => {
         getSitePaymentFn()
     })
 }
 
-const toLink = (item:any) => {
+const toLink = (item: any) => {
     router.push('/' + item.site_url)
 }
-const toInfo = (item:any) => {
+const toInfo = (item: any) => {
     router.push('/' + item.site_info_url)
 }
 </script>

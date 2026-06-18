@@ -109,7 +109,7 @@ public class Wechatpay extends BasePay {
             return miniapp(param);
         }
         if (RequestUtils.channel().equals(ChannelEnum.PC.getCode())) {
-            return web(param);
+            return scan(param);
         }
         return null;
     }
@@ -220,8 +220,41 @@ public class Wechatpay extends BasePay {
     /**
      * 扫码支付
      */
-    public void scan() {
+    public Object scan(PayParam param) {
+        try {
+            // 使用公众号 AppId 进行 native 扫码支付
+            payConfig.setAppId(config.getStr("mp_app_id", ""));
 
+            Pay pay = param.getPay();
+
+            WxPayUnifiedOrderV3Request request = new WxPayUnifiedOrderV3Request();
+            request.setOutTradeNo(pay.getOutTradeNo());
+            request.setDescription(pay.getBody());
+            request.setNotifyUrl(param.getNotifyUrl());
+            request.setAmount(new WxPayUnifiedOrderV3Request.Amount()
+                    .setTotal(pay.getMoney().multiply(new BigDecimal(100)).intValue()));
+
+            // 预下单，生成扫码支付用的 code_url
+            Object nativeResult = app().createOrderV3(TradeTypeEnum.NATIVE, request);
+
+            String codeUrl;
+            if (nativeResult instanceof String) {
+                // 部分版本直接返回 code_url 字符串
+                codeUrl = (String) nativeResult;
+            } else {
+                // 正常为对象，转为 JSON 后兼容 code_url / codeUrl 两种字段
+                JSONObject json = JSONUtil.parseObj(nativeResult);
+                codeUrl = json.getStr("code_url", json.getStr("codeUrl", ""));
+            }
+
+            Map<String, String> data = new HashMap<>();
+            data.put("code_url", codeUrl);
+            data.put("outTradeNo", pay.getOutTradeNo());
+            return data;
+        } catch (Exception e) {
+            log.error("微信扫码支付异常:{}", e.getMessage());
+            throw new CommonException(e.getMessage());
+        }
     }
 
     /**

@@ -21,7 +21,7 @@
 							<el-option v-for="(item, index) in payTypeData" :key="index" :label="item.name" :value="item.key"></el-option>
 						</el-select>
 					</el-form-item>
-					<el-form-item :label="t('fromType')" prop='from_type'>
+					<el-form-item :label="t('fromType')" prop='order_from'>
 						<el-select v-model="orderTable.searchParam.order_from" clearable class="input-item">
 							<el-option v-for="(item, index) in orderFromData" :key="index" :label="item" :value="index"></el-option>
 						</el-select>
@@ -101,10 +101,10 @@
 										<template #default="{ row }">
 											<div class="flex cursor-pointer">
 												<div class="flex items-center min-w-[50px] mr-[10px]">
-													<img class="w-[50px] h-[50px]" v-if="row.goods_image" :src="img(row.goods_image)" alt="">
+													<img class="w-[50px] h-[50px]" v-if="row.goods_image_thumb_small" :src="img(row.goods_image_thumb_small)" alt="">
 													<img class="w-[50px] h-[50px]" v-else src="" alt="">
 												</div>
-												<div class="flex flex-col">
+												<div class="flex flex-col items-start">
 													<p :title="row.goods_name" class="multi-hidden text-[14px]">{{ row.goods_name }}</p>
 													<span class="text-[12px] text-[#999]" v-if="row.sku_name">{{ t('skuName') }}{{ row.sku_name }}</span>
 												</div>
@@ -266,8 +266,8 @@ const orderTable = reactive<OrderTable>({
         status: Object.keys(route.query).length ? route.query.status : '',
         create_time: [],
         pay_time: [],
-        extend_field_1: route.query.pintuan_id || '',
-        order_type: ''
+        extend_field_1: route.query.active_id || '',
+        order_type: route.query.order_type || ''
     }
 })
 

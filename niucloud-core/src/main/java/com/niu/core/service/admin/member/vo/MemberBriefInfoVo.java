@@ -17,4 +17,10 @@ public class MemberBriefInfoVo implements Serializable {
     private String mobile;  // 手机号
     private String nickname;  // 会员昵称
     private String headimg;  // 会员头像
+
+    /* 26-04-01添加 订单列表返回会员信息时额外返回会员积分相关信息 */
+    /** 可用积分 */
+    private Integer point;
+    /** 累计获取积分 */
+    private Integer pointGet;
 }

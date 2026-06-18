@@ -92,11 +92,11 @@ mybatis-plus:
     banner: false
     db-config:
       id-type: auto #主键策略
-      table-prefix: nc_ #表前缀
+      table-prefix: ns_ #表前缀
       logic-delete-value: 1
       logic-not-delete-value: 0
   configuration-properties:
-    prefix: nc_
+    prefix: ns_
 
 
 # Sa-Token 配置 (文档: https://sa-token.cc)

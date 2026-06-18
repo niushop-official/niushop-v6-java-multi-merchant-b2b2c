@@ -16,12 +16,9 @@ import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.pay.Pay;
 import com.niu.core.entity.sys.SysPoster;
-import com.niu.core.enums.common.ChannelEnum;
-import com.niu.core.enums.order.TradeTypeEnum;
 import com.niu.core.enums.pay.PayChannelEnum;
 import com.niu.core.enums.pay.PayStatusEnum;
 import com.niu.core.enums.pay.PayTypeEnum;
-import com.niu.core.event.common.CommonEventDefiner;
 import com.niu.core.event.pay.GetPayInfoByTradeDefiner;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.mapper.pay.PayMapper;
@@ -34,20 +31,20 @@ import com.niu.core.service.admin.pay.vo.FriendsPayInfoByTradeVo;
 import com.niu.core.service.admin.pay.vo.PayInfoVo;
 import com.niu.core.service.admin.pay.vo.PayListVo;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
-import com.niu.core.service.core.pay.ICorePayChannelService;
 import com.niu.core.service.core.pay.ICorePayService;
 import com.niu.core.service.core.pay.vo.GetInfoByTradeVo;
-import com.niu.core.service.core.pay.vo.PayTypeVo;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
+import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import jakarta.annotation.Resource;
-
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -104,13 +101,16 @@ public class PayServiceImpl implements IPayService {
         if (ObjectUtil.isNotEmpty(searchParam.getChannel())) {
             queryWrapper.eq("channel", searchParam.getChannel());
         }
+        if (ObjectUtil.isNotEmpty(searchParam.getMainId())) {
+            queryWrapper.eq("member_id", searchParam.getMainId());
+        }
         IPage<Pay> iPage = payMapper.selectPage(new Page<>(page, limit), queryWrapper);
         List<PayListVo> list = new LinkedList<>();
         for (Pay item : iPage.getRecords()) {
             PayListVo vo = new PayListVo();
             BeanUtils.copyProperties(item, vo);
             LambdaQueryWrapper<Member> lambdaQueryWrapper = new LambdaQueryWrapper();
-            lambdaQueryWrapper.eq(Member::getMemberId,item.getMainId());
+            lambdaQueryWrapper.eq(Member::getMemberId, item.getMainId());
             Member member = memberMapper.selectOne(lambdaQueryWrapper);
             vo.setMember(member);
             //支付渠道
@@ -148,7 +148,7 @@ public class PayServiceImpl implements IPayService {
     @Override
     public PayInfoVo info(String outTradeNo) {
         PayInfoVo vo = new PayInfoVo();
-        Pay model =  corePayService.findPayInfoByOutTradeNo(outTradeNo);
+        Pay model = corePayService.findPayInfoByOutTradeNo(outTradeNo);
         Assert.notNull(model, "数据不存在");
         BeanUtils.copyProperties(model, vo);
         return vo;
@@ -163,18 +163,18 @@ public class PayServiceImpl implements IPayService {
         event.setSiteId(RequestUtils.siteId());
         List<GetPayInfoByTradeDefiner.GetPayInfoByTradeResult> resultList = EventAndSubscribeOfPublisher.publishAndCallback(event);
         String outTradeNo = "";
-        if(!resultList.isEmpty()){
-            for (GetPayInfoByTradeDefiner.GetPayInfoByTradeResult item : resultList){
-                if(item == null) continue;
-                if(ObjectUtil.isEmpty( item.getOutTradeNo())) continue;
+        if (!resultList.isEmpty()) {
+            for (GetPayInfoByTradeDefiner.GetPayInfoByTradeResult item : resultList) {
+                if (item == null) continue;
+                if (ObjectUtil.isEmpty(item.getOutTradeNo())) continue;
                 outTradeNo = item.getOutTradeNo();
             }
         }
-        if(ObjectUtil.isEmpty(outTradeNo)){
+        if (ObjectUtil.isEmpty(outTradeNo)) {
             throw new AdminException("TRADE_INFO_NOT_EXIST");
         }
         PayInfoVo vo = new PayInfoVo();
-        Pay model =  corePayService.findPayInfoByOutTradeNo(outTradeNo);
+        Pay model = corePayService.findPayInfoByOutTradeNo(outTradeNo);
         Assert.notNull(model, "数据不存在");
         BeanUtils.copyProperties(model, vo);
         return vo;
@@ -316,7 +316,7 @@ public class PayServiceImpl implements IPayService {
                 iterator.remove(); // 使用迭代器的 remove 方法来安全地移除当前元素
             }
         }
-       return type;
+        return type;
     }
 
     @Override

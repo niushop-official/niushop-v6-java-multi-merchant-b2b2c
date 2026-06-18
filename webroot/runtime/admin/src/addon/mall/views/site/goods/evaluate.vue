@@ -4,9 +4,6 @@
 
             <div class="flex justify-between items-center">
                 <span class="text-page-title">{{ pageName }}</span>
-                <el-button type="primary" @click="addEvent" v-if="configData.is_self_evaluate">
-                    {{ t('addEvaluate') }}
-                </el-button>
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
@@ -165,6 +162,7 @@ const loadEvaluateList = (page: number = 1) => {
     }).then(res => {
         evaluateTable.loading = false
         evaluateTable.data = res.data.data
+        evaluateTable.total = res.data.total
         evaluateTable.data.map((item: any) => {
             item.previewList = item.images.map((el:any) => {
                 return img(el)

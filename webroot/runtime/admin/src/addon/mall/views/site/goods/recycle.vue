@@ -44,7 +44,11 @@
                         <template #default="{ row }">
                             <div class="flex items-center cursor-pointer">
                                 <div class="min-w-[70px] h-[70px] flex items-center justify-center">
-                                    <img class="max-w-[70px] max-h-[70px]" :src="img(row.goods_cover_thumb_small)" />
+                                    <el-image  class="max-w-[70px] max-h-[70px]" :src="img(row.goods_cover_thumb_small)" fit="contain">
+                                        <template #error>
+                                            <img class="max-w-[70px] max-h-[70px]" src="@/addon/mall/assets/goods_default.png" />
+                                        </template>
+                                    </el-image>
                                 </div>
                                 <div class="ml-2">
                                     <span :title="row.goods_name" class="multi-hidden">{{ row.goods_name }}</span>

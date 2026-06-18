@@ -300,48 +300,38 @@ public class SysScheduleServiceImpl implements ISysScheduleService {
         if (sysSchedule == null) {
             throw new CommonException("计划任务不存在");
         }
-        String basePackage = String.format("com.niu.%s.job", sysSchedule.getAddon());
-        String classPath = QuartzJobManager.getClassPath(basePackage, sysSchedule.getKey());
         String jobKey = sysSchedule.getKey();
+        Class<? extends IJobProvider> jobClass = JobProviderFactory.getJob(jobKey);
+        if (jobClass == null) {
+            throw new CommonException("未找到计划任务JobProvider: " + jobKey);
+        }
+        String className = jobClass.getName();
         try {
-            // 动态加载任务类
-            Class<?> jobClass = Class.forName(classPath);
-
-            // 验证是否为有效的任务类
-            if (!IJobProvider.class.isAssignableFrom(jobClass)) {
-                throw new CommonException("无效的任务类: " + classPath);
-            }
-
-            // 实例化任务
-            IJobProvider job = (IJobProvider) jobClass.getDeclaredConstructor().newInstance();
-
-            // 执行任务
+            IJobProvider job = jobClass.getDeclaredConstructor().newInstance();
             job.exec(null);
 
-            // 构建日志信息
             String result = "计划任务：" + sysSchedule.getName() + "执行成功";
             addLog(SysScheduleLog.builder()
                     .key(jobKey)
                     .name(sysSchedule.getName())
                     .addon(sysSchedule.getAddon())
-                    .className(classPath)
+                    .className(className)
                     .status("success")
                     .executeResult(result)
-                    .job(classPath)
+                    .job(className)
                     .build());
 
         } catch (Exception e) {
-            // 获取任务名称（即使在异常情况下也尝试获取）
             String errorMsg = "计划任务：" + sysSchedule.getName() + "发生错误, 错误原因：" + e.getMessage() +
                     " at " + e.getStackTrace()[0].toString();
             addLog(SysScheduleLog.builder()
                     .key(jobKey)
                     .name(sysSchedule.getName())
                     .addon(sysSchedule.getAddon())
-                    .className(classPath)
+                    .className(className)
                     .status("error")
                     .executeResult(errorMsg)
-                    .job(classPath)
+                    .job(className)
                     .build());
 
             throw new CommonException("执行计划任务失败", e);

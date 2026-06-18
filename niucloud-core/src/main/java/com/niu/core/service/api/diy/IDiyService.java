@@ -2,6 +2,7 @@ package com.niu.core.service.api.diy;
 
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
+import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.api.diy.param.DiyInfoParam;
 import com.niu.core.service.api.diy.param.DiyShareParam;
 import com.niu.core.service.api.diy.param.DiyTabbarListParam;
@@ -47,6 +48,14 @@ public interface IDiyService {
      * @return
      */
     List<BottomConfigVo> getBottomList();
+
+    /**
+     * 底部菜单信息（首页，复用已加载的站点信息）
+     *
+     * @param siteInfoVo
+     * @return
+     */
+    List<BottomConfigVo> getBottomList(SiteInfoVo siteInfoVo);
 
     /**
      * 获取页面分享信息

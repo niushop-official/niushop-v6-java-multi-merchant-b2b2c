@@ -10,7 +10,9 @@ import com.niu.mall.service.api.marketing.vo.MallCouponInfoVo;
 import com.niu.mall.service.api.marketing.vo.MallCouponListVo;
 import com.niu.mall.service.api.marketing.vo.MallCouponMemberListVo;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 优惠券服务接口
@@ -20,7 +22,8 @@ public interface ICouponService {
 
     /**
      * 优惠券列表
-     * @param pageParam 分页参数
+     *
+     * @param pageParam   分页参数
      * @param searchParam 搜索参数
      * @return PageResult<ShopCouponListVo>
      */
@@ -29,6 +32,7 @@ public interface ICouponService {
 
     /**
      * 查询指定优惠券
+     *
      * @param couponIds
      * @return
      */
@@ -36,6 +40,7 @@ public interface ICouponService {
 
     /**
      * 获取优惠券详情
+     *
      * @param couponId
      * @return
      */
@@ -43,50 +48,58 @@ public interface ICouponService {
 
     /**
      * 优惠券领用
+     *
      * @param mallCouponReceiveParam
      */
     void receive(MallCouponReceiveParam mallCouponReceiveParam);
 
     /**
      * 会员领用优惠券记录
+     *
      * @param pageParam
      * @param status
      * @return
      */
-    PageResult<MallCouponMemberListVo> getMemberPage(PageParam pageParam, Integer status,String type);
+    PageResult<MallCouponMemberListVo> getMemberPage(PageParam pageParam, Integer status, String type);
 
     /**
      * 获取不同状态下优惠券记录
+     *
      * @return
      */
     List<JSONObject> getCouponCountByStatus();
 
     /**
      * 会员已领取数量
+     *
      * @return
      */
     Long getMemberCount();
 
     /**
      * 会员已领取数量
+     *
      * @return
      */
     Long getMemberCount(Integer status);
 
     /**
      * 获取领取方式
+     *
      * @return
      */
     List<String> getReceiveType();
 
     /**
      * 组装数据获取优惠券类型
+     *
      * @return
      */
     JSONArray getCouponType();
 
     /**
      * 组件获取优惠券
+     *
      * @param couponIds
      * @param num
      * @return
@@ -97,10 +110,14 @@ public interface ICouponService {
 
     /**
      * 获取优惠券二维码
+     *
      * @param couponId
      * @return
      */
     String getQrcode(Integer couponId);
 
 
+    List<Map<String, Object>> getGoodsDetailCouponLists(Integer goodsId);
+
+    Map<String, BigDecimal> calcMemberCouponPromotion(List<Map<String, Object>> couponList, BigDecimal goodsMoney, Integer memberId);
 }

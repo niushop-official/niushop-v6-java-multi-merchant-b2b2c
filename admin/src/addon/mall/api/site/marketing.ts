@@ -53,7 +53,14 @@ export function getCouponRecords(params: Record<string, any>) {
 export function getCouponInfo(id: number) {
     return request.get(`mall/site/goods/coupon/detail/${id}`);
 }
-
+/**
+ * 获取优惠券详情
+ * @param id
+ * @returns
+ */
+export function getCouponStat(params: Record<string, any>) {
+    return request.get(`mall/site/goods/coupon/stat`, {params});
+}
 /**
  * 优惠券状态变更
  * @param params
@@ -206,4 +213,155 @@ export function getActiveDiscountOrderPageList(params: Record<string, any>) {
  */
 export function getActiveDiscountMemberPageList(params: Record<string, any>) {
     return request.get(`mall/site/active/discount/member/${ params.active_id }`, { params })
+}
+
+/**
+ * 获取悬浮按钮
+ */
+export function getShopPointConfig() {
+    return request.get(`mall/site/point_deduct/config`)
+}
+
+/**
+ * 获取悬浮按钮
+ */
+export function setShopPointConfig(params: Record<string, any>) {
+    return request.post(`mall/site/point_deduct/config`, params, { showSuccessMessage: true })
+}
+
+/***************************************************** 满减 ****************************************************/
+/**
+ * 获取满减列表
+ */
+export function getFullReductionList(params: Record<string, any>) {
+    return request.get(`mall/site/full_reduction/list`, {params})
+}
+
+/**
+ * 获取满减详情
+ * @param id
+ * @returns
+ */
+export function getFullReductionInfo(params: Record<string, any>) {
+    return request.get(`mall/site/full_reduction/init`,{params});
+}
+
+/**
+ * 添加满减
+ * @param params
+ * @returns
+ */
+export function addFullReduction(params: Record<string, any>) {
+    return request.post(`mall/site/full_reduction/add`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+
+/**
+ * 编辑满减
+ * @param params
+ * @returns
+ */
+export function editFullReduction(params: Record<string, any>) {
+    return request.post(`mall/site/full_reduction/edit/${params.id}`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+
+/**
+ * 删除满减
+ * @param id
+ * @returns
+ */
+export function deleteFullReduction(id: number) {
+    return request.delete(`mall/site/full_reduction/delete/${ id }`, { showSuccessMessage: true })
+}
+
+/**
+ * 关闭满减
+ * @param id
+ * @returns
+ */
+export function closeFullReduction(id: number,params: Record<string, any>) {
+    return request.put(`mall/site/full_reduction/setStatus/${ id }`, params,{ showSuccessMessage: true })
+}
+
+/**
+ * 检测满减商品
+ * @param id
+ * @returns
+ */
+export function checkFullReduction(params: Record<string, any>) {
+    return request.post(`mall/site/full_reduction/check`, params)
+}
+
+
+/***************************************************** 满赠 ****************************************************/
+/**
+ * 获取满赠列表
+ */
+export function getFullGiftList(params: Record<string, any>) {
+    return request.get(`mall/site/full_gift/list`, {params})
+}
+
+/**
+ * 获取满赠详情
+ * @param id
+ * @returns
+ */
+export function getFullGiftInfo(params: Record<string, any>) {
+    return request.get(`mall/site/full_gift/init`,{params});
+}
+
+/**
+ * 添加满赠
+ * @param params
+ * @returns
+ */
+export function addFullGift(params: Record<string, any>) {
+    return request.post(`mall/site/full_gift/add`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+
+/**
+ * 编辑满赠
+ * @param params
+ * @returns
+ */
+export function editFullGift(params: Record<string, any>) {
+    return request.post(`mall/site/full_gift/edit/${params.id}`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+
+/**
+ * 删除满赠
+ * @param id
+ * @returns
+ */
+export function deleteFullGift(id: number) {
+    return request.delete(`mall/site/full_gift/delete/${ id }`, { showSuccessMessage: true })
+}
+
+/**
+ * 关闭满赠
+ * @param id
+ * @returns
+ */
+export function closeFullGift(id: number,params: Record<string, any>) {
+    return request.put(`mall/site/full_gift/setStatus/${ id }`, params,{ showSuccessMessage: true })
+}
+
+/**
+ * 检测满赠商品
+ * @param id
+ * @returns
+ */
+export function checkFullGift(params: Record<string, any>) {
+    return request.post(`mall/site/full_gift/check`, params)
 }

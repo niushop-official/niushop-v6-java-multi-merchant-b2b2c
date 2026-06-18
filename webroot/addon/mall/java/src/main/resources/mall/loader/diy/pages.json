@@ -39,7 +39,7 @@
             "imgUrl": "",
             "imgWidth": "",
             "imgHeight": "",
-            "count": -1,
+            "count": "once",
             "show": 0,
             "link": {
               "name": ""
@@ -203,35 +203,13 @@
               "bottomRounded": 0,
               "list": [
                 {
-                  "imageUrl": "addon/mall/diy\/index\/style2\/banner7.jpg",
+                  "imageUrl": "addon/mall/diy/index/style2/banner12.jpg",
                   "imgWidth": 750,
                   "imgHeight": 580,
                   "link": {
                     "name": ""
                   },
                   "id": "397htiaqung0",
-                  "width": 355,
-                  "height": 274.53
-                },
-                {
-                  "imageUrl": "addon/mall/diy\/index\/style2\/banner8.jpg",
-                  "imgWidth": 750,
-                  "imgHeight": 580,
-                  "link": {
-                    "name": ""
-                  },
-                  "id": "6mrj3vwiamw0",
-                  "width": 355,
-                  "height": 274.53
-                },
-                {
-                  "imageUrl": "addon/mall/diy\/index\/style2\/banner9.jpg",
-                  "imgWidth": 750,
-                  "imgHeight": 580,
-                  "link": {
-                    "name": ""
-                  },
-                  "id": "6mrj3vwiamw0_1",
                   "width": 355,
                   "height": 274.53
                 }
@@ -400,15 +378,15 @@
               },
               {
                 "id": "7bqpc6bjha80",
-                "title": "我的订单",
-                "imageUrl": "addon/mall/diy/index/style2/nav_my_order.png",
+                "title": "秒杀",
+                "imageUrl": "addon/mall/diy/index/style2/nav_seckill.png",
                 "imgWidth": 180,
                 "imgHeight": 180,
                 "link": {
-                  "name": "MALL_ORDER_LIST",
-                  "parent": "MALL_LINK",
-                  "title": "订单列表",
-                  "url": "/addon/mall/pages/order/list",
+                  "name": "SECKILL_INDEX",
+                  "parent": "SECKILL_LINK",
+                  "title": "秒杀",
+                  "url": "/addon/seckill/pages/goods/list",
                   "action": ""
                 },
                 "label": {
@@ -648,7 +626,7 @@
             "bottomElementRounded": 0,
             "margin": {
               "top": 10,
-              "bottom": "",
+              "bottom": null,
               "both": 10
             },
             "pageStyle": "padding-top:20rpx;padding-bottom:0rpx;padding-right:20rpx;padding-left:20rpx;"
@@ -1016,7 +994,7 @@
             "bottomElementRounded": 0,
             "margin": {
               "top": 10,
-              "bottom": "",
+              "bottom": null,
               "both": 10
             },
             "pageStyle": "padding-top:20rpx;padding-bottom:0rpx;padding-right:20rpx;padding-left:20rpx;"
@@ -1122,7 +1100,7 @@
             "bottomElementRounded": 0,
             "margin": {
               "top": 10,
-              "bottom": "",
+              "bottom": null,
               "both": 10
             },
             "pageStyle": "padding-top:20rpx;padding-bottom:0rpx;padding-right:20rpx;padding-left:20rpx;"
@@ -1267,8 +1245,8 @@
             "pageGradientAngle": "to bottom",
             "componentBgUrl": "",
             "componentBgAlpha": 2,
-            "componentStartBgColor": "",
-            "componentEndBgColor": "",
+            "componentStartBgColor": null,
+            "componentEndBgColor": null,
             "componentGradientAngle": "to bottom",
             "topRounded": 0,
             "bottomRounded": 0,
@@ -1436,8 +1414,8 @@
             "pageGradientAngle": "to bottom",
             "componentBgUrl": "",
             "componentBgAlpha": 2,
-            "componentStartBgColor": "",
-            "componentEndBgColor": "",
+            "componentStartBgColor": null,
+            "componentEndBgColor": null,
             "componentGradientAngle": "to bottom",
             "topRounded": 0,
             "bottomRounded": 0,
@@ -1493,7 +1471,7 @@
             "imgUrl": "",
             "imgWidth": "",
             "imgHeight": "",
-            "count": -1,
+            "count": "once",
             "show": 0,
             "link": {
               "name": ""
@@ -3037,7 +3015,7 @@
             "imgUrl": "",
             "imgWidth": "",
             "imgHeight": "",
-            "count": -1,
+            "count": "once",
             "show": 0,
             "link": {
               "name": ""
@@ -3583,6 +3561,7 @@
           "title": "商家首页",
           "completeLayout": "style-1",
           "completeAlign": "left",
+          "contentAlign": "right",
           "borderControl": true,
           "pageStartBgColor": "rgba(246, 246, 246, 1)",
           "pageEndBgColor": "",
@@ -3596,8 +3575,8 @@
             "isShow": true,
             "bgColor": "#ffffff",
             "rollBgColor": "#ffffff",
-            "style": "style-1",
-            "styleName": "风格1",
+            "style": "style-3",
+            "styleName": "风格3",
             "textColor": "#333333",
             "rollTextColor": "#333333",
             "textAlign": "center",
@@ -3613,10 +3592,10 @@
           },
           "popWindow": {
             "imgUrl": "",
-            "imgWidth": "",
-            "imgHeight": "",
+            "imgWidth": 1000,
+            "imgHeight": 1000,
             "count": "once",
-            "show": 0,
+            "show": false,
             "link": {
               "name": ""
             }
@@ -3649,7 +3628,7 @@
             "path": "edit-mall-shop-info",
             "uses": 1,
             "position": "top_fixed",
-            "id": "2qy5dz8vxre0",
+            "id": "fv0d9az2nfk",
             "componentName": "MallShopInfo",
             "componentTitle": "商家信息",
             "ignore": [
@@ -3662,8 +3641,13 @@
               "pageBgColor",
               "marginBoth"
             ],
-            "positionWay": "fixed",
-            "fixedBgColor": "rgba(255, 255, 255, 1)",
+            "style": "style-1",
+            "bgImgStyle": "default",
+            "curBgImg": "addon/mall/diy/shop_info/img-2.png",
+            "bgImgArr": "",
+            "bgVideo": "",
+            "positionWay": "static",
+            "fixedBgColor": "",
             "bgGradient": true,
             "bgImg": "/addon/mall/diy/site_index/style2/header_bg.jpg",
             "bgOpacity": 80,
@@ -3674,18 +3658,23 @@
               },
               "hotWord": {
                 "interval": 3,
-                "list": []
+                "list": [
+                  {
+                    "id": "flupl7k4q5s",
+                    "text": "水果"
+                  }
+                ]
               },
-              "color": "#ffffff",
-              "btnColor": "#EF000C",
-              "bgColor": "rgba(255, 255, 255, 0.2)",
-              "btnBgColor": "#ffffff"
+              "color": "rgba(51, 51, 51, 1)",
+              "btnColor": "rgba(239, 0, 12, 1)",
+              "bgColor": "rgba(255, 255, 255, 0.55)",
+              "btnBgColor": "rgba(255, 255, 255, 1)"
             },
             "fixedSearch": {
               "color": "#333",
-              "btnColor": "#333",
-              "bgColor": "rgba(245, 245, 245, 1)",
-              "btnBgColor": "rgba(245, 245, 245, 1)"
+              "btnColor": "rgba(51, 51, 51, 1)",
+              "bgColor": "rgb(245, 245, 245)",
+              "btnBgColor": "rgba(255, 255, 255, 1)"
             },
             "swiper": {
               "control": true,
@@ -3694,26 +3683,24 @@
               "indicatorActiveColor": "#FF0E0E",
               "indicatorStyle": "style-1",
               "indicatorAlign": "center",
-              "swiperStyle": "style-2",
-              "imageHeight": 165,
-              "topRounded": 12,
-              "bottomRounded": 12,
+              "swiperStyle": "style-1",
+              "imageHeight": 168,
+              "topRounded": 0,
+              "bottomRounded": 0,
               "list": [
                 {
-                  "imageUrl": "addon/mall/diy/site_index/style1/banner1.jpg",
-                  "imgWidth": 710,
+                  "imageUrl": "",
+                  "imgWidth": 690,
                   "imgHeight": 330,
                   "link": {
                     "name": ""
                   },
-                  "id": "441ktsuva0i0",
-                  "width": 355,
-                  "height": 165
+                  "id": "2khocegs1f00"
                 }
               ]
             },
             "shop": {
-              "textColor": "#ffffff"
+              "textColor": "#FFFFFF"
             },
             "textColor": "#303133",
             "pageStartBgColor": "",
@@ -3734,35 +3721,63 @@
               "bottom": 0,
               "both": 0
             },
-            "isHidden": false
+            "isHidden": false,
+            "pageStyle": "padding-top:2rpx;padding-bottom:0rpx;padding-right:0rpx;padding-left:0rpx;",
+            "componentIsShow": true
           },
           {
             "path": "edit-mall-goods-coupon",
             "uses": 0,
-            "id": "3ivd9tsi9ru0",
+            "id": "4o09mjftajo0",
             "componentName": "MallGoodsCoupon",
             "componentTitle": "优惠券",
             "ignore": [
               "componentBgUrl"
             ],
-            "style": "style-5",
-            "styleName": "风格5",
+            "style": "style-8",
+            "styleName": "风格8",
             "source": "all",
-            "num": 6,
+            "num": 3,
             "couponIds": [],
             "btnText": "立即领取",
-            "couponTitle": "先领券 再购物",
-            "couponSubTitle": "领券下单 享购物优惠",
+            "couponTitle": "畅享礼券",
+            "couponSubTitle": "领券下单 享购",
             "titleColor": "#333",
             "subTitleColor": "#ffffff",
+            "titleAlign": "left",
             "couponItem": {
-              "bgColor": "#FFF7F6",
+              "bgColor": "rgba(34, 34, 34, 1)",
+              "itemMoneyColor": [
+                "#00179C",
+                "#684700",
+                "#005627",
+                "#C40000",
+                "#004E5E",
+                "#61036D"
+              ],
+              "itemTextColor": [
+                "#00179C",
+                "#684700",
+                "#005627",
+                "#C40000",
+                "#004E5E",
+                "#61036D"
+              ],
+              "itemBgColor": [
+                "#0E1647",
+                "#352504",
+                "#082B18",
+                "#661414",
+                "#0C3740",
+                "#430E4B"
+              ],
               "bgUrl": "/addon/mall/diy/goods_coupon/style5_bg.png",
-              "textColor": "#fff",
+              "textColor": "rgba(34, 34, 34, 1)",
               "subTextColor": "#666666",
-              "moneyColor": "#fff",
-              "btnColor": "#fff",
-              "aroundRadius": 6
+              "moneyColor": "rgba(34, 34, 34, 1)",
+              "btnColor": "rgba(255, 255, 255, 1)",
+              "borderColor": "rgba(238, 238, 238, 1)",
+              "aroundRadius": 0
             },
             "textColor": "#303133",
             "pageStartBgColor": "",
@@ -3783,28 +3798,81 @@
               "bottom": 10,
               "both": 10
             },
-            "isHidden": false
+            "isHidden": false,
+            "pageStyle": "padding-top:20rpx;padding-bottom:20rpx;padding-right:20rpx;padding-left:20rpx;",
+            "componentIsShow": true
+          },
+          {
+            "path": "edit-image-ads",
+            "uses": 0,
+            "id": "2wloalnbq6o0",
+            "componentName": "ImageAds",
+            "componentTitle": "图片广告",
+            "ignore": [
+              "componentBgUrl"
+            ],
+            "imageHeight": 35,
+            "isSameScreen": false,
+            "list": [
+              {
+                "link": {
+                  "name": ""
+                },
+                "imageUrl": "/addon/mall/diy/site_index/style2/jingxuantuijian.png",
+                "imgWidth": 750,
+                "imgHeight": 80,
+                "id": "5207f6v09aw0",
+                "width": 337,
+                "height": 35.946666666666665
+              }
+            ],
+            "textColor": "#303133",
+            "pageStartBgColor": "",
+            "pageEndBgColor": "",
+            "pageGradientAngle": "to bottom",
+            "componentBgUrl": "",
+            "componentBgAlpha": 2,
+            "componentStartBgColor": "",
+            "componentEndBgColor": "",
+            "componentGradientAngle": "to bottom",
+            "topRounded": 0,
+            "bottomRounded": 0,
+            "elementBgColor": "",
+            "topElementRounded": 0,
+            "bottomElementRounded": 0,
+            "margin": {
+              "top": 0,
+              "bottom": 5,
+              "both": 19
+            },
+            "isHidden": false,
+            "pageStyle": "padding-top:2rpx;padding-bottom:0rpx;padding-right:0rpx;padding-left:0rpx;",
+            "componentIsShow": true
           },
           {
             "path": "edit-mall-goods-list",
             "uses": 0,
-            "id": "6w52d5vhx940",
+            "id": "3vktyymmms80",
             "componentName": "MallGoodsList",
             "componentTitle": "商品列表",
             "ignore": [],
             "style": "style-1",
+            "searchCondition": {
+              "isShow": false
+            },
             "source": "all",
             "num": 10,
             "goods_category": "",
             "goods_category_name": "请选择",
             "goods_ids": [],
             "position": {
-              "control": false
+              "control": true
             },
             "localDelivery": {
-              "control": false
+              "control": true
             },
             "sortWay": "default",
+            "sortType": "desc",
             "goodsNameStyle": {
               "color": "#303133",
               "control": true,
@@ -3861,7 +3929,9 @@
               "bottom": 0,
               "both": 10
             },
-            "isHidden": false
+            "isHidden": false,
+            "pageStyle": "padding-top:2rpx;padding-bottom:0rpx;padding-right:20rpx;padding-left:20rpx;",
+            "componentIsShow": true
           }
         ]
       }
@@ -4059,9 +4129,7 @@
             "serviceConfig": [
               "goods_service",
               "spec_select",
-              "delivery_info",
-              "coupons",
-              "activity"
+              "delivery_info"
             ],
             "textColor": "#303133",
             "pageStartBgColor": "",

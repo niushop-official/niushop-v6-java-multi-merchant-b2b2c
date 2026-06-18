@@ -132,15 +132,15 @@
                     </el-form-item>
                 </template>
                 <el-form-item :label="t('地址')" prop="address_area">
-                    <el-select v-model="formData.province_id" value-key="id" clearable class="w-[200px]"  ref="provinceRef" :disabled="formData.is_system === 1">
+                    <el-select v-model="formData.province_id" value-key="id" @change="handleFlash"  clearable class="w-[200px]"  ref="provinceRef" :disabled="formData.is_system === 1">
                         <el-option :label="t('provincePlaceholder')" :value="0"/>
                         <el-option v-for="(item, index) in areaList.province" :key="index" :label="item.name"  :value="item.id"/>
                     </el-select>
-                    <el-select v-model="formData.city_id" value-key="id" clearable class="w-[200px] ml-3" ref="cityRef" :disabled="formData.is_system === 1">
+                    <el-select v-model="formData.city_id" value-key="id" @change="handleFlash"  clearable class="w-[200px] ml-3" ref="cityRef" :disabled="formData.is_system === 1">
                         <el-option :label="t('cityPlaceholder')" :value="0"/>
                         <el-option v-for="(item, index) in areaList.city " :key="index" :label="item.name"  :value="item.id"/>
                     </el-select>
-                    <el-select v-model="formData.district_id" value-key="id" clearable class="w-[200px] ml-3"  ref="districtRef" :disabled="formData.is_system === 1">
+                    <el-select v-model="formData.district_id" value-key="id" @change="handleFlash"  clearable class="w-[200px] ml-3"  ref="districtRef" :disabled="formData.is_system === 1">
                         <el-option :label="t('districtPlaceholder')" :value="0"/>
                         <el-option v-for="(item, index) in areaList.district " :key="index" :label="item.name"  :value="item.id"/>
                     </el-select>
@@ -270,6 +270,7 @@ const initData = reactive<any>({
     weight_unit: 0,
     weight_price: 0
 })
+const flash = ref(false)
 
 const getStorePickUpTypeFn = () => {
     getStorePickUpType().then(res => {
@@ -290,6 +291,7 @@ const getDeliveryStoreDetailFn = () => {
                 }))
             }
         })
+        
     }).catch(() => {
         loading.value = false
     })
@@ -392,14 +394,16 @@ const initMap = () => {
 
     marker = createMarker(map)
 
-    map.on('click', (evt: any) => {
-        map.setCenter(evt.latLng)
-        marker.updateGeometries({
-            id: 'center',
-            position: evt.latLng
+    if (formData.is_system != 1) {
+        map.on('click', (evt: any) => {
+            map.setCenter(evt.latLng)
+            marker.updateGeometries({
+                id: 'center',
+                position: evt.latLng
+            })
+            latLngChange(evt.latLng.lat, evt.latLng.lng)
         })
-        latLngChange(evt.latLng.lat, evt.latLng.lng)
-    })
+    }
 
     latLngChange(center.lat, center.lng)
 
@@ -502,6 +506,10 @@ watch(() => formData.district_id, (nval) => {
     }
 })
 
+const handleFlash = () => {
+    flash.value = true
+}
+
 const areaChange = debounce(() => {
     setTimeout(() => {
         const province = areaList.province.map((item) => { if (item.id == formData.province_id) { return item.name } })
@@ -525,18 +533,18 @@ const areaChange = debounce(() => {
                 })
                 formData.latitude = result.location.lat
                 formData.longitude = result.location.lng
-                // if (formData.pick_up_type.indexOf('local_delivery') != -1) {
-                //     formData.area.forEach(item => {
-                //         // 先删除旧的图形
-                //         deleteGeometry(item.area_json.key)
-                //         // 重新创建图形
-                //         item.area_json.center = {
-                //             lat: result.location.lat,
-                //             lng: result.location.lng
-                //         }
-                //         item.area_type == 'radius' ? createCircle(map, item.area_json) : createPolygon(map, item.area_json)
-                //     })
-                // }
+                if (formData.pick_up_type.indexOf('local_delivery') != -1 && flash.value) {
+                    formData.area.forEach(item => {
+                        // 先删除旧的图形
+                        deleteGeometry(item.area_json.key)
+                        // 重新创建图形
+                        item.area_json.center = {
+                            lat: result.location.lat,
+                            lng: result.location.lng
+                        }
+                        item.area_type == 'radius' ? createCircle(map, item.area_json) : createPolygon(map, item.area_json)
+                    })
+                }
             } else {
                 console.error(message, result)
             }
@@ -588,160 +596,156 @@ const regExp = {
 }
 
 // 表单验证规则
-const formRules = computed(() => {
-    return {
-        // pick_up_type: [
-        //     { required: true, message: t('请选择提货类型'), trigger: 'change' }
-        // ],
-        store_name: [
-            { required: true, message: t('storeNamePlaceholder'), trigger: 'blur' }
-        ],
-        contact_name: [
-            { required: true, message: t('contactNamePlaceholder'), trigger: 'blur' }
-        ],
-        mobile: [
-            { required: true, message: t('storeMobilePlaceholder'), trigger: 'blur' }
-        ],
-        trade_time: [
-            { required: true, message: t('tradeTimePlaceholder'), trigger: 'blur' }
-        ],
-        time_week: [
-            { required: true, message: t('timeWeekRequire'), trigger: 'change' }
-        ],
-        distance: [
-            {
-                validator: (rule: any, value: any, callback: any) => {
-                    if (initData.fee_type == 'distance') {
-                        if (Test.require(formData.base_dist)) {
-                            callback(new Error(t('baseDistRequire')))
-                        } else if (Number(formData.base_dist) <= 0) {
-                            callback(new Error(t('起始公里数不能小于等于0')))
-                        }
-                        if (Test.require(formData.base_price)) {
-                            callback(new Error(t('basePriceRequire')))
-                        }
-                        if (Test.require(formData.grad_dist)) {
-                            callback(new Error(t('gradDistRequire')))
-                        } else if (Number(formData.grad_dist) <= 0) {
-                            callback(new Error(t('超出公里数不能小于等于0')))
-                        }
-                        if (Test.require(formData.grad_price)) {
-                            callback(new Error(t('gradPriceRequire')))
-                        }
-                        if (Number(formData.weight_start) <= 0) { // 重量不能小于等于0
-                            callback(new Error(t('商品重量不能小于等于0')))
-                        }
-                        if (Number(formData.weight_unit) <= 0) { // 超出重量不能小于等于0
-                            callback(new Error(t('商品超出重量不能小于等于0')))
-                        }
+const formRules = reactive({ 
+    store_name: [
+        { required: true, message: t('storeNamePlaceholder'), trigger: 'blur' }
+    ],
+    contact_name: [
+        { required: true, message: t('contactNamePlaceholder'), trigger: 'blur' }
+    ],
+    mobile: [
+        { required: true, message: t('storeMobilePlaceholder'), trigger: 'blur' }
+    ],
+    trade_time: [
+        { required: true, message: t('tradeTimePlaceholder'), trigger: 'blur' }
+    ],
+    time_week: [
+        { required: true, message: t('timeWeekRequire'), trigger: 'change' }
+    ],
+    distance: [
+        {
+            validator: (rule: any, value: any, callback: any) => {
+                if (initData.fee_type == 'distance') {
+                    if (Test.require(formData.base_dist)) {
+                        callback(new Error(t('baseDistRequire')))
+                    } else if (Number(formData.base_dist) <= 0) {
+                        callback(new Error(t('起始公里数不能小于等于0')))
                     }
-                    callback()
-                },
-                trigger: ['blur', 'change']
-            }
-        ],
-        weight: [
-            {
-                validator: (rule: any, value: any, callback: any) => {
-                    if (initData.fee_type == 'distance') {
-                        if (Number(formData.weight_start) <= 0) { // 重量不能小于等于0
-                            callback(new Error(t('商品重量不能小于等于0')))
-                        }
-                        if (Number(formData.weight_unit) <= 0) { // 超出重量不能小于等于0
-                            callback(new Error(t('商品超出重量不能小于等于0')))
-                        }
+                    if (Test.require(formData.base_price)) {
+                        callback(new Error(t('basePriceRequire')))
                     }
-                    callback()
-                },
-                trigger: ['blur', 'change']
-            }
-        ],
-        area_name: [{ required: true, message: t('areaNameRequire'), trigger: 'blur' }],
-        start_price: [
-            { required: true, message: t('startPriceRequire'), trigger: 'blur' },
-            {
-                validator: (rule: any, value: any, callback: any) => {
-                    if (parseInt(value) < 0) {
-                        callback(new Error(t('startPriceMin')))
+                    if (Test.require(formData.grad_dist)) {
+                        callback(new Error(t('gradDistRequire')))
+                    } else if (Number(formData.grad_dist) <= 0) {
+                        callback(new Error(t('超出公里数不能小于等于0')))
                     }
-                    callback()
-                },
-                trigger: 'blur'
-            }
-        ],
-        delivery_price: [
-            { required: initData.fee_type == 'region', message: t('deliveryPriceRequire'), trigger: 'blur' },
-            {
-                validator: (rule: any, value: any, callback: any) => {
-                    if (parseInt(value) < 0) {
-                        callback(new Error(t('deliveryPriceMin')))
+                    if (Test.require(formData.grad_price)) {
+                        callback(new Error(t('gradPriceRequire')))
                     }
-                    callback()
-                },
-                trigger: 'blur'
-            }
-        ],
-        area: [
-            {
-                validator: (rule: any, value: any, callback: any) => {
-                    if (Test.empty(formData.area)) {
-                        callback(new Error(t('areaPlaceholder')))
+                    if (Number(formData.weight_start) <= 0) { // 重量不能小于等于0
+                        callback(new Error(t('商品重量不能小于等于0')))
                     }
-                    callback()
-                },
-                trigger: 'blur'
-            }
-        ],
-        trade_time_json: [
-            {
-                validator: (rule: any, value: any, callback: any) => {
-                    if (!value || value.length === 0) {
+                    if (Number(formData.weight_unit) <= 0) { // 超出重量不能小于等于0
+                        callback(new Error(t('商品超出重量不能小于等于0')))
+                    }
+                }
+                callback()
+            },
+            trigger: ['blur', 'change']
+        }
+    ],
+    weight: [
+        {
+            validator: (rule: any, value: any, callback: any) => {
+                if (initData.fee_type == 'distance') {
+                    if (Number(formData.weight_start) <= 0) { // 重量不能小于等于0
+                        callback(new Error(t('商品重量不能小于等于0')))
+                    }
+                    if (Number(formData.weight_unit) <= 0) { // 超出重量不能小于等于0
+                        callback(new Error(t('商品超出重量不能小于等于0')))
+                    }
+                }
+                callback()
+            },
+            trigger: ['blur', 'change']
+        }
+    ],
+    area_name: [{ required: true, message: t('areaNameRequire'), trigger: 'blur' }],
+    start_price: [
+        { required: true, message: t('startPriceRequire'), trigger: 'blur' },
+        {
+            validator: (rule: any, value: any, callback: any) => {
+                if (parseInt(value) < 0) {
+                    callback(new Error(t('startPriceMin')))
+                }
+                callback()
+            },
+            trigger: 'blur'
+        }
+    ],
+    delivery_price: [
+        { required: initData.fee_type == 'region', message: t('deliveryPriceRequire'), trigger: 'blur' },
+        {
+            validator: (rule: any, value: any, callback: any) => {
+                if (parseInt(value) < 0) {
+                    callback(new Error(t('deliveryPriceMin')))
+                }
+                callback()
+            },
+            trigger: 'blur'
+        }
+    ],
+    area: [
+        {
+            validator: (rule: any, value: any, callback: any) => {
+                if (Test.empty(formData.area)) {
+                    callback(new Error(t('areaPlaceholder')))
+                }
+                callback()
+            },
+            trigger: 'blur'
+        }
+    ],
+    trade_time_json: [
+        {
+            validator: (rule: any, value: any, callback: any) => {
+                if (!value || value.length === 0) {
+                    return callback(new Error(t('tradeTimePlaceholderTwo')))
+                }
+                for (let i = 0; i < value.length; i++) {
+                    const timeRange = value[i]
+                    if (!timeRange.start_time || !timeRange.end_time) {
                         return callback(new Error(t('tradeTimePlaceholderTwo')))
                     }
-                    for (let i = 0; i < value.length; i++) {
-                        const timeRange = value[i]
-                        if (!timeRange.start_time || !timeRange.end_time) {
-                            return callback(new Error(t('tradeTimePlaceholderTwo')))
-                        }
-                        // 结束时间不能小于或等于开始时间
-                        if (timeRange.end_time <= timeRange.start_time) {
-                            return callback(new Error(t('tradeTimePlaceholderFour')))
-                        }
-                        // 确保后一个时间段的开始时间不能小于前一个时间段的结束时间
-                        if (i > 0 && value[i].start_time < value[i - 1].end_time) {
-                            return callback(new Error(t('tradeTimePlaceholderFive')))
-                        }
+                    // 结束时间不能小于或等于开始时间
+                    if (timeRange.end_time <= timeRange.start_time) {
+                        return callback(new Error(t('tradeTimePlaceholderFour')))
                     }
-                    callback()
-                },
-                trigger: 'change',
-                required: true
-            }
-        ],
-        time_interval: [
-            { required: true, message: t('tradeTimePlaceholderThree'), trigger: 'change' }
-        ],
-
-        address_area: [
-            {
-                validator: (rule: any, value: any, callback: any) => {
-                    if (!formData.province_id) {
-                        callback(new Error(t('provincePlaceholder')))
+                    // 确保后一个时间段的开始时间不能小于前一个时间段的结束时间
+                    if (i > 0 && value[i].start_time < value[i - 1].end_time) {
+                        return callback(new Error(t('tradeTimePlaceholderFive')))
                     }
-                    if (!formData.city_id) {
-                        callback(new Error(t('cityPlaceholder')))
-                    }
-                    if (areaList.district.length && !formData.district_id) {
-                        callback(new Error(t('districtPlaceholder')))
-                    }
-                    callback()
                 }
+                callback()
+            },
+            trigger: 'change',
+            required: true
+        }
+    ],
+    time_interval: [
+        { required: true, message: t('tradeTimePlaceholderThree'), trigger: 'change' }
+    ],
+
+    address_area: [
+        {
+            validator: (rule: any, value: any, callback: any) => {
+                if (!formData.province_id) {
+                    callback(new Error(t('provincePlaceholder')))
+                }
+                if (!formData.city_id) {
+                    callback(new Error(t('cityPlaceholder')))
+                }
+                if (areaList.district.length && !formData.district_id) {
+                    callback(new Error(t('districtPlaceholder')))
+                }
+                callback()
             }
-        ],
-        address: [
-            { required: true, message: t('addressPlaceholder'), trigger: 'blur' }
-        ]
-    }
+        }
+    ],
+    address: [
+        { required: true, message: t('addressPlaceholder'), trigger: 'blur' }
+    ]
+
 })
 
 // 添加时间段

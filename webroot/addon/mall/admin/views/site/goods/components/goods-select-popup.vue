@@ -22,9 +22,9 @@
                 <el-form-item :label="t('goodsSelectPopupGoodsName')" prop="keyword" class="form-item-wrap">
                     <el-input v-model="goodsTable.searchParam.keyword" :placeholder="t('goodsSelectPopupGoodsNamePlaceholder')" maxlength="60" />
                 </el-form-item>
-                <el-form-item :label="t('goodsSelectPopupGoodsCategory')" prop="goods_category" class="form-item-wrap">
+                <el-form-item :label="t('goodsSelectPopupGoodsCategory')" prop="goods_mall_category" class="form-item-wrap">
                     <el-cascader v-model="goodsTable.searchParam.goods_mall_category"
-                        :options="goodsCategoryOptions" :placeholder="t('goodsSelectPopupGoodsCategoryPlaceholder')"
+                        :options="goodsCategoryOptions" :placeholder="t('请选择商品分类')"
                         clearable :props="{ value: 'value', label: 'label', emitPath:false }" />
                 </el-form-item>
                 <el-form-item :label="t('goodsSelectPopupGoodsType')" prop="goods_type" class="form-item-wrap">
@@ -71,6 +71,7 @@
                                 </div>
                                 <div class="ml-2">
                                     <span :title="row.goods_name" class="multi-hidden">{{ row.goods_name }}</span>
+                                    <div v-if="row.supply_id>0">{{ t('供货商店铺') }}：{{ row.supply_name }}</div>
                                     <span class="text-primary text-[12px]">{{ row.goods_type_name }}</span>
                                 </div>
                             </div>
@@ -148,8 +149,8 @@ import { getGoodsSelectPageList, getGoodsSkuNoPageList, getGoodsType } from '@/a
 
 const prop = defineProps({
     modelValue: {
-        type: String,
-        default: ''
+        type: [String, Array],
+        default: () => []
     },
     max: {
         type: Number,
@@ -266,6 +267,11 @@ const initData = () => {
                 })
             })
             goodsCategoryOptions.splice(0, goodsCategoryOptions.length, ...goodsCategoryTree)
+            goodsCategoryOptions.unshift({
+                value: 'all',
+                label: '全部',
+                children: []
+            })
         }
     })
 
@@ -547,6 +553,9 @@ const resetForm = (formEl: FormInstance | undefined) => {
 }
 
 const show = () => {
+    if (!Array.isArray(goodsIds.value)) {
+        goodsIds.value = []
+    }
     for (let k in selectGoods) {
         delete selectGoods[k];
     }

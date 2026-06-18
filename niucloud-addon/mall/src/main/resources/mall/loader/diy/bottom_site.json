@@ -9,11 +9,10 @@
 			{
 				"text": "首页",
 				"link": {
-					"parent": "MALL_LINK_TAB",
+					"parent": "MALL_SHOP_LINK",
 					"name": "MALL_SHOP_INDEX",
 					"title": "店铺首页",
-					"url": "shop_index",
-					"url_type": "tab"
+					"url": "/addon/mall/pages/index"
 				},
 				"iconPath": "addon/mall/diy/site_tabbar/shop-home.png",
 				"iconSelectPath": "addon/mall/diy/site_tabbar/shop-home-selected.png"
@@ -21,11 +20,10 @@
 			{
 				"text": "全部商品",
 				"link": {
-					"parent": "MALL_LINK_TAB",
+					"parent": "MALL_SHOP_LINK",
 					"name": "MALL_SHOP_GOODS_LIST",
 					"title": "店铺商品列表",
-					"url": "shop_goods_list",
-					"url_type": "tab"
+					"url": "/addon/mall/pages/home/goods"
 				},
 				"iconPath": "addon/mall/diy/site_tabbar/shop-goods.png",
 				"iconSelectPath": "addon/mall/diy/site_tabbar/shop-goods-selected.png"
@@ -33,11 +31,10 @@
 			{
 				"text": "全部分类",
 				"link": {
-					"parent": "MALL_LINK_TAB",
+					"parent": "MALL_SHOP_LINK",
 					"name": "MALL_SHOP_GOODS_CATEGORY",
 					"title": "店铺商品分类",
-					"url": "shop_goods_category",
-					"url_type": "tab"
+					"url": "/addon/mall/pages/home/category"
 				},
 				"iconPath": "addon/mall/diy/site_tabbar/shop-category.png",
 				"iconSelectPath": "addon/mall/diy/site_tabbar/shop-category-selected.png"
@@ -45,11 +42,10 @@
 			{
 				"text": "领券中心",
 				"link": {
-					"parent": "MALL_LINK_TAB",
+					"parent": "MALL_SHOP_LINK",
 					"name": "MALL_SHOP_COUPON_LIST",
 					"title": "店铺优惠券列表",
-					"url": "shop_coupon_list",
-					"url_type": "tab"
+					"url": "/addon/mall/pages/home/coupon"
 				},
 				"iconPath": "addon/mall/diy/site_tabbar/shop-coupon.png",
 				"iconSelectPath": "addon/mall/diy/site_tabbar/shop-coupon-selected.png"

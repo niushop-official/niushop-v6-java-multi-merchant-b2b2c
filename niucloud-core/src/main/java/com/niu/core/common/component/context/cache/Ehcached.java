@@ -100,4 +100,14 @@ public final class Ehcached implements Cached {
         }
     }
 
+    @Override
+    public Integer atomicDecrement(String key, Integer reduceAmount) {
+        return null;
+    }
+
+    @Override
+    public Integer atomicDecrement(String group, String key, Integer reduceAmount) {
+        return null;
+    }
+
 }

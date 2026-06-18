@@ -150,6 +150,9 @@ const refreshGoodsList = (obj: any) => {
     goodsValue.value = {
 		site_id: diyStore.siteId,
         style: diyComponent.value.style,
+        searchCondition:{
+            isShow: false,
+        },
         margin: diyComponent.value.margin,
         source: obj.source,
         position: diyComponent.value.position,
@@ -157,7 +160,7 @@ const refreshGoodsList = (obj: any) => {
 
         num: diyComponent.value.num,
         sortWay: diyComponent.value.sortWay,
-
+        sortType: diyComponent.value.sortType,
         goodsNameStyle: diyComponent.value.goodsNameStyle,
         priceStyle: diyComponent.value.priceStyle,
         saleStyle: diyComponent.value.saleStyle,

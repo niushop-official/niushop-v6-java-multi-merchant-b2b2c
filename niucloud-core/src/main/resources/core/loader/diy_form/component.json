@@ -89,6 +89,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": "",
             "value": ""
           },
@@ -138,6 +139,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": "",
             "value": ""
           },
@@ -188,6 +190,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": "",
             "value": ""
           },
@@ -243,6 +246,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": [],
             "value": []
           },
@@ -316,6 +320,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": [],
             "value": []
           },
@@ -381,6 +386,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": "",
             "value": ""
           },
@@ -430,6 +436,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": "",
             "value": ""
           },
@@ -479,6 +486,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": "",
             "value": ""
           },
@@ -528,6 +536,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": {
               "date": "",
               "timestamp": 0
@@ -588,6 +597,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": {
               "start": {
                 "date": "",
@@ -667,6 +677,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": "",
             "value": ""
           },
@@ -718,6 +729,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "default": {
               "start": {
                 "date": "",
@@ -796,6 +808,7 @@
             "unique": false,
             "autofill": false,
             "privacyProtection": false,
+            "cache": true,
             "detailComponent": "/src/app/views/diy_form/components/detail-form-image.vue",
             "default": "",
             "value": []

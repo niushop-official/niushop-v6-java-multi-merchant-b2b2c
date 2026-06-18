@@ -141,6 +141,7 @@ const pageName = route.meta.title
 
 const date = ref<any>([])
 const totalStat = ref<any>({
+    order_actual_money: 0,
     shop_separate_money: 0,
     money_get: 0,
     money: 0,

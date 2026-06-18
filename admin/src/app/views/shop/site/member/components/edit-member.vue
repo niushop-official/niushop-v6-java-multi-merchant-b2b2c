@@ -22,7 +22,7 @@
 import { ref, reactive } from 'vue'
 import { t } from '@/lang'
 import type { FormInstance } from 'element-plus'
-import { editShopMemberDetail, getShopMemberLabelAll } from '@/app/api/shop_site'
+import { editShopMemberDetail, getShopMemberLabelAll ,batchModifyMemberDetail } from '@/app/api/shop_site'
 
 // 修改类型
 const type = ref('')
@@ -59,25 +59,56 @@ const emit = defineEmits(['complete'])
  */
 const confirm = async (formEl: FormInstance | undefined) => {
     loading.value = true
-    const data = ref({
-        member_id: memberId.value,
-        field: type.value,
-        value: saveData[type.value]
-    })
+    if(isBatch.value){
+        const data = ref({
+            member_ids: batchMember.value,
+            field: type.value,
+            value: saveData[type.value]
+        })
 
-    editShopMemberDetail(data.value).then(res => {
-        loading.value = false
-        showDialog.value = false
-        emit('complete')
-    }).catch(() => {
-        loading.value = false
-        // showDialog.value = false
-    })
+        batchModifyMemberDetail(data.value).then(res => {
+            loading.value = false
+            showDialog.value = false
+            emit('complete')
+        }).catch(() => {
+            loading.value = false
+            // showDialog.value = false
+        })
+    }else{
+        const data = ref({
+            member_id: memberId.value,
+            field: type.value,
+            value: saveData[type.value]
+        })
+
+        editShopMemberDetail(data.value).then(res => {
+            loading.value = false
+            showDialog.value = false
+            emit('complete')
+        }).catch(() => {
+            loading.value = false
+            // showDialog.value = false
+        })
+    }
+   
 }
 
+// 批量修改
+const isBatch = ref(false)
+const batchMember = ref(null)
+const batchSetDialogType = (data: any) => {
+    loading.value = true
+    type.value = data.type
+    isBatch.value = true
+    batchMember.value = data.memberIds
+    title.value = data.title
+    saveData[type.value] = null
+    loading.value = false
+}
 const setDialogType = async (row: any = null) => {
     loading.value = true
     type.value = row.type
+    isBatch.value = false
     title.value = row.title
     memberId.value = row.id
     saveData[type.value] = row.data[type.value]
@@ -91,7 +122,8 @@ const setDialogType = async (row: any = null) => {
 
 defineExpose({
     showDialog,
-    setDialogType
+    setDialogType,
+    batchSetDialogType
 })
 </script>
 

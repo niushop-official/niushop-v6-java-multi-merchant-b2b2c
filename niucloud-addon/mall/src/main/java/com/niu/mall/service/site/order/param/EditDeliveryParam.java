@@ -27,6 +27,9 @@ public class EditDeliveryParam implements Serializable {
 
     private String takerAddress; // 收货地址
 
+    /** 省市区展示文本 */
+    private String area;
+
     private String takerFullAddress; // 收货详细地址
 
     private String takerLongitude; // 收货地址经度

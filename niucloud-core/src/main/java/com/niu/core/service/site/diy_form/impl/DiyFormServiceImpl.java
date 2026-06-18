@@ -420,6 +420,11 @@ public class DiyFormServiceImpl implements IDiyFormService {
 
         DiyFormInitVo initVo = new DiyFormInitVo();
         BeanUtils.copyProperties(data, initVo);
+        DiyFormTypeEnum diyFormTypeEnum = new DiyFormTypeEnum();
+        JSONObject currentType = diyFormTypeEnum.getType(data.getType());
+        if (currentType != null) {
+            initVo.setShowSubmit(currentType.getBool("show_submit", true));
+        }
         initVo.setComponent(getComponentList(data.getType()));
         initVo.setDomainUrl(systemConfigService.getSceneDomain());
         return initVo;

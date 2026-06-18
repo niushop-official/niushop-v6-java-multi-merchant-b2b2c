@@ -104,4 +104,21 @@ public class MallOrder implements Serializable {
     private Long perkTime; //补贴时间
     private Long evaluateTimer; //自动好评时间，评价后重置为0
     private String weappVersion;//小程序类型，developer为开发版；trial为体验版；formal为正式版；默认为正式版
+
+    /** 使用积分数 */
+    private Integer usePoint;
+
+    /** 积分抵扣金额 */
+    private BigDecimal pointDeductMoney;
+
+    /** 退款返还积分抵扣金额 */
+    private BigDecimal refundPointDeductMoney;
+
+    /** 退款返还抵扣积分 */
+    private Integer refundDeductPoint;
+
+    /** 参与满减活动扣减金额 */
+    private BigDecimal fullReductionMoney;
+    private String subDeliveryType; //发货方式
+
 }

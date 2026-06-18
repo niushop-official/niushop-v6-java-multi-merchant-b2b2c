@@ -7,11 +7,12 @@ import com.niu.mall.service.core.marketing.vo.MallMemberCouponListVo;
 
 import java.util.List;
 
-public interface ICoreCouponMemberService  extends IService<MallCouponMember> {
+public interface ICoreCouponMemberService extends IService<MallCouponMember> {
 
 
     /**
      * 获取可使用优惠券列表
+     *
      * @param memberId
      * @param siteId
      * @return
@@ -20,6 +21,7 @@ public interface ICoreCouponMemberService  extends IService<MallCouponMember> {
 
     /**
      * 获取可使用平台优惠券列表
+     *
      * @param memberId
      * @return
      */
@@ -44,7 +46,8 @@ public interface ICoreCouponMemberService  extends IService<MallCouponMember> {
 
     /**
      * 优惠券失效
-     * @param ids  优惠券ids
+     *
+     * @param ids 优惠券ids
      */
     void invalid(List<Integer> ids);
 
@@ -56,10 +59,21 @@ public interface ICoreCouponMemberService  extends IService<MallCouponMember> {
     /**
      * 发放优惠券
      *
-     * @param siteId  站点ID
+     * @param siteId   站点ID
      * @param memberId 会员ID
      * @param couponId 优惠券ID
-     * @param num 发放数量
+     * @param num      发放数量
      */
     void sendCoupon(Integer siteId, Integer memberId, Integer couponId, Integer num);
+
+    /**
+     * 发放优惠券
+     *
+     * @param siteId   站点ID
+     * @param memberId 会员ID
+     * @param couponId 优惠券ID
+     * @param num      发放数量
+     * @param memo     备注
+     */
+    void sendCoupon(Integer siteId, Integer memberId, Integer couponId, Integer num, String memo);
 }

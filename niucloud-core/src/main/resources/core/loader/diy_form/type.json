@@ -1,16 +1,26 @@
 {
   "DIY_FORM": {
     "title": "自定义表单",
-    "preview": "static/resource/images/diy_form/diy_from_preview.jpg",
+    "preview": "static/resource/images/diy_form/diy_form_preview.jpg",
     "sort": 10001,
     "addon": "",
-    "app_type": ["admin", "site"]
+    "app_type": ["admin", "site"],
+    "show_submit": true
   },
-  "DIY_FORM_MEMBER_INFO":{
+  "DIY_FORM_MEMBER_INFO": {
     "title": "个人资料",
     "preview": "static/resource/images/diy_form/diy_form_member_info_preview.jpg",
     "sort": 10002,
     "addon": "",
-    "app_type": ["admin"]
+    "app_type": ["admin"],
+    "show_submit": true
+  },
+  "DIY_FORM_MERCHANT_INFO": {
+    "title": "商户入驻申请资料",
+    "preview": "static/resource/images/diy_form/diy_form_merchant_info_preview.jpg",
+    "sort": 10002,
+    "addon": "",
+    "app_type": ["admin"],
+    "show_submit": false
   }
 }

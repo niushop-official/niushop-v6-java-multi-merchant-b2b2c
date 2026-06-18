@@ -1,5 +1,6 @@
 package com.niu.core.service.admin.member.vo;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
@@ -39,6 +40,10 @@ public class MemberAccountLogListVo implements Serializable {
 
     public String getFromTypeName() {
         JSONObject changeType = MemberAccountChangeTypeEnum.getType(this.accountType);
-        return changeType.getByPath(this.fromType + ".name", String.class);
+        if (changeType == null) {
+            return ObjectUtil.defaultIfNull(this.memo, "");
+        }
+        String name = changeType.getByPath(this.fromType + ".name", String.class);
+        return ObjectUtil.defaultIfNull(name, ObjectUtil.defaultIfNull(this.memo, ""));
     }
 }

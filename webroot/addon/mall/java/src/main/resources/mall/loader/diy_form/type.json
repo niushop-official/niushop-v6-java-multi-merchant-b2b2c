@@ -4,13 +4,15 @@
     "preview": "addon/mall/diy_form/goods_detail_preview.jpg",
     "sort": 10005,
     "addon": "mall",
-    "app_type": ["site"]
+    "app_type": ["site"],
+    "show_submit": false
   },
   "DIY_FROM_ORDER_PAYMENT": {
     "title": "订单付款",
     "preview": "addon/mall/diy_form/order_payment_preview.jpg",
     "sort": 10006,
     "addon": "mall",
-    "app_type": ["site"]
+    "app_type": ["site"],
+    "show_submit": false
   }
 }

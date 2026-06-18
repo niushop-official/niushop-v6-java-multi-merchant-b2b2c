@@ -18,14 +18,19 @@ public class CoreShopPerkServiceImpl implements ICoreShopPerkService {
     ICoreShopAccountService coreShopAccountService;
     @Resource
     MallOrderMapper mallOrderMapper;
+
     @Override
     public void perk(MallOrder order) {
         BigDecimal realMallCouponMoney = order.getMallCouponMoney().subtract(order.getMallRefundCouponMoney());
-        if(realMallCouponMoney.compareTo(BigDecimal.ZERO) > 0){
-            coreShopAccountService.addLog(order.getSiteId(),order.getMallCouponMoney().subtract(order.getMallRefundCouponMoney()) , ShopAccountEnum.COUPON.getType(), "平台优惠券补贴", order.getOrderId().toString());
+        if (realMallCouponMoney.compareTo(BigDecimal.ZERO) > 0) {
+            coreShopAccountService.addLog(order.getSiteId(), order.getMallCouponMoney().subtract(order.getMallRefundCouponMoney()), ShopAccountEnum.COUPON.getType(), "平台优惠券补贴", order.getOrderId().toString());
+        }
+        BigDecimal realPointDeductMoney = order.getPointDeductMoney().subtract(order.getRefundPointDeductMoney());
+        if (realPointDeductMoney.compareTo(BigDecimal.ZERO) > 0) {
+            coreShopAccountService.addLog(order.getSiteId(), realPointDeductMoney, ShopAccountEnum.POINT_PERK.getType(), "平台积分补贴", order.getOrderId().toString());
         }
         mallOrderMapper.update(new MallOrder(), new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
-                .set("perk_status", 3).set("perk_time", System.currentTimeMillis()/1000));
+                .set("perk_status", 3).set("perk_time", System.currentTimeMillis() / 1000));
 
     }
 }

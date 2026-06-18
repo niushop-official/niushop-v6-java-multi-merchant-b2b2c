@@ -71,8 +71,6 @@ public class DiyServiceImpl implements IDiyService {
     @Resource
     private DiyThemeMapper diyThemeMapper;
 
-
-
     @Override
     public Object info(DiyInfoParam param) {
         Integer id = ObjectUtil.defaultIfNull(param.getId(), 0);
@@ -196,46 +194,39 @@ public class DiyServiceImpl implements IDiyService {
                     .collect(Collectors.toList());
         }
 
-        List<BottomConfigVo> tabbarList = new LinkedList<>();
-        for (BottomConfigVo item : list) {
-            BottomConfigVo config = coreDiyConfigService.getBottomConfig(param.getSiteId(), item.getKey());
-            tabbarList.add(config);
-        }
-        return tabbarList;
+        List<String> keys = list.stream().map(BottomConfigVo::getKey).collect(Collectors.toList());
+        return coreDiyConfigService.getBottomConfigList(param.getSiteId(), keys);
     }
 
     @Override
     public List<BottomConfigVo> getBottomList() {
-        List<BottomConfigVo> list =  coreDiyConfigService.getBottomList();
-        SiteInfoVo siteInfoVo = coreSiteService.getSiteCache(RequestUtils.siteId());
+        return getBottomList(coreSiteService.getSiteCache(RequestUtils.siteId()));
+    }
+
+    @Override
+    public List<BottomConfigVo> getBottomList(SiteInfoVo siteInfoVo) {
+        List<BottomConfigVo> list = coreDiyConfigService.getBottomList();
 
         List<Addon> apps = siteInfoVo.getApps();
 
-        // 提取底部导航列表中的key
         List<String> bottomListKeys = list.stream()
                 .map(BottomConfigVo::getKey)
                 .collect(Collectors.toList());
 
         List<String> appKeys = apps.stream().map(Addon::getKey).collect(Collectors.toList());
 
-        // 过滤掉没有底部导航的应用
         List<String> filteredAppKeys = appKeys.stream()
                 .filter(bottomListKeys::contains)
                 .collect(Collectors.toList());
 
-        // 单应用，排除系统底部导航设置
         if (list.size() > 1 && filteredAppKeys.size() == 1) {
             list = list.stream()
                     .filter(item -> !"app".equals(item.getKey()))
                     .collect(Collectors.toList());
         }
 
-        List<BottomConfigVo> tabbarList = new LinkedList<>();
-        for (BottomConfigVo item : list) {
-            BottomConfigVo config = coreDiyConfigService.getBottomConfig(RequestUtils.siteId(), item.getKey());
-            tabbarList.add(config);
-        }
-        return tabbarList;
+        List<String> keys = list.stream().map(BottomConfigVo::getKey).collect(Collectors.toList());
+        return coreDiyConfigService.getBottomConfigList(RequestUtils.siteId(), keys);
     }
 
     @Override

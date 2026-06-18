@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,22 +23,22 @@ public class SiteShopInfoParam implements Serializable {
 
     @NotNull(message = "groupId参数缺失")
     private Integer groupId;
-    
+
     /**
      * 应用列表 - 可以是字符串或数组
      */
     private Object app;
-    
+
     /**
      * 插件列表 - 可以是字符串或数组
      */
     private Object addons;
-    
+
     /**
      * 业务类型，group选择套餐 diy自定义
      */
     private String selectType = "group";
-    
+
     /**
      * 获取应用列表
      */
@@ -50,7 +51,7 @@ public class SiteShopInfoParam implements Serializable {
         }
         return new ArrayList<>();
     }
-    
+
     /**
      * 获取插件列表
      */
@@ -63,7 +64,7 @@ public class SiteShopInfoParam implements Serializable {
         }
         return new ArrayList<>();
     }
-    
+
     private String expireTime;
 
     /**
@@ -76,7 +77,9 @@ public class SiteShopInfoParam implements Serializable {
      */
     private String businessLicense = "";
 
-    /** 商家分类id */
+    /**
+     * 商家分类id
+     */
     @NotNull(message = "categoryId参数缺失")
     private Integer categoryId;
 
@@ -123,7 +126,7 @@ public class SiteShopInfoParam implements Serializable {
     /**
      * 佣金比率
      */
-    private Double commissionRate = 0.0;
+    private BigDecimal commissionRate = BigDecimal.ZERO;
 
     /**
      * 服务费率

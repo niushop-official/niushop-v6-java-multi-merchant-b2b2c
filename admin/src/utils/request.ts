@@ -6,6 +6,7 @@ import type { MessageParams } from 'element-plus'
 import { t } from '@/lang'
 import useUserStore from '@/stores/modules/user'
 import storage from '@/utils/storage'
+import { isAddonInstallRestarting } from '@/utils/addon-install-state'
 
 interface RequestConfig extends AxiosRequestConfig {
     showErrorMessage?: boolean
@@ -64,7 +65,7 @@ class Request {
 						}
 
 						// 其他情况保持原有逻辑
-						if (res.code != 401 && response.config.showErrorMessage !== false) {
+						if (res.code != 401 && this.shouldShowError(response.config)) {
 							this.showElMessage({
 								message: res.msg,
 								type: 'error',
@@ -194,7 +195,12 @@ class Request {
             const baseURL = isUrl(err.config.baseURL) ? err.config.baseURL : `${location.origin}${err.config.baseURL}`
             errMessage = baseURL + t('axios.baseUrlError')
         }
-        err.config.showErrorMessage !== false && errMessage && this.showElMessage({ dangerouslyUseHTMLString: true, duration: 5000, message: errMessage, type: 'error' })
+        err.config && this.shouldShowError(err.config) && errMessage && this.showElMessage({ dangerouslyUseHTMLString: true, duration: 5000, message: errMessage, type: 'error' })
+    }
+
+    private shouldShowError(config: InternalRequestConfig): boolean {
+        if (isAddonInstallRestarting()) return false
+        return config.showErrorMessage !== false
     }
 
     private handleAuthError(code: number) {

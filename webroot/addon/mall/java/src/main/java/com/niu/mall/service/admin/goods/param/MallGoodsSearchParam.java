@@ -1,5 +1,7 @@
 package com.niu.mall.service.admin.goods.param;
+
 import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -43,6 +45,8 @@ public class MallGoodsSearchParam implements Serializable {
 
     private Integer status;
 
+    private Integer statusType;
+
     private String deliveryType;
 
     private Integer isFreeShipping;
@@ -85,6 +89,6 @@ public class MallGoodsSearchParam implements Serializable {
 
     private Double endPrice = 0.00;
 
-    private String  goodsSource;
+    private String goodsSource;
     private Integer goodsMallCategory;
 }

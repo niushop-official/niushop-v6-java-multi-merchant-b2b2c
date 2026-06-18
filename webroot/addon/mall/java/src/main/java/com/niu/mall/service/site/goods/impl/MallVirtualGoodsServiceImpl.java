@@ -1,7 +1,6 @@
 package com.niu.mall.service.site.goods.impl;
 
 import cn.hutool.core.convert.Convert;
-
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -15,20 +14,17 @@ import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.diy_form.DiyForm;
 import com.niu.core.entity.goods.GoodsBrand;
-import com.niu.core.event.common.CommonEvent;
-import com.niu.core.event.common.CommonEventDefiner;
 import com.niu.core.mapper.addon.AddonMapper;
 import com.niu.core.mapper.diy_form.DiyFormMapper;
 import com.niu.core.mapper.goods.GoodsBrandMapper;
-import com.niu.core.service.admin.addon.IAddonService;
 import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.addon.vo.InstallAddonListVo;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsSku;
 import com.niu.mall.entity.goods.MallGoodsSpec;
+import com.niu.mall.enums.goods.GoodsAuditStatusEnum;
 import com.niu.mall.enums.goods.GoodsFieldEnum;
-import com.niu.mall.enums.goods.GoodsStatusEnum;
 import com.niu.mall.event.goods.AfterGoodsEditEvent;
 import com.niu.mall.event.goods.CheckGoodsSkuPriceEvent;
 import com.niu.mall.event.goods.SupplyGoodsSyncEventDefiner;
@@ -90,11 +86,12 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
 
     /**
      * 商品添加
+     *
      * @param addParam 参数
      */
     @Override
     @Transactional
-    public void add(MallVirtualGoodsParam addParam) {
+    public Integer add(MallVirtualGoodsParam addParam) {
         Integer siteId = RequestUtils.siteId();
 
         // 添加goods表
@@ -107,12 +104,18 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
         model.setLabelIds(JSONUtil.parseArray(intArrToStrArr(addParam.getLabelIds())).toString());
         model.setServiceIds(JSONUtil.parseArray(intArrToStrArr(addParam.getServiceIds())).toString());
         model.setShopSort(addParam.getShopSort());
-        model.setStatus(coreGoodsConfigService.getConfig().getIsVerifyOpen().equals(1) ? GoodsStatusEnum.WAIT_AUDIT.getStatus() : addParam.getStatus());
+        model.setStatus(addParam.getStatus());
+        model.setAuditStatus(coreGoodsConfigService.getConfig().getIsVerifyOpen().equals(1) ?
+                GoodsAuditStatusEnum.WAIT_AUDIT.getStatus() : GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
         model.setAttrIds(ObjectUtil.isNotEmpty(addParam.getAttrIds()) ? addParam.getAttrIds().toString() : "");
         model.setShopAttrIds(ObjectUtil.isNotEmpty(addParam.getShopAttrIds()) ? addParam.getShopAttrIds().toString() : "");
         model.setAttrFormat(ObjectUtil.isNotEmpty(addParam.getAttrFormat()) ? addParam.getAttrFormat().toString() : "");
         model.setFormId(addParam.getFormId());
         model.setVirtualVerifyMobile(ObjectUtil.isNotEmpty(addParam.getVirtualVerifyMobile()) ? addParam.getVirtualVerifyMobile() : 0);
+        applyVirtualDeliveryConfig(model, addParam);
+        if (model.getUnit().isEmpty()) {
+            model.setUnit("件");
+        }
         mallGoodsMapper.insert(model);
 
         // 规格数据
@@ -132,7 +135,7 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
             if (addParam.getGoodsSkuData().keySet().size() == 0) throw new CommonException("请添加商品规格");
 
             Integer defaultCount = 0;
-            for (String key: addParam.getGoodsSkuData().keySet()) {
+            for (String key : addParam.getGoodsSkuData().keySet()) {
                 MallVirtualGoodsParam.SkuData skuParam = addParam.getGoodsSkuData().get(key);
 
                 List<String> skuSpecFormat = new LinkedList<>();
@@ -190,10 +193,35 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
         event.setGoodsData(model);
         event.setSkuData(skuData);
         EventAndSubscribeOfPublisher.publishAll(event);
+        return model.getGoodsId();
+    }
+
+    /**
+     * 对齐 PHP VirtualGoodsService：按发货方式规范化虚拟商品收发货配置
+     */
+    private void applyVirtualDeliveryConfig(MallGoods model, MallVirtualGoodsParam param) {
+        String deliveryType = ObjectUtil.defaultIfEmpty(param.getVirtualDeliveryType(), "auto");
+        model.setVirtualDeliveryType(deliveryType);
+        if ("auto".equals(deliveryType) || "manual".equals(deliveryType)) {
+            model.setVirtualDeliveryContent(ObjectUtil.defaultIfNull(param.getVirtualDeliveryContent(), ""));
+            model.setVirtualReceiveType(ObjectUtil.defaultIfEmpty(param.getVirtualReceiveType(), "artificial"));
+            model.setVirtualVerifyType(0);
+            model.setVirtualIndate(0);
+            model.setVirtualRefund(0);
+            model.setVirtualRefundDay(0);
+        } else if ("verify".equals(deliveryType)) {
+            model.setVirtualDeliveryContent("");
+            model.setVirtualReceiveType("artificial");
+            model.setVirtualVerifyType(ObjectUtil.defaultIfNull(param.getVirtualVerifyType(), 0));
+            model.setVirtualIndate(ObjectUtil.defaultIfNull(param.getVirtualIndate(), 0));
+            model.setVirtualRefund(ObjectUtil.defaultIfNull(param.getVirtualRefund(), 0));
+            model.setVirtualRefundDay(ObjectUtil.defaultIfNull(param.getVirtualRefundDay(), 0));
+        }
     }
 
     /**
      * int 数组转 str 数组
+     *
      * @param arr
      * @return
      */
@@ -208,6 +236,7 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
 
     /**
      * int 数组转 str 数组
+     *
      * @param arr
      * @return
      */
@@ -230,13 +259,14 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
     public void edit(Integer id, MallVirtualGoodsParam editParam) {
         Integer siteId = RequestUtils.siteId();
         // 校验商品规格价格
-        editCheckGoodsSkuPrice(id,editParam);
+        editCheckGoodsSkuPrice(id, editParam);
         MallGoods model = mallGoodsMapper.selectOne(new QueryWrapper<MallGoods>().eq("goods_id", id).eq("site_id", siteId).eq("delete_time", 0));
         Assert.notNull(model, "商品不存在");
 
         Long activeGoodsCount = shopGoodsService.getActiveGoodsCount(id);
         // 如果有正在进行的活动不允许下架
-        if (editParam.getStatus().equals(0) && activeGoodsCount > 0) throw new CommonException("商品正在参与营销活动，禁止修改");
+        if (editParam.getStatus().equals(0) && activeGoodsCount > 0)
+            throw new CommonException("商品正在参与营销活动，禁止修改");
 
         BeanUtils.copyProperties(editParam, model);
         model.setGoodsCover(editParam.getGoodsImage().split(",")[0]);
@@ -250,7 +280,13 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
         model.setFormId(editParam.getFormId());
         model.setSupplySync(ObjectUtil.isNotEmpty(editParam.getSupplySync()) ? editParam.getSupplySync() : 0);
         model.setVirtualVerifyMobile(ObjectUtil.isNotEmpty(editParam.getVirtualVerifyMobile()) ? editParam.getVirtualVerifyMobile() : 0);
-        model.setStatus(coreGoodsConfigService.getConfig().getIsVerifyOpen().equals(1) ? GoodsStatusEnum.WAIT_AUDIT.getStatus() : editParam.getStatus());
+        applyVirtualDeliveryConfig(model, editParam);
+        model.setStatus(editParam.getStatus());
+        model.setAuditStatus(coreGoodsConfigService.getConfig().getIsVerifyOpen().equals(1) ?
+                GoodsAuditStatusEnum.WAIT_AUDIT.getStatus() : GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
+        if (model.getUnit().isEmpty()) {
+            model.setUnit("件");
+        }
         mallGoodsMapper.updateById(model);
 
         // 规格数据
@@ -303,7 +339,7 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                 List<Integer> skuIdArr = new LinkedList<>();
 
                 Integer defaultCount = 0;
-                for (String key: editParam.getGoodsSkuData().keySet()) {
+                for (String key : editParam.getGoodsSkuData().keySet()) {
                     MallVirtualGoodsParam.SkuData skuParam = editParam.getGoodsSkuData().get(key);
 
                     List<String> skuSpecFormat = new LinkedList<>();
@@ -347,7 +383,8 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                 ).stream().map(i -> i.getSkuId()).toArray(Integer[]::new);
 
                 if (removeSkuIdArr.length > 0) {
-                    if (shopGoodsService.getSkuTransactionCount(removeSkuIdArr) > 0) throw new CommonException("存在未完成的订单，不允许删除规格");
+                    if (shopGoodsService.getSkuTransactionCount(removeSkuIdArr) > 0)
+                        throw new CommonException("存在未完成的订单，不允许删除规格");
                     mallGoodsSkuMapper.delete(new QueryWrapper<MallGoodsSku>().in("sku_id", Arrays.asList(removeSkuIdArr)));
                 }
 
@@ -376,11 +413,13 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                     specData.add(spec);
                 }
                 // 删除移除的规格值
-                if (specIdArr.size() > 0) mallGoodsSpecMapper.delete(new QueryWrapper<MallGoodsSpec>().eq("goods_id", id).notIn("spec_id", specIdArr));
+                if (specIdArr.size() > 0)
+                    mallGoodsSpecMapper.delete(new QueryWrapper<MallGoodsSpec>().eq("goods_id", id).notIn("spec_id", specIdArr));
 
                 shopGoodsSpecService.insertAll(specData);
             } else {
-                if (shopGoodsService.getGoodsTransactionCount(id) > 0) throw new CommonException("存在未完成的订单，无法编辑商品");
+                if (shopGoodsService.getGoodsTransactionCount(id) > 0)
+                    throw new CommonException("存在未完成的订单，无法编辑商品");
 
                 // 删除原来的规格
                 mallGoodsSkuMapper.delete(new QueryWrapper<MallGoodsSku>().eq("goods_id", id));
@@ -388,7 +427,7 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                 mallGoodsSpecMapper.delete(new QueryWrapper<MallGoodsSpec>().eq("goods_id", id));
 
                 Integer defaultCount = 0;
-                for (String key: editParam.getGoodsSkuData().keySet()) {
+                for (String key : editParam.getGoodsSkuData().keySet()) {
                     MallVirtualGoodsParam.SkuData skuParam = editParam.getGoodsSkuData().get(key);
 
                     List<String> skuSpecFormat = new LinkedList<>();
@@ -450,10 +489,11 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
 
     /**
      * 检查插件是否安装
+     *
      * @param key
      */
     private Boolean checkAddon(String key) {
-        Map<String, InstallAddonListVo> addonListVoMap= coreAddonService.getInstallAddonList();
+        Map<String, InstallAddonListVo> addonListVoMap = coreAddonService.getInstallAddonList();
         return addonListVoMap.get(key) != null;
     }
 
@@ -463,13 +503,13 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
      * @param goodsId   商品ID
      * @param editParam 编辑参数
      */
-    public void editCheckGoodsSkuPrice(Integer goodsId,MallVirtualGoodsParam editParam) {
+    public void editCheckGoodsSkuPrice(Integer goodsId, MallVirtualGoodsParam editParam) {
         int supplyGoodsId = 0;
 
         if (checkAddon("supply")) {
             // 查询供应商品ID
             MallGoods model = mallGoodsMapper.selectOne(new QueryWrapper<MallGoods>().eq("goods_id", goodsId).eq("site_id", RequestUtils.siteId()));
-            if(model != null){
+            if (model != null) {
                 supplyGoodsId = model.getSupplyGoodsId();
             }
             // 查询商品SKU数据
@@ -484,17 +524,17 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                     });
                 } else if ("multi".equals(editParam.getSpecType())) {
                     // 多规格处理
-                    if (!editParam.getGoodsSkuData().keySet().isEmpty()){
+                    if (!editParam.getGoodsSkuData().keySet().isEmpty()) {
                         Map<Integer, BigDecimal> priceMap = new HashMap<>();
                         for (String key : editParam.getGoodsSkuData().keySet()) {
                             MallVirtualGoodsParam.SkuData skuParam = editParam.getGoodsSkuData().get(key);
-                            if (ObjectUtil.isNotEmpty(skuParam.getSkuId())){
+                            if (ObjectUtil.isNotEmpty(skuParam.getSkuId())) {
                                 priceMap.put(skuParam.getSkuId(), skuParam.getPrice());
                             }
                         }
-                        if(!priceMap.isEmpty()){
+                        if (!priceMap.isEmpty()) {
                             for (MallGoodsSku sku : skuData) {
-                                if (priceMap.get(sku.getSkuId()) != null){
+                                if (priceMap.get(sku.getSkuId()) != null) {
                                     filteredSkuData.put(sku.getSupplySkuId(), priceMap.get(sku.getSkuId()));
                                 }
                             }
@@ -520,10 +560,12 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
     @Override
     public MallVirtualGoodsInitVo getInit(Integer goodsId) {
         MallVirtualGoodsInitVo vo = new MallVirtualGoodsInitVo();
+
         if (goodsId > 0) {
             MallGoods model = mallGoodsMapper.selectOne(
                     new QueryWrapper<MallGoods>()
                             .eq("goods_id", goodsId)
+                            .eq("site_id", RequestUtils.siteId())
                             .eq("delete_time", 0));
             if (model == null) return null;
 
@@ -534,7 +576,7 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
             goodsInfo.setLabelIds(strArrToIntArr(Convert.toStrArray(JSONUtil.parseArray(model.getLabelIds()))));
             goodsInfo.setServiceIds(strArrToIntArr(Convert.toStrArray(JSONUtil.parseArray(model.getServiceIds()))));
             goodsInfo.setStatus(String.valueOf(model.getStatus()));
-            if (goodsInfo.getDiyDetailId() != null && goodsInfo.getDiyDetailId() == 0) goodsInfo.setDiyDetailId( null);
+            if (goodsInfo.getDiyDetailId() != null && goodsInfo.getDiyDetailId() == 0) goodsInfo.setDiyDetailId(null);
             List<MallVirtualGoodsInitVo.SkuInfo> skuList = CollectUtils.convert(mallGoodsSkuMapper.selectList(new QueryWrapper<MallGoodsSku>().eq("goods_id", model.getGoodsId())), MallVirtualGoodsInitVo.SkuInfo.class);
             goodsInfo.setSkuList(skuList);
 
@@ -546,14 +588,15 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                 goodsInfo.setSpecList(specList);
             }
 
-            if (model.getVirtualReceiveType().equals("verify")) {
-                goodsInfo.setOrderGoodsCount(shopGoodsService.getGoodsTransactionCount(model.getGoodsId()));
-            }
+//            if (model.getVirtualReceiveType().equals("verify")) {
+//                goodsInfo.setOrderGoodsCount(shopGoodsService.getGoodsTransactionCount(model.getGoodsId()));
+//            }
+            goodsInfo.setOrderGoodsCount(0L);
 
             if (model.getBrandId().equals(0)) {
                 goodsInfo.setBrandId("");
                 goodsInfo.setBrandOption(new GoodsBrand());
-            }else{
+            } else {
                 goodsInfo.setBrandOption(goodsBrandMapper.selectOne(new QueryWrapper<GoodsBrand>().eq("brand_id", model.getBrandId())));
             }
 
@@ -563,12 +606,9 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
             Addon supply = addonMapper.selectOne(new QueryWrapper<Addon>().eq("`key`", "supply"));
             goodsInfo.setSupplySyncShow(0);
             //存在供应商
-            if(ObjectUtil.isNotEmpty(supply))
-            {
-                if(goodsInfo.getSupplyGoodsId() > 0)
-                {
-                    if(goodsInfo.getSupplySync() == 1)
-                    {
+            if (ObjectUtil.isNotEmpty(supply)) {
+                if (goodsInfo.getSupplyGoodsId() > 0) {
+                    if (goodsInfo.getSupplySync() == 1) {
                         //这里需要处理同步设置，事件调用
                         SupplyGoodsSyncEventDefiner.SupplyGoodsSyncEvent event = new SupplyGoodsSyncEventDefiner.SupplyGoodsSyncEvent();
                         event.setGoodsId(goodsInfo.getSupplyGoodsId());
@@ -578,8 +618,10 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                             if (item == null) continue;
                             if (ObjectUtil.isNotEmpty(item.getGoodsName())) goodsInfo.setGoodsName(item.getGoodsName());
                             if (ObjectUtil.isNotEmpty(item.getSubTitle())) goodsInfo.setSubTitle(item.getSubTitle());
-                            if (ObjectUtil.isNotEmpty(item.getGoodsCover())) goodsInfo.setGoodsCover(item.getGoodsCover());
-                            if (ObjectUtil.isNotEmpty(item.getGoodsImage())) goodsInfo.setGoodsImage(item.getGoodsImage());
+                            if (ObjectUtil.isNotEmpty(item.getGoodsCover()))
+                                goodsInfo.setGoodsCover(item.getGoodsCover());
+                            if (ObjectUtil.isNotEmpty(item.getGoodsImage()))
+                                goodsInfo.setGoodsImage(item.getGoodsImage());
                             if (ObjectUtil.isNotEmpty(item.getGoodsDesc())) goodsInfo.setGoodsDesc(item.getGoodsDesc());
                         }
                     }
@@ -588,17 +630,16 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                     vo.setDisableEditArea(GoodsFieldEnum.DISABLE_EDIT_AREA.getValue());
                 }
             }
-            if(!goodsInfo.getFormId().equals(""))
-            {
+            if (!goodsInfo.getFormId().equals("")) {
                 DiyForm formInfo = diyFormMapper.selectOne(new QueryWrapper<DiyForm>().eq("form_id", goodsInfo.getFormId()));
-                if(ObjectUtil.isNotEmpty(formInfo))
-                {
+                if (ObjectUtil.isNotEmpty(formInfo)) {
                     goodsInfo.setPageTitle(formInfo.getPageTitle());
                 }
             }
 
 
-            List<MallVirtualGoodsInitVo.MallGoodsAttrVo> voList = new Gson().fromJson(model.getAttrFormat(),new TypeToken<List<MallVirtualGoodsInitVo.MallGoodsAttrVo>>(){}.getType());
+            List<MallVirtualGoodsInitVo.MallGoodsAttrVo> voList = new Gson().fromJson(model.getAttrFormat(), new TypeToken<List<MallVirtualGoodsInitVo.MallGoodsAttrVo>>() {
+            }.getType());
             goodsInfo.setAttrFormat(voList);
 
             vo.setGoodsInfo(goodsInfo);

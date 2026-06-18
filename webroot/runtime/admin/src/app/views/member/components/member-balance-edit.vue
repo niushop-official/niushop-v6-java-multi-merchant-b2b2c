@@ -6,15 +6,15 @@
                 <div class="input-width"> {{ formData.balance }} </div>
             </el-form-item>
 
-            <el-form-item :label="t('adjustType')">
-                <el-radio-group v-model="formData.adjust_type">
-                    <el-radio :label="1">{{ t('adjustAddBalance') }}</el-radio>
-                    <el-radio :label="-1">{{ t('adjustReduceBalance') }}</el-radio>
-                </el-radio-group>
-            </el-form-item>
-
             <el-form-item :label="t('adjustBalance')" prop="adjust">
-                <el-input-number v-model="formData.adjust" clearable :min="0" :max="999999" :placeholder="t('adjustPlaceholder')"/>
+                 <el-input v-model.number="formData.adjust" clearable  :placeholder="t('adjustPlaceholder')" class="input-width">
+                     <template #prepend>
+                        <el-select v-model="formData.adjust_type" placeholder="请选择" style="width: 80px">
+                            <el-option :label="t('增加')" :value="1" />
+                            <el-option :label="t('减少')" :value="-1" />
+                        </el-select>
+                    </template>
+                 </el-input>
             </el-form-item>
 
             <el-form-item :label="t('memo')" prop="memo">
@@ -65,7 +65,9 @@ const formRules = computed(() => {
             {
                 validator: (rule: any, value: string, callback: any) => {
                     const adjust = Math.abs(parseFloat(formData.adjust))
-
+                    if (formData.adjust <0) {
+                        callback(new Error(t('调整数量需大于0')))
+                    }
                     if (!adjust) {
                         callback(new Error(t('adjustBalancePlaceholder')))
                     }

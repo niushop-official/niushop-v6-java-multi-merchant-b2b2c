@@ -230,7 +230,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
         if (order == null) throw new CommonException("订单已失效");
 
         if (param.getIsAgree().equals(1)) {
-            BigDecimal maxRefundMoney = orderGoods.getGoodsMoney().subtract(orderGoods.getDiscountMoney());
+            BigDecimal maxRefundMoney = coreRefundService.getItemRefundableMoney(refund.getOrderGoodsId());
             if (refund.getIsRefundDelivery().equals(1)) maxRefundMoney = maxRefundMoney.add(order.getDeliveryMoney());
 
             if (param.getMoney().compareTo(maxRefundMoney) == 1) throw new CommonException("退款金额不能大于可退款总额");
@@ -251,14 +251,14 @@ public class RefundActionServiceImpl implements IRefundActionService {
 
             logParam.setType(OrderRefundActionTypeEnum.AGREE_AUDIT_APPLY_ACTION.getType());
 
-            messageKey = "shop_refund_agree";
+            messageKey = "mall_refund_agree";
         } else {
             // 拒绝退款
             model.setShopReason(param.getShopReason());
             model.setStatus(OrderRefundStatusEnum.STORE_REFUSE_REFUND_GOODS_APPLY_WAIT_BUYER.getStatus().toString());
             logParam.setType(OrderRefundActionTypeEnum.REFUSE_AUDIT_APPLY_ACTION.getType());
 
-            messageKey = "shop_refund_refuse";
+            messageKey = "mall_refund_refuse";
         }
 
         mallOrderRefundMapper.updateById(model);

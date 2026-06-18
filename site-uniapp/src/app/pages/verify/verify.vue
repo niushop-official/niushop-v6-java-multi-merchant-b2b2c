@@ -24,18 +24,14 @@
             <view class="card-template mt-[var(--top-m)] sidebar-margin">
                 <view class="flex" :class="{'mb-[var(--top-m)]': (verifyInfo.value.list.length - 1 != index)}" v-for="(item,index) in verifyInfo.value.list" :key="index">
                     <image class="w-[150rpx] h-[150rpx] rounded-[var(--goods-rounded-big)]" mode="aspectFill" v-if="item.cover" :src="img(item.cover)"/>
-                    <image class="w-[150rpx] h-[150rpx] rounded-[var(--goods-rounded-big)]" mode="aspectFill" v-else :src="img('addon/tourism/tourism/member/hotel.png')"/>
+                    <image class="w-[150rpx] h-[150rpx] rounded-[var(--goods-rounded-big)]" mode="aspectFill" v-else :src="img('static/resource/images/diy/shop_default.jpg')"/>
                     <view class="flex flex-col flex-1 ml-[20rpx] py-[4rpx]">
                         <view class="leading-[1]">
                             <view class="leading-[40rpx] truncate max-w-[490rpx] text-[28rpx]">{{ item.name }}</view>
                             <view class="mt-[14rpx] truncate text-[24rpx] text-[var(--text-color-light9)] leading-[28rpx] max-w-[490rpx]" v-if="item.sub_name">{{ item.sub_name }}</view>
                         </view>
-                        <view class="flex items-center mt-[20rpx]">
-							<view class="text-[var(--text-color-light6)] text-[28rpx] text-right">x{{item.verify_num }}</view>
-							<view class="leading-[1] ml-3 text-[var(--price-text-color)] text-[28rpx]">
-								{{item.un_use_msg}}
-							</view>
-						</view>
+                        <view class="text-[var(--text-color-light6)] text-[28rpx] mt-[20rpx]">x{{item.verify_num }}</view>
+                        <view class="leading-[1]  text-[var(--price-text-color)] text-[28rpx] mt-[20rpx]">{{item.un_use_msg}}</view>
                     </view>
                 </view>
             </view>

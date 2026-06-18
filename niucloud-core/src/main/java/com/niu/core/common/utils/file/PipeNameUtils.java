@@ -8,6 +8,7 @@ import com.niu.core.service.admin.sys.ISysBackupRecordsService;
 import com.niu.core.service.admin.sys.vo.BackupTaskVo;
 import com.niu.core.service.admin.upgrade.IUpgradeService;
 import com.niu.core.service.admin.upgrade.vo.UpgradeTaskVo;
+import com.niu.core.service.core.addon.AddonInstallJavaTools;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -148,6 +149,9 @@ public class PipeNameUtils {
             UpgradeTaskVo task = upgradeService.getUpgradeTask();
             if (ObjectUtil.isNotEmpty(task) && ObjectUtil.isNotEmpty(task.getStatus()) && task.getStatus().equals("restarting")) {
                 task.setStatus("restarted");
+                if (!GlobalConfig.runActive.equalsIgnoreCase("dev") && task.getExecuted().contains("coverCode")) {
+                    AddonInstallJavaTools.syncAddonJsonFromInstalled();
+                }
                 upgradeService.setUpgradeTaskCache(task);
             }
         } else if (command.startsWith("restorebackupfail,")) {

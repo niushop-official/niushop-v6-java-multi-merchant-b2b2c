@@ -127,6 +127,12 @@ public class MallGoodsParam implements Serializable {
 
     /** 供应商是否有更新 */
     private Integer supplySync;
+
+    /** 积分折扣类型 site=默认设置(店铺统一设置) custom=单独定制 */
+    private String pointDeductType;
+    /** 积分折扣比例 */
+    private BigDecimal pointDeductRate;
+
     @Data
     public static class SkuData {
         private Integer skuId;

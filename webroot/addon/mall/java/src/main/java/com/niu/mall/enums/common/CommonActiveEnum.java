@@ -9,7 +9,10 @@ import java.util.Map;
 @Getter
 @AllArgsConstructor
 public enum CommonActiveEnum {
-    DISCOUNT("discount", "限时折扣");
+    DISCOUNT("discount", "限时折扣"),
+    FULL_REDUCTION("full_reduction", "满减"),
+    FULL_GIFT("full_gift", "满赠"),
+    POINT_DEDUCT("point_deduct", "积分抵扣");
 
     private final String type;
     private final String name;

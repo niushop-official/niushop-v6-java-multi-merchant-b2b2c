@@ -281,6 +281,37 @@ export function moveAttachment(params: Record<string, any>) {
 }
 
 /**
+ * 获取缩略图类型
+ */
+export function getThumbType() {
+    return request.get(`sys/upload/thumb_type`)
+}
+
+/**
+ * 获取文件类型后缀
+ */
+export function getExtOfType() {
+    return request.get(`sys/upload/ext_of_type`)
+}
+
+/**
+ * 获取上传设置
+ */
+export function getUploadConfig() {
+    return request.get(`sys/upload/config`)
+}
+
+/**
+ * 上传配置
+ * @param params
+ * @returns
+ */
+export function setUploadConfig(params: Record<string, any>) {
+    return request.put(`sys/upload/config`, params, { showSuccessMessage: true })
+}
+
+
+/**
  * 获取menu菜单
  */
 export function getAuthMenu() {
@@ -507,7 +538,7 @@ export function deleteCron(id: string) {
  * @returns
  */
 export function doCron(params: Record<string, any>) {
-    return request.put(`sys/schedule/do/${ params.id }`, params, {
+    return request.put(`sys/schedule/do/${params.id}`, params, {
         showErrorMessage: true,
         showSuccessMessage: true
     })
@@ -545,7 +576,6 @@ export function clearCronLog(params: Record<string, any>) {
 export function resetCron() {
     return request.post(`sys/schedule/reset`, { showSuccessMessage: true })
 }
-
 
 /***************************************************** 协议管理 ****************************************************/
 
@@ -798,7 +828,7 @@ export function getExportKeyList(app_type: string) {
  * @returns
  */
 export function exportData(export_type: string, params: Record<string, any>) {
-    return request.get(`sys/export/${export_type}`, { params })
+    return request.post(`sys/export/${export_type}`, { params })
 }
 
 /**
@@ -815,6 +845,14 @@ export function exportDataCheck(export_type: string, params: Record<string, any>
  */
 export function deleteExport(id: number) {
     return request.delete(`sys/export/${id}`, { showSuccessMessage: true })
+}
+
+/**
+ * 重新执行导出
+ * @param id
+ */
+export function againExport(id: number) {
+    return request.post(`sys/export/again_export`, { id }, { showSuccessMessage: true })
 }
 
 /***************************************************** 消息队列 ****************************************************/
@@ -852,7 +890,7 @@ export function getWeappSetting() {
  * @returns
  */
 export function setWeappSetting(params: Record<string, any>) {
-    return request.put('sys/config/weapp_list_setting', params, {showSuccessMessage: true})
+    return request.put('sys/config/weapp_list_setting', params, { showSuccessMessage: true })
 }
 
 /*****************************************************支付信息 ****************************************************/
@@ -877,7 +915,7 @@ export function getSitePayInfo(params: Record<string, any>) {
  * 发送短信验证码
  */
 export function sendSms(data: Record<string, any>) {
-    return request.post(`send/mobile/${ data.type }/site`, data, { showErrorMessage: true })
+    return request.post(`send/mobile/${data.type}/site`, data, { showErrorMessage: true })
 }
 
 /**
@@ -891,7 +929,15 @@ export function getFabNavs() {
  * 获取悬浮按钮
  */
 export function setFabNavs(params: Record<string, any>) {
-    return request.post(`sys/fab/fabnavs`, params ,  { showSuccessMessage: true, showErrorMessage: true })
+    return request.post(`sys/fab/fabnavs`, params, { showSuccessMessage: true, showErrorMessage: true })
+}
+
+/**
+ * 获取报表导出列
+ * @param app_type
+ */
+export function getExportColumns(app_type: string) {
+    return request.get(`sys/export/column/${app_type}`)
 }
 
 /**

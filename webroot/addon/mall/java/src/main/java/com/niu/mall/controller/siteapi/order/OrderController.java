@@ -1,22 +1,22 @@
 package com.niu.mall.controller.siteapi.order;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.niu.core.common.domain.Result;
+import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.domain.Result;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.pay.PayTypeEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
 import com.niu.mall.enums.order.OrderTypeEnum;
 import com.niu.mall.service.site.order.IMallOrderFinishService;
-import com.niu.mall.service.site.order.param.*;
 import com.niu.mall.service.site.order.IMallOrderService;
+import com.niu.mall.service.site.order.param.*;
 import com.niu.mall.service.site.order.vo.EditDeliveryVo;
-import com.niu.mall.service.site.order.vo.MallOrderInfoVo;
 import com.niu.mall.service.site.order.vo.MallOrderListVo;
-import com.niu.core.common.domain.PageParam;
+import com.niu.mall.service.site.order.vo.MallOrderMemberConsumeListVo;
+import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import jakarta.annotation.Resource;
 
 import java.util.Map;
 
@@ -36,12 +36,13 @@ public class OrderController {
 
     /**
      * 订单列表
-     * @param pageParam 分页
+     *
+     * @param pageParam   分页
      * @param searchParam 搜索条件
      * @return Result<PageResult<ShopOrderListVo>>
      */
     @GetMapping("/list")
-    public Result<PageResult<MallOrderListVo>> list(@Validated PageParam pageParam, @Validated MallOrderSearchParam searchParam,@RequestParam Map<String, String> allParams) {
+    public Result<PageResult<MallOrderListVo>> list(@Validated PageParam pageParam, @Validated MallOrderSearchParam searchParam, @RequestParam Map<String, String> allParams) {
         if (allParams.containsKey("extend_field_1") && ObjectUtil.isNotEmpty(allParams.get("extend_field_1"))) {
             searchParam.setExtendField1(Integer.parseInt(allParams.get("extend_field_1")));
         }
@@ -54,6 +55,7 @@ public class OrderController {
 
     /**
      * 订单详情
+     *
      * @param id 主键ID
      * @return Result<ShopOrderInfoVo>
      */
@@ -189,5 +191,18 @@ public class OrderController {
     public Result delete(@Validated @RequestBody MallOrderDeleteParam param) {
         mallOrderService.delete(param);
         return Result.success(true);
+    }
+
+    /**
+     * 订单列表
+     *
+     * @param pageParam 分页
+     * @param memberId  搜索条件
+     * @return Result<PageResult<MallOrderMemberConsumeListVo>>
+     */
+    @GetMapping("/consume/list")
+    public Result<PageResult<MallOrderMemberConsumeListVo>> list(@Validated PageParam pageParam, @RequestParam("member_id") Integer memberId) {
+        PageResult<MallOrderMemberConsumeListVo> list = mallOrderService.consumelists(pageParam, memberId);
+        return Result.success(list);
     }
 }

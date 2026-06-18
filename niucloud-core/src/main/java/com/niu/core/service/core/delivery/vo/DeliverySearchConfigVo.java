@@ -1,4 +1,5 @@
 package com.niu.core.service.core.delivery.vo;
+
 import lombok.Data;
 
 import java.io.Serializable;
@@ -21,5 +22,5 @@ public class DeliverySearchConfigVo implements Serializable {
 
     private String kd100AppKey = "";
 
-    private Integer kd100Customer = 0;
+    private String kd100Customer = "";
 }

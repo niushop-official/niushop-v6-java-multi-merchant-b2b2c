@@ -23,29 +23,35 @@ import com.niu.mall.enums.coupon.CouponStatusEnum;
 import com.niu.mall.mapper.coupon.MallCouponGoodsMapper;
 import com.niu.mall.mapper.coupon.MallCouponMapper;
 import com.niu.mall.mapper.coupon.MallCouponMemberMapper;
+import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
 import com.niu.mall.service.site.marketing.ICouponService;
 import com.niu.mall.service.site.marketing.IMallCouponGoodsService;
 import com.niu.mall.service.site.marketing.param.MallCouponParam;
 import com.niu.mall.service.site.marketing.param.MallCouponSearchParam;
 import com.niu.mall.service.site.marketing.param.MallCouponSelectParam;
+import com.niu.mall.service.site.marketing.param.MallCouponSendParam;
 import com.niu.mall.service.site.marketing.vo.MallCouponInfoVo;
 import com.niu.mall.service.site.marketing.vo.MallCouponListVo;
 import com.niu.mall.service.site.marketing.vo.MallCouponMemberListVo;
 import com.niu.mall.service.site.marketing.vo.MallCouponSelectVo;
+import com.niu.mall.service.site.marketing.vo.MallCouponStatVo;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
-public class
-CouponServiceImpl implements ICouponService {
+public class CouponServiceImpl implements ICouponService {
 
     @Resource
     private IGoodsCategoryService goodsCategoryService;
@@ -61,6 +67,9 @@ CouponServiceImpl implements ICouponService {
 
     @Resource
     IMallCouponGoodsService shopCouponGoodsService;
+
+    @Resource
+    ICoreCouponMemberService coreCouponMemberService;
 
 
     @Override
@@ -454,11 +463,13 @@ CouponServiceImpl implements ICouponService {
                 .innerJoin("?_member m ON c.member_id = m.member_id".replace("?_", GlobalConfig.tablePrefix));
         queryWrapper.select("c.*,m.username,m.mobile,m.nickname,m.member_no");
         queryWrapper.eq("c.site_id", RequestUtils.siteId());
-        queryWrapper.eq("c.coupon_id", id);
+        if (id != null) {
+            queryWrapper.eq("c.coupon_id", id);
+        }
 
-        if (!keywords.isEmpty()) {
+        if (keywords != null && !keywords.isEmpty()) {
             //查询逻辑应该是在领取该优惠券的用户中模糊查询，不是在所有用户中模糊查询
-            queryWrapper.and((qw)->qw.like("m.username", keywords).or()
+            queryWrapper.and((qw) -> qw.like("m.username", keywords).or()
                     .like("m.nickname", keywords).or()
                     .like("m.mobile", keywords));
         }
@@ -487,5 +498,70 @@ CouponServiceImpl implements ICouponService {
         MallCoupon mallCoupon = new MallCoupon();
         mallCoupon.setStatus(CouponStatusEnum.INVALID.getStatus());
         mallCouponMapper.update(mallCoupon, new QueryWrapper<MallCoupon>().eq("id", couponId).eq("site_id", RequestUtils.siteId()));
+    }
+
+    @Override
+    public Boolean sendCoupon(MallCouponSendParam param) {
+        // 1. 获取参数
+        List<MallCouponSendParam.CouponData> couponData = param.getCouponData();
+        List<Integer> memberIds = param.getMemberIds();
+
+        // 2. 参数校验
+        if (CollectionUtils.isEmpty(couponData) || CollectionUtils.isEmpty(memberIds)) {
+            throw new AdminException("优惠券发放参数错误");
+        }
+
+        // 3. 循环发放
+        for (Integer memberId : memberIds) {
+            for (MallCouponSendParam.CouponData coupon : couponData) {
+                Integer couponId = coupon.getCouponId();
+                Integer num = coupon.getNum();
+                try {
+                    coreCouponMemberService.sendCoupon(RequestUtils.siteId(), memberId, couponId, num, "店铺发券");
+                } catch (Exception e) {
+                    log.error("店铺优惠券发放失败，优惠券ID：{}，用户ID：{}，数量：{}，错误信息：{}",
+                            couponId, memberId, num, e.getMessage(), e);
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public MallCouponStatVo getCouponStat(Integer id) {
+        Integer siteId = RequestUtils.siteId();
+        long now = System.currentTimeMillis() / 1000;
+
+        QueryWrapper<MallCoupon> couponWrapper = new QueryWrapper<>();
+        couponWrapper.select("IFNULL(SUM(receive_count), 0) AS receive_count");
+        couponWrapper.eq("site_id", siteId);
+        if (id != null && id > 0) {
+            couponWrapper.eq("id", id);
+        }
+        Map<String, Object> sumRow = mallCouponMapper.selectMaps(couponWrapper).stream().findFirst().orElse(null);
+        long receiveCount = 0L;
+        if (sumRow != null && sumRow.get("receive_count") != null) {
+            receiveCount = Long.parseLong(sumRow.get("receive_count").toString());
+        }
+
+        QueryWrapper<MallCouponMember> useWrapper = new QueryWrapper<>();
+        useWrapper.eq("site_id", siteId).gt("use_time", 1);
+        if (id != null && id > 0) {
+            useWrapper.eq("coupon_id", id);
+        }
+        Long receiveUseCount = mallCouponMemberMapper.selectCount(useWrapper);
+
+        QueryWrapper<MallCouponMember> expireWrapper = new QueryWrapper<>();
+        expireWrapper.eq("site_id", siteId).eq("use_time", 0).lt("expire_time", now);
+        if (id != null && id > 0) {
+            expireWrapper.eq("coupon_id", id);
+        }
+        Long receiveExpireCount = mallCouponMemberMapper.selectCount(expireWrapper);
+
+        MallCouponStatVo vo = new MallCouponStatVo();
+        vo.setReceiveCount(receiveCount);
+        vo.setReceiveUseCount(receiveUseCount != null ? receiveUseCount : 0L);
+        vo.setReceiveExpireCount(receiveExpireCount != null ? receiveExpireCount : 0L);
+        return vo;
     }
 }

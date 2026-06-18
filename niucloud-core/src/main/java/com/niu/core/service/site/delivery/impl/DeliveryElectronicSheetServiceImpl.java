@@ -3,7 +3,6 @@ package com.niu.core.service.site.delivery.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,6 +10,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.json.JacksonUtils;
 import com.niu.core.consts.ShopDeliveryElectronicSheetConst;
 import com.niu.core.entity.delivery.DeliveryElectronicSheet;
 import com.niu.core.entity.delivery.DeliveryCompany;
@@ -281,8 +281,11 @@ public class DeliveryElectronicSheetServiceImpl implements IDeliveryElectronicSh
     @Override
     public ElectronicSheetConfigValueVo getElectronicSheetConfig() {
         CoreSysConfigVo config = coreConfigService.getConfig(RequestUtils.siteId(), ShopDeliveryElectronicSheetConst.ELECTRONIC_SHEET_CONFIG_KEY);
-        return ObjectUtil.hasEmpty(config, config.getValue()) ? ElectronicSheetConfigValueVo.newInstance() :
-                JSON.parseObject(config.getValue(), ElectronicSheetConfigValueVo.class);
+        if (ObjectUtil.hasEmpty(config, config.getValue())) {
+            return ElectronicSheetConfigValueVo.newInstance();
+        }
+        ElectronicSheetConfigValueVo parsed = JacksonUtils.toSnakeCaseObject(config.getValue(), ElectronicSheetConfigValueVo.class);
+        return parsed != null ? parsed : ElectronicSheetConfigValueVo.newInstance();
     }
 
     @Override

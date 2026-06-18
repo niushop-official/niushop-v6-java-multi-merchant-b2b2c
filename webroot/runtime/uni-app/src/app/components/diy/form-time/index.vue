@@ -45,7 +45,7 @@
                 </view>
                 <view class="layout-two-content" @click="openCalendar">
                     <view class="flex-1 text-overflow-ellipsis flex justify-end "
-                          :class="{'!text-[#999]' : !diyComponent.field.value && !diyComponent.defaultControl}"
+                          :class="{'!text-[#999]' : !diyComponent.field.value && !diyComponent.defaultControl, '!justify-start': diyGlobal.contentAlign == 'left'}"
                           :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx'}"
                           @click="startDatetime = true">{{ startTime }}</view>
                     <text class="nc-iconfont !text-[var(--text-color-light9)] !text-[26rpx] nc-icon-youV6xx -mr-[8rpx]" :style="iconfontStyle"></text>

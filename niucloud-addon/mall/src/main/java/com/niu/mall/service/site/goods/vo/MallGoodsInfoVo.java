@@ -50,5 +50,9 @@ public class MallGoodsInfoVo implements Serializable {
     private Integer posterId;  // 海报id
     private Integer formId;
     private Integer isGift;
+    /** 积分折扣类型 site=默认设置(店铺统一设置) custom=单独定制 */
+    private String pointDeductType;
+    /** 积分折扣比例 */
+    private BigDecimal pointDeductRate;
 
 }

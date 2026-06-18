@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -275,32 +276,95 @@ public class AddonInstallJavaTools {
     }
 
     public static void addAddonJson(String addonName) {
-        // 1、读取JAR内容
+        upsertAddonJson(addonName);
+    }
+
+    /**
+     * 新增或更新插件在 addon.json 中的运行描述
+     */
+    public static void upsertAddonJson(String addonName) {
+        JSONObject entry = buildAddonJsonEntry(addonName);
+        String addonRunDescPath = WebAppEnvs.get().webRootDownJar + "addon/addon.json";
+        JSONArray runAddonJsonArray = JsonLoadUtils.readFileToJSONArray(addonRunDescPath);
+        runAddonJsonArray = upsertAddonEntry(runAddonJsonArray, addonName, entry);
+        writeAddonJson(addonRunDescPath, runAddonJsonArray);
+    }
+
+    /**
+     * 从数据库已安装插件列表重建 addon.json
+     */
+    public static void syncAddonJsonFromInstalled() {
+        if (GlobalConfig.runActive.equalsIgnoreCase("dev")) {
+            return;
+        }
+        try {
+            ICoreAddonService coreAddonService = SpringContext.bean(ICoreAddonService.class);
+            List<String> addonKeys = coreAddonService.getAddonCache();
+            JSONArray runAddonJsonArray = new JSONArray();
+            for (String addonName : addonKeys) {
+                try {
+                    runAddonJsonArray.add(buildAddonJsonEntry(addonName));
+                } catch (Exception e) {
+                    log.warn("同步 addon.json 时跳过插件 {}: {}", addonName, e.getMessage());
+                }
+            }
+            String addonRunDescPath = WebAppEnvs.get().webRootDownJar + "addon/addon.json";
+            writeAddonJson(addonRunDescPath, runAddonJsonArray);
+            log.info("已从数据库同步 addon.json，共 {} 个插件", runAddonJsonArray.size());
+        } catch (Exception e) {
+            log.error("同步 addon.json 失败", e);
+        }
+    }
+
+    private static JSONObject buildAddonJsonEntry(String addonName) {
         String addonJarPath = WebAppEnvs.get().webRootDownJar + "addon/" + addonName + ".jar";
         File addonJarFile = new File(addonJarPath);
         if (!addonJarFile.exists()) {
             throw new RuntimeException("插件" + addonName + ".jar文件不存在.");
         }
-        // 2、读取JAR中的描述文件
         JSONObject addonInfoJsonObject = JsonLoadUtils.readJsonObjectFromJarInner(addonJarPath, "info.json");
         if (addonInfoJsonObject == null) {
             throw new RuntimeException("插件" + addonName + ".jar文件中描述文件info.json不存在.");
         }
-        String addonJar = addonInfoJsonObject.getStr("jar");
-        String addonMainClass = addonInfoJsonObject.getStr("mainClass");
-        // 3、插件归档目录下读取==>addon.json文件，文件可以为空
-        String addonRunDescPath = WebAppEnvs.get().webRootDownJar + "addon/addon.json";
-        JSONArray runAddonJsonArray = JsonLoadUtils.readFileToJSONArray(addonRunDescPath);
-        boolean containedAddon = checkContainedAddon(runAddonJsonArray, addonName);
-        if (containedAddon) {
-            throw new RuntimeException("插件" + addonName + "已存在,不可以再次安装.");
+        JSONObject entry = new JSONObject();
+        entry.put("name", addonName);
+        entry.put("jar", addonInfoJsonObject.getStr("jar"));
+        entry.put("mainClass", addonInfoJsonObject.getStr("mainClass"));
+        return entry;
+    }
+
+    private static JSONArray upsertAddonEntry(JSONArray runAddonJsonArray, String addonName, JSONObject entry) {
+        if (runAddonJsonArray == null) {
+            runAddonJsonArray = new JSONArray();
         }
-        // 4、添加到插件内容到：addon.json
-        JSONObject newRunJsonObject = new JSONObject();
-        newRunJsonObject.put("name", addonName);
-        newRunJsonObject.put("jar", addonJar);
-        newRunJsonObject.put("mainClass", addonMainClass);
-        runAddonJsonArray.add(newRunJsonObject);
+        int index = findAddonIndex(runAddonJsonArray, addonName);
+        if (index >= 0) {
+            runAddonJsonArray.set(index, entry);
+        } else {
+            runAddonJsonArray.add(entry);
+        }
+        return runAddonJsonArray;
+    }
+
+    private static int findAddonIndex(JSONArray jsonArray, String addonName) {
+        if (jsonArray == null || jsonArray.isEmpty()) {
+            return -1;
+        }
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            String name = jsonObject.getStr("name");
+            if (StrUtil.isNotEmpty(name) && name.equals(addonName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static void writeAddonJson(String addonRunDescPath, JSONArray runAddonJsonArray) {
+        File addonDir = new File(WebAppEnvs.get().webRootDownJar + "addon/");
+        if (!addonDir.exists()) {
+            addonDir.mkdirs();
+        }
         String formattedJsonStr = JSONUtil.formatJsonStr(JSONUtil.toJsonStr(runAddonJsonArray));
         FileTools.write(addonRunDescPath, formattedJsonStr);
     }

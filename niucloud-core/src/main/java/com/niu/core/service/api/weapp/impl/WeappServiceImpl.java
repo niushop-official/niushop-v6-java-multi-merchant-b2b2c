@@ -220,6 +220,7 @@ public class WeappServiceImpl implements IWeappService {
         //查询支付信息
         String path = "";
         Pay pay = payMapper.selectOne(new QueryWrapper<Pay>().eq("trade_no", param.getTransactionId()));
+        log.info("进入到核销油流：{}",pay);
         if(ObjectUtil.isNotEmpty( pay)){
             // 通过事件获取核销创建
             WapOrderDetailPathEventDefiner.WapOrderDetailPathEvent event = new WapOrderDetailPathEventDefiner.WapOrderDetailPathEvent();
@@ -232,6 +233,7 @@ public class WeappServiceImpl implements IWeappService {
                 }
             }
         }
+        log.info("路径地址：{}",path);
         return path;
     }
 

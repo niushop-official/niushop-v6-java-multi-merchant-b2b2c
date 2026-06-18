@@ -6,6 +6,7 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.mall.service.admin.marketing.param.MallCouponParam;
 import com.niu.mall.service.admin.marketing.param.MallCouponSearchParam;
 import com.niu.mall.service.admin.marketing.param.MallCouponSelectParam;
+import com.niu.mall.service.site.marketing.param.MallCouponSendParam;
 import com.niu.mall.service.admin.marketing.vo.MallCouponInfoVo;
 import com.niu.mall.service.admin.marketing.vo.MallCouponListVo;
 import com.niu.mall.service.admin.marketing.vo.MallCouponMemberListVo;
@@ -90,5 +91,12 @@ public interface IPlatformCouponService {
      * @param couponId
      */
     void couponInvalid(Integer couponId);
+
+    /**
+     * 平台优惠券批量发放
+     * @param couponData 优惠券数据
+     * @param memberIds 会员ID列表
+     */
+    Boolean sendCoupon(List<MallCouponSendParam.CouponData> couponData, List<Integer> memberIds);
 
 }

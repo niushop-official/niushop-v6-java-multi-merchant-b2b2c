@@ -19,6 +19,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -99,6 +100,20 @@ public class MallOrderListVo implements Serializable {
     private String extendField1; //扩展字段1
     @JsonProperty("extend_field_2")
     private String extendField2; //扩展字段2
+
+    /**  列表 field 对齐 */
+    private Integer usePoint;
+    private BigDecimal pointDeductMoney;
+
+    /**  with order_gift_goods 一致（完整行 + 缩略图 getter） */
+    private List<OrderGiftGoods> orderGiftGoods = new ArrayList<>();
+
+    /**  回调 gift_order_goods 精简结构一致 */
+    private List<Map<String, Object>> giftOrderGoods = new ArrayList<>();
+
+    /** order_status_data、与 status_name 同源结构 */
+    private Map<String, Object> orderStatusData;
+
     @Data
     public static class Site{
         private Integer siteID;
@@ -137,6 +152,31 @@ public class MallOrderListVo implements Serializable {
     }
 
     @Data
+    public static class OrderGiftGoods {
+        private Integer orderGiftId;
+        private Integer siteId;
+        private Integer orderId;
+        private Integer memberId;
+        private Integer goodsId;
+        private Integer skuId;
+        private String goodsName;
+        private String skuName;
+        private String goodsImage;
+        private String skuImage;
+        private BigDecimal price;
+        private Integer num;
+        private BigDecimal goodsMoney;
+
+        private ICoreUploadService coreUploadService() {
+            return SpringContext.bean(ICoreUploadService.class);
+        }
+
+        public String getGoodsImageThumbSmall() {
+            return coreUploadService().thumb(this.siteId, this.getGoodsImage(), UploadThumbTypeEnum.SMALL.getType()).getDataMap().get(UploadThumbTypeEnum.SMALL.getType());
+        }
+    }
+
+    @Data
     public static class OrderGroup {
         private Integer groupId;
         private Integer isBundlePay;
@@ -148,6 +188,8 @@ public class MallOrderListVo implements Serializable {
     public static class Pay {
         private String type;
         private String typeName;
+        private String tradeNo;
+        private String outTradeNo;
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
         private Long payTime;
 
@@ -157,15 +199,7 @@ public class MallOrderListVo implements Serializable {
     }
 
     public String getOrderTypeName() {
-        if(StringUtil.isNotEmpty(this.orderType) && this.orderType.equals("pintuan")){
-            Object orderType = OrderTypeEnum.getOrderType(this.orderType);
-            if(JSONUtil.isTypeJSON(orderType.toString())){
-                return "";
-            }
-            return orderType.toString();
-        }else{
-            return "";
-        }
+        return OrderTypeEnum.getOrderTypeName(this.orderType);
     }
 
     public String getOrderFromName() {

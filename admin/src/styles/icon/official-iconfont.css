@@ -1,8 +1,8 @@
 @font-face {
   font-family: "nc-iconfont"; /* Project id 4567203 */
-  src: url('//at.alicdn.com/t/c/font_4567203_oyfnxndfuqe.woff2?t=1766630481662') format('woff2'),
-  url('//at.alicdn.com/t/c/font_4567203_oyfnxndfuqe.woff?t=1766630481662') format('woff'),
-  url('//at.alicdn.com/t/c/font_4567203_oyfnxndfuqe.ttf?t=1766630481662') format('truetype');
+  src: url('//at.alicdn.com/t/c/font_4567203_wmwkb1os5m.woff2?t=1769055629826') format('woff2'),
+  url('//at.alicdn.com/t/c/font_4567203_wmwkb1os5m.woff?t=1769055629826') format('woff'),
+  url('//at.alicdn.com/t/c/font_4567203_wmwkb1os5m.ttf?t=1769055629826') format('truetype');
 }
 
 .nc-iconfont {
@@ -11,6 +11,86 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.nc-icon-jichuxinxi1:before {
+  content: "\e942";
+}
+
+.nc-icon-gonghuoshangshangpin:before {
+  content: "\e941";
+}
+
+.nc-icon-gonghuoshangdingdan:before {
+  content: "\e93d";
+}
+
+.nc-icon-shangchengdingdan1:before {
+  content: "\e93e";
+}
+
+.nc-icon-youhuihuodong:before {
+  content: "\e93f";
+}
+
+.nc-icon-jichuxinxi-1:before {
+  content: "\e940";
+}
+
+.nc-icon-jifenguanli:before {
+  content: "\e93c";
+}
+
+.nc-icon-shangchengshangpin1:before {
+  content: "\e93b";
+}
+
+.nc-icon-a-jifendikoupc30:before {
+  content: "\e905";
+}
+
+.nc-icon-a-manjianpc30:before {
+  content: "\e904";
+}
+
+.nc-icon-a-zhulipc30:before {
+  content: "\e903";
+}
+
+.nc-icon-a-manjianpc30-1:before {
+  content: "\e902";
+}
+
+.nc-icon-huiyuangaikuang:before {
+  content: "\e91b";
+}
+
+.nc-icon-jiaoyigaikuang:before {
+  content: "\e91a";
+}
+
+.nc-icon-zhanghuruzhushenqing:before {
+  content: "\e919";
+}
+
+.nc-icon-jiesuanzhanghu1:before {
+  content: "\e918";
+}
+
+.nc-icon-zhanghuguanli:before {
+  content: "\e917";
+}
+
+.nc-icon-banbenhao:before {
+  content: "\e8ff";
+}
+
+.nc-icon-shangjiashoujiduan:before {
+  content: "\e8fd";
+}
+
+.nc-icon-xinxi:before {
+  content: "\e900";
 }
 
 .nc-icon-a-gongyingshangzhangdanpc30:before {

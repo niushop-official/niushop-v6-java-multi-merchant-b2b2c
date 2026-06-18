@@ -22,6 +22,7 @@ public class MemberListVo implements Serializable {
     private Integer memberId;  // 主键
     private String memberNo;  // 会员编码
     private Integer pid;  // 推广会员id
+    private MemberParentVo parentMember;  // 上级推荐人
     private Integer siteId;  // 站点id
     private String username;  // 会员用户名
     private String mobile;  // 手机号

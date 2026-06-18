@@ -2,31 +2,48 @@
     <!-- 内容 -->
     <div class="content-wrap" v-show="diyStore.editTab == 'content'">
         <div class="edit-attr-item-wrap">
-            <h3 class="mb-[10px]">{{ t('selectStyle') }}</h3>
-            <div class="flex items-center mb-[18px] rounded overflow-hidden">
-                <span
-                    class="iconfont iconzuoyoutuwenpc border-[1px] border-solid border-[#eee] cursor-pointer flex-1 flex items-center justify-center py-[5px]"
-                    :class="{ 'border-[var(--el-color-primary)] text-[var(--el-color-primary)]': diyStore.editComponent.style == 'style-1' }"
-                    @click="styleChangeFn('style-1')"></span>
+            <h3 class="mb-[10px]">列表设置</h3>
+            <el-form label-width="80px" class="px-[10px]">
+                <el-form-item :label="t('selectStyle')">
+                     <div class="flex-1 flex items-center mb-[18px] rounded overflow-hidden">
+                        <span
+                            class="iconfont iconzuoyoutuwenpc border-[1px] border-solid border-[#eee] cursor-pointer flex-1 flex items-center justify-center py-[5px]"
+                            :class="{ 'border-[var(--el-color-primary)] text-[var(--el-color-primary)]': diyStore.editComponent.style == 'style-1' }"
+                            @click="styleChangeFn('style-1')"></span>
 
-                <span
-                    class="iconfont iconshangxiatuwenpc border-[1px] border-solid border-[#eee] cursor-pointer flex-1 flex items-center justify-center py-[5px]"
-                    :class="{ 'border-[var(--el-color-primary)] text-[var(--el-color-primary)]': diyStore.editComponent.style == 'style-2' }"
-                    @click="styleChangeFn('style-2')"></span>
-                <span
-                    class="iconfont iconliebiaopc border-[1px] border-solid border-[#eee] cursor-pointer flex-1 flex items-center justify-center py-[5px]"
-                    :class="{ 'border-[var(--el-color-primary)] text-[var(--el-color-primary)]': diyStore.editComponent.style == 'style-3' }"
-                    @click="styleChangeFn('style-3')"></span>
-            </div>
+                        <span
+                            class="iconfont iconshangxiatuwenpc border-[1px] border-solid border-[#eee] cursor-pointer flex-1 flex items-center justify-center py-[5px]"
+                            :class="{ 'border-[var(--el-color-primary)] text-[var(--el-color-primary)]': diyStore.editComponent.style == 'style-2' }"
+                            @click="styleChangeFn('style-2')"></span>
+                        <span
+                            class="iconfont iconliebiaopc border-[1px] border-solid border-[#eee] cursor-pointer flex-1 flex items-center justify-center py-[5px]"
+                            :class="{ 'border-[var(--el-color-primary)] text-[var(--el-color-primary)]': diyStore.editComponent.style == 'style-3' }"
+                            @click="styleChangeFn('style-3')"></span>
+                    </div>
+                </el-form-item>
+                <el-form-item :label="t('筛选条件')">
+                    <el-radio-group v-model="diyStore.editComponent.searchCondition.isShow">
+                        <el-radio :label="true">{{ t('显示') }}</el-radio>
+                        <el-radio :label="false">{{ t('隐藏') }}</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+            </el-form>
         </div>
         <div class="edit-attr-item-wrap">
             <h3 class="mb-[10px]">{{ t("selectSource") }}</h3>
             <el-form label-width="80px" class="px-[10px]">
-                <el-form-item :label="t('sortWay')">
+                <el-form-item :label="t('默认排序')">
                     <el-radio-group v-model="diyStore.editComponent.sortWay">
                         <el-radio label="default">{{ t('default') }}</el-radio>
+                        <el-radio label="space">{{ t('距离') }}</el-radio>
                         <el-radio label="sale_num">{{ t('sales') }}</el-radio>
                         <el-radio label="price">{{ t('price') }}</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item :label="t('排序方式')">
+                    <el-radio-group v-model="diyStore.editComponent.sortType">
+                        <el-radio label="asc">{{ t('升序') }}</el-radio>
+                        <el-radio label="desc">{{ t('降序') }}</el-radio>
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item :label="t('goodsSelectPopupSelectGoodsButton')">
@@ -238,7 +255,8 @@ diyStore.editComponent.verify = (index: number) => {
             res.message = t('goodsCategoryPlaceholder')
         }
     } else if (diyStore.value[index].source == 'custom') {
-        if (diyStore.value[index].goods_ids.length == 0) {
+        const goodsIds = diyStore.value[index].goods_ids
+        if (!Array.isArray(goodsIds) || goodsIds.length == 0) {
             res.code = false
             res.message = t('goodsPlaceholder')
         }
@@ -257,6 +275,9 @@ const categoryTable = reactive({
     }
 })
 onMounted(() => {
+    if (!Array.isArray(diyStore.editComponent.goods_ids)) {
+        diyStore.editComponent.goods_ids = []
+    }
     loadCategoryList()
     btnStyleList.forEach((item, index, arr) => {
         if (item.type == 'button') {

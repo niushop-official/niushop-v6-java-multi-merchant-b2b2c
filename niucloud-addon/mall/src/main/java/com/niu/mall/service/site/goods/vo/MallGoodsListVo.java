@@ -3,6 +3,7 @@ package com.niu.mall.service.site.goods.vo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
+import com.niu.mall.enums.goods.GoodsAuditStatusEnum;
 import com.niu.mall.enums.goods.GoodsStatusEnum;
 import com.niu.mall.enums.goods.GoodsTypeEnum;
 import lombok.Data;
@@ -27,6 +28,7 @@ public class MallGoodsListVo implements Serializable {
     private String goodsCoverThumbSmall;
     private Integer saleNum;  // 销量
     private Integer status;  // 商品状态（1.正常0下架）
+    private Integer auditStatus;  // 审核状态
     private Integer stock;
     private Integer shopSort;  // 排序
     private String goodsTypeName;
@@ -37,19 +39,27 @@ public class MallGoodsListVo implements Serializable {
     private Integer isGift;
     @JsonProperty("goodsSku")
     private GoodsSku goodsSku;
-    /** 支付总金额 */
+    /**
+     * 支付总金额
+     */
     private BigDecimal payMoney;
-    /**供货商商品id*/
+    /**
+     * 供货商商品id
+     */
     private Integer supplyGoodsId;
-    /**供货商id*/
+    /**
+     * 供货商id
+     */
     private Integer supplyId;
-    /**供货商名称*/
+    /**
+     * 供货商名称
+     */
     private String supplyName;
     @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
     private String active;
     private String goodsCategory;
     private String unit;
-    private String statusName;
+
     @Data
     public static class GoodsSku {
         private Integer goodsId;
@@ -57,9 +67,19 @@ public class MallGoodsListVo implements Serializable {
         private BigDecimal price;
         private String memberPrice;
     }
+
+    private String statusName;
+
     public String getStatusName() {
         return GoodsStatusEnum.getNameByStatus(this.status);
     }
+
+    private String auditStatusName;
+
+    public String getAuditStatusName() {
+        return GoodsAuditStatusEnum.getNameByStatus(this.auditStatus);
+    }
+
     public String getGoodsTypeName() {
         return GoodsTypeEnum.getNameByType(this.goodsType);
     }

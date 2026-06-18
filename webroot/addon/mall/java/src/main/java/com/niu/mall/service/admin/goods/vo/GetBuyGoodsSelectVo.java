@@ -1,10 +1,12 @@
 package com.niu.mall.service.admin.goods.vo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.niu.core.common.utils.CommonUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.mall.entity.goods.MallGoodsSku;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 public class GetBuyGoodsSelectVo {
@@ -60,6 +62,27 @@ public class GetBuyGoodsSelectVo {
     private String goodsCoverThumbMid;
     private Integer hasBuy;
     private MallManjianRuleContentVo manjianInfo;
-    @JsonProperty("goodsSku")
+    //    @JsonProperty("goodsSku")
     private MallGoodsSku goodsSku;
+    private List<MallGoodsSku> skuList;
+    private Integer supplyId;
+    /**
+     * 自动生成商品封面小缩略图URL
+     */
+    public String getGoodsCoverThumbSmall() {
+        if (StringUtils.isEmpty(this.goodsCover) || this.siteId == null) {
+            return "";
+        }
+        return CommonUtils.thumbImageSmall(this.siteId, this.goodsCover);
+    }
+
+    /**
+     * 自动生成商品封面中等缩略图URL
+     */
+    public String getGoodsCoverThumbMid() {
+        if (StringUtils.isEmpty(this.goodsCover) || this.siteId == null) {
+            return "";
+        }
+        return CommonUtils.thumbImageMiddle(this.siteId, this.goodsCover);
+    }
 }

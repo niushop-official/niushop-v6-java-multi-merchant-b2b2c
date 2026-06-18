@@ -101,7 +101,7 @@
         </el-card>
 
         <!--添加表单-->
-        <el-dialog v-model="dialogVisible" :title="t('addFormTips')" width="670px">
+        <el-dialog v-model="dialogVisible" :title="t('addFormTips')" width="1000px">
             <el-form :model="formData" ref="formRef" :rules="formRules">
             <!--                <el-form-item :label="t('title')" prop="title">-->
             <!--                    <el-input v-model.trim="formData.title" :placeholder="t('titlePlaceholder')" clearable maxlength="12" show-word-limit class="w-full" />-->

@@ -41,6 +41,7 @@ public class SiteController {
 
     /**
      * 获取平台拥有的应用工具列表
+     *
      * @param param 搜索参数
      * @return
      */
@@ -51,6 +52,7 @@ public class SiteController {
 
     /**
      * 获取站点拥有的应用工具列表
+     *
      * @param param 搜索参数
      * @return
      */
@@ -62,5 +64,27 @@ public class SiteController {
     @GetMapping("/admin/menu")
     public Result<JSONArray> adminMenu() {
         return Result.success(authService.getAdminAuthMenuList(true, 1, "all", 0));
+    }
+
+    /**
+     * 获取站点拥有的营销工具
+     *
+     * @return Response
+     */
+    @GetMapping("/sitepromotion")
+    public Result<?> sitePromotionTools() {
+        SiteAppToolsParam param = new SiteAppToolsParam();
+        return Result.success(siteService.getSitePromotionTools(param));
+    }
+
+    /**
+     * 获取平台拥有的营销工具
+     *
+     * @return Response
+     */
+    @GetMapping("/adminpromotion")
+    public Result<?> adminPromotionTools() {
+        SiteAppToolsParam param = new SiteAppToolsParam();
+        return Result.success(siteService.getAdminPromotionTools(param));
     }
 }

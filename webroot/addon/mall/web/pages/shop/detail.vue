@@ -149,6 +149,16 @@ if(route.query.coupon_id){
 }else{
     loadGoodsList()
 }
+
+watch(() => route.query, () => {
+    // 这里处理路由query变化的逻辑
+    goodsTableData.searchParam = Object.assign(goodsTableData.searchParam,route.query)
+    if(route.query.coupon_id){
+        getGoodsCouponPagesFn()
+    }else{
+        loadGoodsList()
+    }
+}, { deep: true })
 const toDetail = (goods_id) => {
 	router.push(`/goods/detail?id=${goods_id}`)
 }

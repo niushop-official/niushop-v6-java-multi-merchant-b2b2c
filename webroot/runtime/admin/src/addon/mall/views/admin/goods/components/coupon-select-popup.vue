@@ -13,7 +13,7 @@
         <el-dialog v-model="showDialog" :title="t('优惠券选择')" width="1000px" :close-on-press-escape="false" :destroy-on-close="true" :close-on-click-modal="false">
 
             <el-form :inline="true" :model="couponTable.searchParam" ref="searchFormRef">
-                <el-form-item :label="t('优惠券名称')" prop="keyword" class="form-item-wrap">
+                <el-form-item :label="t('优惠券名称')" prop="title" class="form-item-wrap">
                     <el-input v-model="couponTable.searchParam.title" :placeholder="t('请输入优惠券名称')" maxlength="60" />
                 </el-form-item>
                 <el-form-item class="form-item-wrap">
@@ -92,6 +92,10 @@ const prop = defineProps({
     min: {
         type: Number,
         default: 0
+    },
+    status: {
+        type: Number||String,
+        default: ""
     }
 })
 
@@ -194,7 +198,8 @@ const loadCouponList = (page: number = 1, callback: any = null) => {
     getPlatformCouponList({
         page: couponTable.page,
         limit: couponTable.limit,
-        ...searchData
+        ...searchData,
+        status: prop.status
     }).then(res => {
         couponTable.loading = false
         couponTable.data = res.data.data
@@ -230,6 +235,10 @@ const resetForm = (formEl: FormInstance | undefined) => {
 }
 
 const show = () => {
+    // 打开弹窗前先清空已选数据（核心修复：避免残留旧选中）
+    for (let k in selectCoupon) {
+        delete selectCoupon[k];
+    }
     // 检测优惠券id集合是否存在，移除不存在的优惠券id，纠正数据准确性
     loadCouponList(1, () => {
         // 第一次打开弹出框时，纠正数据，并且赋值已选优惠券

@@ -2,20 +2,78 @@
     <div class="main-container">
         <el-card class="box-card !border-none min-h-[600px] bg-[#fff]" shadow="never" v-loading="loading">
             <div class="flex">
-                <div class="w-[360px] h-[500px] absolute mr-[30px] border-[1px] border-gray-300">
-                    <div class="absolute right-[16px] bottom-[140px] w-[35px] h-[35px]">
-                        <div class="absolute top-0 right-0 w-[35px] h-[35px] flex items-center justify-center rounded-full fab-button">
-                            <div class="fab-icon"></div>
+                <div class="w-[360px] h-[500px] absolute mr-[30px] border-[1px] border-gray-300 bg-[#333] opacity-50 overflow-hidden">
+                    <div class="absolute right-[16px] bottom-[140px] p-[5px] rounded-[23px] fab-wrapper" v-if="fabNavsData.style.type == 1">
+                        <div class="w-[35px] h-[35px] rounded-full bg-[#fff]" :class="{'mt-[8px]': index}" v-for="(item, index) in fabNavsData.navs" :key="index">
+                            <el-image class="w-[35px] h-[35px] rounded-full" :src="img(item.icon)" fit="contain">
+                                <template #error>
+                                    <div class="w-[35px] h-[35px] flex justify-center items-center">
+                                        <el-icon><Picture class="text-3xl text-gray-500" /></el-icon>
+                                    </div>
+                                </template>
+                            </el-image>
                         </div>
-                        <div class="w-[100px] h-[200px] absolute left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
-                            <div class="menu-item flex items-center justify-center" :style="newItemStyle[index]" v-for="(item, index) in fabNavsData.navs" :key="'b' + index">
-                                <el-image class="w-[22px] h-[22px] leading-1" :src="img(item.icon)" fit="contain">
+                        <div class="w-[35px] h-[35px] rounded-full bg-[#fff] mt-[8px]">
+                            <el-image v-if="fabNavsData.style.icon" class="w-[35px] h-[35px] rounded-full" :src="img(fabNavsData.style.icon)" fit="contain">
+                                <template #error>
+                                    <div class="w-[35px] h-[35px] flex justify-center items-center">
+                                        <el-icon><Picture class="text-3xl text-gray-500" /></el-icon>
+                                    </div>
+                                </template>
+                            </el-image>
+                        </div>
+                    </div>
+                    <div class="absolute right-0 bottom-[140px] p-[5px] flex items-center rounded-l-[23px] fab-wrapper" v-if="fabNavsData.style.type == 2">
+                        <div class="w-[35px] h-[35px] rounded-full bg-[#fff] mr-[8px]" v-for="(item, index) in fabNavsData.navs" :key="index">
+                            <el-image class="w-[35px] h-[35px] rounded-full" :src="img(item.icon)" fit="contain">
+                                <template #error>
+                                    <div class="w-[35px] h-[35px] flex justify-center items-center">
+                                        <el-icon><Picture class="text-3xl text-gray-500" /></el-icon>
+                                    </div>
+                                </template>
+                            </el-image>
+                        </div>
+                        <span class="nc-iconfont nc-icon-youV6xx font-500 text-[#333]"></span>
+                    </div>
+                    <div class="absolute right-[10px] bottom-[140px] h-[149px]" v-if="fabNavsData.style.type == 3">
+                        <div class="absolute right-0 top-[50%] translate-y-[-50%]">
+                            <div>
+                                <div class="absolute w-[35px] h-[35px] rounded-full bg-[#fff] fab-btn" v-for="(item, index) in fabNavsData.navs" :key="index">
+                                    <el-image class="w-[35px] h-[35px] rounded-full" :src="img(item.icon)" fit="contain">
+                                        <template #error>
+                                            <div class="w-[35px] h-[35px] image-slot flex justify-center items-center">
+                                                <el-icon><Picture class="text-3xl text-gray-500" /></el-icon>
+                                            </div>
+                                        </template>
+                                    </el-image>
+                                </div>
+                            </div>
+                            <div class="w-[35px] h-[35px] rounded-full bg-[#fff] shadow-[0_0_8px_0_rgba(0,0,0,0.1)]">
+                                <el-image v-if="fabNavsData.style.icon" class="w-[35px] h-[35px] rounded-full" :src="img(fabNavsData.style.icon)" fit="contain">
                                     <template #error>
-                                        <div class="image-slot flex justify-center items-center mt-1">
+                                        <div class="w-[35px] h-[35px] flex justify-center items-center">
                                             <el-icon><Picture class="text-3xl text-gray-500" /></el-icon>
                                         </div>
                                     </template>
                                 </el-image>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-[175px] h-[175px] rounded-full fab-wrapper shadow-[0_0_7px_0_rgba(0,0,0,0.1)] absolute right-[-62px] bottom-[140px] p-[5px]" v-if="fabNavsData.style.type == 4">
+                        <div class="absolute right-[70px] top-[50%] translate-y-[-50%]">
+                            <div>
+                                <div class="absolute w-[35px] h-[35px] rounded-full bg-[#fff] fab-style-btn shadow-[0_0_7px_0_rgba(0,0,0,0.1)]" v-for="(item, index) in fabNavsData.navs" :key="index">
+                                    <el-image class="w-[35px] h-[35px] rounded-full" :src="img(item.icon)" fit="contain">
+                                        <template #error>
+                                            <div class="w-[35px] h-[35px] image-slot flex justify-center items-center">
+                                                <el-icon><Picture class="text-3xl text-gray-500" /></el-icon>
+                                            </div>
+                                        </template>
+                                    </el-image>
+                                </div>
+                            </div>
+                            <div class="w-[35px] h-[35px] flex items-center justify-center rounded-full bg-[#fff] shadow-[0_0_8px_0_rgba(0,0,0,0.1)]">
+                                <span class="nc-iconfont nc-icon-guanbiV6xx2 text-[#333]"></span>
                             </div>
                         </div>
                     </div>
@@ -58,7 +116,16 @@
                                 <el-form-item :label="t('导航类型')">
                                     <el-radio-group v-model="fabNavsData.style.type" class="ml-4">
                                         <el-radio :label="1">样式1</el-radio>
+                                        <el-radio :label="2">样式2</el-radio>
+                                        <el-radio :label="3">样式3</el-radio>
+                                        <el-radio :label="4">样式4</el-radio>
                                     </el-radio-group>
+                                </el-form-item>
+                                <el-form-item :label="t('主按钮')" v-if="fabNavsData.style.type != 4">
+                                    <div>
+                                        <upload-image v-model="fabNavsData.style.icon" width="70px" height="70px" :limit="1" />
+                                        <div class="text-[12px] text-[#999]">上传图片建议70px*70px</div>
+                                    </div>
                                 </el-form-item>
                             </el-tab-pane>
                         </el-tabs>
@@ -87,13 +154,14 @@ const activeName = ref<string>('navPicture')
 const loading = ref<boolean>(false)
 
 // 悬浮按钮数据
-const fabNavsData = reactive({
+const fabNavsData = reactive<any>({
     is_show: true,
     navs: [],
     style: {
         type: 1,
         bottom: 300,
-        position: 'right'
+        position: 'right',
+        icon: ''
     }
 })
 
@@ -136,7 +204,7 @@ const getFabNavsFn = () => {
             })
             if (fabNavsData.navs.length > 0) {
                 fabNavsData.navs.forEach((item: any, index) => {
-                    item.url.title = item.text
+                    item.url.title = item.url.title || item.text
                     item.url.url = item.url.value
                 })
             }
@@ -183,6 +251,13 @@ const verifyFn = (): boolean => {
                 throw Error()
             }
         })
+        if (fabNavsData.style.type != 4 && (fabNavsData.style.icon == '' || fabNavsData.style.icon == undefined)) {
+            ElNotification({
+                type: 'error',
+                message: '请上传悬浮按钮图片'
+            })
+            throw Error()
+        }
     } catch (e) {
         return true
     }
@@ -216,40 +291,6 @@ const diyLinkFn = (val: any) => {
     useDrag.value = val
 }
 
-const getItemStyle = (index: any) => {
-    const config: any = {
-        0: {
-            x: 30,
-            y: 25
-        },
-        1: {
-            x: -15,
-            y: 60
-        },
-        2: {
-            x: -12,
-            y: 110
-        },
-        3: {
-            x: 30,
-            y: 140
-        }
-    }
-
-    const { x, y } = config[index] || config[0]
-
-    return {
-        "--x": `${x}px`,
-        "--y": `${y}px`
-    }
-}
-
-const newItemStyle = ref({
-    0: getItemStyle(0),
-    1: getItemStyle(1),
-    2: getItemStyle(2),
-    3: getItemStyle(3)
-})
 </script>
 <style lang="scss" scoped>
 .close-icon {
@@ -262,35 +303,44 @@ const newItemStyle = ref({
 .list-item:hover .close-icon {
     display: block;
 }
-.fab-button{
-    background: rgba(51, 51, 51, .1);
-    box-shadow: 0px 0px 6px 0px rgba(0, 0, 0, .1);
+
+.fab-wrapper{
+    background: hsla(0, 0%, 100%, .5)
 }
-.fab-icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    box-shadow: 0 0 8px 0 rgba(0, 0, 0, .1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #fff;
+.fab-btn{
+    &:first-child{
+        top: -56px;
+        right: 6px;
+    }
+    &:nth-child(2){
+        top: -27px;
+        right: 51px;
+    }
+    &:nth-child(3){
+        top: 27px;
+        right: 51px;
+    }
+    &:nth-child(4){
+        top: 56px;
+        right: 6px;
+    }
 }
-.menu-item {
-    position: absolute;
-    left: 0;
-    top: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 35px;
-    height: 35px;
-    background-color: #ffffff;
-    border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    opacity: 1;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: scale(1) translate(var(--x, 0), var(--y, 0));
-    transform-origin: center center;
+.fab-style-btn{
+    &:first-child{
+        top: -56px;
+        right: 0;
+    }
+    &:nth-child(2){
+        top: -27px;
+        right: 48px;
+    }
+    &:nth-child(3){
+        top: 27px;
+        right: 48px;
+    }
+    &:nth-child(4){
+        top: 56px;
+        right: 0;
+    }
 }
 </style>

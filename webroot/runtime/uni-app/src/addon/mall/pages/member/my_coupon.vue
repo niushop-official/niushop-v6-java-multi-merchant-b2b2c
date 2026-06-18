@@ -41,7 +41,7 @@
 									适用店铺:{{item.site_name}}
 							</view>
                             <view class="w-[100%] mt-[6rpx] text-[20rpx] leading-[34rpx] text-[var(--text-color-light6)]">
-                                <text>有效期至<text>{{ item.expire_time ? item.expire_time.slice(0, 10) : '' }}</text></text>
+                                <text>有效期至<text>{{ item.expire_time ? item.expire_time : '' }}</text></text>
                             </view>
                         </view>
 						<view class="px-[20rpx]">
@@ -70,7 +70,7 @@
 								适用店铺:{{item.site_name}}
 							</view>
                             <view class="w-[100%] mt-[6rpx] text-[20rpx] leading-[34rpx] text-[var(--text-color-light9)]">
-                                <text>有效期至<text>{{ item.expire_time ? item.expire_time.slice(0, 10) : '' }}</text></text>
+                                <text>有效期至<text>{{ item.expire_time ? item.expire_time : '' }}</text></text>
                             </view>
                         </view>
 

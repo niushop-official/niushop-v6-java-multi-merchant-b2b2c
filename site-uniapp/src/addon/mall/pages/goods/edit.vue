@@ -124,46 +124,65 @@
                     </view>
                     <template v-if="formData.goods_type == 'virtual'">
                         <view class="status-wrap">
-                            <u-form-item label="发货设置" prop="virtual_auto_delivery">
-                                <view class="flex-1 flex justify-end">
-                                    <u-radio-group v-model="formData.virtual_auto_delivery" placement="row"  iconPlacement="left">
-                                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="自动发货" name="1" :disabled="isDisabledVirtual"></u-radio>
-                                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="手动发货" name="0" :disabled="isDisabledVirtual"></u-radio>
-                                    </u-radio-group>
-                                </view>
-                            </u-form-item>
-                        </view>
-                        <view>
-                            <u-form-item label="收货设置" prop="virtual_receive_type" >
-                                <view class="flex items-center flex-1" @click="showVirtualReceiveTypePicker  = true">
-                                    <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.virtual_receive_type }" >{{ formData.virtual_receive_type_name ?? '请选择收货设置' }}</view>
-                                    <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
-                                </view>
-                            </u-form-item>
-                            <view class="text-[22rpx] text-[#999] mb-[10rpx]" v-show="formData.virtual_receive_type == 'verify'">当设置为店内核销时，若存在未完成的订单，则无法编辑</view>
-                        </view>
-                        <view v-if="formData.virtual_receive_type == 'verify'">
-                            <u-form-item label="核销有效期" prop="virtual_verify_type" >
-                                <view class="flex items-center flex-1" @click="showVirtualVerifyTypePicker  = true">
-                                    <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.virtual_verify_type }" >{{ formData.virtual_verify_type_name ?? '请选择核销有效期' }}</view>
+                            <u-form-item label="发货方式" prop="virtual_delivery_type">
+                                <view class="flex items-center flex-1" @click="showVirtualDeliveryTypePicker  = true">
+                                    <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.virtual_delivery_type }" >{{ formData.virtual_delivery_type_name ?? '请选择发货方式' }}</view>
                                     <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
                                 </view>
                             </u-form-item>
                         </view>
-                        <view v-if="formData.virtual_receive_type == 'verify' && formData.virtual_verify_type == 1" prop="virtual_indate_day">
-                            <u-form-item label="有效期" prop="virtual_indate_day" required>
-                                <u-input fontSize="28rpx" v-model.trim="formData.virtual_indate_day" border="none"  maxlength="5" placeholder="请输入有效期" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" />
-                            </u-form-item>
-                        </view>
-                        <view v-if="formData.virtual_receive_type == 'verify' && formData.virtual_verify_type == 2" >
-                            <u-form-item label="有效期" prop="virtual_indate" required>
-                                <view class="flex items-center flex-1" @click="virtualIndate  = true">
-                                    <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.virtual_indate }">{{ timeStampTurnTime(formData.virtual_indate) ?? '请选择有效期' }}</view>
-                                    <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
-                                </view>
-                            </u-form-item>
-                            <u-datetime-picker v-model="formData.virtual_indate" :show="virtualIndate" mode="datetime" :minDate="new Date().valueOf()" @cancel="virtualIndate = false" @confirm="updateVirtualIndate"></u-datetime-picker>
-                        </view>
+                        <template v-if="formData.virtual_delivery_type == 'auto' || formData.virtual_delivery_type == 'manual'">
+                            <view>
+                                <u-form-item label="收货方式" prop="virtual_receive_type" >
+                                    <view class="flex items-center flex-1" @click="showVirtualReceiveTypePicker  = true">
+                                        <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.virtual_receive_type }" >{{ formData.virtual_receive_type_name ?? '请选择收货方式' }}</view>
+                                        <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
+                                    </view>
+                                </u-form-item>
+                            </view>
+                            <view>
+                                <u-form-item :label="formData.virtual_delivery_type == 'auto' ? '自动发货内容' : '手动发货内容'" prop="virtual_delivery_content" labelWidth="180rpx">
+                                    <u-input fontSize="28rpx" v-model.trim="formData.virtual_delivery_content" border="none"  maxlength="5000" placeholder="请输入发货内容" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" />
+                                </u-form-item>
+                            </view>
+                        </template>
+                        <template v-if="formData.virtual_delivery_type == 'verify'">
+                            <view>
+                                <u-form-item label="核销有效期" prop="virtual_verify_type" >
+                                    <view class="flex items-center flex-1" @click="showVirtualVerifyTypePicker  = true">
+                                        <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.virtual_verify_type }" >{{ formData.virtual_verify_type_name ?? '请选择核销有效期' }}</view>
+                                        <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
+                                    </view>
+                                </u-form-item>
+                            </view>
+                            <view v-if="formData.virtual_verify_type == 1">
+                                <u-form-item label="有效期" prop="virtual_indate_day" required>
+                                    <u-input fontSize="28rpx" v-model.trim="formData.virtual_indate_day" border="none"  maxlength="5" placeholder="请输入有效期" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" />
+                                </u-form-item>
+                            </view>
+                            <view v-if="formData.virtual_verify_type == 2">
+                                <u-form-item label="有效期" prop="virtual_indate" required>
+                                    <view class="flex items-center flex-1" @click="virtualIndate  = true">
+                                        <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.virtual_indate }">{{ formData.virtual_indate ? timeStampTurnTime(formData.virtual_indate) : '请选择有效期' }}</view>
+                                        <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
+                                    </view>
+                                </u-form-item>
+                                <u-datetime-picker v-model="formData.virtual_indate" :show="virtualIndate" mode="datetime" :minDate="new Date().valueOf()" @cancel="virtualIndate = false" @confirm="updateVirtualIndate"></u-datetime-picker>
+                            </view>
+                            <view>
+                                <u-form-item label="退款设置" prop="virtual_refund" >
+                                    <view class="flex items-center flex-1" @click="showVirtualRefundPicker  = true">
+                                        <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.virtual_refund }" >{{ formData.virtual_refund_name ?? '请选择退款设置' }}</view>
+                                        <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
+                                    </view>
+                                </u-form-item>
+                            </view>
+                            <view v-if="formData.virtual_refund == 1">
+                                <u-form-item label="退款有效天数" prop="virtual_refund_day" labelWidth="180rpx" required>
+                                    <u-input fontSize="28rpx" v-model.trim="formData.virtual_refund_day" border="none"  maxlength="5" placeholder="请输入退款有效天数" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" />
+                                </u-form-item>
+                            </view>
+                        </template>
                         <view class="status-wrap">
                             <u-form-item label="核销手机号" prop="virtual_verify_mobile">
                                 <view class="flex-1 flex justify-end">
@@ -187,18 +206,21 @@
             <u-form labelPosition="left" :model="formData" :label-style="{'font-size':'28rpx'}"  class="pl-[15rpx]" labelWidth="180rpx" errorType='toast' :rules="rules" ref="priceStockFormRef">
                 <view class="status-wrap">
                     <u-form-item label="规格类型" prop="spec_type" required>
-                        <view class="flex-1 flex justify-end">
-                            <u-radio-group v-model="formData.spec_type" placement="row"  iconPlacement="left">
-                                <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="单规格" name="single"></u-radio>
-                                <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="多规格" name="multi"></u-radio>
-                            </u-radio-group>
+                        <view class="flex-1">
+                            <view class="flex justify-end">
+                                <u-radio-group v-model="formData.spec_type" placement="row"  iconPlacement="left" :disabled="isDisabledPrice()">
+                                    <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="单规格" name="single"></u-radio>
+                                    <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="多规格" name="multi"></u-radio>
+                                </u-radio-group>
+                            </view>
+                            <view class="text-[24rpx] text-[#999] text-right" v-if="isDisabledPrice()">商品正在参与营销活动，禁止操作</view>
                         </view>
                     </u-form-item>
                 </view>
                 <template v-if="formData.spec_type === 'single'">
                     <view>
                         <u-form-item label="销售价" prop="price" required>
-                            <u-input fontSize="28rpx" v-model.trim="formData.price" border="none"  maxlength="80" placeholder="0.00" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" />
+                            <u-input fontSize="28rpx" v-model.trim="formData.price" border="none"  maxlength="80" placeholder="0.00" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" :disabled="isDisabledPrice()" />
                             <text class="ml-[10rpx] text-[28rpx]">元</text>
                         </u-form-item>
                     </view>
@@ -376,7 +398,7 @@
             </view>
         </view>
         <!-- 商品类型 -->
-        <u-popup :show="showGoodsTypePicker" @close="showGoodsTypePicker = false">
+        <u-popup :show="showGoodsTypePicker" @close="changeGoodsType">
             <view class="popup-common" @touchmove.prevent.stop>
                 <view class="title">商品类型</view>
                 <scroll-view scroll-y="true" class="h-[200rpx] px-[30rpx] box-border">
@@ -394,13 +416,17 @@
         <!-- 商品分类 -->
         <goods-category-popup  ref="goodsCategoryRef" @confirm="confirmGoodsCategory"></goods-category-popup>
         <!-- 商品品牌 -->
-        <u-popup :show="showBrandPopup" @close="showBrandPopup = false">
+        <u-popup :show="showBrandPopup" @close="changeBrand">
             <view class="popup-common" @touchmove.prevent.stop>
                 <view class="title">商品品牌</view>
                 <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
-                    <u-radio-group v-model="formData.brand_id" placement="column" iconPlacement="right">
+                    <u-radio-group v-model="formData.brand_id" placement="column" iconPlacement="right" v-if="brandOptions.length">
                         <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333"  :customStyle="{marginBottom: '30rpx'}" v-for="(item, index) in brandOptions" :key="index" :label="item.brand_name" :name="item.brand_id"></u-radio>
                     </u-radio-group>
+                    <view class="empty-page" v-else>
+                        <image class="img" :src="img('/static/resource/images/system/empty.png')" mode="aspectFill" />
+                        <view class="desc">暂无商品品牌</view>
+                    </view>
                 </scroll-view>
                 <view class="btn-wrap">
                     <button class="primary-btn-bg btn" @click="changeBrand">确定</button>
@@ -408,13 +434,17 @@
             </view>
         </u-popup>
         <!-- 商品标签 -->
-        <u-popup :show="showLabelPopup" @close="showLabelPopup = false">
+        <u-popup :show="showLabelPopup" @close="changeLabel">
             <view class="popup-common" @touchmove.prevent.stop>
                 <view class="title">商品标签</view>
                 <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
-                    <up-checkbox-group v-model="formData.label_ids" placement="column" iconPlacement="right">
+                    <up-checkbox-group v-model="formData.label_ids" placement="column" iconPlacement="right" v-if="labelOptions.length">
                         <up-checkbox activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" shape="circle"  :customStyle="{marginBottom: '30rpx'}" v-for="(item, index) in labelOptions" :key="index" :label="item.label_name" :name="item.label_id"></up-checkbox>
                     </up-checkbox-group>
+                    <view class="empty-page" v-else>
+                        <image class="img" :src="img('/static/resource/images/system/empty.png')" mode="aspectFill" />
+                        <view class="desc">暂无商品标签</view>
+                    </view>
                 </scroll-view>
                 <view class="btn-wrap">
                     <button class="primary-btn-bg btn" @click="changeLabel">确定</button>
@@ -422,13 +452,17 @@
             </view>
         </u-popup>
         <!-- 商品服务 -->
-        <u-popup :show="showServicePopup" @close="showServicePopup = false">
+        <u-popup :show="showServicePopup" @close="changeService">
             <view class="popup-common" @touchmove.prevent.stop>
                 <view class="title">商品服务</view>
                 <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
-                    <up-checkbox-group v-model="formData.service_ids" placement="column" iconPlacement="right">
+                    <up-checkbox-group v-model="formData.service_ids" placement="column" iconPlacement="right" v-if="serviceOptions.length">
                         <up-checkbox activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" shape="circle"  :customStyle="{marginBottom: '30rpx'}" v-for="(item, index) in serviceOptions" :key="index" :label="item.service_name" :name="item.service_id"></up-checkbox>
                     </up-checkbox-group>
+                    <view class="empty-page" v-else>
+                        <image class="img" :src="img('/static/resource/images/system/empty.png')" mode="aspectFill" />
+                        <view class="desc">暂无商品服务</view>
+                    </view>
                 </scroll-view>
                 <view class="btn-wrap">
                     <button class="primary-btn-bg btn" @click="changeService">确定</button>
@@ -436,7 +470,7 @@
             </view>
         </u-popup>
         <!-- 会员折扣等级 -->
-        <u-popup :show="showMemberDiscountPopup" @close="showMemberDiscountPopup = false">
+        <u-popup :show="showMemberDiscountPopup" @close="changeMemberDiscount">
             <view class="popup-common" @touchmove.prevent.stop>
                 <view class="title">会员等级折扣</view>
                 <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
@@ -452,7 +486,7 @@
             </view>
         </u-popup>
         <!-- 配送方式 -->
-         <u-popup :show="showDeliveryTypePopup" @close="showDeliveryTypePopup = false">
+         <u-popup :show="showDeliveryTypePopup" @close="changeDeliveryType">
             <view class="popup-common" @touchmove.prevent.stop>
                 <view class="title">配送方式</view>
                 <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
@@ -467,7 +501,7 @@
         </u-popup>
          
         <!-- 运费模板 -->
-        <u-popup :show="showDeliveryTemplatePopup" @close="showDeliveryTemplatePopup = false">
+        <u-popup :show="showDeliveryTemplatePopup" @close="changeDeliveryTemplate">
             <view class="popup-common" @touchmove.prevent.stop>
                 <view class="title">运费模板</view>
                 <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
@@ -484,15 +518,30 @@
                 </view>
             </view>
         </u-popup>
-        <!-- 收货设置 -->
-        <u-popup :show="showVirtualReceiveTypePicker" @close="showVirtualReceiveTypePicker = false">
+        <!-- 发货方式 -->
+         <u-popup :show="showVirtualDeliveryTypePicker" @close="changeVirtualDeliveryType">
             <view class="popup-common" @touchmove.prevent.stop>
-                <view class="title">收货设置</view>
+                <view class="title">收货方式</view>
+                <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
+                    <u-radio-group v-model="formData.virtual_delivery_type" placement="column" iconPlacement="right">
+                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="自动发货" name="auto" :disabled="isDisabledVirtual"></u-radio>
+                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="手动发货" name="manual" :disabled="isDisabledVirtual"></u-radio>
+                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="到店核销" name="verify" :disabled="isDisabledVirtual"></u-radio>
+                    </u-radio-group>
+                </scroll-view>
+                <view class="btn-wrap">
+                    <button class="primary-btn-bg btn" @click="changeVirtualDeliveryType">确定</button>
+                </view>
+            </view>
+        </u-popup>
+        <!-- 收货设置 -->
+        <u-popup :show="showVirtualReceiveTypePicker" @close="changeVirtualReceiveType">
+            <view class="popup-common" @touchmove.prevent.stop>
+                <view class="title">收货方式</view>
                 <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
                     <u-radio-group v-model="formData.virtual_receive_type" placement="column" iconPlacement="right">
                         <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" label="自动收货" name="auto" :disabled="isDisabledVirtual"></u-radio>
                         <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" label="买家确认收货" name="artificial" :disabled="isDisabledVirtual"></u-radio>
-                        <u-radio activeColor="var(--primary-color)" :labelSize="'30rpx'" labelColor="#333" label="到店核销" name="verify" :disabled="isDisabledVirtual"></u-radio>
                     </u-radio-group>
                 </scroll-view>
                 <view class="btn-wrap">
@@ -501,7 +550,7 @@
             </view>
         </u-popup>
         <!-- 核销有效期 -->
-        <u-popup :show="showVirtualVerifyTypePicker" @close="showVirtualVerifyTypePicker = false">
+        <u-popup :show="showVirtualVerifyTypePicker" @close="changeVirtualVerifyType">
             <view class="popup-common" @touchmove.prevent.stop>
                 <view class="title">核销有效期</view>
                 <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
@@ -513,6 +562,22 @@
                 </scroll-view>
                 <view class="btn-wrap">
                     <button class="primary-btn-bg btn" @click="changeVirtualVerifyType">确定</button>
+                </view>
+            </view>
+        </u-popup>
+        <!-- 退货方式 -->
+        <u-popup :show="showVirtualRefundPicker" @close="changeVirtualRefund">
+            <view class="popup-common" @touchmove.prevent.stop>
+                <view class="title">退货方式</view>
+                <scroll-view scroll-y="true" class="h-[400rpx] px-[30rpx] box-border">
+                    <u-radio-group v-model="formData.virtual_refund" placement="column" iconPlacement="right">
+                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="不允许退款" name="0"></u-radio>
+                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="付款成功后指定天数内有效" name="1"></u-radio>
+                        <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'30rpx'" labelColor="#333" label="核销过期自动退款" name="2" v-if="formData.virtual_verify_type == 1 || formData.virtual_verify_type == 2"></u-radio>
+                    </u-radio-group>
+                </scroll-view>
+                <view class="btn-wrap">
+                    <button class="primary-btn-bg btn" @click="changeVirtualRefund">确定</button>
                 </view>
             </view>
         </u-popup>
@@ -587,13 +652,18 @@ const formData = reactive<any>({
     attr_ids: [],
     shop_attr_ids: [],
     goods_desc: '',
-    virtual_auto_delivery: '0',
+    virtual_delivery_type: 'auto',
+    virtual_delivery_type_name: '自动发货',
     virtual_receive_type: 'auto',
     virtual_receive_type_name: '自动收货',
     virtual_verify_type: '0',
     virtual_verify_type_name: '永久',
     virtual_indate: '',
     virtual_indate_day: '0', // 几日有效的有效期
+    virtual_delivery_content: '',
+    virtual_refund: '0',
+    virtual_refund_name: '不允许退款',
+    virtual_refund_day: '0',
     virtual_verify_mobile: '0'
 })
 const isAWait = ref(false) 
@@ -665,13 +735,19 @@ const generateRandom = (len: number = 5) => {
 const orderGoodsCount = ref(0)
 
 const isDisabledVirtual = computed(() => {
-    if (formData.virtual_receive_type == 'verify' && orderGoodsCount.value > 0) {
+    if (formData.virtual_delivery_type == 'verify' && orderGoodsCount.value > 0) {
         // 虚拟商品，并且设置为店内核销，若存在订单，则禁用，无法编辑
         return true
     }
     return false
 })
 
+ const isDisabledPrice = () => {
+    if (activeGoodsCount.value > 0) {
+        return true;
+    }
+    return false;
+}
 const handleGoodsInit = (data: any) => {
     if (formData.goods_id && data.goods_info) {
 
@@ -813,16 +889,20 @@ const getGoodsVirtualInitFn = async () => {
     handleGoodsInit(data)
     if (formData.goods_id && data.goods_info) {
         orderGoodsCount.value = data.goods_info.order_goods_count
-
-        formData.virtual_auto_delivery = String(data.goods_info.virtual_auto_delivery)
+        formData.virtual_delivery_type = data.goods_info.virtual_delivery_type
+        if(formData.virtual_delivery_type == 'auto'){
+            formData.virtual_delivery_type_name = '自动发货'
+        } else if (formData.virtual_delivery_type == 'manual'){
+            formData.virtual_delivery_type_name = '手动发货'
+        } else {
+            formData.virtual_delivery_type_name = '到店核销'
+        }
         formData.virtual_receive_type = data.goods_info.virtual_receive_type
         if (formData.virtual_receive_type == 'auto') {
             formData.virtual_receive_type_name = '自动收货'
         } else if (formData.virtual_receive_type == 'artificial') {
             formData.virtual_receive_type_name = '买家确认收货'
-        } else {
-            formData.virtual_receive_type_name = '到店核销'
-        }
+        } 
         formData.virtual_verify_type = String(data.goods_info.virtual_verify_type)
         if (formData.virtual_verify_type == '0') {
             formData.virtual_verify_type_name = '永久'
@@ -833,11 +913,21 @@ const getGoodsVirtualInitFn = async () => {
             formData.virtual_verify_type_name = '指定过期日期'
         }
         formData.virtual_verify_mobile = String(data.goods_info.virtual_verify_mobile)
-        if (data.goods_info.virtual_receive_type == 'verify' && data.goods_info.virtual_verify_type == 2) {
+        if (data.goods_info.virtual_delivery_type == 'verify' && data.goods_info.virtual_verify_type == 2) {
             formData.virtual_indate = data.goods_info.virtual_indate
-        } else if (data.goods_info.virtual_receive_type == 'verify' && data.goods_info.virtual_verify_type == 1) {
+        } else if (data.goods_info.virtual_delivery_type == 'verify' && data.goods_info.virtual_verify_type == 1) {
             formData.virtual_indate_day = data.goods_info.virtual_indate
         }
+        formData.virtual_delivery_content = data.goods_info.virtual_delivery_content
+        formData.virtual_refund = String(data.goods_info.virtual_refund)
+        if(formData.virtual_refund == '1'){
+            formData.virtual_refund_name = '付款成功后指定天数内有效'
+        } else if (formData.virtual_refund == '2') {
+            formData.virtual_refund_name = '核销过期自动退款'
+        } else {
+            formData.virtual_refund_name = '不允许退款'
+        }
+        formData.virtual_refund_day = data.goods_info.virtual_refund_day
     }
     loading.value = false
 }
@@ -1430,10 +1520,10 @@ const rules = computed(() => {
             {
                 trigger: 'blur',
                 validator: (rule: any, value: any, callback: any) => {
-                    if (formData.virtual_receive_type =='verify' && formData.virtual_verify_type == 1 && value == '') {
+                    if (formData.virtual_delivery_type =='verify' && formData.virtual_verify_type == 1 && value == '') {
                     	callback(new Error('请输入有效期'))
                     }
-                    if (formData.virtual_receive_type == 'verify' && formData.virtual_verify_type == 1 && value < 1) {
+                    if (formData.virtual_delivery_type == 'verify' && formData.virtual_verify_type == 1 && value < 1) {
                         callback(new Error('核销有效期不能小于1天'))
                     }
                     callback()
@@ -1444,10 +1534,10 @@ const rules = computed(() => {
             {
                 trigger: 'blur',
                 validator: (rule: any, value: any, callback: any) => {
-                    if (formData.virtual_receive_type =='verify' && formData.virtual_verify_type == 2 && value == '') {
+                    if (formData.virtual_delivery_type =='verify' && formData.virtual_verify_type == 2 && value == '') {
                         callback(new Error('请输入有效期'))
                     }
-                    if (formData.virtual_receive_type == 'verify' && formData.virtual_verify_type == 2) {
+                    if (formData.virtual_delivery_type == 'verify' && formData.virtual_verify_type == 2) {
                         const date = new Date(value)
                         const time = date.getTime() * 1000
                         const date1 = new Date()
@@ -1457,7 +1547,22 @@ const rules = computed(() => {
                     callback()
                 }
             }
-        ]
+        ],
+        'virtual_refund_day': [
+            {
+                trigger: 'blur',
+                validator: (rule: any, value: any, callback: any) => {
+                    if (formData.virtual_delivery_type == 'verify' && formData.virtual_refund == 1) {
+                        if (value == '' || value == '0' || value === null || value === undefined) {
+                            callback(new Error('请输入退款有效天数'))
+                        } else if (Number(value) < 0) {
+                            callback(new Error('退款有效天数不能小于0'))
+                        }
+                    }
+                    callback()
+                }
+            }
+      ],
     }
 })
 const verify = (callback: any) => {
@@ -1533,14 +1638,14 @@ const save = () => {
             }
         }
         // 收货设置
-        if (data.virtual_receive_type == 'verify' && data.virtual_verify_type == 2) {
+        if (data.virtual_delivery_type == 'verify' && data.virtual_verify_type == 2) {
             const date = new Date(data.virtual_indate)
             data.virtual_indate = Math.floor(date.getTime())
         }
-        if (data.virtual_receive_type == 'verify' && data.virtual_verify_type == 1) {
+        if (data.virtual_delivery_type == 'verify' && data.virtual_verify_type == 1) {
             data.virtual_indate = data.virtual_indate_day
         }
-        if (data.virtual_receive_type == 'verify' && data.virtual_verify_type == 0) {
+        if (data.virtual_delivery_type == 'verify' && data.virtual_verify_type == 0) {
             data.virtual_indate = 0
         }
 
@@ -1699,7 +1804,13 @@ const changeDeliveryTemplate = () => {
     formData.delivery_template_name =  deliveryTemplateOptions.find((item: any) => item.template_id === formData.delivery_template_id)?.template_name
     showDeliveryTemplatePopup.value = false
 }
-// 收货设置
+// 发货方式
+const showVirtualDeliveryTypePicker = ref(false)
+const changeVirtualDeliveryType = () => {
+    formData.virtual_delivery_type_name = formData.virtual_delivery_type === 'auto' ? '自动发货' : formData.virtual_delivery_type === 'manual' ? '手动发货' : '到店核销'
+    showVirtualDeliveryTypePicker.value = false
+}
+// 收货方式
 const showVirtualReceiveTypePicker = ref(false)
 const changeVirtualReceiveType = () => {
     formData.virtual_receive_type_name = formData.virtual_receive_type === 'auto'? '自动收货' : formData.virtual_receive_type === 'artificial'? '买家确认收货' : '到店核销'
@@ -1718,6 +1829,12 @@ const  updateVirtualIndate = (e: any) => {
     virtualIndate.value = false
 }
 
+// 退款方式
+const showVirtualRefundPicker = ref(false)
+const changeVirtualRefund = () => {
+    formData.virtual_refund_name = formData.virtual_refund === '1'? '付款成功后指定天数内有效' : '不允许退款'
+    showVirtualRefundPicker.value = false
+}
 </script>
 
 <style lang="scss" scoped>
@@ -1743,5 +1860,10 @@ const  updateVirtualIndate = (e: any) => {
     margin-top: 0rpx;
     height:  350rpx;
     width: auto;
+}
+:deep(.u-cascader-action){
+    .u-button:first-child{
+        border: 1rpx solid var(--primary-color);
+    }
 }
 </style>

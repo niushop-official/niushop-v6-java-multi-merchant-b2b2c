@@ -44,7 +44,7 @@
 
             <div class="mt-[10px]">
 
-                <el-tabs v-model="goodsTable.searchParam.status" class="goods-tabs" @tab-click="tabHandleClick">
+                <el-tabs v-model="goodsTable.searchParam.status_type" class="goods-tabs" @tab-click="tabHandleClick">
                     <el-tab-pane :label="t('statusAll')" name=""></el-tab-pane>
                     <el-tab-pane v-for="item in goodsStatus" :key="item.value" :label="item.label" :name="item.value"></el-tab-pane>
                 </el-tabs>
@@ -105,12 +105,11 @@
                         <template #default="{ row }">
                             <div v-if="row.status == 1">{{ t('statusOn') }}</div>
                             <div v-if="row.status == 0">{{ t('statusOff') }}</div>
-                            <div v-if="row.status == -1">{{ t('waitAudit') }}</div>
-                            <div v-if="row.status == -2">{{ t('auditrefuse') }}</div>
                             <div v-if="row.status == -3">{{ t('waitOffLine') }}</div>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="sort" min-width="120" sortable="custom" class-name="sort-column">
+                    <el-table-column prop="audit_status_name" :label="t('auditStatus')" min-width="100" />
+                    <el-table-column prop="sort" min-width="125" sortable="custom" class-name="sort-column">
                         <template #header>
                             <span class="mr-[4px]">{{ t('sort') }}</span>
                             <el-tooltip class="box-item" effect="dark" :content="t('sortPlaceholder')" placement="bottom">
@@ -144,7 +143,7 @@
                                 <!-- 强制下架 -->
                                 <el-button type="primary" link @click="waitOffLine(row)">{{ t('waitOffLine') }}</el-button>
                             </div>
-                            <div v-else-if="row.status == -1">
+                            <div v-if="row.audit_status == 1">
                                 <!-- 审核通过 -->
                                 <el-button type="primary" link @click="auditEvent(row)">{{ t('审核') }}</el-button>
                                 <!-- 审核拒绝 -->
@@ -171,7 +170,7 @@
        <!-- 待审核 -->
         <goods-aduit-popup ref="goodsAuditPopupRef" @confirm="loadGoodsList()" />
 
-        <!-- 审核拒绝弹框 -->
+        <!--强制下架弹框 -->
         <el-dialog v-model="refuseShowDialog" :title="t('waitOffLine')" width="460px" class="diy-dialog-wrap" :destroy-on-close="true">
             <el-form :model="refuseFormData" label-width="90px" ref="refuseFormRef" :rules="refundFormRules" class="page-form">
                 <el-form-item :label="t('offlineReason')" prop="audit_reason">
@@ -214,7 +213,7 @@ import { ElMessage, FormInstance } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { cloneDeep } from 'lodash-es'
 import { getCategoryTree } from '@/app/api/basic_admin'
-import { getGoodsPageList, getGoodsStatus, editGoodsSort, offline, getLabelList, editGoodsLabel, getGoodsInfo, getGoodsSource } from '@/addon/mall/api/admin/goods'
+import { getGoodsPageList, getGoodsStatusType, editGoodsSort, offline, getLabelList, editGoodsLabel, getGoodsInfo, getGoodsSource } from '@/addon/mall/api/admin/goods'
 import goodsAduitPopup from '@/addon/mall/views/admin/goods/components/goods-audit-popup.vue'
 
 const route = useRoute()
@@ -240,7 +239,7 @@ const goodsTable = reactive({
         end_sale_num: '',
         start_price: '',
         end_price: '',
-        status: Object.keys(route.query).length ? (route.query.status === '' ? route.query.status : parseInt(route.query.status)) : 1,
+        status_type: Object.keys(route.query).length ? (route.query.status === '' ? route.query.status : parseInt(route.query.status)) : 1,
         order: '',
         sort: ''
     }
@@ -306,7 +305,7 @@ const initData = () => {
         }
     })
 
-    getGoodsStatus().then((res) => {
+    getGoodsStatusType().then((res) => {
         const data = res.data
         if (data) {
             Object.assign(goodsStatus, data)
@@ -325,7 +324,7 @@ initData()
 
 // 当前选中tab页面
 const tabHandleClick = (tab: any, event: Event) => {
-    goodsTable.searchParam.status = tab.props.name
+    goodsTable.searchParam.status_type = tab.props.name
     loadGoodsList()
 }
 

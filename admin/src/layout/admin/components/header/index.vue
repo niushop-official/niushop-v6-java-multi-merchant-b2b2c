@@ -1,6 +1,6 @@
 <template>
-    <el-container class="h-[120px] px-[20px] bg-[#2B303B] block">
-        <div class="h-[60rpx] flex items-center justify-between">
+    <el-container class="h-[60px] px-[10px] bg-[#2B303B] flex items-center">
+        <div class="left-panel h-[60px] flex items-center flex-1">
             <!-- logo -->
             <div class="logo-wrap">
                 <div class="logo flex items-center m-auto h-[60px] max-w-[190px] box-border pr-[10px]">
@@ -11,102 +11,102 @@
                     </el-image>
                 </div>
             </div>
-            <div class="text-[#fff] text-[16px] font-500">{{ siteInfo?.site_name }}</div>
-            <div class="right-panel h-full flex items-center justify-end">
-                <!-- 预览 只有站点时展示-->
-                <i class="iconfont iconlingdang-xianxing cursor-pointer px-[8px]" :title="t('newInfo')" v-if="appType == 'site'"></i>
-                <!-- 切换语言 -->
-                <!-- <div class="navbar-item flex items-center h-full cursor-pointer">
-                    <switch-lang />
-                </div> -->
-                <!-- 切换全屏 -->
-                <!-- <div class="navbar-item flex items-center h-full cursor-pointer" @click="toggleFullscreen">
-                    <icon name="iconfont-icontuichuquanping" v-if="isFullscreen" />
-                    <icon name="iconfont-iconquanping" v-else />
-                </div> -->
-                <!-- 面包屑导航 -->
-                <!-- <div class="flex items-center h-full pl-[10px] hidden-xs-only">
-                    <el-breadcrumb separator="/">
-                        <el-breadcrumb-item v-for="(route, index) in breadcrumb" :key="index">{{route.meta.title }}</el-breadcrumb-item>
-                    </el-breadcrumb>
-                </div> -->
-                <!-- 刷新当前页 -->
-                <div class="navbar-item flex items-center h-full cursor-pointer" @click="refreshRouter">
-                    <icon name="element Refresh" color="#fff" />
-                </div>
-                <!-- 预览-->
-                <el-popover placement="bottom" :width="400" trigger="hover">
-                    <template #reference>
-                        <i class="iconfont iconicon_huojian1 cursor-pointer text-[#fff] px-[8px]" :title="t('visitAdmin')"></i>
-                    </template>
-                    <div class="px-[8px]">
-                        <div class="pt-[8px] pb-[20px] border-0 border-b-[1px] border-solid border-[#E5E5E5] cursor-pointer" @click="toWeb">
-                            <div class="flex items-center text-[#333] mb-[14px]">
-                                <span class="nc-iconfont nc-icon-gongzuotai mr-[10px]"></span>
-                                <span class="text-[14px] font-500">PC端</span>
-                            </div>
-                            <div class="text-[14px] text-[#333]">
-                                <span>链接：</span>
-                                <span class="hover:text-primary">{{ webUrl  }}</span>
-                            </div>
+            <div class="flex items-center h-[60px] leading-[60px] text-[#fff]">
+                <template v-for="(item, index) in oneMenuData" :key="index">
+                    <div v-if="item.meta.show" class="px-[12px] flex items-center cursor-pointer" :class="{'bg-[var(--el-color-primary)]':oneMenuActive===item.original_name}" @click="handleTabClick(item.name)">
+                        <div class="w-[20px] h-full flex items-center mr-[8px]">
+                            <template v-if="item.meta.icon">
+                                <el-image class="w-[16px] h-[16px] overflow-hidden" :src="item.meta.icon" fit="fill" v-if="isUrl(item.meta.icon)"/>
+                                <icon :name="item.meta.icon" v-else />
+                            </template>
+                            <icon v-else :name="'iconfont iconshezhi1'" />
                         </div>
-                        <div class="py-[20px] cursor-pointer" @click="toPreview">
-                            <div class="flex items-center text-[#333] mb-[14px]">
-                                <span class="nc-iconfont nc-icon-shoujiV6xx1 mr-[10px]"></span>
-                                <span class="text-[14px] font-500">H5端</span>
-                            </div>
-                            <div class="text-[14px] text-[#333]">
-                                <span>链接：</span>
-                                <span class="hover:text-primary">{{ wapUrl  }}</span>
-                            </div>
-                        </div>
+                        <span class="w-full truncate text-[14px]">{{ item.meta.short_title || item.meta.title }}</span>
                     </div>
-                </el-popover>
-                <!-- 布局设置 -->
-                <div class="navbar-item flex items-center h-full cursor-pointer">
-                    <layout-setting />
-                </div>
-                <!-- 用户信息 -->
-                <div class="navbar-item flex items-center h-full cursor-pointer">
-                    <user-info />
-                </div>
+                </template>
             </div>
         </div>
-        <div class="flex items-center">
-            <div class="left-panel h-[60px] flex items-center flex-1">
-                <div class="flex items-center h-[60px] leading-[60px] text-[#fff]">
-                    <template v-for="(item, index) in oneMenuData" :key="index">
-                        <div v-if="item.meta.show" class="px-[12px] flex items-center cursor-pointer" :class="{'bg-[var(--el-color-primary)]':oneMenuActive===item.original_name}" @click="handleTabClick(item.name)">
-                            <div class="w-[20px] h-full flex items-center mr-[8px]">
-                                <template v-if="item.meta.icon">
-                                    <el-image class="w-[16px] h-[16px] overflow-hidden" :src="item.meta.icon" fit="fill" v-if="isUrl(item.meta.icon)"/>
-                                    <icon :name="item.meta.icon" v-else />
-                                </template>
-                                <icon v-else :name="'iconfont iconshezhi1'" />
-                            </div>
-                            <span class="w-full truncate text-[14px]">{{ item.meta.short_title || item.meta.title }}</span>
+        <div class="right-panel h-full flex items-center justify-end">
+            <el-popover placement="bottom" width="130px" trigger="hover" opper-class="!min-w-[130px]">
+                <template #reference>
+                    <div class="navbar-item flex items-center h-full cursor-pointer">
+                        <i class="nc-iconfont nc-icon-shangjiashoujiduan cursor-pointer text-[#fff]" :title="t('商家手机端')"></i>
+                    </div>
+                </template>
+                <div class="flex justify-center">
+                    <div>
+                        <div class="text-center text-[14px] font-500 mb-[6px]">商家手机端</div>
+                        <div class="flex justify-center items-center w-[110px] h-[110px] rounded-[4px] border-solid border-[1px] border-[#eee] mb-[10px]">
+                            <el-image :src="wapImage" class=" w-[100px] h-[100px]" />
                         </div>
-                    </template>
-                </div>
-            </div>
-            <div class="flex items-center flex-shrink-0">
-                <el-popover placement="bottom" width="130px" trigger="hover" opper-class="!min-w-[130px]">
-                    <template #reference>
-                        <div class="w-[90px] h-[28px] bg-[#FF7D00] text-[14px] text-[#fff] flex items-center justify-center cursor-pointer">商家手机端</div>
-                    </template>
-                    <div class="flex justify-center">
-                        <div>
-                            <div class="flex justify-center items-center w-[110px] h-[110px] rounded-[4px] border-solid border-[1px] border-[#eee] mb-[10px]">
-                                <el-image :src="wapImage" class=" w-[100px] h-[100px]" />
-                            </div>
-                            <div class="text-center  flex items-center justify-center">
-                                <span class="text-[12px] text-primary cursor-pointer" @click="copy(wapPreview)">复制链接</span>
-                            </div>
+                        <div class="text-center  flex items-center justify-center">
+                            <span class="text-[12px] text-primary cursor-pointer" @click="copy(wapPreview)">复制链接</span>
                         </div>
                     </div>
-                </el-popover>
-                <div class="w-[90px] h-[28px] bg-[#F53F3F] text-[14px] text-[#fff] flex items-center justify-center cursor-pointer ml-[10px]" @click="toArticle">最新动态</div>
-                <div class="w-[100px] h-[28px] bg-[#00B42A] text-[14px] text-[#fff] flex items-center justify-center cursor-pointer ml-[10px]" @click="toVersion">版本号V{{ systemStore.website?.version?.version }}</div>
+                </div>
+            </el-popover>
+            <div class="navbar-item flex items-center h-full cursor-pointer" @click="toArticle">
+                <i class="nc-iconfont nc-icon-xinxi cursor-pointer text-[#fff]" :title="t('最新动态')"></i>
+            </div>
+            <div class="navbar-item flex items-center h-full cursor-pointer" @click="toVersion">
+                <i class="nc-iconfont nc-icon-banbenhao cursor-pointer text-[#fff]" :title="`版本号V${systemStore.website?.version?.version}`"></i>
+            </div>
+            <!-- 预览 只有站点时展示-->
+            <i class="iconfont iconlingdang-xianxing cursor-pointer px-[8px]" :title="t('newInfo')" v-if="appType == 'site'"></i>
+            <!-- 切换语言 -->
+            <!-- <div class="navbar-item flex items-center h-full cursor-pointer">
+                <switch-lang />
+            </div> -->
+            <!-- 切换全屏 -->
+            <!-- <div class="navbar-item flex items-center h-full cursor-pointer" @click="toggleFullscreen">
+                <icon name="iconfont-icontuichuquanping" v-if="isFullscreen" />
+                <icon name="iconfont-iconquanping" v-else />
+            </div> -->
+            <!-- 面包屑导航 -->
+            <!-- <div class="flex items-center h-full pl-[10px] hidden-xs-only">
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item v-for="(route, index) in breadcrumb" :key="index">{{route.meta.title }}</el-breadcrumb-item>
+                </el-breadcrumb>
+            </div> -->
+            <!-- 刷新当前页 -->
+            <div class="navbar-item flex items-center h-full cursor-pointer" @click="refreshRouter">
+                <icon name="element Refresh" color="#fff" />
+            </div>
+            <!-- 预览-->
+            <el-popover placement="bottom" :width="400" trigger="hover">
+                <template #reference>
+                    <i class="iconfont iconicon_huojian1 cursor-pointer text-[#fff] px-[8px]" :title="t('visitAdmin')"></i>
+                </template>
+                <div class="px-[8px]">
+                    <div class="pt-[8px] pb-[20px] border-0 border-b-[1px] border-solid border-[#E5E5E5] cursor-pointer" @click="toWeb">
+                        <div class="flex items-center text-[#333] mb-[14px]">
+                            <span class="nc-iconfont nc-icon-gongzuotai mr-[10px]"></span>
+                            <span class="text-[14px] font-500">PC端</span>
+                        </div>
+                        <div class="text-[14px] text-[#333]">
+                            <span>链接：</span>
+                            <span class="hover:text-primary">{{ webUrl  }}</span>
+                        </div>
+                    </div>
+                    <div class="py-[20px] cursor-pointer" @click="toPreview">
+                        <div class="flex items-center text-[#333] mb-[14px]">
+                            <span class="nc-iconfont nc-icon-shoujiV6xx1 mr-[10px]"></span>
+                            <span class="text-[14px] font-500">H5端</span>
+                        </div>
+                        <div class="text-[14px] text-[#333]">
+                            <span>链接：</span>
+                            <span class="hover:text-primary">{{ wapUrl  }}</span>
+                        </div>
+                    </div>
+                </div>
+            </el-popover>
+            <!-- 布局设置 -->
+            <div class="navbar-item flex items-center h-full cursor-pointer">
+                <layout-setting />
+            </div>
+            <!-- 用户信息 -->
+            <div class="navbar-item flex items-center h-full cursor-pointer">
+                <user-info />
             </div>
         </div>
         <input type="hidden" v-model="comparisonToken">

@@ -231,7 +231,8 @@ const setupEvent = (data: any) => {
         uid: data.uid,
         username: data.account,
         password: data.password,
-        confirm_password: data.password
+        confirm_password: data.password,
+        user: data.user
     })
     setupShopDialog.value.showDialog = true
 }

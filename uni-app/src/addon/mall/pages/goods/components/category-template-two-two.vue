@@ -96,7 +96,7 @@
 									</view>
 									<block v-if="!item.isMaxBuy">
 										<view
-											v-if="(item.goods_type == 'real' || (item.goods_type == 'virtual' && item.virtual_receive_type != 'verify')) &&
+											v-if="(item.goods_type == 'real') &&
 											item.goodsSku.sku_spec_format === '' && cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id]['sku_' + item.goodsSku.sku_id] && config.cart.control && config.cart.event === 'cart'"
 											class="flex items-center">
 											<view class="relative w-[44rpx] h-[44rpx]">
@@ -544,7 +544,7 @@ const searchNameFn = () => {
 const cartRef = ref()
 const itemCart = (row: any, id: any) => {
 	// 虚拟商品，并且需要核销，禁止加入购物车
-	if (row.goods_type == 'virtual' && row.virtual_receive_type == 'verify') {
+	if (row.goods_type == 'virtual') {
 		return toLink(row.goodsSku.goods_id)
 	}
 

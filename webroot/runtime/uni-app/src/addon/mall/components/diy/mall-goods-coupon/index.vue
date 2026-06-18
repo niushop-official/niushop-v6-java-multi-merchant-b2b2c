@@ -131,6 +131,55 @@
                     </view>
                 </scroll-view>
             </view>
+            <view v-else-if="diyComponent.style == 'style-6'" class="pb-[30rpx] style-6 relative" :style="couponStyle4Css">
+                <view class="pt-[30rpx] pb-[20rpx] px-[24rpx] leading-normal" :style="{'text-align': diyComponent.titleAlign }"  @click="toLink('/addon/mall/pages/coupon/list')">
+                    <text class="text-[32rpx] text-[#333] font-500" :style="{color: diyComponent.titleColor}">{{ diyComponent.couponTitle }}</text>
+                </view>
+                <view class="px-[24rpx] grid grid-cols-3 gap-x-[16rpx] gap-y-[20rpx]">
+                    <view v-for="(item,index) in couponList" :key="index" class="w-[210rpx] h-[140rpx] inline-flex items-center justify-center relative box-border" :style="{'border-radius': ((diyComponent.couponItem.aroundRadius*2)+'rpx'),'background-color': diyComponent.couponItem.itemBgColor[Number(index) % 6]}" @click="couponItemLink(item)">
+                        <view class="flex flex-col items-center justify-center flex-shrink-0">
+                            <view class="flex max-w-[190rpx] items-baseline justify-center truncate price-font" :style="{'color': diyComponent.couponItem.moneyColor}">
+                                <text class="text-[20rpx] font-500">￥</text>
+                                <text class="text-[44rpx] font-500 truncate">{{ parseFloat(item.price) }}</text>
+                            </view>
+                            <view class="text-[#666] text-[24rpx] truncate max-w-[190rpx] mt-[12rpx]" :style="{'color': diyComponent.couponItem.textColor}">{{ item.min_condition_money == '0.00' ? '无门槛' : ('满' + parseFloat(item.min_condition_money) + '元可用') }}</view>
+                        </view>
+                    </view>
+                </view>
+            </view>
+            <view v-else-if="diyComponent.style == 'style-7'" class="pb-[30rpx] style-6 relative" :style="couponStyle4Css">
+                <view class="pt-[30rpx] pb-[20rpx] px-[24rpx] leading-normal" :style="{'text-align': diyComponent.titleAlign }"  @click="toLink('/addon/mall/pages/coupon/list')">
+                    <text class="text-[32rpx] text-[#333] font-500" :style="{color: diyComponent.titleColor}">{{ diyComponent.couponTitle }}</text>
+                </view>
+                <view class="px-[24rpx] grid grid-cols-3 gap-x-[16rpx] gap-y-[20rpx]">
+                    <view v-for="(item,index) in couponList" :key="index" class="w-[210rpx] h-[140rpx] inline-flex items-center justify-center relative box-border" :style="{'border-radius': ((diyComponent.couponItem.aroundRadius*2)+'rpx'),'background-color': diyComponent.couponItem.itemBgColor[index]}" @click="couponItemLink(item)">
+                        <view class="flex flex-col items-center justify-center flex-shrink-0">
+                            <view class="flex max-w-[190rpx] items-baseline justify-center truncate price-font" :style="{'color': diyComponent.couponItem.itemMoneyColor[Number(index) % 6]}">
+                                <text class="text-[20rpx] font-500">￥</text>
+                                <text class="text-[44rpx] font-500 truncate">{{ parseFloat(item.price) }}</text>
+                            </view>
+                            <view class="text-[#666] text-[24rpx] truncate max-w-[190rpx] mt-[12rpx]" :style="{'color': diyComponent.couponItem.itemTextColor[Number(index) % 6]}">{{ item.min_condition_money == '0.00' ? '无门槛' : ('满' + parseFloat(item.min_condition_money) + '元可用') }}</view>
+                        </view>
+                    </view>
+                </view>
+            </view>
+            <view v-else-if="diyComponent.style == 'style-8'" class="style-8 pb-[30rpx] coupon-wrap relative" :style="couponStyle4Css">
+                <view class="pt-[30rpx] pb-[20rpx] px-[24rpx] leading-normal" :style="{'text-align': diyComponent.titleAlign }"  @click="toLink('/addon/mall/pages/coupon/list')">
+                    <text class="text-[32rpx] text-[#333] font-500" :style="{color: diyComponent.titleColor}">{{ diyComponent.couponTitle }}</text>
+                </view>
+                <scroll-view scroll-x="true" class="coupon-list px-[24rpx]">
+                    <view v-for="(item,index) in couponList" :key="index" class="w-[210rpx] coupon-item h-[160rpx] inline-flex items-center justify-center relative box-border border-[2rpx] border-solid border-[#EEEEEE]" :style="{'border-radius': ((diyComponent.couponItem.aroundRadius*2)+'rpx'), 'border-color': diyComponent.couponItem.borderColor}" @click="couponItemLink(item)">
+                        <view class="flex flex-col items-center justify-center flex-shrink-0">
+                            <view class="flex max-w-[190rpx] items-baseline justify-center truncate price-font" :style="{'color': diyComponent.couponItem.moneyColor}">
+                                <text class="text-[20rpx] font-500">￥</text>
+                                <text class="text-[44rpx] font-500 truncate">{{ parseFloat(item.price) }}</text>
+                            </view>
+                            <view class="text-[#666] text-[24rpx] truncate max-w-[190rpx] mt-[12rpx]" :style="{'color': diyComponent.couponItem.textColor}">{{ item.min_condition_money == '0.00' ? '无门槛' : ('满' + parseFloat(item.min_condition_money) + '元可用') }}</view>
+                            <view class="text-[#666] bg-[#222222] flex items-center justify-center text-[22rpx] truncate w-[130rpx] h-[40rpx] mt-[12rpx]" :style="{'color': diyComponent.couponItem.btnColor, 'background-color': diyComponent.couponItem.bgColor}">{{ diyComponent.btnText }}</view>
+                        </view>
+                    </view>
+                </scroll-view>
+            </view>
         </view>
     </x-skeleton>
 </template>
@@ -444,6 +493,24 @@ const collecting = (coupon_id: any) => {
                 width: 260rpx;
                 background-repeat: no-repeat;
                 background-size: 100% 100%;
+            }
+        }
+    }
+    &.style-8 {
+
+        .coupon-list {
+            flex: 1;
+            position: relative;
+            white-space: nowrap;
+            box-sizing: border-box;
+            overflow: hidden;
+
+            .coupon-item {
+                margin-right: 16rpx;
+                box-sizing: border-box;
+                &:last-of-type{
+                    margin-right: 0;
+                }
             }
         }
     }

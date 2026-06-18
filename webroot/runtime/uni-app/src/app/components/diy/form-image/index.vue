@@ -84,16 +84,16 @@
                     <text class="required" v-if="diyComponent.field.required">{{ diyComponent.field.required ? '*' : '' }}</text>
                     <text class="name" :style="{'color': diyComponent.textColor,'font-size': (diyComponent.fontSize * 2) + 'rpx' ,'font-weight': diyComponent.fontWeight}">{{ diyComponent.field.name }}</text>
                 </view>
-                <view class="layout-two-content flex-wrap">
-                    <view class="relative border-box w-[180rpx] !h-[180rpx] ml-[16rpx] mb-[16rpx] border-box border-[2rpx] border-solid border-[#e6e6e6] rounded-[10rpx] flex items-center"
+                <view class="layout-two-content flex-wrap" :class="{'!justify-start': diyGlobal.contentAlign == 'left'}">
+                    <view class="relative border-box w-[180rpx] !h-[180rpx]  mb-[16rpx] border-box border-[2rpx] border-solid border-[#e6e6e6] rounded-[10rpx] flex items-center" :class="{'ml-[16rpx]': diyGlobal.contentAlign == 'right', 'mr-[16rpx]' : diyGlobal.contentAlign == 'left'}"
                         v-for="(item,index) in diyComponent.field.value" :key="index">
                         <image class="w-[100%] h-[100%]" :src="img(item)" mode="aspectFill" />
                         <view class="absolute top-0 right-[0] bg-[#373737] flex justify-end h-[28rpx] w-[28rpx] rounded-bl-[40rpx]" @click="deleteImage(index)">
                             <text class="nc-iconfont nc-icon-guanbiV6xx !text-[20rpx] mt-[2rpx] mr-[2rpx] text-[#fff]"></text>
                         </view>
                     </view>
-                    <view class="items-start border-box border-[2rpx] ml-[16rpx] mb-[16rpx] border-solid border-[#e6e6e6] rounded-[10rpx]">
-                        <u-upload accept="image" v-if="diyComponent.field.value.length < Number(diyComponent.limit)"
+                    <view class="items-start border-box border-[2rpx] mb-[16rpx] border-solid border-[#e6e6e6] rounded-[10rpx]" :class="{'ml-[16rpx]': diyGlobal.contentAlign == 'right', 'mr-[16rpx]' : diyGlobal.contentAlign == 'left'}" v-if="diyComponent.field.value.length < Number(diyComponent.limit)">
+                        <u-upload accept="image" 
                                   @afterRead="afterRead" multiple :capture="uploadType"
                                   :maxCount="Number(diyComponent.limit)">
                             <view class="flex flex-col items-center justify-center min-w-[180rpx] min-h-[180rpx]">

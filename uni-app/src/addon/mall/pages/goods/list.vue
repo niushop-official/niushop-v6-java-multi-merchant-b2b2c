@@ -44,7 +44,7 @@
 		<mescroll-body ref="mescrollRef" top="176rpx" bottom="50px" @init="mescrollInit" :down="{ use: false }"  @up="getAllAppListFn">
 			<view v-if="goodsList.length" :class="['sidebar-margin', !listType ? 'biserial-goods-list' : '']">
 				<template v-if="listType">
-					<view v-for="(item, index) in goodsList" :key="index" class="bg-white flex px-[20rpx] py-[24rpx] rounded-[var(--rounded-small)] overflow-hidden" :class="{ 'mb-[20rpx]': (index+1) == goodsList.length}" @click="toDetail(item.goods_id)">
+					<view v-for="(item, index) in goodsList" :key="index" class="bg-white flex px-[20rpx] py-[24rpx] rounded-[var(--rounded-small)] overflow-hidden" :class="{ 'mb-[20rpx]': (index+1) != goodsList.length}" @click="toDetail(item.goods_id)">
 						<image v-if="item.goods_cover_thumb_mid" class="w-[270rpx] h-[270rpx] rounded-[var(--rounded-mid)]" :src="img(item.goods_cover_thumb_mid)" :mode="'aspectFill'" @error="item.goods_cover_thumb_mid='static/resource/images/diy/shop_default.jpg'"></image>
 						<image v-else class="w-[270rpx] h-[270rpx] rounded-[var(--rounded-mid)]" :src="img('static/resource/images/diy/shop_default.jpg')" :mode="'aspectFill'"></image>
 						<view class="flex-1 flex flex-col  ml-[20rpx] py-[6rpx]">

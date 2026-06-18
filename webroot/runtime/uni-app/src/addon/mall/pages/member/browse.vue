@@ -30,8 +30,8 @@
                         </view>
                         <view class="text-[28rpx] font-500 text-[#333] ">{{ item.date }}</view>
                     </view>
-                    <view class="flex flex-wrap">
-                        <view class="w-[216rpx] mb-[20rpx]" :class="{'mr-[10rpx]': (subIndex + 1) % 3 }" v-for="(subItem,subIndex) in item.list" :key="subIndex" @click="toDetail(subItem)">
+                    <view class="flex flex-wrap gap-x-[6rpx]">
+                        <view class="w-[216rpx] mb-[20rpx]" v-for="(subItem,subIndex) in item.list" :key="subIndex" @click="toDetail(subItem)">
                             <view class="relative w-[216rpx] h-[216rpx] rounded-[var(--goods-rounded-mid)] overflow-hidden mb-[10rpx]">
                                 <up-image width="216rpx" height="216rpx" :radius="'var(--goods-rounded-mid)'" :src="img(subItem.goods_cover_thumb_mid ? subItem.goods_cover_thumb_mid : '')" mode="aspectFill">
                                     <template #error>
@@ -246,6 +246,7 @@ const deleteBrowseFn = () => {
     delBrowse({ goods_ids: ids }).then((res: any) => {
         optionLoading.value = false
         getMescroll().resetUpScroll();
+        isSelectAll.value = false
     })
 }
 

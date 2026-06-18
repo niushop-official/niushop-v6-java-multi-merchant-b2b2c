@@ -17,4 +17,9 @@ public interface ISystemService {
     void clearCache();
 
     SysQrcodeVo getQrcode(String folder, String page, Map<String, String> allParams);
+
+    /**
+     * 校验消息队列是否正常运行
+     */
+    boolean checkJob();
 }

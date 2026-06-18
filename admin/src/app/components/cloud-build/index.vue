@@ -73,6 +73,7 @@
                 <el-button type="primary" :loading="timeloading" class="!w-[140px]">已用时 {{ formattedDuration }}</el-button>
             </div>
         </div>
+
         <div v-show="active == 'error'">
             <div class="h-[50vh] flex flex-col">
                 <div class="flex-1 h-0 flex justify-center items-center flex-col">

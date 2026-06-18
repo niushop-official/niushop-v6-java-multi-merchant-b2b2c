@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import com.alipay.easysdk.factory.Factory;
 import com.alipay.easysdk.kernel.Config;
 import com.alipay.easysdk.payment.common.models.AlipayTradeRefundResponse;
+import com.alipay.easysdk.payment.facetoface.models.AlipayTradePrecreateResponse;
 import com.alipay.easysdk.payment.page.models.AlipayTradePagePayResponse;
 import com.alipay.easysdk.payment.wap.models.AlipayTradeWapPayResponse;
 import com.alipay.easysdk.util.generic.models.AlipayOpenApiGenericResponse;
@@ -75,7 +76,7 @@ public class Alipay extends BasePay {
             return h5(param);
         }
         if (RequestUtils.channel().equals(ChannelEnum.PC.getCode())) {
-            return web(param);
+            return scan(param);
         }
         return null;
     }
@@ -118,8 +119,33 @@ public class Alipay extends BasePay {
     /**
      * 扫码支付
      */
-    public void scan() {
-
+    public Object scan(PayParam param) {
+        try {
+            Pay pay = param.getPay();
+            // 当面付预下单，生成二维码链接
+            AlipayTradePrecreateResponse response =
+                    Factory.Payment.FaceToFace()
+                            .asyncNotify(param.getNotifyUrl())
+                            .preCreate(
+                                    pay.getBody(),                  // 商品标题
+                                    pay.getOutTradeNo(),           // 商户订单号
+                                    pay.getMoney().toString()      // 订单金额
+                            );
+            if (!"10000".equals(response.getCode())) {
+                // 预下单失败
+                log.error("支付宝扫码支付预下单失败, code={}, subCode={}, msg={}, subMsg={}",
+                        response.getCode(), response.getSubCode(), response.getMsg(), response.getSubMsg());
+                throw new CommonException("支付宝扫码支付预下单失败：" + response.getSubMsg());
+            }
+            // 返回给前端二维码地址（前端自己生成二维码图片）
+            Map<String, String> data = new HashMap<>();
+            data.put("qr_code", response.getQrCode());   // 二维码内容（URL）
+            data.put("outTradeNo", pay.getOutTradeNo());
+            return data;
+        } catch (Exception e) {
+            log.error("支付宝扫码支付异常: {}", e.getMessage(), e);
+            throw new CommonException(e.getMessage());
+        }
     }
 
     /**

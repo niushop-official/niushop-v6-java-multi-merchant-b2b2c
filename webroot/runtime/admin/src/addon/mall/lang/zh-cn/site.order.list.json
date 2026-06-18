@@ -145,5 +145,7 @@
 	"deliveryStatus": "配送状态",
 	"goActive":"去开通",
 	"deleteTips": "是否确认删除该订单？",
-  	"batchDeleteTips": "是否确认批量删除选中的订单？"
+  	"batchDeleteTips": "是否确认批量删除选中的订单？",
+	"virtualAutoDeliveryContent": "发货内容",
+	"virtualAutoDeliveryContentPlaceholder": "请输入发货内容"
 }

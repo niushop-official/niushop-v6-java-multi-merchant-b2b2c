@@ -1,1 +1,0 @@
-import{__tla as a}from"./entry.6089f349.js";let t,e=Promise.all([(()=>{try{return a}catch{}})()]).then(async()=>{t=""+new URL("goods_default.5303290d.png",import.meta.url).href});export{t as _,e as __tla};

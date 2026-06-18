@@ -9,12 +9,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.niu.core.entity.sys.SysMenu;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+@Slf4j
 public class JacksonUtils {
 
     /**
@@ -71,9 +72,13 @@ public class JacksonUtils {
             return new ArrayList<>();
         }
         List<T> beanList = new ArrayList<>();
-        jsonObjectList.stream().forEach(json -> {
+        jsonObjectList.forEach(json -> {
             T target = JacksonUtils.toSnakeCaseObject(json.toString(), clazz);
-            beanList.add(target);
+            if (target != null) {
+                beanList.add(target);
+            } else {
+                log.warn("Failed to deserialize JSON to {}: menu_key={}", clazz.getSimpleName(), json.getStr("menu_key"));
+            }
         });
         return beanList;
     }

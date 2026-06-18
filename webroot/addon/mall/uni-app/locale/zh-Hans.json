@@ -4,12 +4,14 @@
     "pages.goods.category": "商品分类",
     "pages.goods.detail": "商品详情",
     "pages.goods.list": "商品列表",
+    "pages.goods.gift": "优惠活动",
     "pages.collect.godds": "商品收藏",
     "pages.collect.shop": "店铺收藏",
     "pages.member.my_coupon": "我的优惠券",
     "pages.collect.index": "我的收藏",
     "pages.member.merchant_settled": "申请入驻",
     "pages.member.merchant_record": "申请记录",
+    "pages.member.merchant_detail": "申请详情",
     "pages.member.browse": "我的足迹",
     "pages.order.list": "订单列表",
     "pages.order.detail": "订单详情",
@@ -28,5 +30,8 @@
     "pages.shop.detail": "店铺详情",
     "pages.shop.goods_list": "店铺商品",
     "pages.shop.search": "店铺搜索",
+    "pages.shop.home.goods": "店铺商品",
+    "pages.shop.home.coupon": "店铺优惠券",
+    "pages.shop.home.category": "店铺分类",
     "pages.delivery.track": "配送员轨迹"
 }

@@ -102,7 +102,13 @@
                     <el-table-column prop="transfer_type_name" :label="t('cashOutMethod')" align="center" min-width="130" />
                     <el-table-column prop="apply_money" :label="t('applicationForWithdrawalAmount')" min-width="130"
                         align="center" />
-                    <el-table-column prop="status_name" :label="t('cashOutStatus')" align="center" min-width="100" />
+                    <el-table-column prop="status_name" :label="t('cashOutStatus')" align="center" min-width="130">
+                        <template #default="{ row }">
+                            <div>{{ row.status_name }}</div>
+                            <div v-if="row.status == 2 && row.transfer_type == '4'"
+                                class="text-[12px] text-[var(--el-color-success)]">(等待商户收款)</div>
+                        </template>
+                    </el-table-column>
                     <el-table-column :label="t('applyTime')" min-width="180" align="center">
                         <template #default="{ row }">
                             {{ row.create_time || '' }}

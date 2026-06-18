@@ -836,6 +836,20 @@
         "sort": "59",
         "status": "1",
         "is_show": "1"
+      },
+      {
+        "menu_name": "会员导入",
+        "menu_key": "member_import",
+        "menu_short_name": "会员导入",
+        "menu_type": "1",
+        "icon": "",
+        "api_url": "",
+        "router_path": "member/member_import",
+        "view_path": "member/member_import",
+        "methods": "get",
+        "sort": "59",
+        "status": "1",
+        "is_show": "1"
       }
     ]
   },
@@ -868,20 +882,20 @@
         "status": "1",
         "is_show": "1",
         "children": [
-            {
-              "menu_name": "商城账单",
-              "menu_key": "mall_bill",
-              "menu_short_name": "商城账单",
-              "menu_type": "1",
-              "icon": "nc-iconfont nc-icon-a-shangchengzhangdanpc30",
-              "api_url": "finance/index",
-              "router_path": "finance/index",
-              "view_path": "finance/index",
-              "methods": "get",
-              "sort": "100",
-              "status": "1",
-              "is_show": "1"
-            },
+          {
+            "menu_name": "商城账单",
+            "menu_key": "mall_bill",
+            "menu_short_name": "商城账单",
+            "menu_type": "1",
+            "icon": "nc-iconfont nc-icon-a-shangchengzhangdanpc30",
+            "api_url": "finance/index",
+            "router_path": "finance/index",
+            "view_path": "finance/index",
+            "methods": "get",
+            "sort": "100",
+            "status": "1",
+            "is_show": "1"
+          },
           {
             "menu_name": "充值账单",
             "menu_key": "recharge_bill",
@@ -3418,7 +3432,7 @@
             "router_path": "setting/storage",
             "view_path": "setting/storage",
             "methods": "get",
-            "sort": "30",
+            "sort": "100",
             "status": "1",
             "is_show": "1",
             "children": [
@@ -3439,6 +3453,36 @@
             ]
           },
           {
+            "menu_name": "附件设置",
+            "menu_key": "attachment_setting",
+            "menu_short_name": "附件设置",
+            "menu_type": "1",
+            "icon": "nc-iconfont nc-icon-ditumichi",
+            "api_url": "sys/config/attachment",
+            "router_path": "setting/attachment",
+            "view_path": "setting/attachment",
+            "methods": "get",
+            "sort": "90",
+            "status": "1",
+            "is_show": "1",
+            "children": [
+              {
+                "menu_name": "保存设置",
+                "menu_key": "map_setting_set",
+                "menu_short_name": "保存设置",
+                "menu_type": "2",
+                "icon": "",
+                "api_url": "sys/config/map",
+                "router_path": "",
+                "view_path": "",
+                "methods": "put",
+                "sort": "12",
+                "status": "1",
+                "is_show": "1"
+              }
+            ]
+          },
+          {
             "menu_name": "地图秘钥",
             "menu_key": "map_setting",
             "menu_short_name": "地图秘钥",
@@ -3448,7 +3492,7 @@
             "router_path": "setting/map",
             "view_path": "setting/map",
             "methods": "get",
-            "sort": "9",
+            "sort": "80",
             "status": "1",
             "is_show": "1",
             "children": [
@@ -4585,6 +4629,108 @@
         "sort": "100",
         "status": "1",
         "is_show": "0"
+      },
+      {
+        "menu_name": "入驻设置",
+        "menu_key": "shop_apply_config",
+        "menu_short_name": "入驻设置",
+        "menu_type": "1",
+        "icon": "nc-iconfont nc-icon-dianpushezhi",
+        "api_url": "",
+        "router_path": "shop/config/apply",
+        "view_path": "shop/admin/apply_config",
+        "methods": "get",
+        "sort": "50",
+        "status": "1",
+        "is_show": "1",
+        "children": [
+          {
+            "menu_name": "修改入驻设置",
+            "menu_key": "shop_apply_config_set",
+            "menu_short_name": "修改入驻设置",
+            "menu_type": "2",
+            "icon": "",
+            "api_url": "shop/admin/shop/apply_config",
+            "router_path": "",
+            "view_path": "",
+            "methods": "post",
+            "sort": "0",
+            "status": "1",
+            "is_show": "0"
+          }
+        ]
+      },
+      {
+        "menu_name": "结算账户",
+        "menu_key": "settlement_account",
+        "menu_short_name": "结算账户",
+        "menu_type": "0",
+        "icon": "nc-iconfont nc-icon-jiesuanzhanghu1",
+        "api_url": "",
+        "router_path": "",
+        "view_path": "",
+        "methods": "get",
+        "sort": "0",
+        "status": "1",
+        "is_show": "1",
+        "children": [
+          {
+            "menu_name": "账户管理",
+            "menu_key": "shop_account",
+            "menu_short_name": "账户管理",
+            "menu_type": "1",
+            "icon": "nc-iconfont nc-icon-zhanghuguanli",
+            "api_url": "",
+            "router_path": "shop/account",
+            "view_path": "shop/admin/account",
+            "methods": "get",
+            "sort": "100",
+            "status": "1",
+            "is_show": "1"
+          },
+          {
+            "menu_name": "账户管理详情",
+            "menu_key": "hop_account_info",
+            "menu_short_name": "账户管理详情",
+            "menu_type": "1",
+            "icon": "",
+            "api_url": "",
+            "router_path": "shop/account_info",
+            "view_path": "shop/admin/account_info",
+            "methods": "get",
+            "sort": "100",
+            "status": "1",
+            "is_show": "0"
+          },
+          {
+            "menu_name": "账户入驻申请",
+            "menu_key": "shop_account_apply",
+            "menu_short_name": "账户入驻申请",
+            "menu_type": "1",
+            "icon": "nc-iconfont nc-icon-zhanghuruzhushenqing",
+            "api_url": "",
+            "router_path": "shop/account_apply",
+            "view_path": "shop/admin/account_apply",
+            "methods": "get",
+            "sort": "100",
+            "status": "1",
+            "is_show": "1"
+          },
+          {
+            "menu_name": "账户入驻申请详情",
+            "menu_key": "hop_account_apply_info",
+            "menu_short_name": "账户入驻申请详情",
+            "menu_type": "1",
+            "icon": "",
+            "api_url": "",
+            "router_path": "shop/account_apply_info",
+            "view_path": "shop/admin/account_apply_info",
+            "methods": "get",
+            "sort": "100",
+            "status": "1",
+            "is_show": "0"
+          }
+        ]
       }
     ]
   },

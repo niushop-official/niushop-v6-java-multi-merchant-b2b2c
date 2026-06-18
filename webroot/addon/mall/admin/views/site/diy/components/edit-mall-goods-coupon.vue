@@ -13,7 +13,7 @@
 				</el-form-item>
 			</el-form>
 
-			<el-dialog v-model="showCouponDialog" :title="t('selectStyle')" width="500px">
+			<el-dialog v-model="showCouponDialog" :title="t('selectStyle')" width="700px">
 
 				<div class="flex flex-wrap">
 					<template v-for="(item,index) in couponStyleList" :key="index">
@@ -41,7 +41,7 @@
 					<el-input v-model="diyStore.editComponent.couponTitle" clearable :maxlength="diyStore.editComponent.style == 'style-3' ? 4 : 8" show-word-limit/>
 				</el-form-item>
 
-				<el-form-item :label="t('couponSubTitle')" v-if="diyStore.editComponent.style != 'style-5'">
+				<el-form-item :label="t('couponSubTitle')" v-if="diyStore.editComponent.style != 'style-5' && diyStore.editComponent.style != 'style-6' && diyStore.editComponent.style != 'style-7' && diyStore.editComponent.style != 'style-8'">
 					<el-input v-model="diyStore.editComponent.couponSubTitle" clearable :maxlength="diyStore.editComponent.style == 'style-3' ? 7 : 10" show-word-limit/>
 				</el-form-item>
 
@@ -67,7 +67,7 @@
 					<el-slider show-input v-model="diyStore.editComponent.num" :min="1" max="20" size="small"
                                class="goods-coupon-slider" />
 				</el-form-item>
-				<el-form-item :label="t('couponBtnText')" v-if="diyStore.editComponent.style != 'style-4'">
+				<el-form-item :label="t('couponBtnText')" v-if="diyStore.editComponent.style != 'style-4' && diyStore.editComponent.style != 'style-6' && diyStore.editComponent.style != 'style-7'">
 					<el-input v-model="diyStore.editComponent.btnText" clearable maxlength="5" show-word-limit/>
 				</el-form-item>
 
@@ -79,38 +79,57 @@
 
 	<!-- 样式 -->
 	<div class="style-wrap" v-show="diyStore.editTab == 'style'">
-		<div class="edit-attr-item-wrap" v-if="diyStore.editComponent.style == 'style-4'|| diyStore.editComponent.style == 'style-5'">
+		<div class="edit-attr-item-wrap" v-if="['style-4','style-5','style-6','style-7','style-8'].indexOf(diyStore.editComponent.style) != -1">
             <h3 class="mb-[10px]">{{ t("couponTitleStyle") }}</h3>
             <el-form label-width="90px" class="px-[10px]">
                 <el-form-item :label="t('couponTitleColor')">
                     <el-color-picker v-model="diyStore.editComponent.titleColor" show-alpha :predefine="diyStore.predefineColors" />
                 </el-form-item>
-                <el-form-item :label="t('couponSubTitleColor')" v-if="diyStore.editComponent.style != 'style-5'">
+                <el-form-item :label="t('couponSubTitleColor')" v-if="diyStore.editComponent.style != 'style-5' && diyStore.editComponent.style != 'style-6' && diyStore.editComponent.style != 'style-7' && diyStore.editComponent.style != 'style-8'">
                     <el-color-picker v-model="diyStore.editComponent.subTitleColor" show-alpha :predefine="diyStore.predefineColors" />
+                </el-form-item>
+                <el-form-item :label="t('对齐方式')" v-if="diyStore.editComponent.style == 'style-6' || diyStore.editComponent.style == 'style-7' || diyStore.editComponent.style == 'style-8'">
+                    <el-radio-group v-model="diyStore.editComponent.titleAlign">
+                        <el-radio label="left">{{ t('左对齐') }}</el-radio>
+                        <el-radio label="center">{{ t('居中') }}</el-radio>
+                        <el-radio label="right">{{ t('右对齐') }}</el-radio>
+                    </el-radio-group>
                 </el-form-item>
             </el-form>
         </div>
 
-        <div class="edit-attr-item-wrap" v-if="diyStore.editComponent.style == 'style-4'|| diyStore.editComponent.style == 'style-5'">
+        <div class="edit-attr-item-wrap" v-if="['style-4','style-5','style-6','style-7','style-8'].indexOf(diyStore.editComponent.style) != -1">
             <h3 class="mb-[10px]">{{ t("couponItemStyle") }}</h3>
             <el-form label-width="90px" class="px-[10px]">
-                <el-form-item :label="t('couponMoney')">
+                <el-form-item :label="t('couponMoney')" v-if="diyStore.editComponent.style  !== 'style-7'">
                     <el-color-picker v-model="diyStore.editComponent.couponItem.moneyColor" show-alpha :predefine="diyStore.predefineColors" />
                 </el-form-item>
-                <el-form-item :label="t('textColor')">
+                <el-form-item :label="t('couponMoney')" v-if="diyStore.editComponent.style  == 'style-7'">
+                    <el-color-picker v-for="(item,index) in diyStore.editComponent.couponItem.itemMoneyColor" :key="index" v-model="diyStore.editComponent.couponItem.itemMoneyColor[index]" show-alpha :predefine="diyStore.predefineColors" />
+                </el-form-item>
+                <el-form-item :label="t('textColor')" v-if="diyStore.editComponent.style  !== 'style-7'">
                     <el-color-picker v-model="diyStore.editComponent.couponItem.textColor" show-alpha :predefine="diyStore.predefineColors" />
                 </el-form-item>
-                <el-form-item :label="t('subTextColor')" v-if="diyStore.editComponent.style  !== 'style-5'">
+                <el-form-item :label="t('textColor')" v-if="diyStore.editComponent.style  == 'style-7'">
+                    <el-color-picker v-for="(item,index) in diyStore.editComponent.couponItem.itemTextColor" :key="index" v-model="diyStore.editComponent.couponItem.itemTextColor[index]" show-alpha :predefine="diyStore.predefineColors" />
+                </el-form-item>
+                <el-form-item :label="t('subTextColor')" v-if="diyStore.editComponent.style  !== 'style-5' && diyStore.editComponent.style  !== 'style-6' && diyStore.editComponent.style  !== 'style-7' && diyStore.editComponent.style  !== 'style-8'">
                     <el-color-picker v-model="diyStore.editComponent.couponItem.subTextColor" show-alpha :predefine="diyStore.predefineColors" />
                 </el-form-item>
                 <el-form-item :label="t('背景图')" v-if="diyStore.editComponent.style  == 'style-5'">
                     <upload-image v-model="diyStore.editComponent.couponItem.bgUrl" :limit="1"/>
                 </el-form-item>
-                <el-form-item :label="t('按钮颜色')" v-if="diyStore.editComponent.style  == 'style-5'">
+                <el-form-item :label="t('按钮颜色')" v-if="diyStore.editComponent.style  == 'style-5' || diyStore.editComponent.style  == 'style-8'">
                     <el-color-picker v-model="diyStore.editComponent.couponItem.btnColor" show-alpha :predefine="diyStore.predefineColors" />
                 </el-form-item>
-                <el-form-item :label="t('listFrameColor')" v-if="diyStore.editComponent.style  !== 'style-5'">
+                <el-form-item :label="t('listFrameColor')" v-if="diyStore.editComponent.style  !== 'style-5' && diyStore.editComponent.style  !== 'style-6' && diyStore.editComponent.style  !== 'style-7'">
                     <el-color-picker v-model="diyStore.editComponent.couponItem.bgColor" show-alpha :predefine="diyStore.predefineColors" />
+                </el-form-item>
+                <el-form-item :label="t('边框颜色')" v-if="diyStore.editComponent.style  === 'style-8'">
+                    <el-color-picker v-model="diyStore.editComponent.couponItem.borderColor" show-alpha :predefine="diyStore.predefineColors" />
+                </el-form-item>
+                <el-form-item :label="t('listFrameColor')" v-if="diyStore.editComponent.style  == 'style-6' || diyStore.editComponent.style  == 'style-7'">
+                    <el-color-picker v-for="(item,index) in diyStore.editComponent.couponItem.itemBgColor" :key="`color-${diyStore.editComponent.style}-${index}`" v-model="diyStore.editComponent.couponItem.itemBgColor[index]" show-alpha :predefine="diyStore.predefineColors" />
                 </el-form-item>
                 <el-form-item :label="t('goodsRounded')">
                     <el-slider v-model="diyStore.editComponent.couponItem.aroundRadius" show-input size="small" class="ml-[10px] diy-nav-slider" :max="50" />
@@ -211,6 +230,21 @@ const couponStyleList = reactive([
         url: 'addon/mall/diy/goods_coupon/style-5.png',
         title: '风格5',
         value: 'style-5'
+    },
+    {
+        url: 'addon/mall/diy/goods_coupon/style-6.png',
+        title: '风格6',
+        value: 'style-6'
+    },
+    {
+        url: 'addon/mall/diy/goods_coupon/style-7.png',
+        title: '风格7',
+        value: 'style-7'
+    },
+    {
+        url: 'addon/mall/diy/goods_coupon/style-8.png',
+        title: '风格8',
+        value: 'style-8'
     }
 ])
 
@@ -236,32 +270,56 @@ const confirmCouponStyle = () => {
 
 const initStyleFn = () => {
     const index = diyStore.editComponent.ignore.indexOf('componentBgColor')
-    if (index != -1) {
-        if (diyStore.editComponent.style == 'style-4') {
-            diyStore.editComponent.ignore.splice(index, 1)
+    if (index !== -1) {
+        diyStore.editComponent.ignore.splice(index, 1)
+    } else {
+        diyStore.editComponent.ignore.push('componentBgColor')
+    }
+
+    switch (diyStore.editComponent.style) {
+        case 'style-4':
             diyStore.editComponent.titleColor = '#ffffff'
             diyStore.editComponent.subTitleColor = '#ffffff'
-
             diyStore.editComponent.couponItem.moneyColor = '#fa191d'
             diyStore.editComponent.couponItem.textColor = '#333333'
             diyStore.editComponent.couponItem.subTextColor = '#999999'
             diyStore.editComponent.couponItem.bgColor = '#ffffff'
             diyStore.editComponent.couponItem.aroundRadius = 10
             diyStore.editComponent.componentStartBgColor = '#fa191d'
-        }
-        if (diyStore.editComponent.style == 'style-5') {
-            diyStore.editComponent.ignore.splice(index, 1)
+            break
+        case 'style-5':
             diyStore.editComponent.titleColor = '#333'
-
             diyStore.editComponent.couponItem.moneyColor = '#fff'
             diyStore.editComponent.couponItem.textColor = '#fff'
             diyStore.editComponent.couponItem.bgColor = '#FFF7F6'
             diyStore.editComponent.couponItem.btnColor = '#fff'
             diyStore.editComponent.couponItem.aroundRadius = 6
             diyStore.editComponent.componentStartBgColor = '#fff'
-        }
-    } else {
-        diyStore.editComponent.ignore.push('componentBgColor')
+            break
+        case 'style-6':
+            diyStore.editComponent.couponTitle = '畅享礼券'
+            diyStore.editComponent.titleColor = '#333'
+            diyStore.editComponent.couponItem.moneyColor = '#fff'
+            diyStore.editComponent.couponItem.textColor = '#fff'
+            // 使用数组整体替换，保证响应式
+            diyStore.editComponent.couponItem.itemBgColor = ['#0E1647', '#352504', '#082B18', '#661414', '#0C3740', '#430E4B']
+            diyStore.editComponent.couponItem.aroundRadius = 0
+            diyStore.editComponent.componentStartBgColor = '#fff'
+            diyStore.editComponent.topRounded = 12
+            diyStore.editComponent.bottomRounded = 12
+            break
+        case 'style-7':
+            diyStore.editComponent.couponTitle = '畅享礼券'
+            diyStore.editComponent.titleColor = '#333'
+            diyStore.editComponent.couponItem.itemMoneyColor = ['#00179C', '#684700', '#005627', '#C40000', '#004E5E', '#61036D']
+            diyStore.editComponent.couponItem.itemTextColor = ['#00179C', '#684700', '#005627', '#C40000', '#004E5E', '#61036D']
+            // 使用数组整体替换，保证响应式
+            diyStore.editComponent.couponItem.itemBgColor = ['#D7DDFF', '#FBE1A9', '#C8F6DD', '#FFDCD8', '#BFEAF3', '#F4CFF9']
+            diyStore.editComponent.couponItem.aroundRadius = 0
+            diyStore.editComponent.componentStartBgColor = '#fff'
+            diyStore.editComponent.topRounded = 12
+            diyStore.editComponent.bottomRounded = 12
+            break
     }
 }
 initStyleFn()

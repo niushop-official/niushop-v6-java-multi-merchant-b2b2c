@@ -2,17 +2,18 @@ package com.niu.core.controller.api.login;
 
 import cn.dev33.satoken.annotation.SaIgnore;
 import com.niu.core.common.domain.Result;
-import com.niu.core.common.utils.system.CaptchaUtils;
 import com.niu.core.enums.member.MemberLoginTypeEnum;
 import com.niu.core.service.admin.member.vo.LoginConfigVo;
 import com.niu.core.service.api.login.ILoginService;
 import com.niu.core.service.api.login.IRegisterService;
-import com.niu.core.service.api.login.param.*;
+import com.niu.core.service.api.login.param.AccountLoginParam;
+import com.niu.core.service.api.login.param.MobileLoginParam;
+import com.niu.core.service.api.login.param.ResetPasswordParam;
+import com.niu.core.service.api.login.param.SendMobileCodeParam;
 import com.niu.core.service.api.login.vo.LoginVo;
+import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.annotation.Resource;
 
 @RestController
 @RequestMapping("/api")
@@ -92,6 +93,7 @@ public class LoginController {
     @PutMapping("/auth/logout")
     @SaIgnore
     public Result logout() {
-        return Result.success();
+        loginService.logout();
+        return Result.success("MEMBER_LOGOUT");
     }
 }

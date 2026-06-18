@@ -19,7 +19,6 @@
                         <view class="px-[50rpx] mt-[16rpx] text-center text-[22rpx] text-[#999] leading-[1.5]">{{ data.customer_guided_words }}</view>
                     </scroll-view>
                 </view>
-                <!-- <view @click="servicesDataShow = false" class="mt-[50rpx] nc-iconfont nc-icon-cuohaoV6xx1 !text-[50rpx] text-[#fff]"></view> -->
             </view>
         </u-popup>
     </view>

@@ -1,9 +1,11 @@
 <template>
     <div class="main-container">
-        <div cass="p-[20px]" :class="{'bg-[#fff] min-h-[50vh]': !separList.length && !loading }">
-            <div class="flex justify-between items-center mb-[10px]">
+        <el-card class="box-card !border-none mb-[20px]" shadow="never">
+            <div class="flex justify-between items-center">
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
+        </el-card>
+        <div cass="p-[20px]" :class="{'bg-[#fff] min-h-[50vh]': !separList.length && !loading }">
             <el-row :gutter="20"  v-if="Object.keys(separList).length && !loading">
                 <el-col :span="8" v-for="(item,index) in separList" :key="index">
                     <div class="p-[20px] bg-[#fff] rounded-[4px] box-border">

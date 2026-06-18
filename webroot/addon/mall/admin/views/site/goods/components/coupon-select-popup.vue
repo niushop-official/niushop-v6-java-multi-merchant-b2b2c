@@ -92,11 +92,14 @@ const prop = defineProps({
     min: {
         type: Number,
         default: 0
+    },
+    status: {
+        type: Number||String,
+        default: ""
     }
 })
 
-const emit = defineEmits(['update:modelValue'])
-
+const emit = defineEmits(['update:modelValue','couponSelect'])
 const couponIds: any = computed({
     get () {
         return prop.modelValue
@@ -194,7 +197,8 @@ const loadCouponList = (page: number = 1, callback: any = null) => {
     getCouponList({
         page: couponTable.page,
         limit: couponTable.limit,
-        ...searchData
+        ...searchData,
+        status: prop.status
     }).then(res => {
         couponTable.loading = false
         couponTable.data = res.data.data
@@ -230,6 +234,10 @@ const resetForm = (formEl: FormInstance | undefined) => {
 }
 
 const show = () => {
+    // 打开弹窗前先清空已选数据（核心修复：避免残留旧选中）
+    for (let k in selectCoupon) {
+        delete selectCoupon[k];
+    }
     // 检测优惠券id集合是否存在，移除不存在的优惠券id，纠正数据准确性
     loadCouponList(1, () => {
         // 第一次打开弹出框时，纠正数据，并且赋值已选优惠券
@@ -282,6 +290,7 @@ const save = () => {
     }
 
     couponIds.value.splice(0, couponIds.value.length, ...ids)
+    emit('couponSelect',selectCoupon)
 
     showDialog.value = false
 }

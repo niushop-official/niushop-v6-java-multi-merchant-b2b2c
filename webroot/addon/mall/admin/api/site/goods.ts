@@ -226,12 +226,28 @@ export function getGoodsStatus() {
 }
 
 /**
+ * 获取商品状态
+ * @returns
+ */
+export function getGoodsStatusType() {
+    return request.get(`mall/site/goods/status_type`);
+}
+/**
  * 获取商品标签列表
  * @param params
  * @returns
  */
 export function getLabelList(params: Record<string, any>) {
     return request.get(`mall/site/goods/label/list`, { params })
+}
+
+/**
+ * 获取支付方式列表
+ * @param params
+ * @returns
+ */
+export function getPayTypeList(params: Record<string, any>) {
+    return request.get(`mall/site/goods/payTypeList`, { params })
 }
 
 

@@ -209,11 +209,10 @@ public class CoreDeliveryWeappServiceImpl implements ICoreDeliveryWeappService {
         List<WxMaExpressDelivery> deliveryList = new ArrayList<>();
         try {
             WxMaService wxMaService = WechatUtils.miniapp(0);
-            String accessToken =  wxMaService.getAccessToken();
-            String requestUrl = GET_DELIVERY_LIST_URL + "?access_token=" + accessToken;
 
             // 发送POST请求，该接口无入参，传空JSON即可
-            String response = wxMaService.post(requestUrl, "{}");
+            String response = wxMaService.post(GET_DELIVERY_LIST_URL, "{}");
+            log.info("发送POST请求 {}",response);
             JSONObject result = JSONUtil.parseObj(response);
             // 微信接口异常处理，沿用SDK的错误码体系
             if (result.getInt("errcode") != null && result.getInt("errcode") != 0) {

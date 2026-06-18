@@ -77,25 +77,28 @@ public class CoreOrderWeappDeliveryServiceImpl implements ICoreOrderWeappDeliver
                     .select("express_number,id,express_company_id,c.company_name AS name")
                     .eq("order_id", mallOrder.getOrderId())
             );
+            log.info("物流信息列表  {}",packageList);
             if(packageList.isEmpty()){
                 return "没有物流信息";
             }
 
             //获取物流模式
             Integer logisticsType = coreDeliveryWeappService.getLogisticsType(mallOrder.getDeliveryType(),packageList.size());
+            log.info("获取物流模式  {}",logisticsType);
             //获取发货模式
             Integer deliveryMode = coreDeliveryWeappService.getDeliveryMode(packageList.size());
-
+            log.info("获取发货模式  {}",deliveryMode);
             //获取物流公司
             List<WxMaExpressDelivery> expressCompanyList = new ArrayList<>();
             if(logisticsType == 1){
                 expressCompanyList = coreDeliveryWeappService.getDeliveryListCache();
             }
-
+            log.info("获取快递列表=========================================");
             List<WeappUploadShippingParam.UploadShippingParam> shippingList = new ArrayList<>();
             WeappUploadShippingParam.UploadShippingParam firstShippingInfo = new WeappUploadShippingParam.UploadShippingParam();
             //查询商家默认发货地址
             SiteAddress shopAddress = siteAddressMapper.selectOne(new QueryWrapper<SiteAddress>().eq("site_id", siteId).eq("is_default_delivery", 1).last("LIMIT 1"));
+            log.info("查询商家默认发货地址=========================================");
             for (int i = 0; i < packageList.size(); i++) {
                 if (i == 14){
                     break;
@@ -121,6 +124,7 @@ public class CoreOrderWeappDeliveryServiceImpl implements ICoreOrderWeappDeliver
                         trackingNo = "1111111111";
                     }
                 }
+                log.info("组装包裹信息=========================================");
                 WeappUploadShippingParam.UploadShippingParam shippingListBean = new WeappUploadShippingParam.UploadShippingParam();
                 shippingListBean.setTrackingNo(trackingNo);
                 shippingListBean.setExpressCompany(expressCompany);
@@ -206,7 +210,7 @@ public class CoreOrderWeappDeliveryServiceImpl implements ICoreOrderWeappDeliver
             weappShippingCreateParam.setSplitTradeId(mallOrder.getOrderId());
             weappShippingCreateParam.setSplitTradeType("mall");
             weappShippingCreateParam.setSplitTradeNo(mallOrder.getOrderNo());
-
+            log.info("发货=========================================");
             coreDeliveryWeappShippingEventService.weappShipping(weappShippingCreateParam);
         } catch (Exception e) {
             String errorMsg = String.format("商城小程序订单发货失败报错: %s, File: %s, line: %d",

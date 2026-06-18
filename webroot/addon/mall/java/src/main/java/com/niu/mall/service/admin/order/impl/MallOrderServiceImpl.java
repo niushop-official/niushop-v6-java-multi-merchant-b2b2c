@@ -2,7 +2,7 @@ package com.niu.mall.service.admin.order.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -13,6 +13,7 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.CollectUtils;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrder;
 import com.niu.core.entity.delivery.DeliveryStore;
@@ -33,25 +34,21 @@ import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.core.pay.ICorePayService;
 import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.order.MallOrder;
-import com.niu.mall.entity.order.MallOrderDelivery;
-import com.niu.mall.entity.order.MallOrderGoods;
-import com.niu.mall.entity.order.MallOrderLog;
-import com.niu.mall.enums.goods.GoodsStatusEnum;
+import com.niu.mall.entity.order.*;
 import com.niu.mall.enums.order.*;
-import com.niu.mall.enums.trade.SettlementEnum;
 import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.order.MallOrderDeliveryMapper;
-import com.niu.mall.mapper.order.MallOrderGoodsMapper;
-import com.niu.mall.mapper.order.MallOrderLogMapper;
-import com.niu.mall.mapper.order.MallOrderMapper;
+import com.niu.mall.mapper.order.*;
 import com.niu.mall.service.admin.order.IMallOrderService;
 import com.niu.mall.service.admin.order.param.EditDeliveryParam;
 import com.niu.mall.service.admin.order.param.EditPriceParam;
 import com.niu.mall.service.admin.order.param.MallOrderSearchParam;
 import com.niu.mall.service.admin.order.param.SetShopRemarkParam;
-import com.niu.mall.service.admin.order.vo.*;
+import com.niu.mall.service.admin.order.vo.EditDeliveryVo;
+import com.niu.mall.service.admin.order.vo.MallOrderInfoVo;
+import com.niu.mall.service.admin.order.vo.MallOrderListVo;
+import com.niu.mall.service.admin.order.vo.MallOrderLogListVo;
 import com.niu.mall.service.core.order.ICoreOrderCloseService;
+import com.niu.mall.service.core.order.ICoreOrderDiscountService;
 import com.niu.mall.service.core.order.ICoreOrderLogService;
 import com.niu.mall.service.core.order.ICoreOrderPayService;
 import com.niu.mall.service.core.order.param.AddOrderLogParam;
@@ -59,13 +56,13 @@ import com.niu.mall.service.core.order.param.OrderCloseParam;
 import com.niu.mall.service.core.order.param.OrderPayParam;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -121,16 +118,23 @@ public class MallOrderServiceImpl implements IMallOrderService {
     private VerifyMapper verifyMapper;
     @Resource
     private DeliveryLocalDeliveryOrderMapper deliveryLocalDeliveryOrderMapper;
+    @Resource
+    private MallOrderGiftGoodsMapper mallOrderGiftGoodsMapper;
+    @Resource
+    private MallOrderDeliveryContentMapper orderDeliveryContentMapper;
+    @Resource
+    private ICoreOrderDiscountService coreOrderDiscountService;
 
     /**
      * 订单列表
-     * @param pageParam 分页参数
+     *
+     * @param pageParam   分页参数
      * @param searchParam 搜索参数
      * @return PageResult<ShopOrderListVo>
      */
     @Override
     public PageResult<MallOrderListVo> page(PageParam pageParam, MallOrderSearchParam searchParam) {
-        Integer page  = pageParam.getPage();
+        Integer page = pageParam.getPage();
         Integer limit = pageParam.getLimit();
 
         MPJQueryWrapper<MallOrder> queryWrapper = new MPJQueryWrapper<>();
@@ -139,15 +143,15 @@ public class MallOrderServiceImpl implements IMallOrderService {
                 .leftJoin("?_member m ON o.member_id = m.member_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_pay p ON o.out_trade_no = p.out_trade_no".replace("?_", GlobalConfig.tablePrefix));
         queryWrapper.select("o.mall_money,o.shop_money,o.site_id,order_id,order_no,order_type,order_from,o.out_trade_no,o.status,o.member_id,ip,goods_money,delivery_money,order_money,o.create_time,o.pay_time,delivery_type,taker_name,taker_mobile,taker_full_address,take_store_id,is_enable_refund,member_remark,shop_remark,close_remark,o.mall_coupon_money,o.mall_refund_coupon_money");
-        if(RequestUtils.siteId() != 0){
+        if (RequestUtils.siteId() != 0) {
             queryWrapper.eq("o.site_id", RequestUtils.siteId());
         }
 
         queryWrapper.orderByDesc("o.create_time");
 
-        if (ObjectUtil.isNotEmpty(searchParam.getSearchType()) && ObjectUtil.isNotEmpty(searchParam.getSearchName())){
-            queryWrapper.like("o."+searchParam.getSearchType(), searchParam.getSearchName());
-        }else if(ObjectUtil.isNotEmpty(searchParam.getSearchName())){
+        if (ObjectUtil.isNotEmpty(searchParam.getSearchType()) && ObjectUtil.isNotEmpty(searchParam.getSearchName())) {
+            queryWrapper.like("o." + searchParam.getSearchType(), searchParam.getSearchName());
+        } else if (ObjectUtil.isNotEmpty(searchParam.getSearchName())) {
             queryWrapper.and(wrapper -> {
                 wrapper.like("o.order_no", searchParam.getSearchName())
                         .or()
@@ -156,19 +160,29 @@ public class MallOrderServiceImpl implements IMallOrderService {
         }
 
         if (ObjectUtil.isNotEmpty(searchParam.getStatus())) queryWrapper.eq("o.status", searchParam.getStatus());
-        if (ObjectUtil.isNotEmpty(searchParam.getOrderFrom())) queryWrapper.eq("o.order_from", searchParam.getOrderFrom());
+        if (ObjectUtil.isNotEmpty(searchParam.getOrderFrom()))
+            queryWrapper.eq("o.order_from", searchParam.getOrderFrom());
         if (ObjectUtil.isNotEmpty(searchParam.getPayType())) queryWrapper.eq("p.type", searchParam.getPayType());
-        if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) QueryMapperUtils.buildByTime(queryWrapper, "o.create_time", searchParam.getCreateTime());
-        if (ObjectUtil.isNotEmpty(searchParam.getPayTime())) QueryMapperUtils.buildByTime(queryWrapper, "p.pay_time", searchParam.getPayTime());
-        if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) queryWrapper.and(i -> i.eq("taker_name", searchParam.getKeyword()).or().eq("taker_mobile", searchParam.getKeyword()));
-        if (ObjectUtil.isNotEmpty(searchParam.getActivityType())) queryWrapper.eq("o.activity_type", searchParam.getActivityType());
-        if (ObjectUtil.isNotEmpty(searchParam.getExtendField1())) queryWrapper.eq("o.extend_field_1", searchParam.getExtendField1());
-        if (ObjectUtil.isNotEmpty(searchParam.getExtendField2())) queryWrapper.eq("o.extend_field_2", searchParam.getExtendField2());
-        if (ObjectUtil.isNotEmpty(searchParam.getDeliveryType())) queryWrapper.eq("o.delivery_type", searchParam.getDeliveryType());
-        if (ObjectUtil.isNotEmpty(searchParam.getGoodsSource())){
-            if(searchParam.getGoodsSource().equals("self_goods") || searchParam.getGoodsSource().equals("0")){
+        if (ObjectUtil.isNotEmpty(searchParam.getCreateTime()))
+            QueryMapperUtils.buildByTime(queryWrapper, "o.create_time", searchParam.getCreateTime());
+        if (ObjectUtil.isNotEmpty(searchParam.getPayTime()))
+            QueryMapperUtils.buildByTime(queryWrapper, "p.pay_time", searchParam.getPayTime());
+        if (ObjectUtil.isNotEmpty(searchParam.getKeyword()))
+            queryWrapper.and(i -> i.eq("taker_name", searchParam.getKeyword()).or().eq("taker_mobile", searchParam.getKeyword()));
+        if (ObjectUtil.isNotEmpty(searchParam.getActivityType()))
+            queryWrapper.eq("o.activity_type", searchParam.getActivityType());
+        if (ObjectUtil.isNotEmpty(searchParam.getOrderType()))
+            queryWrapper.eq("o.order_type", searchParam.getOrderType());
+        if (ObjectUtil.isNotEmpty(searchParam.getExtendField1()))
+            queryWrapper.eq("o.extend_field_1", searchParam.getExtendField1());
+        if (ObjectUtil.isNotEmpty(searchParam.getExtendField2()))
+            queryWrapper.eq("o.extend_field_2", searchParam.getExtendField2());
+        if (ObjectUtil.isNotEmpty(searchParam.getDeliveryType()))
+            queryWrapper.eq("o.delivery_type", searchParam.getDeliveryType());
+        if (ObjectUtil.isNotEmpty(searchParam.getGoodsSource())) {
+            if (searchParam.getGoodsSource().equals("self_goods") || searchParam.getGoodsSource().equals("0")) {
                 queryWrapper.eq("o.supply_order_id", 0);
-            }else{
+            } else {
                 queryWrapper.ne("o.supply_order_id", 0);
             }
         }
@@ -182,12 +196,12 @@ public class MallOrderServiceImpl implements IMallOrderService {
             orderGoodsWra.select("r.refund_id,r.apply_money,r.money refund_money");
             orderGoodsWra.eq("o.order_id", vo.getOrderId());
             orderGoodsWra.orderByDesc("r.refund_id");
-            List<MallOrderListVo.OrderGoods> orderGoods = mallOrderGoodsMapper.selectJoinList(MallOrderListVo.OrderGoods.class,orderGoodsWra);
+            List<MallOrderListVo.OrderGoods> orderGoods = mallOrderGoodsMapper.selectJoinList(MallOrderListVo.OrderGoods.class, orderGoodsWra);
 
             //按照商品进行分组
             List<MallOrderListVo.OrderGoods> orderGoodsListAll = new ArrayList<>();
             Map<Integer, List<MallOrderListVo.OrderGoods>> orderGoodsMap = orderGoods.stream().collect(Collectors.groupingBy(MallOrderListVo.OrderGoods::getOrderGoodsId));
-            for (Integer key : orderGoodsMap.keySet()){
+            for (Integer key : orderGoodsMap.keySet()) {
                 orderGoodsListAll.add(orderGoodsMap.get(key).get(0));
             }
 
@@ -210,14 +224,14 @@ public class MallOrderServiceImpl implements IMallOrderService {
             SiteInfoVo siteInfoVo = siteService.info(vo.getSiteId());
             vo.setSiteName(siteInfoVo.getSiteName());
 
-            if(ObjectUtil.isNotEmpty(vo.getSupplyId()) && vo.getSupplyId() > 0){
+            if (ObjectUtil.isNotEmpty(vo.getSupplyId()) && vo.getSupplyId() > 0) {
                 SiteInfoVo siteInfo = siteService.info(vo.getSupplyId());
                 vo.setSupplyId(siteInfo.getSiteId());
                 MallOrderListVo.Supply supply = new MallOrderListVo.Supply();
                 supply.setSiteId(siteInfo.getSiteId());
                 supply.setSiteName(siteInfo.getSiteName());
                 vo.setSupply(supply);
-            }else{
+            } else {
                 vo.setSupplyMoney(null);
                 vo.setSupplyRefundMoney(null);
             }
@@ -227,29 +241,35 @@ public class MallOrderServiceImpl implements IMallOrderService {
 
     /**
      * 订单详情
+     *
      * @param id 主键
      * @return ShopOrderInfoVo
      */
     @Override
     public MallOrderInfoVo detail(Integer id) {
         // ns_mall_order 表中没有这四个字段	relate_id,	activity_type,	point,	form_record_id
-        MallOrder model = new MallOrder();
-        if(RequestUtils.siteId() == 0){
-            model = mallOrderMapper.selectOne(
-                    new QueryWrapper<MallOrder>()
-                            .eq("order_id", id)
-                            .select("order_id,site_id,order_no,order_type,order_from,out_trade_no,status,member_id,ip,goods_money,delivery_money,order_money,invoice_id,create_time,pay_time,delivery_time,take_time,finish_time,close_time,delivery_type,taker_name,taker_mobile,taker_province,taker_city,taker_district,taker_address,taker_full_address,taker_longitude,taker_latitude,take_store_id,is_enable_refund,member_remark,shop_remark,close_remark,discount_money,is_evaluate,mall_discount_money,mall_money,mall_refund_money,refund_money,shop_money,shop_refund_money,mall_coupon_money,mall_refund_coupon_money,supply_id,supply_money,form_record_id,supply_refund_money,mall_coupon_money,mall_refund_coupon_money,shop_commission,shop_refund_commission"));
-        }else {
-            model=mallOrderMapper.selectOne(
-                    new QueryWrapper<MallOrder>()
-                            .eq("order_id", id)
-                            .eq("site_id", RequestUtils.siteId())
-                            .select("order_id,site_id,order_no,order_type,order_from,out_trade_no,status,member_id,ip,goods_money,delivery_money,order_money,invoice_id,create_time,pay_time,delivery_time,take_time,finish_time,close_time,delivery_type,taker_name,taker_mobile,taker_province,taker_city,taker_district,taker_address,taker_full_address,taker_longitude,taker_latitude,take_store_id,is_enable_refund,member_remark,shop_remark,close_remark,discount_money,is_evaluate,mall_discount_money,mall_money,mall_refund_money,refund_money,shop_money,shop_refund_money,mall_coupon_money,mall_refund_coupon_money,supply_id,supply_money,form_record_id,supply_refund_money,mall_coupon_money,mall_refund_coupon_money,shop_commission,shop_refund_commission"));
+        QueryWrapper<MallOrder> wrapper = new QueryWrapper<MallOrder>().eq("order_id", id)
+                .select("order_id, site_id, order_no, order_type, order_from, out_trade_no, status, member_id, ip, " +
+                        "goods_money, delivery_money, order_money, invoice_id, create_time, pay_time, delivery_time, " +
+                        "take_time, finish_time, close_time, delivery_type, sub_delivery_type, taker_name, taker_mobile, " +
+                        "taker_province, taker_city, taker_district, taker_address, taker_full_address, " +
+                        "taker_longitude, taker_latitude, take_store_id, is_enable_refund, member_remark, shop_remark, " +
+                        "close_remark, discount_money,is_evaluate, mall_discount_money, refund_money, shop_money, mall_money, " +
+                        "shop_refund_money, mall_refund_money, mall_coupon_money, mall_refund_coupon_money, " +
+                        "shop_commission, shop_refund_commission, supply_id, supply_money, supply_refund_money, " +
+                        "form_record_id, buyer_ask_delivery_time, refund_deduct_point, refund_point_deduct_money, " +
+                        "point_deduct_money, use_point, settlement_status");
+
+        if (RequestUtils.siteId() != 0) {
+            wrapper.eq("site_id", RequestUtils.siteId());
         }
+        MallOrder model = mallOrderMapper.selectOne(wrapper);
         Assert.notNull(model, "订单不存在");
 
         MallOrderInfoVo vo = new MallOrderInfoVo();
         BeanUtils.copyProperties(model, vo);
+        vo.setUsePoint(model.getUsePoint() != null ? new BigDecimal(model.getUsePoint()) : BigDecimal.ZERO);
+        vo.setRefundDeductPoint(model.getRefundDeductPoint() != null ? new BigDecimal(model.getRefundDeductPoint()) : BigDecimal.ZERO);
 
         MemberBriefInfoVo memberVo = new MemberBriefInfoVo();
         Member member = memberMapper.selectOne(new QueryWrapper<Member>().eq("member_id", vo.getMemberId()));
@@ -264,33 +284,52 @@ public class MallOrderServiceImpl implements IMallOrderService {
         orderGoodsWra.select("o.*");
         orderGoodsWra.select("r.refund_id,r.apply_money,r.money refund_money");
         orderGoodsWra.eq("o.order_id", vo.getOrderId());
-        List<MallOrderInfoVo.OrderGoods> orderGoods = mallOrderGoodsMapper.selectJoinList(MallOrderInfoVo.OrderGoods.class,orderGoodsWra);
+        List<MallOrderInfoVo.OrderGoods> orderGoods = mallOrderGoodsMapper.selectJoinList(MallOrderInfoVo.OrderGoods.class, orderGoodsWra);
 
         vo.setIsRefundStatusShow(false);
-        for(MallOrderInfoVo.OrderGoods orderGoodsVo : orderGoods){
+        for (MallOrderInfoVo.OrderGoods orderGoodsVo : orderGoods) {
             MallGoods goodsInfo = mallGoodsMapper.selectById(orderGoodsVo.getGoodsId());
-            orderGoodsVo.setUnit(goodsInfo.getUnit().equals("") ? "件"  : goodsInfo.getUnit() );
+            orderGoodsVo.setUnit(goodsInfo.getUnit().equals("") ? "件" : goodsInfo.getUnit());
             MallOrderDelivery mallOrderDelivery = mallOrderDeliveryMapper.selectById(orderGoodsVo.getDeliveryId());
-            if(ObjectUtil.isNotEmpty(mallOrderDelivery)){
+            if (ObjectUtil.isNotEmpty(mallOrderDelivery)) {
                 orderGoodsVo.setDeliveryTypeName(vo.getDeliveryTypeName());
             }
-            if (!OrderGoodsRefundEnum.NORMAL.getStatus().equals(orderGoodsVo.getStatus())){
+            if (!OrderGoodsRefundEnum.NORMAL.getStatus().equals(orderGoodsVo.getStatus())) {
                 vo.setIsRefundStatusShow(true);
             }
         }
 
         vo.setOrderGoods(orderGoods);
 
+        // 6. 查询赠品
+        List<MallOrderGiftGoods> giftGoodsList = mallOrderGiftGoodsMapper.selectList(
+                new LambdaQueryWrapper<MallOrderGiftGoods>().eq(MallOrderGiftGoods::getOrderId, id)
+        );
+        List<Map<String, Object>> giftOrderGoods = new ArrayList<>();
+        for (MallOrderGiftGoods gift : giftGoodsList) {
+            Map<String, Object> giftItem = new HashMap<>();
+            Map<String, String> goods = new HashMap<>();
+            goods.put("goods_name", gift.getGoodsName());
+            giftItem.put("goods", goods);
+            giftItem.put("goods_id", gift.getGoodsId());
+            giftItem.put("sku_id", gift.getSkuId());
+            giftItem.put("sku_name", StringUtils.isEmpty(gift.getSkuName()) ? gift.getGoodsName() : gift.getSkuName());
+            giftItem.put("sku_image", gift.getSkuImage());
+            giftItem.put("num", gift.getNum());
+            giftOrderGoods.add(giftItem);
+        }
+        vo.setOrderGiftGoods(giftOrderGoods);
+
         //查询订单配送信息 mall_order_delivery
         List<MallOrderDelivery> orderDelivery = mallOrderDeliveryMapper.selectList(new QueryWrapper<MallOrderDelivery>().eq("order_id", vo.getOrderId()));
 
-        if (!orderDelivery.isEmpty()){
+        if (!orderDelivery.isEmpty()) {
             List<MallOrderInfoVo.OrderDelivery> orderDeliveryVoList = new ArrayList<>();
-            for (MallOrderDelivery orderDeliveryItem : orderDelivery){
+            for (MallOrderDelivery orderDeliveryItem : orderDelivery) {
                 //查询订单配送信息 mall_order_delivery
                 MallOrderInfoVo.OrderDelivery orderDeliveryVo = new MallOrderInfoVo.OrderDelivery();
                 BeanUtils.copyProperties(orderDeliveryItem, orderDeliveryVo);
-                if(ObjectUtil.isNotEmpty(orderDeliveryItem.getLocalDeliveryOrderId())){
+                if (ObjectUtil.isNotEmpty(orderDeliveryItem.getLocalDeliveryOrderId())) {
                     DeliveryLocalDeliveryOrder localOrderDelivery = deliveryLocalDeliveryOrderMapper.selectOne(new QueryWrapper<DeliveryLocalDeliveryOrder>()
                             .eq("delivery_no", orderDeliveryItem.getLocalDeliveryOrderId()).last("LIMIT 1"));
                     orderDeliveryVo.setLocalDeliveryStatus(localOrderDelivery.getStatus());
@@ -328,12 +367,12 @@ public class MallOrderServiceImpl implements IMallOrderService {
             vo.setStore(storeVo);
             //查询核销记录
             Verify verify = verifyMapper.selectOne(new QueryWrapper<Verify>()
-                    .eq("site_id", vo.getSiteId()).eq("type", "shopPickUpOrder").eq("relate_tag",id));
-            if(ObjectUtil.isNotEmpty( verify)){
+                    .eq("site_id", vo.getSiteId()).eq("type", "shopPickUpOrder").eq("relate_tag", id));
+            if (ObjectUtil.isNotEmpty(verify)) {
                 //查询会员信息
                 Member memberVerify = memberMapper.selectOne(new QueryWrapper<Member>().eq("member_id", verify.getVerifierMemberId()));
                 vo.setVerifyCode(verify.getCode());
-                if(ObjectUtil.isNotEmpty(memberVerify)){
+                if (ObjectUtil.isNotEmpty(memberVerify)) {
                     MallOrderInfoVo.VerifierMemberInfo memberVerifyObj = new MallOrderInfoVo.VerifierMemberInfo();
                     memberVerifyObj.setMemberId(memberVerify.getMemberId());
                     memberVerifyObj.setNickname(memberVerify.getNickname());
@@ -353,23 +392,23 @@ public class MallOrderServiceImpl implements IMallOrderService {
         //查询店铺信息
         SiteInfoVo siteInfoVo = siteService.info(vo.getSiteId());
         vo.setSiteName(siteInfoVo.getSiteName());
-        if(ObjectUtil.isEmpty(vo.getShopCommission())){
+        if (ObjectUtil.isEmpty(vo.getShopCommission())) {
             vo.setShopCommission(BigDecimal.ZERO);
         }
-        if(ObjectUtil.isEmpty(vo.getShopRefundCommission())){
+        if (ObjectUtil.isEmpty(vo.getShopRefundCommission())) {
             vo.setShopRefundCommission(BigDecimal.ZERO);
         }
 
         List<MallOrderLogListVo> orderLog = CollectUtils.convert(mallOrderLogMapper.selectList(new QueryWrapper<MallOrderLog>().eq("order_id", vo.getOrderId()).orderByDesc("create_time")), MallOrderLogListVo.class);
         vo.setOrderLog(orderLog);
         //获取店铺信息
-        if(ObjectUtil.isNotEmpty(vo.getSupplyId()) && vo.getSupplyId() >0){
+        if (ObjectUtil.isNotEmpty(vo.getSupplyId()) && vo.getSupplyId() > 0) {
             SiteInfoVo supplyInfo = siteService.info(vo.getSupplyId());
             MallOrderInfoVo.Supply supply = new MallOrderInfoVo.Supply();
             supply.setSiteId(supplyInfo.getSiteId());
             supply.setSiteName(supplyInfo.getSiteName());
             vo.setSupply(supply);
-            if(ObjectUtil.isEmpty(vo.getSupplyRefundMoney())){
+            if (ObjectUtil.isEmpty(vo.getSupplyRefundMoney())) {
                 vo.setSupplyRefundMoney(BigDecimal.ZERO);
             }
         }
@@ -379,9 +418,9 @@ public class MallOrderServiceImpl implements IMallOrderService {
                     new QueryWrapper<DiyFormRecordsFields>()
                             .eq("record_id", vo.getFormRecordId())
             );
-            vo.setFormRecordShow(fieldCount > 0);
+            vo.setFormRecordShow(fieldCount > 0 ? 1 : 0);
         } else {
-            vo.setFormRecordShow(false);
+            vo.setFormRecordShow(0);
         }
 
         if (ObjectUtil.isNotEmpty(orderGoods)) {
@@ -391,9 +430,9 @@ public class MallOrderServiceImpl implements IMallOrderService {
                             new QueryWrapper<DiyFormRecordsFields>()
                                     .eq("record_id", item.getFormRecordId())
                     );
-                    item.setFormRecordShow(fieldCount > 0);
+                    item.setFormRecordShow(fieldCount > 0 ? 1 : 0);
                 } else {
-                    item.setFormRecordShow(false);
+                    item.setFormRecordShow(0);
                 }
             }
         }
@@ -403,6 +442,23 @@ public class MallOrderServiceImpl implements IMallOrderService {
             isInstallFenxiao = siteInfoVo.getAddons().contains("mall_fenxiao");
         }
         vo.setIsInstallFenxiao(isInstallFenxiao);
+
+        // 15. 优惠明细（店铺级 + 平台级）
+        List<MallOrderDiscount> discountRecords = coreOrderDiscountService.getDiscountRecords(id, null, OrderDiscountTypeEnum.getShopDiscountType(), null, 1);
+        vo.setDiscountRecords(discountRecords);
+        List<MallOrderDiscount> platformDiscountRecords = coreOrderDiscountService.getDiscountRecords(id, null, OrderDiscountTypeEnum.getPlatFormDiscountType(), null, 1);
+        vo.setPlatformDiscountRecords(platformDiscountRecords);
+        backfillPointDeductFromRecords(vo, id, platformDiscountRecords);
+        // 优惠详情
+        vo.setDiscountDetails(coreOrderDiscountService.getOrderDiscountDetails(
+                id, vo.getDiscountMoney(), vo.getMallCouponMoney(),
+                vo.getPointDeductMoney(), vo.getUsePoint() != null ? vo.getUsePoint().intValue() : 0));
+
+        // 16. 虚拟商品发货内容
+        MallOrderDeliveryContent content = orderDeliveryContentMapper.selectOne(
+                new LambdaQueryWrapper<MallOrderDeliveryContent>().eq(MallOrderDeliveryContent::getTradeId, id)
+        );
+        vo.setOrderDeliveryContent(content != null ? content.getContent() : "");
         return vo;
     }
 
@@ -464,7 +520,8 @@ public class MallOrderServiceImpl implements IMallOrderService {
                         .eq("site_id", RequestUtils.siteId()));
 
         Assert.notNull(order, "订单不存在");
-        if (!order.getStatus().equals(OrderStatusEnum.WAIT_PAY.getStatus().toString())) throw new CommonException("只有待支付的订单可以改价");
+        if (!order.getStatus().equals(OrderStatusEnum.WAIT_PAY.getStatus().toString()))
+            throw new CommonException("只有待支付的订单可以改价");
 
         // 关闭已经发起的支付单据
         corePayService.closeByTrade(order.getOrderType(), order.getOrderId());
@@ -472,7 +529,7 @@ public class MallOrderServiceImpl implements IMallOrderService {
         BigDecimal goodsMoney = new BigDecimal(0);
         List<MallOrderGoods> orderGoods = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().eq("order_id", order.getOrderId()).select("order_goods_id,order_goods_money,goods_money,price,discount_money,num"));
 
-        for (MallOrderGoods item: orderGoods) {
+        for (MallOrderGoods item : orderGoods) {
             if (ObjectUtil.isNotEmpty(param.getOrderGoodsData().get(item.getOrderGoodsId()))) {
                 BigDecimal money = param.getOrderGoodsData().get(item.getOrderGoodsId()).getMoney();
                 if (money.compareTo(BigDecimal.ZERO) != 0) {
@@ -534,8 +591,10 @@ public class MallOrderServiceImpl implements IMallOrderService {
                         .eq("site_id", RequestUtils.siteId()));
 
         Assert.notNull(order, "订单不存在");
-        if (!order.getStatus().equals(OrderStatusEnum.WAIT_PAY.getStatus().toString())) throw new CommonException("只有待支付的订单可以修改");
-        if (order.getDeliveryType().equals(OrderDeliveryTypeEnum.VIRTUAL.getType())) throw new CommonException("虚拟商品订单不可以修改配送地址");
+        if (!order.getStatus().equals(OrderStatusEnum.WAIT_PAY.getStatus().toString()))
+            throw new CommonException("只有待支付的订单可以修改");
+        if (order.getDeliveryType().equals(OrderDeliveryTypeEnum.VIRTUAL.getType()))
+            throw new CommonException("虚拟商品订单不可以修改配送地址");
 
         EditDeliveryVo vo = new EditDeliveryVo();
         BeanUtil.copyProperties(order, vo);
@@ -556,8 +615,10 @@ public class MallOrderServiceImpl implements IMallOrderService {
                         .eq("site_id", RequestUtils.siteId()));
 
         Assert.notNull(order, "订单不存在");
-        if (!order.getStatus().equals(OrderStatusEnum.WAIT_PAY.getStatus().toString())) throw new CommonException("只有待支付的订单可以修改");
-        if (order.getDeliveryType().equals(OrderDeliveryTypeEnum.VIRTUAL.getType())) throw new CommonException("虚拟商品订单不可以修改配送地址");
+        if (!order.getStatus().equals(OrderStatusEnum.WAIT_PAY.getStatus().toString()))
+            throw new CommonException("只有待支付的订单可以修改");
+        if (order.getDeliveryType().equals(OrderDeliveryTypeEnum.VIRTUAL.getType()))
+            throw new CommonException("虚拟商品订单不可以修改配送地址");
 
         if (param.getDeliveryType().equals(OrderDeliveryTypeEnum.EXPRESS.getType())) {
             if (ObjectUtil.isEmpty(param.getTakerName())
@@ -578,5 +639,37 @@ public class MallOrderServiceImpl implements IMallOrderService {
         BeanUtil.copyProperties(param, model);
 
         mallOrderMapper.updateById(model);
+    }
+
+    /**
+     * 主表积分字段缺失时，从优惠明细或订单行项回填展示数据（兼容历史订单）。
+     */
+    private void backfillPointDeductFromRecords(MallOrderInfoVo vo, Integer orderId, List<MallOrderDiscount> platformRecords) {
+        java.math.BigDecimal pointMoney = ObjectUtil.defaultIfNull(vo.getPointDeductMoney(), java.math.BigDecimal.ZERO);
+        java.math.BigDecimal usePointVal = ObjectUtil.defaultIfNull(vo.getUsePoint(), java.math.BigDecimal.ZERO);
+        if (pointMoney.compareTo(java.math.BigDecimal.ZERO) > 0 || usePointVal.compareTo(java.math.BigDecimal.ZERO) > 0) {
+            return;
+        }
+        int usePoint = 0;
+        if (platformRecords != null) {
+            for (MallOrderDiscount record : platformRecords) {
+                if (OrderDiscountTypeEnum.POINT_DEDUCT.getType().equals(record.getDiscountType())) {
+                    pointMoney = pointMoney.add(ObjectUtil.defaultIfNull(record.getMoney(), java.math.BigDecimal.ZERO));
+                    usePoint += record.getNum() != null ? record.getNum() : 0;
+                }
+            }
+        }
+        if (pointMoney.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            List<MallOrderGoods> goodsRows = mallOrderGoodsMapper.selectList(
+                    new LambdaQueryWrapper<MallOrderGoods>().eq(MallOrderGoods::getOrderId, orderId));
+            for (MallOrderGoods row : goodsRows) {
+                pointMoney = pointMoney.add(ObjectUtil.defaultIfNull(row.getPointDeductMoney(), java.math.BigDecimal.ZERO));
+                usePoint += row.getUsePoint() != null ? row.getUsePoint() : 0;
+            }
+        }
+        if (pointMoney.compareTo(java.math.BigDecimal.ZERO) > 0) {
+            vo.setPointDeductMoney(pointMoney);
+            vo.setUsePoint(new java.math.BigDecimal(usePoint));
+        }
     }
 }

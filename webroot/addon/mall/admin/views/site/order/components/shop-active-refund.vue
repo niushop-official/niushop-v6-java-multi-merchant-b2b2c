@@ -185,8 +185,8 @@ const setFormData = async (row: any = null) => {
         formData.order_goods_ids = [];
         refundTable.value = row.order_goods;
         refundTable.value.forEach((item,index,arr) => {
-            arr[index].refund_money = item.goods_money - item.discount_money;
-            if(item.status == 1){
+            arr[index].refund_money = item.goods_money - item.discount_money - item.mall_discount_money;
+            if (item.status == 1) {
                 refundItemNum++;
                 formData.refund_money += arr[index].refund_money;
                 formData.order_goods_ids.push(item.order_goods_id);

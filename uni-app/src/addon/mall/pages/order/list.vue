@@ -63,6 +63,23 @@
 								</view>
 							</view>
 						</view>
+                        <view class="justify-between card-template-item mt-[16rpx]" v-if="item.gift_order_goods && item.gift_order_goods.length > 0" >
+                            <view class="text-[28rpx]">赠品</view>
+                            <view class="flex items-center text-[28rpx]" @click="giftGooodsRef.open(item.gift_order_goods)">
+                                <view class="text-[24rpx] flex-1 flex gap-x-[10rpx] justify-end text-primary">
+                                    <view v-for="(cItem, index) in item.gift_order_goods" :key="index" class="flex">
+                                        <up-image radius="var(--goods-rounded-small)" width="60rpx" height="60rpx" :src="img(cItem.sku_image)" model="aspectFill" v-if="index < 5">
+                                            <template #error>
+                                                <image class="w-[60rpx] h-[60rpx] rounded-[var(--goods-rounded-small)] overflow-hidden" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill"/>
+                                            </template>
+                                        </up-image>
+                                    </view>
+                                </view>
+                                <view class="text-[28rpx] ml-[10rpx]">共<text class="price-font">{{ getGiftNum(item.gift_order_goods) }}</text>件</view>
+                                <text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[var(--text-color-light9)]" :style="iconfontStyle"></text>
+
+                            </view>
+                        </view>
 						<view class="flex justify-end items-center mt-[20rpx]">
 							<view class="flex items-baseline">
 								<view class="text-[22rpx] font-400 leading-[30rpx] text-[#303133]">{{ t('actualPayment') }}：</view>
@@ -91,6 +108,8 @@
 		<group-pay ref="groupPayRef"></group-pay>
 		<!-- 组合关闭订单 -->
 		<group-close ref="groupCloseRef" @confirm="closeGroupOrder"></group-close>
+         <!-- 赠品 -->
+        <gift-goods ref="giftGooodsRef"/>
 		<!-- #ifdef MP-WEIXIN -->
         <!-- 小程序隐私协议 -->
         <wx-privacy-popup ref="wxPrivacyPopupRef"></wx-privacy-popup>
@@ -109,6 +128,7 @@ import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.v
 import useMescroll from '@/components/mescroll/hooks/useMescroll.js';
 import { onLoad, onPageScroll, onReachBottom, onShow } from '@dcloudio/uni-app';
 import useConfigStore from "@/stores/config";
+import giftGoods from '@/addon/mall/pages/order/components/gift-goods/gift-goods.vue'
 
 const { mescrollInit, downCallback, getMescroll } = useMescroll(onPageScroll, onReachBottom);
 import groupPay from './components/group-pay/group-pay.vue'
@@ -154,7 +174,7 @@ const statusLoading = ref<boolean>(false);
 const orderState = ref('')
 const orderStateList = ref<any>([]);
 const evaluateConfig = ref("")
-
+const giftGooodsRef = ref()
 const mch_id = ref('')
 const isTradeManaged = ref(false)
 
@@ -182,6 +202,25 @@ onShow(() => {
 	})
 	
 });
+
+//赠品数量
+const getGiftNum = (data) => { 
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    return data.reduce((total, item) => {
+        const giftNum = Number(item.num) || 0;
+        return total + giftNum;
+    }, 0);
+};
+const iconfontStyle = computed(() => {
+	let style = "";
+    // #ifdef H5
+    style += "position: relative;top: 1rpx;";
+    // #endif
+    // #ifdef MP
+    style += "position: relative;top: 4rpx;";
+    // #endif
+    return style;
+})
 const getMallOrderFn = (mescroll:any) => {
 	loading.value = false;
 	let data: object = {
@@ -245,7 +284,7 @@ const back = () => {
         uni.navigateBack()
     } else {
         redirect({
-            url: '/addon/mall/pages/index',
+            url: '/app/pages/index/index',
             mode: 'reLaunch'
         });
     }

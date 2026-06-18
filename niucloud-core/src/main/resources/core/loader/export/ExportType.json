@@ -2,6 +2,7 @@
   {
     "site_shop_cash_out": {
       "name": "店铺提现列表",
+      "app_type": "site",
       "column": [
         {
           "cash_out_no": {
@@ -94,6 +95,7 @@
   {
     "shop_account_log": {
       "name": "账单记录列表",
+      "app_type": "site",
       "column": [
         {
           "from_type_name": {
@@ -121,6 +123,7 @@
   {
     "admin_shop_cash_out": {
       "name": "店铺提现列表",
+      "app_type": "admin",
       "column": [
         {
           "cash_out_no": {
@@ -211,8 +214,32 @@
     }
   },
   {
+    "site_account_log": {
+      "name": "财务流水列表",
+      "app_type": "admin",
+      "column": {
+        "trade_no": {
+          "name": "账单编号"
+        },
+        "type_name": {
+          "name": "账单类型"
+        },
+        "money": {
+          "name": "账单金额"
+        },
+        "create_time": {
+          "name": "账单日期"
+        },
+        "body": {
+          "name": "账单说明"
+        }
+      }
+    }
+  },
+  {
     "site_finance_log": {
       "name": "资金流水列表",
+      "app_type": "admin",
       "column": [
         {
           "trade_no": {
@@ -258,100 +285,9 @@
     }
   },
   {
-    "admin_shop_cash_out": {
-      "name": "店铺提现列表",
-      "column": [
-        {
-          "cash_out_no": {
-            "name": "提现单号"
-          }
-        },
-        {
-          "site_name": {
-            "name": "店铺名称"
-          }
-        },
-        {
-          "phone": {
-            "name": "店铺联系电话"
-          }
-        },
-        {
-          "transfer_type_name": {
-            "name": "提现方式"
-          }
-        },
-        {
-          "apply_money": {
-            "name": "提现申请金额"
-          }
-        },
-        {
-          "rate": {
-            "name": "提现手续费比率"
-          }
-        },
-        {
-          "service_money": {
-            "name": "提现手续费"
-          }
-        },
-        {
-          "money": {
-            "name": "提现到账金额"
-          }
-        },
-        {
-          "status_name": {
-            "name": "提现状态"
-          }
-        },
-        {
-          "transfer_realname": {
-            "name": "提现人姓名"
-          }
-        },
-        {
-          "transfer_account": {
-            "name": "提现账户"
-          }
-        },
-        {
-          "transfer_bank": {
-            "name": "提现银行"
-          }
-        },
-        {
-          "create_time": {
-            "name": "申请时间"
-          }
-        },
-        {
-          "audit_time": {
-            "name": "审核时间"
-          }
-        },
-        {
-          "cancel_time": {
-            "name": "取消时间"
-          }
-        },
-        {
-          "refuse_reason": {
-            "name": "拒绝理由"
-          }
-        },
-        {
-          "transfer_time": {
-            "name": "转账时间"
-          }
-        }
-      ]
-    }
-  },
-  {
     "pay": {
       "name": "支付记录列表",
+      "app_type": "admin",
       "column": [
         {
           "out_trade_no": {
@@ -424,6 +360,7 @@
   {
     "member": {
       "name": "会员列表",
+      "app_type": "admin",
       "column": [
         {
           "nickname": {
@@ -494,8 +431,68 @@
     }
   },
   {
+    "member_cash_out": {
+      "name": "会员提现列表",
+      "app_type": "admin",
+      "column": {
+        "cash_out_no": {
+          "name": "提现单号"
+        },
+        "nickname": {
+          "name": "会员昵称"
+        },
+        "mobile": {
+          "name": "会员手机号"
+        },
+        "transfer_type_name": {
+          "name": "提现方式"
+        },
+        "apply_money": {
+          "name": "提现申请金额"
+        },
+        "rate": {
+          "name": "提现手续费比率"
+        },
+        "service_money": {
+          "name": "提现手续费"
+        },
+        "money": {
+          "name": "提现到账金额"
+        },
+        "status_name": {
+          "name": "提现状态"
+        },
+        "transfer_realname": {
+          "name": "提现人姓名"
+        },
+        "transfer_account": {
+          "name": "提现账户"
+        },
+        "transfer_bank": {
+          "name": "提现银行"
+        },
+        "create_time": {
+          "name": "申请时间"
+        },
+        "audit_time": {
+          "name": "审核时间"
+        },
+        "cancel_time": {
+          "name": "取消时间"
+        },
+        "refuse_reason": {
+          "name": "拒绝理由"
+        },
+        "transfer_time": {
+          "name": "转账时间"
+        }
+      }
+    }
+  },
+  {
     "shop_member": {
       "name": "会员列表",
+      "app_type": "site",
       "column": [
         {
           "nickname": {
@@ -543,6 +540,7 @@
   {
     "site_diy_form_records": {
       "name": "表单填写明细",
+      "app_type": "site",
       "column": [
         {
           "record_id": {
@@ -585,6 +583,7 @@
   {
     "site_diy_form_records_member": {
       "name": "填表人统计列表",
+      "app_type": "site",
       "column": [
         {
           "nickname": {
@@ -602,6 +601,7 @@
   {
     "site_diy_form_records_fields": {
       "name": "表单字段统计列表",
+      "app_type": "site",
       "column": [
         {
           "field_name": {
@@ -627,50 +627,52 @@
     }
   },
   {
-  "admin_diy_form_records": {
-    "name": "表单填写明细",
-    "column": [
-      {
-        "record_id": {
-          "name": "记录编号"
+    "admin_diy_form_records": {
+      "name": "表单填写明细",
+      "app_type": "admin",
+      "column": [
+        {
+          "record_id": {
+            "name": "记录编号"
+          }
+        },
+        {
+          "create_time": {
+            "name": "填表时间"
+          }
+        },
+        {
+          "page_title": {
+            "name": "表单名称"
+          }
+        },
+        {
+          "type_name": {
+            "name": "表单类型"
+          }
+        },
+        {
+          "form_id": {
+            "name": "表单编号"
+          }
+        },
+        {
+          "nickname": {
+            "name": "填表人名称"
+          }
+        },
+        {
+          "mobile": {
+            "name": "填表人手机号"
+          }
         }
-      },
-      {
-        "create_time": {
-          "name": "填表时间"
-        }
-      },
-      {
-        "page_title": {
-          "name": "表单名称"
-        }
-      },
-      {
-        "type_name": {
-          "name": "表单类型"
-        }
-      },
-      {
-        "form_id": {
-          "name": "表单编号"
-        }
-      },
-      {
-        "nickname": {
-          "name": "填表人名称"
-        }
-      },
-      {
-        "mobile": {
-          "name": "填表人手机号"
-        }
-      }
-    ]
-  }
-},
+      ]
+    }
+  },
   {
     "admin_diy_form_records_member": {
       "name": "填表人统计列表",
+      "app_type": "admin",
       "column": [
         {
           "nickname": {
@@ -688,6 +690,7 @@
   {
     "admin_diy_form_records_fields": {
       "name": "表单字段统计列表",
+      "app_type": "admin",
       "column": [
         {
           "field_name": {

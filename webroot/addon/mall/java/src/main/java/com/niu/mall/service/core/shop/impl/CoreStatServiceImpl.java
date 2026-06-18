@@ -6,6 +6,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.date.DateUtils;
@@ -18,7 +19,6 @@ import com.niu.core.mapper.stat.SysStatMapper;
 import com.niu.core.service.admin.stat.ISiteStatService;
 import com.niu.core.service.admin.stat.vo.StartChartVo;
 import com.niu.core.service.core.sys.ICoreSysStatService;
-import com.niu.core.service.core.sys.vo.SysDataVo;
 import com.niu.core.service.core.sys.vo.SysStatVo;
 import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.entity.order.MallOrder;
@@ -29,6 +29,8 @@ import com.niu.mall.service.core.goods.ICoreGoodsStatService;
 import com.niu.mall.service.core.goods.vo.MallGoodsStatVo;
 import com.niu.mall.service.core.shop.ICoreStatService;
 import com.niu.mall.service.core.shop.param.AddStatParam;
+import com.niu.core.common.utils.StringUtils;
+import com.niu.core.service.core.sys.param.SysDataDecParam;
 import com.niu.mall.service.core.shop.param.DelStatParam;
 import com.niu.mall.service.core.shop.vo.StatDataVo;
 import com.niu.mall.service.core.shop.vo.StatVo;
@@ -59,7 +61,6 @@ public class CoreStatServiceImpl implements ICoreStatService {
     ISiteStatService siteStatService;
 
 
-
     /**
      * 添加统计数据
      *
@@ -78,27 +79,26 @@ public class CoreStatServiceImpl implements ICoreStatService {
             sysStatMapper.insert(stat);
         } else {
             if (ObjectUtil.isNotEmpty(data.getOrderNum())) model.setOrderNum(model.getOrderNum() + data.getOrderNum());
-            if (ObjectUtil.isNotEmpty(data.getSaleMoney())) model.setSaleMoney(model.getSaleMoney().add(data.getSaleMoney()));
-            if (ObjectUtil.isNotEmpty(data.getRefundMoney())) model.setRefundMoney(model.getRefundMoney().add(data.getRefundMoney()));
-            if (ObjectUtil.isNotEmpty(data.getAccessSum())) model.setAccessSum(model.getAccessSum() + data.getAccessSum());
+            if (ObjectUtil.isNotEmpty(data.getSaleMoney()))
+                model.setSaleMoney(model.getSaleMoney().add(data.getSaleMoney()));
+            if (ObjectUtil.isNotEmpty(data.getRefundMoney()))
+                model.setRefundMoney(model.getRefundMoney().add(data.getRefundMoney()));
+            if (ObjectUtil.isNotEmpty(data.getAccessSum()))
+                model.setAccessSum(model.getAccessSum() + data.getAccessSum());
             sysStatMapper.updateById(model);
         }
     }
 
     @Override
     public void delStat(Integer siteId, DelStatParam data) {
-        SysStat model = sysStatMapper.selectOne(new QueryWrapper<SysStat>().eq("date", data.getDate()).eq("site_id", siteId));
-        Boolean er = false;
-        if (ObjectUtil.isNotEmpty( model)){
-            if (ObjectUtil.isNotEmpty(data.getOrderNum())){
-                Integer orderNum = model.getOrderNum() - data.getOrderNum();
-                model.setOrderNum(orderNum>=0?orderNum:0);
-                er = true;
-            }
+        if (ObjectUtil.isEmpty(data) || StringUtils.isEmpty(data.getDate())) {
+            return;
         }
-        if(er){
-            sysStatMapper.updateById( model);
-        }
+        SysDataDecParam decParam = new SysDataDecParam();
+        decParam.setSiteId(siteId);
+        decParam.setTime(DateUtils.StringToTimestamp(data.getDate()));
+        decParam.setOrderNum(data.getOrderNum());
+        coreSysStatService.decStat(decParam);
     }
 
     /**
@@ -113,9 +113,9 @@ public class CoreStatServiceImpl implements ICoreStatService {
         Long orderCount = mallOrderMapper.selectCount(new QueryWrapper<MallOrder>().eq("site_id", siteId).eq("delete_time", 0));
         vo.setOrderNum(orderCount.intValue());
         vo.setAddonNum(getAddonCount());//应用总数
-        QueryWrapper<MallGoods> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("status", GoodsStatusEnum.ONLINE.getStatus(), GoodsStatusEnum.WAIT_AUDIT.getStatus());
-        queryWrapper.eq("site_id", siteId);
+        LambdaQueryWrapper<MallGoods> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(MallGoods::getStatus, GoodsStatusEnum.ONLINE.getStatus(), GoodsStatusEnum.OFFLINE.getStatus());
+        queryWrapper.eq(MallGoods::getSiteId, siteId);
         Long goodsCount = mallGoodsMapper.selectCount(queryWrapper);
         vo.setGoodsNum(goodsCount.intValue());//商品总数
         return vo;
@@ -175,7 +175,7 @@ public class CoreStatServiceImpl implements ICoreStatService {
                 try {
                     JSONArray addonArray = JSONUtil.parseArray(siteGroup.getAddon());
                     addonCount = addonArray.size();
-                }catch (Exception e){
+                } catch (Exception e) {
                     log.error("站点获取插件数量失败：{}", e.getMessage(), e);
                 }
             }

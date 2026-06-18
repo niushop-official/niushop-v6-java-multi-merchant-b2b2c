@@ -178,6 +178,8 @@ public class MallOrderListVo implements Serializable {
         private Integer refundId;
         private BigDecimal applyMoney;
         private BigDecimal refundMoney;
+        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        private String goodsConfig; // 商品对应配置
 
         private ICoreUploadService coreUploadService() {
             return SpringContext.bean(ICoreUploadService.class);
@@ -215,7 +217,7 @@ public class MallOrderListVo implements Serializable {
     }
 
     public String getOrderTypeName() {
-        return "";
+        return OrderTypeEnum.getOrderTypeName(this.orderType);
     }
 
     public String getOrderFromName() {
@@ -230,6 +232,6 @@ public class MallOrderListVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType,this.orderType);
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status), this.deliveryType, this.orderType);
     }
 }

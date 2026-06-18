@@ -374,8 +374,8 @@ const setFormData = async (id: number = 0) => {
     Object.keys(formData).forEach((key: string) => {
         if (data[key] != undefined) formData[key] = data[key]
     })
-    formData.commission_rate = data.shop.commission_rate
-    formData.supply_service_rate = data.shop.supply_service_rate
+    formData.commission_rate = data.shop?.commission_rate
+    formData.supply_service_rate = data.shop?.supply_service_rate
     formData.latitude = formData.latitude || 39.908626
     formData.longitude = formData.longitude || 116.397190
     Object.keys(formBank).forEach((key: string) => {

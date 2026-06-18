@@ -105,7 +105,7 @@
 						<template #default="{ row }">
 							<div class="flex">
 								<div class="flex items-center w-[50px] h-[50px] mr-[10px]">
-									<img class="w-[50px] h-[50px]" :src="img(row.goods_image)" />
+									<img class="w-[50px] h-[50px]" :src="img(row.goods_image_thumb_small)" />
 								</div>
 								<div class="flex flex-col flex-1">
 									<span>{{ row.goods_name }}</span>

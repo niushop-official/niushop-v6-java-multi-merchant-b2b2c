@@ -51,5 +51,5 @@ public class OrderConfigParam implements Serializable {
 
     private Integer formId;
 
-
+    private Integer refundAuditBeforeDelivery; //是否开启快捷退款
 }

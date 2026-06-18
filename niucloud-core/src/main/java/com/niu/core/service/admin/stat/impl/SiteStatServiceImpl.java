@@ -4,22 +4,28 @@ import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.shop.SiteShopCashOut;
+import com.niu.core.entity.site.Site;
 import com.niu.core.entity.stat.SysStat;
+import com.niu.core.enums.addon.AddonStatusEnum;
+import com.niu.core.enums.addon.AddonTypeEnum;
+import com.niu.core.enums.promotion.SitePromotionEnum;
 import com.niu.core.enums.shop.ShopCashOutEnum;
+import com.niu.core.mapper.addon.AddonMapper;
 import com.niu.core.mapper.shop.SiteShopCashOutMapper;
 import com.niu.core.mapper.stat.SysStatMapper;
 import com.niu.core.service.admin.stat.ISiteStatService;
-import com.niu.core.entity.site.Site;
 import com.niu.core.service.admin.stat.vo.StartChartVo;
+import com.niu.core.service.core.site.ICoreSiteService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.math.RoundingMode;
 import java.util.*;
-import java.sql.Timestamp;
 
 /**
  * 站点统计服务实现类
@@ -30,6 +36,11 @@ public class SiteStatServiceImpl implements ISiteStatService {
     SysStatMapper sysStatMapper;
     @Resource
     SiteShopCashOutMapper siteShopCashOutMapper;
+    @Resource
+    private ICoreSiteService coreSiteService;
+    @Resource
+    AddonMapper addonMapper;
+
     @Override
     public Map<String, Object> getIndexData() {
 /*        Map<String, Object> data = new HashMap<>();
@@ -73,7 +84,36 @@ public class SiteStatServiceImpl implements ISiteStatService {
         Map<String, Object> data = new HashMap<>();
         Site siteInfo = new Site(); // 这里需要根据实际情况查询数据库
         // 这里需要实现站点已安装应用数量的查询逻辑
-        data.put("addon_num", 0);
+
+        // 1. 收集所有扩展点提供的应用列表
+        List<Map<String, String>> apps = SitePromotionEnum.getSitePromotionMapList();
+
+        // 2. 获取当前站点已购买的插件 key 集合
+        List<String> siteAddonKeys = coreSiteService.getAddonKeysBySiteId(RequestUtils.siteId());
+        if (siteAddonKeys == null || siteAddonKeys.isEmpty()) {
+            data.put("addon_num", 0);
+            return data;
+        }
+
+        // 3. 查询已安装且启用的插件 key（type=addon, status=ON, key in siteAddonKeys）
+        List<String> installedAddonKeys = addonMapper.selectList(
+                new LambdaQueryWrapper<Addon>()
+                        .eq(Addon::getType, AddonTypeEnum.ADDON.getType())
+                        .eq(Addon::getStatus, AddonStatusEnum.ON.getCode())
+                        .in(Addon::getKey, siteAddonKeys)
+        ).stream().map(Addon::getKey).toList();
+        Set<String> installedSet = new HashSet<>(installedAddonKeys);
+
+        // 4. 过滤：移除 addon_key 不在 installedSet 中的应用
+        List<Map<String, String>> filteredApps = apps.stream()
+                .filter(app -> {
+                    String addonKey = app.get("addon_key");
+                    return addonKey == null || installedSet.contains(addonKey);
+                })
+                .toList();
+
+        // 5. 返回数量
+        data.put("addon_num", filteredApps.size());
         return data;
     }
 
@@ -81,7 +121,7 @@ public class SiteStatServiceImpl implements ISiteStatService {
     public StartChartVo getStatData(Integer siteId, String startDate, String endDate) {
         // 构建查询条件
         QueryWrapper<SysStat> queryWrapper = new QueryWrapper<>();
-        if(siteId>0){
+        if (siteId > 0) {
             queryWrapper.eq("site_id", siteId);
         }
         queryWrapper.ge("date", startDate);
@@ -94,7 +134,7 @@ public class SiteStatServiceImpl implements ISiteStatService {
         // 执行查询获取统计数据
         List<SysStat> resultList = sysStatMapper.selectList(queryWrapper);
         //数据转换为图表数据
-        return setStartChartList(resultList,startDate,endDate);
+        return setStartChartList(resultList, startDate, endDate);
     }
 
     /**
@@ -132,7 +172,7 @@ public class SiteStatServiceImpl implements ISiteStatService {
     private StartChartVo setStartChartList(List<SysStat> resultList, String startDate, String endDate) {
         StartChartVo vo = new StartChartVo();
         //获取时间集合
-        List<DateTime> timeDate = DateUtil.rangeToList(DateUtil.parseDate(startDate),DateUtil.parseDate(endDate), DateField.DAY_OF_MONTH);
+        List<DateTime> timeDate = DateUtil.rangeToList(DateUtil.parseDate(startDate), DateUtil.parseDate(endDate), DateField.DAY_OF_MONTH);
         List<String> time = new LinkedList<>();
         List<Long> orderNum = new LinkedList<>();
         List<String> saleMoney = new LinkedList<>();
@@ -155,33 +195,33 @@ public class SiteStatServiceImpl implements ISiteStatService {
         List<String> rechargeMoney = new LinkedList<>();
         List<String> rechargePayMoney = new LinkedList<>();
 
-        for (DateTime date : timeDate){
+        for (DateTime date : timeDate) {
             String dateStr = DateUtil.formatDate(date);
             List<SysStat> sysStatList = resultList.stream().filter(item -> item.getDate().equals(dateStr)).toList();
             time.add(dateStr);
             if (!sysStatList.isEmpty()) {
                 SysStat sysStat = sysStatList.get(0);
                 orderNum.add(ObjectUtil.isNotEmpty(sysStat.getOrderNum()) ? Long.parseLong(sysStat.getOrderNum().toString()) : 0L);
-                saleMoney.add(ObjectUtil.isNotEmpty(sysStat.getSaleMoney()) ? sysStat.getSaleMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                refundMoney.add(ObjectUtil.isNotEmpty(sysStat.getRefundMoney()) ? sysStat.getRefundMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
+                saleMoney.add(ObjectUtil.isNotEmpty(sysStat.getSaleMoney()) ? sysStat.getSaleMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                refundMoney.add(ObjectUtil.isNotEmpty(sysStat.getRefundMoney()) ? sysStat.getRefundMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
                 accessSum.add(ObjectUtil.isNotEmpty(sysStat.getAccessSum()) ? Long.parseLong(sysStat.getAccessSum().toString()) : 0L);
-                orderReceivableMoney.add(ObjectUtil.isNotEmpty(sysStat.getOrderReceivableMoney()) ? sysStat.getOrderReceivableMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                orderActualMoney.add(ObjectUtil.isNotEmpty(sysStat.getOrderActualMoney()) ? sysStat.getOrderActualMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                mallCouponMoney.add(ObjectUtil.isNotEmpty(sysStat.getMallCouponMoney()) ? sysStat.getMallCouponMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                mallRefundCouponMoney.add(ObjectUtil.isNotEmpty(sysStat.getMallRefundCouponMoney()) ? sysStat.getMallRefundCouponMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                orderRefundMoney.add(ObjectUtil.isNotEmpty(sysStat.getOrderRefundMoney()) ? sysStat.getOrderRefundMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                orderActualRefundMoney.add(ObjectUtil.isNotEmpty(sysStat.getOrderActualRefundMoney()) ? sysStat.getOrderActualRefundMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                shopSeparateMoney.add(ObjectUtil.isNotEmpty(sysStat.getShopSeparateMoney()) ? sysStat.getShopSeparateMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                shopRefundSeparateMoney.add(ObjectUtil.isNotEmpty(sysStat.getShopRefundSeparateMoney()) ? sysStat.getShopRefundSeparateMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                shopCommission.add(ObjectUtil.isNotEmpty(sysStat.getShopCommission()) ? sysStat.getShopCommission().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                shopRefundCommission.add(ObjectUtil.isNotEmpty(sysStat.getShopRefundCommission()) ? sysStat.getShopRefundCommission().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                deliveryMoney.add(ObjectUtil.isNotEmpty(sysStat.getDeliveryMoney()) ? sysStat.getDeliveryMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                refundDeliveryMoney.add(ObjectUtil.isNotEmpty(sysStat.getRefundDeliveryMoney()) ? sysStat.getRefundDeliveryMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                mallServiceMoney.add(ObjectUtil.isNotEmpty(sysStat.getMallServiceMoney()) ? sysStat.getMallServiceMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                mallRefundServiceMoney.add(ObjectUtil.isNotEmpty(sysStat.getMallRefundServiceMoney()) ? sysStat.getMallRefundServiceMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                rechargeMoney.add(ObjectUtil.isNotEmpty(sysStat.getRechargeMoney()) ? sysStat.getRechargeMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-                rechargePayMoney.add(ObjectUtil.isNotEmpty(sysStat.getRechargePayMoney()) ? sysStat.getRechargePayMoney().setScale(2, RoundingMode.HALF_UP ).toString() : "0.00");
-            }else{
+                orderReceivableMoney.add(ObjectUtil.isNotEmpty(sysStat.getOrderReceivableMoney()) ? sysStat.getOrderReceivableMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                orderActualMoney.add(ObjectUtil.isNotEmpty(sysStat.getOrderActualMoney()) ? sysStat.getOrderActualMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                mallCouponMoney.add(ObjectUtil.isNotEmpty(sysStat.getMallCouponMoney()) ? sysStat.getMallCouponMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                mallRefundCouponMoney.add(ObjectUtil.isNotEmpty(sysStat.getMallRefundCouponMoney()) ? sysStat.getMallRefundCouponMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                orderRefundMoney.add(ObjectUtil.isNotEmpty(sysStat.getOrderRefundMoney()) ? sysStat.getOrderRefundMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                orderActualRefundMoney.add(ObjectUtil.isNotEmpty(sysStat.getOrderActualRefundMoney()) ? sysStat.getOrderActualRefundMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                shopSeparateMoney.add(ObjectUtil.isNotEmpty(sysStat.getShopSeparateMoney()) ? sysStat.getShopSeparateMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                shopRefundSeparateMoney.add(ObjectUtil.isNotEmpty(sysStat.getShopRefundSeparateMoney()) ? sysStat.getShopRefundSeparateMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                shopCommission.add(ObjectUtil.isNotEmpty(sysStat.getShopCommission()) ? sysStat.getShopCommission().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                shopRefundCommission.add(ObjectUtil.isNotEmpty(sysStat.getShopRefundCommission()) ? sysStat.getShopRefundCommission().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                deliveryMoney.add(ObjectUtil.isNotEmpty(sysStat.getDeliveryMoney()) ? sysStat.getDeliveryMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                refundDeliveryMoney.add(ObjectUtil.isNotEmpty(sysStat.getRefundDeliveryMoney()) ? sysStat.getRefundDeliveryMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                mallServiceMoney.add(ObjectUtil.isNotEmpty(sysStat.getMallServiceMoney()) ? sysStat.getMallServiceMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                mallRefundServiceMoney.add(ObjectUtil.isNotEmpty(sysStat.getMallRefundServiceMoney()) ? sysStat.getMallRefundServiceMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                rechargeMoney.add(ObjectUtil.isNotEmpty(sysStat.getRechargeMoney()) ? sysStat.getRechargeMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+                rechargePayMoney.add(ObjectUtil.isNotEmpty(sysStat.getRechargePayMoney()) ? sysStat.getRechargePayMoney().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+            } else {
                 orderNum.add(0L);
                 saleMoney.add("0.00");
                 refundMoney.add("0.00");
@@ -203,7 +243,7 @@ public class SiteStatServiceImpl implements ISiteStatService {
                 rechargePayMoney.add("0.00");
             }
         }
-        vo.setTime( time);
+        vo.setTime(time);
         vo.setOrderNum(orderNum);
         vo.setSaleMoney(saleMoney);
         vo.setRefundMoney(refundMoney);

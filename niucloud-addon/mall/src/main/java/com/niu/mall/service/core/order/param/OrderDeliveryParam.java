@@ -25,6 +25,8 @@ public class OrderDeliveryParam implements Serializable {
     private String deliveryWay;
 
     private String remark;
+    
+    private String virtualDeliveryContent;
 
     private Integer electronicSheetId;
 

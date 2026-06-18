@@ -1,6 +1,13 @@
 package com.niu.core.service.core.pay.vo;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.niu.core.common.domain.BeanJsonSerializer;
+import com.niu.core.enums.common.ChannelEnum;
+import com.niu.core.enums.pay.PayStatusEnum;
+import com.niu.core.enums.pay.PayTypeEnum;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -10,6 +17,7 @@ import java.math.BigDecimal;
 @Data
 public class PayInfoVo implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private Integer id;  // 主键
@@ -24,12 +32,41 @@ public class PayInfoVo implements Serializable {
     private String voucher;  // 支付票据
     private Integer status;  // 支付状态（0.待支付 1. 支付中 2. 已支付 -1已取消）
     private String json;  // 支付扩展用支付信息
-    private Integer payTime;  // 支付时间
-    private Integer cancelTime;  // 关闭时间
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long createTime; // 创建时间
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long payTime;  // 支付时间
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long cancelTime;  // 关闭时间
     private String type;  // 支付方式
     private String mchId;  // 商户收款账号
     private String mainType;  // 
     private String channel;  // 支付渠道
     private String failReason;  // 失败原因
 
+
+    private String typeName;  // 支付方式
+    private String channelName;  // 支付渠道
+    private String statusName;
+
+    public String getTypeName() {
+        return PayTypeEnum.getType().getByPath(this.type + ".name", String.class);
+    }
+
+    public String getStatusName() {
+        return PayStatusEnum.getNameByStatus(this.status);
+    }
+
+    public String getChannelName() {
+        return ChannelEnum.getNameByCode(this.channel);
+    }
+
+    private MemberInfo member;
+
+    @Data
+    public static class MemberInfo {
+        private Integer memberId;
+        private String nickname;
+        private String headimg;
+    }
 }

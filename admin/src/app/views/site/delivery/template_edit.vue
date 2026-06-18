@@ -10,7 +10,8 @@
                 </el-form-item>
                 <el-form-item :label="t('支持业务类型')" >
                     <el-checkbox-group v-model="formData.support_trade">
-                        <el-checkbox :label="index" v-for="(item, index) in tradeList" :key="index">{{ item }}</el-checkbox>
+                        <el-checkbox label="商城" value="mall" />
+                        <el-checkbox label="供货商" value="supply" />
                     </el-checkbox-group>
                 </el-form-item>
                 <el-form-item :label="t('feeTypeName')" prop="fee_type">

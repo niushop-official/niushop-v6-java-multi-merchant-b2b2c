@@ -17,6 +17,7 @@ import com.niu.core.mapper.site.SiteMapper;
 import com.niu.mall.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsSku;
 import com.niu.mall.entity.goods.MallGoodsSpec;
+import com.niu.mall.enums.goods.GoodsAuditStatusEnum;
 import com.niu.mall.enums.goods.GoodsStatusEnum;
 import com.niu.mall.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
@@ -29,7 +30,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,6 +60,7 @@ public class OfferGoodsServiceImpl implements IOfferGoodsService {
         queryWrapper.eq("delete_time", 0);
 
         queryWrapper.eq("status", GoodsStatusEnum.ONLINE.getStatus());
+        queryWrapper.eq("audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
         queryWrapper.eq("site_id", searchParam.getSiteId());
         if (StringUtils.isNotBlank(searchParam.getGoodsName())) {
             queryWrapper.like("goods_name", searchParam.getGoodsName());
@@ -74,7 +75,7 @@ public class OfferGoodsServiceImpl implements IOfferGoodsService {
             JSONArray valueList = JSONUtil.parseArray(searchParam.getGoodsCategory());
             queryWrapper.and(wrapper -> {
                 for (int i = 0; i < valueList.size(); i++) {
-                    String likeValue =  valueList.getStr(i) ;
+                    String likeValue = valueList.getStr(i);
                     if (i == 0) {
                         // 第一个条件直接like
                         wrapper.like("goods_category", likeValue);
@@ -95,7 +96,7 @@ public class OfferGoodsServiceImpl implements IOfferGoodsService {
         if (iPage.getTotal() == 0 || iPage.getRecords().isEmpty()) {
             return PageResult.build(iPage, List.of());
         }
-        List<SelectGoodsListVo> goodsList = iPage.getRecords().stream().map(item ->{
+        List<SelectGoodsListVo> goodsList = iPage.getRecords().stream().map(item -> {
             SelectGoodsListVo selectGoodsListVo = new SelectGoodsListVo();
             BeanUtils.copyProperties(item, selectGoodsListVo);
             selectGoodsListVo.setSourceId(item.getGoodsId());
@@ -125,7 +126,7 @@ public class OfferGoodsServiceImpl implements IOfferGoodsService {
         List<SelectGoodsListVo.GoodsSpecVO> allSpecs = CollectUtils.convert(shopGoodsSpecs, SelectGoodsListVo.GoodsSpecVO.class);
         List<Integer> siteIds = goodsList.stream().map(SelectGoodsListVo::getSupplyId).distinct().toList();
         List<SelectGoodsListVo.SupplyInfo> allSupply = new ArrayList<>();
-        if(!siteIds.isEmpty()){
+        if (!siteIds.isEmpty()) {
             QueryWrapper<Site> siteQueryWrapper = new QueryWrapper<>();
             siteQueryWrapper.in("site_id", siteIds).gt("site_id", 0)
                     .select("site_id", "site_name");
@@ -149,11 +150,11 @@ public class OfferGoodsServiceImpl implements IOfferGoodsService {
             goods.setGoodsSpec(specList);
 
             //设置供应商
-            if(ObjectUtil.isNotEmpty(goods.getSupplyId())){
+            if (ObjectUtil.isNotEmpty(goods.getSupplyId())) {
                 List<SelectGoodsListVo.SupplyInfo> supplyList = allSupply.stream()
                         .filter(supply -> supply.getSiteId().equals(goods.getSupplyId()))
                         .toList();
-                if(!supplyList.isEmpty()){
+                if (!supplyList.isEmpty()) {
                     goods.setSupply(supplyList.get(0));
                 }
             }

@@ -8,11 +8,12 @@ import com.niu.core.enums.sys.ExportEnum;
 import com.niu.core.service.admin.sys.ISysExportService;
 import com.niu.core.service.admin.sys.param.SysExportSearchParam;
 import com.niu.core.service.admin.sys.vo.SysExportListVo;
+import com.niu.core.service.admin.sys.vo.SysExportVo;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.annotation.Resource;
 import java.util.Map;
 
 /**
@@ -20,7 +21,7 @@ import java.util.Map;
  */
 
 @RestController
-@RequestMapping("adminapi/sys/")
+@RequestMapping("adminapi/sys/export")
 @SaCheckLogin
 public class SysExportController {
 
@@ -34,7 +35,7 @@ public class SysExportController {
      * @param searchParam 搜索条件
      * @return Result<PageResult < SysExportListVo>>
      */
-    @GetMapping("/export")
+    @GetMapping("")
     public Result<PageResult<SysExportListVo>> list(@Validated PageParam pageParam,
                                                     @Validated SysExportSearchParam searchParam) {
         PageResult<SysExportListVo> list = sysExportService.list(pageParam, searchParam);
@@ -44,7 +45,7 @@ public class SysExportController {
     /**
      * 获取导出状态列表
      */
-    @GetMapping("/export/status")
+    @GetMapping("/status")
     public Result<Object> getExportStatus() {
         return Result.success(ExportEnum.getStatus());
     }
@@ -52,34 +53,42 @@ public class SysExportController {
     /**
      * 报表导出类型
      */
-    @GetMapping("/export/type/admin")
+    @GetMapping("/type/admin")
     public Result<Map<String, String>> getExportDataType() {
-        return Result.success(sysExportService.getExportDataType());
+        return Result.success(sysExportService.getExportDataType("admin"));
     }
 
     /**
      * 报表导出类型
      */
-    @GetMapping("/export/type/site")
+    @GetMapping("/type/site")
     public Result<Map<String, String>> getExportDataTypeSite() {
-        return Result.success(sysExportService.getExportDataType());
+        return Result.success(sysExportService.getExportDataType("site"));
     }
 
     /**
      * 报表导出数据检查
      */
-    @GetMapping("/export/check/{type}")
+    @GetMapping("/check/{type}")
     public Result<Object> check(@Validated @PathVariable("type") String type, @RequestParam Map<String, Object> objectMap, HttpServletRequest request) {
-        return Result.success("", sysExportService.checkExportData(type, objectMap,request));
+        return Result.success("", sysExportService.checkExportData(type, objectMap, request));
     }
 
     /**
      * 报表导出
      */
-    @GetMapping("/export/{type}")
-    public Result<Object> export(@Validated @PathVariable("type") String type, @RequestParam Map<String, Object> jsonObject, HttpServletRequest request) {
-        sysExportService.exportData(type, jsonObject,request);
+    @PostMapping("/{type}")
+    public Result<Object> export(@Validated @PathVariable("type") String type, @RequestBody SysExportVo params, HttpServletRequest request) {
+        sysExportService.exportData(type, params.getParams(), request);
         return Result.success();
+    }
+
+    /**
+     * 获取导出数据列
+     */
+    @GetMapping("/column/{type}")
+    public Result<Object> getExportDataColumn(@Validated @PathVariable("type") String type, @RequestParam Map<String, Object> whereMap, HttpServletRequest request) {
+        return Result.success(sysExportService.getExportDataColumn(type, whereMap, request));
     }
 
     /**
@@ -88,9 +97,21 @@ public class SysExportController {
      * @param id 参数
      * @return Result<Object>
      */
-    @DeleteMapping("/export/{id}")
+    @DeleteMapping("/{id}")
     public Result<Object> del(@Validated @PathVariable("id") Integer id) {
         sysExportService.del(id);
+        return Result.success();
+    }
+
+    /**
+     * 重新执行导出
+     *
+     * @param id 导出任务ID
+     * @return Result<Object>
+     */
+    @PostMapping("/again_export")
+    public Result<Object> againExportData(@Validated @RequestParam("id") Integer id) {
+        sysExportService.againExportData(id);
         return Result.success();
     }
 

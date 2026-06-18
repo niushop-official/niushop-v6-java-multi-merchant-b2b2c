@@ -1,22 +1,25 @@
 package com.niu.mall.controller.adminapi.goods;
 
-    import cn.hutool.json.JSONObject;
-    import com.niu.core.common.domain.PageParam;
-    import com.niu.core.common.domain.PageResult;
-    import com.niu.core.common.domain.Result;
-    import com.niu.mall.enums.goods.GoodsStatusEnum;
-    import com.niu.mall.enums.goods.GoodsTypeEnum;
-    import com.niu.mall.service.admin.goods.IMallGoodsConfigService;
-    import com.niu.mall.service.admin.goods.IMallGoodsService;
-    import com.niu.mall.service.admin.goods.param.*;
-    import com.niu.mall.service.admin.goods.vo.*;
-    import com.niu.mall.service.core.goods.vo.GoodsConfigVo;
-    import jakarta.annotation.Resource;
-    import org.springframework.validation.annotation.Validated;
-    import org.springframework.web.bind.annotation.*;
+import cn.hutool.json.JSONObject;
+import com.niu.core.common.domain.PageParam;
+import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.domain.Result;
+import com.niu.mall.enums.goods.GoodsStatusTypeEnum;
+import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.mall.service.admin.goods.IMallGoodsConfigService;
+import com.niu.mall.service.admin.goods.IMallGoodsService;
+import com.niu.mall.service.admin.goods.param.*;
+import com.niu.mall.service.admin.goods.vo.MallGoodsInfoVo;
+import com.niu.mall.service.admin.goods.vo.MallGoodsListVo;
+import com.niu.mall.service.admin.goods.vo.MallGoodsSkuListVo;
+import com.niu.mall.service.admin.goods.vo.MallSelectGoodsListVo;
+import com.niu.mall.service.core.goods.vo.GoodsConfigVo;
+import jakarta.annotation.Resource;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-    import java.util.List;
-    import java.util.Map;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 商品控制器
@@ -129,10 +132,11 @@ public class GoodsController {
      *
      * @return Result<Object>
      */
-    @GetMapping("/status")
-    public Result<Object> status() {
-        return Result.success(GoodsStatusEnum.getMap());
+    @GetMapping("/status_type")
+    public Result<Object> statusType() {
+        return Result.success(GoodsStatusTypeEnum.getMap());
     }
+
     /**
      * 修改商品排序号
      *
@@ -309,33 +313,36 @@ public class GoodsController {
     /**
      * 商品审核通过
      * 520
+     *
      * @param param
      * @return
      */
     @PutMapping("/audit")
-    public Result auditStatus(@Validated @RequestBody EditGoodsAuditStatusParam param){
+    public Result auditStatus(@Validated @RequestBody EditGoodsAuditStatusParam param) {
         return Result.success(goodsService.auditStatus(param));
     }
 
     /**
      * 商品审核拒绝
      * 520
+     *
      * @param param
      * @return
      */
     @PutMapping("/refuse")
-    public Result refuseStatus(@Validated @RequestBody EditGoodsRefuseStatusParam param){
+    public Result refuseStatus(@Validated @RequestBody EditGoodsRefuseStatusParam param) {
         return Result.success(goodsService.refuseStatus(param));
     }
 
     /**
      * 商品强制下架
      * 520
+     *
      * @param param
      * @return
      */
     @PutMapping("/offline")
-    public Result offlineStatus(@Validated @RequestBody EditGoodsRefuseStatusParam param){
+    public Result offlineStatus(@Validated @RequestBody EditGoodsRefuseStatusParam param) {
         return Result.success(goodsService.offlineStatus(param));
     }
 

@@ -232,16 +232,18 @@ const getDeliveryTypeFn = () => {
 // 加载列表数据
 const getShopListFn = (mescroll: any) => {
 	loading.value = false;
+	const position = systemStore.diyAddressInfo
 	let data: object = {
 		page: mescroll.num,
 		limit: mescroll.size,
 		keyword: shopName.value,
-		position: systemStore.diyAddressInfo,
+		position,
 		region: region.value,
 		order: searchType.value === 'all' ? '' : searchType.value,
 		category_id: currCategory.value,
 		delivery_type: currDelivery.value,
-		is_self: is_self.value
+		is_self: is_self.value,
+		is_only_area: (position?.province_id && position?.city_id) ? 1 : 0
 	};
 	getShopWebList(data).then((res: any) => {
 		let newArr = (res.data.data as Array<Object>);

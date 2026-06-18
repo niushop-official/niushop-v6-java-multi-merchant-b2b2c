@@ -33,7 +33,7 @@ public interface ISysExportService {
      *
      * @return
      */
-    Map<String, String> getExportDataType();
+    Map<String, String> getExportDataType(String appType);
 
     /**
      * 检查导出数据源是否为空
@@ -50,5 +50,21 @@ public interface ISysExportService {
      * @param whereMap
      */
     void exportData(String type, Map<String, Object> whereMap, HttpServletRequest request);
+
+    /**
+     * 获取导出数据列
+     *
+     * @param type
+     * @param whereMap
+     * @return
+     */
+    Object getExportDataColumn(String type, Map<String, Object> whereMap, HttpServletRequest request);
+
+    /**
+     * 重新执行导出
+     *
+     * @param id 导出任务ID
+     */
+    void againExportData(Integer id);
 
 }

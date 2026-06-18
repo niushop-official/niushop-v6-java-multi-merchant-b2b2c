@@ -1,5 +1,6 @@
 package com.niu.mall.service.admin.order.vo;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.domain.BeanJsonSerializer;
@@ -8,7 +9,10 @@ import com.niu.core.enums.pay.PayTypeEnum;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.admin.member.vo.MemberBriefInfoVo;
 import com.niu.core.service.core.sys.ICoreUploadService;
+import com.niu.mall.entity.order.MallOrderDiscount;
 import com.niu.mall.enums.order.*;
+import com.niu.mall.enums.trade.SettlementEnum;
+import com.niu.mall.service.core.order.vo.OrderDiscountDetailsVo;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -81,6 +85,7 @@ public class MallOrderInfoVo implements Serializable {
     private String closeRemark;  // 关闭原因
     private String closeType;  // 关闭来源(未支付自动关闭   手动关闭  退款关闭)
     private Integer refundStatus;  // 退款状态  1不存在退款  2 部分退款  3 全部退款
+    @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
     private String hasGoodsTypes;  // 包含的商品类型 json
     private Integer isEvaluate;  // 是否评论
     private Integer relateId;  // 关联id
@@ -95,7 +100,7 @@ public class MallOrderInfoVo implements Serializable {
     private MemberBriefInfoVo member;
     private List<MallOrderLogListVo> orderLog;
     private Integer formRecordId;
-    private Boolean formRecordShow;
+    private Integer formRecordShow;
     @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
     private BigDecimal mallDiscountMoney; //平台优惠金额
     @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
@@ -112,6 +117,16 @@ public class MallOrderInfoVo implements Serializable {
     private BigDecimal mallCouponMoney; // 平台优惠券补贴
     @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
     private BigDecimal mallRefundCouponMoney; // 返还平台优惠券补贴
+
+    //26-04-01添加 订单详情加入积分抵扣信息
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+    private BigDecimal pointDeductMoney; // 积分抵扣金额
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+    private BigDecimal refundPointDeductMoney; // 返还积分抵扣金额
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+    private BigDecimal usePoint = BigDecimal.ZERO; // 使用积分
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+    private BigDecimal refundDeductPoint = BigDecimal.ZERO; // 返还抵扣积分
 
     private String siteName;//店铺名称
     private Integer supplyId;
@@ -135,22 +150,24 @@ public class MallOrderInfoVo implements Serializable {
     private VerifierMemberInfo verifierMember; // 是否安装分销插件
 
     @Data
-    public static class VerifierMemberInfo{
+    public static class VerifierMemberInfo {
         private Integer memberId;
         private String nickname;
 
     }
+
     @Data
-    public static class Supply{
+    public static class Supply {
         private Integer siteId;
         private String siteName;
 
     }
+
     @Data
-    public static class OrderStatusData{
+    public static class OrderStatusData {
         private Object action;
         private Integer isRefund;
-        private List<Map<String,Object>> memberAction;
+        private List<Map<String, Object>> memberAction;
         private String name;
         private Integer status;
     }
@@ -187,6 +204,8 @@ public class MallOrderInfoVo implements Serializable {
         private Integer verifyExpireTime; // 过期时间 0 为永久
         private Integer isVerify; // 是否需要核销
         private BigDecimal discountMoney;
+        @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
+        private BigDecimal mallDiscountMoney; // 平台优惠
         @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
         private String extend;
         private String unit;
@@ -195,16 +214,24 @@ public class MallOrderInfoVo implements Serializable {
         private BigDecimal shopActiveRefundMoney; //商家主动退款金额
         private Integer formRecordId;
         private Integer refundId;
-        private Boolean formRecordShow;
+        private Integer formRecordShow = 0;
         @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
         private BigDecimal applyMoney; //商家主动退款金额
         private BigDecimal refundMoney;
+        private Integer virtualVerifyMobile;
+        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        private String goodsConfig; // 商品对应配置
+
         private ICoreUploadService coreUploadService() {
             return SpringContext.bean(ICoreUploadService.class);
         }
 
         public String getGoodsImageThumbSmall() {
-            return coreUploadService().thumb(this.siteId, this.getGoodsImage(), UploadThumbTypeEnum.SMALL.getType()).getDataMap().get(UploadThumbTypeEnum.SMALL.getType());
+            String image = coreUploadService().thumb(this.siteId, this.getGoodsImage(), UploadThumbTypeEnum.SMALL.getType()).getDataMap().get(UploadThumbTypeEnum.SMALL.getType());
+            if (ObjectUtil.isEmpty(image)) {
+                image = this.getGoodsImage();
+            }
+            return image;
         }
 
         public String getStatusName() {
@@ -221,13 +248,6 @@ public class MallOrderInfoVo implements Serializable {
             return "";
         }
 
-        public Boolean getFormRecordShow() {
-            if (this.formRecordId != null && this.formRecordId > 0) {
-                return true;
-            }else{
-                return false;
-            }
-        }
     }
 
     @Data
@@ -281,7 +301,7 @@ public class MallOrderInfoVo implements Serializable {
     }
 
     public String getOrderTypeName() {
-        return "";
+        return OrderTypeEnum.getOrderTypeName(this.getOrderType());
     }
 
     public String getOrderFromName() {
@@ -296,15 +316,33 @@ public class MallOrderInfoVo implements Serializable {
     }
 
     public Map<String, Object> getStatusName() {
-        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status),this.deliveryType,this.orderType);
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status), this.deliveryType, this.orderType);
     }
 
-    public Boolean getFormRecordShow() {
-        if (this.formRecordId != null && this.formRecordId > 0) {
-            return true;
-        }else{
-            return false;
+    public Map<String, Object> getOrderStatusData() {
+        return OrderStatusEnum.getDeliveryTypeMapByStatus(Integer.valueOf(this.status), this.deliveryType, this.orderType);
+    }
+
+    public String getSettlementStatusName() {
+        if (ObjectUtil.isNotEmpty(this.settlementStatus)) {
+            return SettlementEnum.getNameByStatus(this.settlementStatus);
         }
+        if (OrderStatusEnum.FINISH.getStatus().toString().equals(this.status)) {
+            return SettlementEnum.WAIT.getName();
+        }
+        return "";
     }
 
+
+    // 新增缺失字段
+    private Integer virtualVerifyMobile;         // 虚拟商品核销手机号开关
+
+    private String settlementStatus;             // 结算状态
+    private List<MallOrderDiscount> discountRecords;       // 店铺优惠明细
+    private List<MallOrderDiscount> platformDiscountRecords; // 平台优惠明细
+    private OrderDiscountDetailsVo discountDetails; // 优惠详情
+    private String orderDeliveryContent;          // 虚拟商品发货内容
+    private List<Map<String, Object>> orderGiftGoods; // 赠品列表
+
+    private String settlementStatusName; //结算状态name
 }

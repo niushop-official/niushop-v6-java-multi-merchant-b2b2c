@@ -109,10 +109,13 @@
 
 				<!--  优惠券数量  -->
 				<el-form-item :label="t('receiveNumber')" v-show="formData.receive_type == 1">
-					<el-radio-group v-model="formData.limit">
-						<el-radio :label="1">{{ t('limit') }}</el-radio>
-						<el-radio :label="2">{{ t('unlimited') }}</el-radio>
-					</el-radio-group>
+                    <div>
+                        <el-radio-group v-model="formData.limit">
+                            <el-radio :label="1">{{ t('limit') }}</el-radio>
+                            <el-radio :label="2">{{ t('unlimited') }}</el-radio>
+                        </el-radio-group>
+                    </div>
+					<div class="form-tip">发放数量只对用户手动领取生效，后台发放和活动发放不受限制</div>
 				</el-form-item>
 
 				<el-form-item v-show="formData.limit == 1 && formData.receive_type == 1" prop="remain_count">
@@ -334,7 +337,7 @@ const onSave = async (formEl: FormInstance | undefined) => {
             const save = addCoupon
             save(data).then(res => {
                 loading.value = false
-                history.back()
+                router.push('/mall/marketing/coupon/list')
             }).catch(() => {
                 loading.value = false
             })
@@ -343,7 +346,7 @@ const onSave = async (formEl: FormInstance | undefined) => {
 }
 
 const back = () => {
-    history.back()
+    router.push('/mall/marketing/coupon/list')
 }
 
 </script>

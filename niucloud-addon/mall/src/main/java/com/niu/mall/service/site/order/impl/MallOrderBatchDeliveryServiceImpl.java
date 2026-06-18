@@ -17,12 +17,12 @@ import com.niu.mall.entity.order.MallOrderBatchDelivery;
 import com.niu.mall.enums.order.OrderBatchDeliveryStatusEnum;
 import com.niu.mall.enums.order.OrderBatchDeliveryTypeEnum;
 import com.niu.mall.mapper.order.MallOrderBatchDeliveryMapper;
+import com.niu.mall.service.core.order.ICoreOrderBatchDeliveryService;
 import com.niu.mall.service.site.order.IMallOrderBatchDeliveryService;
 import com.niu.mall.service.site.order.param.MallOrderAddBatchDeliveryParam;
 import com.niu.mall.service.site.order.param.MallOrderBatchDeliverySearchParam;
 import com.niu.mall.service.site.order.vo.MallOrderBatchDeliveryInfoVo;
 import com.niu.mall.service.site.order.vo.MallOrderBatchDeliveryListVo;
-import com.niu.mall.service.core.order.ICoreOrderBatchDeliveryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -119,9 +119,14 @@ public class MallOrderBatchDeliveryServiceImpl implements IMallOrderBatchDeliver
     @Override
     public void addBatchOrderDelivery(MallOrderAddBatchDeliveryParam param) {
         param.setSiteId(RequestUtils.siteId());
-        param.setType(OrderBatchDeliveryTypeEnum.DELIVERY);
+//        param.setType(OrderBatchDeliveryTypeEnum.DELIVERY);
         param.setMainId(RequestUtils.uid());
         coreOrderBatchDeliveryService.add(param);
+    }
+
+    @Override
+    public void execute(Integer id) {
+        coreOrderBatchDeliveryService.execute(id, RequestUtils.siteId());
     }
 
 }

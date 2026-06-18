@@ -173,10 +173,43 @@ export function editShopMemberDetail(params: Record<string, any>) {
  * @param member_id 会员id
  * @returns
  */
-export function getShopMemberCoupon(member_id: number) {
-    return request.get(`mall/site/member/coupon/list/${member_id}`);
+export function getShopMemberCoupon(member_id: number,params: Record<string, any>) {
+    return request.get(`mall/site/member/coupon/list/${member_id}`,{params});
 }
 
+/**
+ * 批量编辑会员详情
+ * @param params
+ */
+export function batchModifyMemberDetail(params: Record<string, any>) {
+    return request.put(`shop/site/member/batch_modify`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 店铺优惠券批量发放
+ * @param params
+ */
+export function sendCoupon(params: Record<string, any>) {
+    return request.post(`mall/site/goods/coupon/send`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 获取店铺会员详情类型
+ * @param member_id 会员id
+ * @returns
+ */
+export function getMemberContentType() {
+    return request.get(`member/member/content/type`);
+}
+
+/**
+ * 获取店铺会员消费记录
+ * @param member_id 会员id
+ * @returns
+ */
+export function getShopMemberConsumeList(params: Record<string, any>) {
+    return request.get(`mall/site/order/consume/list`,{params});
+}
 /***************************************************** 会员标签 ****************************************************/
 /**
  * 获取店铺全部会员标签
@@ -222,6 +255,22 @@ export function addShopMemberLabel(params: Record<string, any>) {
  */
 export function updateShopMemberLabel(params: Record<string, any>) {
     return request.put(`shop/site/member/label/${params.label_id}`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 获取会员设置
+ */
+export function getShopMemberConfig() {
+    return request.get(`shop/site/member/config`)
+}
+
+/**
+ * 会员设置
+ * @param params
+ * @returns
+ */
+export function setShopMemberConfig(params: Record<string, any>) {
+    return request.post(`shop/site/member/config`, params, {showSuccessMessage: true})
 }
 
 /**

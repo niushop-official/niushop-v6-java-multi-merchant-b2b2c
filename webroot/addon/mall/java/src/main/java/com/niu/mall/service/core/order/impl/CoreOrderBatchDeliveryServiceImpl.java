@@ -11,29 +11,34 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.read.listener.ReadListener;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.WebAppEnvs;
 import com.niu.core.common.component.context.task.ThreadPoolManager;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.entity.delivery.DeliveryCompany;
+import com.niu.core.entity.delivery.DeliveryElectronicSheet;
+import com.niu.core.entity.site.SiteAddress;
+import com.niu.core.mapper.delivery.DeliveryElectronicSheetMapper;
+import com.niu.core.mapper.site.DeliveryCompanyMapper;
+import com.niu.core.mapper.site.SiteAddressMapper;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderBatchDelivery;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.enums.order.OrderBatchDeliveryStatusEnum;
+import com.niu.mall.enums.order.OrderBatchDeliveryTypeEnum;
 import com.niu.mall.enums.order.OrderDeliveryTypeEnum;
 import com.niu.mall.enums.order.OrderLogMainTypeEnum;
-import com.niu.core.mapper.site.DeliveryCompanyMapper;
 import com.niu.mall.mapper.order.MallOrderBatchDeliveryMapper;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
-import com.niu.mall.service.site.order.param.MallOrderAddBatchDeliveryParam;
 import com.niu.mall.service.core.order.ICoreOrderBatchDeliveryService;
 import com.niu.mall.service.core.order.ICoreOrderDeliveryService;
-import com.niu.mall.service.core.order.model.OrderBatchDeliveryData;
-import com.niu.mall.service.core.order.model.OrderBatchDeliveryResultRow;
-import com.niu.mall.service.core.order.model.OrderBatchDeliveryRow;
+import com.niu.mall.service.core.order.model.*;
 import com.niu.mall.service.core.order.param.OrderBatchDeliveryParam;
 import com.niu.mall.service.core.order.param.OrderDeliveryParam;
 import com.niu.mall.service.core.order.vo.OrderBatchDeliveryVo;
+import com.niu.mall.service.site.order.param.MallOrderAddBatchDeliveryParam;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +62,8 @@ public class CoreOrderBatchDeliveryServiceImpl implements ICoreOrderBatchDeliver
     private final ICoreOrderDeliveryService coreOrderDeliveryService;
     private final DeliveryCompanyMapper deliveryCompanyMapper;
     private final MallOrderBatchDeliveryMapper mallOrderBatchDeliveryMapper;
+    private final DeliveryElectronicSheetMapper deliveryElectronicSheetMapper;
+    private final SiteAddressMapper siteAddressMapper;
 
     @Override
     public void add(MallOrderAddBatchDeliveryParam param) {
@@ -65,7 +72,8 @@ public class CoreOrderBatchDeliveryServiceImpl implements ICoreOrderBatchDeliver
         delivery.setData(JSONUtil.toJsonStr(param.getData()));
         delivery.setStatus(OrderBatchDeliveryStatusEnum.PROCESSING.getValue());
         delivery.setCreateTime(System.currentTimeMillis() / 1000);
-        delivery.setType(param.getType().getValue());
+//        delivery.setType(param.getType().getValue());
+        delivery.setType(param.getType());
         mallOrderBatchDeliveryMapper.insert(delivery);
 
         ThreadPoolManager.runTask(() -> execute(delivery.getId(), delivery.getSiteId()));
@@ -89,12 +97,27 @@ public class CoreOrderBatchDeliveryServiceImpl implements ICoreOrderBatchDeliver
         }
 
         OrderBatchDeliveryVo result = new OrderBatchDeliveryVo();
-        if (delivery.getType().equals("delivery")) {
+        if (delivery.getType().equals(OrderBatchDeliveryTypeEnum.DELIVERY.getValue())) {
+            //导入
             OrderBatchDeliveryParam param = new OrderBatchDeliveryParam();
             param.setSiteId(siteId);
             param.setMainId(delivery.getMainId());
             param.setData(JSONUtil.toBean(delivery.getData(), OrderBatchDeliveryData.class));
             result = delivery(param);
+        } else if (delivery.getType().equals(OrderBatchDeliveryTypeEnum.SELECT_DELIVERY.getValue())) {
+            //选择
+            OrderBatchDeliveryParam param = new OrderBatchDeliveryParam();
+            param.setSiteId(siteId);
+            param.setMainId(delivery.getMainId());
+            param.setData(JSONUtil.toBean(delivery.getData(), OrderBatchDeliveryData.class));
+            result = batchSelectDelivery(param);
+        } else if (delivery.getType().equals(OrderBatchDeliveryTypeEnum.PRINT_DELIVERY.getValue())) {
+            //打单
+            OrderBatchDeliveryParam param = new OrderBatchDeliveryParam();
+            param.setSiteId(siteId);
+            param.setMainId(delivery.getMainId());
+            param.setData(JSONUtil.toBean(delivery.getData(), OrderBatchDeliveryData.class));
+            result = batchPrintDelivery(param);
         }
 
         OrderBatchDeliveryStatusEnum status = ObjectUtil.isEmpty(result.getFailRemark()) ? OrderBatchDeliveryStatusEnum.FINISH : OrderBatchDeliveryStatusEnum.FAIL;
@@ -104,16 +127,17 @@ public class CoreOrderBatchDeliveryServiceImpl implements ICoreOrderBatchDeliver
         delivery.setFailNum(result.getFailNum());
         delivery.setFailRemark(result.getFailRemark());
 
-        if (ObjectUtil.isNotEmpty(result.getTotalList())) {
+        List<?> totalList = result.getTotalList();
+        List<?> failList = result.getFailList();
+        if (ObjectUtil.isNotEmpty(totalList)) {
             String outputDir = WebAppEnvs.get().webRootDownResource + "upload" + File.separator + "batch" + File.separator + siteId + File.separator + "output" + File.separator;
             if (FileUtil.isDirectory(outputDir) || FileUtil.mkdir(outputDir).isDirectory()) {
                 String output = outputDir + RandomUtil.randomNumbers(10) + ".csv";
-                writeCsv(output, result.getTotalList(), JSONUtil.parseObj(delivery.getData()).getStr("type"));
+                writeCsv(output, totalList, JSONUtil.parseObj(delivery.getData()).getStr("type"));
                 delivery.setOutput(output.replace(WebAppEnvs.get().webRootDownResource, ""));
             }
         }
 
-        List<OrderBatchDeliveryResultRow> failList = result.getFailList();
         if (ObjectUtil.isNotEmpty(failList)) {
             String outputDir = WebAppEnvs.get().webRootDownResource + "upload" + File.separator + "batch" + File.separator + siteId + File.separator + "fail_output" + File.separator;
             if (FileUtil.isDirectory(outputDir) || FileUtil.mkdir(outputDir).isDirectory()) {
@@ -157,19 +181,236 @@ public class CoreOrderBatchDeliveryServiceImpl implements ICoreOrderBatchDeliver
         return vo;
     }
 
+    /**
+     * 批量选择发货（针对无需物流）
+     *
+     * @param params 参数包含 main_id, site_id, data.list
+     * @return 处理结果统计
+     */
+    public OrderBatchDeliveryVo batchSelectDelivery(OrderBatchDeliveryParam params) {
+        Integer mainId = params.getMainId();
+        Integer siteId = params.getSiteId();
+        List<OrderBatchDeliveryData.Orders> deliveryData = params.getData().getList();
+
+        int totalNum = 0;
+        int successNum = 0;
+        int failCount = 0;
+        List<OrderBatchSelectDeliveryResultRow> totalList = new ArrayList<>();
+        List<OrderBatchSelectDeliveryResultRow> failList = new ArrayList<>();
+        String failRemark = null;
+
+        // 表头
+        String deliveryType = OrderDeliveryTypeEnum.NONE_EXPRESS.getType();
+        int expressCompanyId = 0;
+        String expressNumber = "";
+
+        try {
+            for (OrderBatchDeliveryData.Orders item : deliveryData) {
+                String error = null;
+                totalNum++;
+
+                Integer orderId = item.getOrderId();
+                List<Integer> orderGoodsIds = item.getOrderGoodsIds();
+                MallOrder order = null;
+                if (orderId != null && orderGoodsIds != null && !orderGoodsIds.isEmpty()) {
+                    // 查询订单
+                    order = mallOrderMapper.selectOne(new LambdaQueryWrapper<MallOrder>()
+                            .eq(MallOrder::getSiteId, siteId)
+                            .eq(MallOrder::getOrderId, orderId));
+                    if (order == null) {
+                        error = "订单不存在";
+                    } else {
+                        // 调用发货服务
+                        OrderDeliveryParam deliveryParam = new OrderDeliveryParam();
+                        deliveryParam.setMainType(OrderLogMainTypeEnum.SYSTEM.getType());
+                        deliveryParam.setMainId(mainId);
+                        deliveryParam.setSiteId(siteId);
+                        deliveryParam.setOrderId(orderId);
+                        deliveryParam.setOrderGoodsIds(orderGoodsIds.toArray(Integer[]::new));
+                        deliveryParam.setDeliveryType(deliveryType);
+                        deliveryParam.setExpressCompanyId(expressCompanyId);
+                        deliveryParam.setExpressNumber(expressNumber);
+                        deliveryParam.setRemark("");
+                        try {
+                            coreOrderDeliveryService.delivery(deliveryParam);
+                        } catch (CommonException e) {
+                            log.info(e.getMessage());
+                            log.info(e.toString());
+                            error = e.getMessage();
+                        }
+                    }
+                } else {
+                    error = "订单不存在";
+                }
+
+                // 构建记录行
+                OrderBatchSelectDeliveryResultRow tempRow = new OrderBatchSelectDeliveryResultRow();
+                tempRow.setOrderNo(order != null ? order.getOrderNo() + "\t" : "");
+                tempRow.setOrderId(String.valueOf(orderId));
+                tempRow.setOrderItemId(orderGoodsIds != null ? String.join(",", orderGoodsIds.stream().map(String::valueOf).collect(Collectors.toList())) : "");
+                tempRow.setDeliveryType(OrderDeliveryTypeEnum.NONE_EXPRESS.getName());
+
+                if (error == null) {
+                    tempRow.setResult("成功");
+                    tempRow.setRemark("");
+                    totalList.add(tempRow);
+                    successNum++;
+                } else {
+                    tempRow.setResult("失败");
+                    tempRow.setRemark(error);
+                    totalList.add(tempRow);
+                    failList.add(tempRow);
+                    failCount++;
+                }
+            }
+        } catch (Exception e) {
+            failRemark = e.getMessage();
+        }
+
+        OrderBatchDeliveryVo result = new OrderBatchDeliveryVo();
+        result.setSuccessNum(successNum);
+        result.setFailNum(failCount);
+        result.setTotalNum(totalNum);
+        result.setTotalList(totalList);
+        result.setFailList(failList);
+        result.setFailRemark(failRemark != null ? failRemark : "");
+        return result;
+    }
+
+    /**
+     * 批量打单发货
+     *
+     * @param params 参数包含 main_id, site_id, data（包含 delivery_type, express_company_id, electronic_sheet_id, address_id, list）
+     * @return 处理结果统计
+     */
+    public OrderBatchDeliveryVo batchPrintDelivery(OrderBatchDeliveryParam params) {
+        Integer mainId = params.getMainId();
+        Integer siteId = params.getSiteId();
+        OrderBatchDeliveryData deliveryData = params.getData();
+        List<OrderBatchDeliveryData.Orders> orderList = deliveryData.getList();
+
+        int totalNum = 0;
+        int successNum = 0;
+        int failCount = 0;
+        List<OrderBatchPrintDeliveryResultRow> totalList = new ArrayList<>();
+        List<OrderBatchPrintDeliveryResultRow> failList = new ArrayList<>();
+        String failRemark = null;
+
+        // 提取公共参数
+        String deliveryType = deliveryData.getDeliveryType() != null ? deliveryData.getDeliveryType() : OrderDeliveryTypeEnum.EXPRESS.getType();
+        Integer expressCompanyId = deliveryData.getExpressCompanyId();
+        Integer electronicSheetId = deliveryData.getElectronicSheetId();
+//        String deliveryWay = deliveryData.getDeliveryWay() != null ? deliveryData.getDeliveryWay() : "electronic_sheet";
+        String deliveryWay = "electronic_sheet";
+        Integer addressId = deliveryData.getAddressId();
+        String expressNumber = "";
+
+        // 查询关联字典数据
+        String deliveryTypeName = OrderDeliveryTypeEnum.getNameByType(deliveryType);
+        DeliveryCompany expressCompany = deliveryCompanyMapper.selectOne(
+                new LambdaQueryWrapper<DeliveryCompany>().eq(DeliveryCompany::getCompanyId, expressCompanyId)
+        );
+        String expressCompanyName = expressCompany.getCompanyName();
+        String electronicSheetName = deliveryElectronicSheetMapper.selectOne(
+                new LambdaQueryWrapper<DeliveryElectronicSheet>().eq(DeliveryElectronicSheet::getId, electronicSheetId)
+        ).getTemplateName();
+        SiteAddress address = siteAddressMapper.selectById(addressId);
+
+        try {
+            for (OrderBatchDeliveryData.Orders item : orderList) {
+                String error = null;
+                totalNum++;
+
+                Integer orderId = item.getOrderId();
+                List<Integer> orderGoodsIds = item.getOrderGoodsIds();
+                MallOrder order = null;
+                if (orderId != null && orderGoodsIds != null && !orderGoodsIds.isEmpty()) {
+                    order = mallOrderMapper.selectOne(new LambdaQueryWrapper<MallOrder>()
+                            .eq(MallOrder::getSiteId, siteId)
+                            .eq(MallOrder::getOrderId, orderId));
+                    if (order == null) {
+                        error = "订单不存在";
+                    } else {
+                        OrderDeliveryParam deliveryParam = new OrderDeliveryParam();
+
+
+                        deliveryParam.setMainType(OrderLogMainTypeEnum.SYSTEM.getType());
+                        deliveryParam.setMainId(mainId);
+                        deliveryParam.setSiteId(siteId);
+                        deliveryParam.setOrderId(orderId);
+                        deliveryParam.setOrderGoodsIds(orderGoodsIds.toArray(Integer[]::new));
+                        deliveryParam.setDeliveryType(deliveryType);
+                        deliveryParam.setExpressCompanyId(expressCompanyId);
+                        deliveryParam.setExpressNumber(expressNumber);
+                        deliveryParam.setDeliveryWay(deliveryWay);
+                        deliveryParam.setElectronicSheetId(electronicSheetId);
+//                        deliveryParam.put("address", address);
+                        deliveryParam.setRemark("");
+                        coreOrderDeliveryService.delivery(deliveryParam);
+                    }
+                } else {
+                    error = "订单不存在";
+                }
+
+                OrderBatchPrintDeliveryResultRow tempRow = new OrderBatchPrintDeliveryResultRow();
+                tempRow.setOrderNo(order != null ? order.getOrderNo() + "\t" : "");
+                tempRow.setOrderId(String.valueOf(orderId));
+                tempRow.setOrderItemId(orderGoodsIds != null ? String.join(",", orderGoodsIds.stream().map(String::valueOf).collect(Collectors.toList())) : "");
+                tempRow.setDeliveryType(deliveryTypeName);
+                tempRow.setExpressCompanyName(expressCompanyName);
+                tempRow.setElectronicSheetName(electronicSheetName);
+                tempRow.setAddress(address != null ? address.getFullAddress() : "");
+
+                if (error == null) {
+                    tempRow.setResult("成功");
+                    tempRow.setRemark("");
+                    totalList.add(tempRow);
+                    successNum++;
+                } else {
+                    tempRow.setResult("失败");
+                    tempRow.setRemark(error);
+                    totalList.add(tempRow);
+                    failList.add(tempRow);
+                    failCount++;
+                }
+            }
+        } catch (Exception e) {
+            failRemark = e.getMessage();
+        }
+
+        OrderBatchDeliveryVo result = new OrderBatchDeliveryVo();
+        result.setSuccessNum(successNum);
+        result.setFailNum(failCount);
+        result.setTotalNum(totalNum);
+        result.setTotalList(totalList);
+        result.setFailList(failList);
+        result.setFailRemark(failRemark != null ? failRemark : "");
+        return result;
+    }
+
     private void writeCsv(String output, List<?> list, String type) {
         Map<String, String> header = Arrays.stream(OrderBatchDeliveryResultRow.class.getDeclaredFields())
                 .peek(f -> f.setAccessible(true))
                 .filter(f -> {
-                    if (type.equals("order") && f.getName().equals("orderItemId")) {
+                    // 跳过 order 类型下的 orderItemId 字段
+                    if ("order".equals(type) && "orderItemId".equals(f.getName())) {
                         return false;
                     }
-
-                    String[] value = f.getAnnotation(ExcelProperty.class).value();
-                    return value != null && value.length > 0;
+                    ExcelProperty excelProperty = f.getAnnotation(ExcelProperty.class);
+                    if (excelProperty == null) return false;
+                    String[] values = excelProperty.value();
+                    return values != null && values.length > 0;
                 })
-                .collect(Collectors.toMap(Field::getName, o -> o.getAnnotation(ExcelProperty.class).value()[0],
-                        (a, b) -> a, LinkedHashMap::new));
+                .collect(Collectors.toMap(
+                        Field::getName,
+                        f -> {
+                            ExcelProperty excelProperty = f.getAnnotation(ExcelProperty.class);
+                            // 此处不会为 null，因为 filter 已保证
+                            return excelProperty.value()[0]; // 如果 value()[0] 可能为 null，需额外处理
+                        },
+                        (a, b) -> a,  // 重复 key 保留第一个
+                        LinkedHashMap::new
+                ));
 
         CsvWriteConfig config = new CsvWriteConfig().setHeaderAlias(header);
 

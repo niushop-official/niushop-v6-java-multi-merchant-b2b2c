@@ -9,6 +9,9 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.niu.core.common.utils.date.DateUtils;
@@ -17,7 +20,11 @@ import com.niu.core.common.utils.json.JsonViewUtils;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 /**
@@ -26,13 +33,30 @@ import java.util.*;
 public final class BeanJsonSerializer {
 
     /**
+     * 判断是否为Redis序列化上下文
+     */
+    private static boolean isRedisSerializationContext() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        for (StackTraceElement element : stackTrace) {
+            String className = element.getClassName();
+            if (className.contains("Redis") || className.contains("Jackson2JsonRedisSerializer")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 配置:   @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
      */
     public static class LongDateToStringSerializer extends JsonSerializer<Long> {
 
         @Override
         public void serialize(Long value, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-            // 按照自定义格式转换
+            if (isRedisSerializationContext()) {
+                jsonGenerator.writeNumber(value == null ? 0 : value);
+                return;
+            }
             String formatStr = "";
             if (value != null && value > 0) {
                 formatStr = DateUtils.timestampToString(value);
@@ -56,6 +80,42 @@ public final class BeanJsonSerializer {
             }
         }
 
+    }
+
+    /**
+     * 时间格式或yyyy-MM-dd HH:mm:ss格式转换为unix时间戳
+     * 使用方式//@JsonDeserialize(using = BeanJsonSerializer.UnixMillisDeserializer.class)
+     */
+    public static class UnixMillisDeserializer extends JsonDeserializer<Long> {
+
+        private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
+        private static final DateTimeFormatter SIMPLE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        private static final ZoneId DEFAULT_ZONE = ZoneId.systemDefault(); // 或 ZoneId.of("Asia/Shanghai")
+
+        @Override
+        public Long deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            String dateStr = p.getText().trim();
+            if (dateStr.isEmpty()) return null;
+            try {
+                return Long.valueOf(dateStr);
+            } catch (NumberFormatException e) {
+                try {
+                    // 尝试 ISO 8601 (带时区)
+                    Instant instant = Instant.from(ISO_FORMATTER.parse(dateStr));
+                    return instant.getEpochSecond();
+                } catch (DateTimeParseException e1) {
+                    // 尝试简单格式 (无时区，按默认时区处理)
+                    try {
+                        LocalDateTime ldt = LocalDateTime.parse(dateStr, SIMPLE_FORMATTER);
+                        Instant instant = ldt.atZone(DEFAULT_ZONE).toInstant();
+                        return instant.getEpochSecond();
+                    } catch (DateTimeParseException e2) {
+                        throw new IOException("无法解析日期时间: " + dateStr);
+                    }
+                }
+            }
+
+        }
     }
 
     /**
@@ -143,26 +203,26 @@ public final class BeanJsonSerializer {
 
     /**
      * 字符串转化为JSON对象
-     *
+     * <p>
      * 配置:   @JsonSerialize(using = BeanJsonSerializer.StringToJSONObjectSerializer.class)
      */
     public static class StringToJSONObjectSerializer extends JsonSerializer<String> {
         @Override
         public void serialize(String s, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
 
-            if(ObjectUtil.isNotNull(s) && ObjectUtil.isNotEmpty(s)){
+            if (ObjectUtil.isNotNull(s) && ObjectUtil.isNotEmpty(s)) {
                 try {
-                    JSONObject jsonObject=JSONUtil.parseObj(s);
+                    JSONObject jsonObject = JSONUtil.parseObj(s);
                     jsonGenerator.writeObject(jsonObject);
-                }catch (Exception e){
-                    try{
-                        JSONArray jsonArray=JSONUtil.parseArray(s);
+                } catch (Exception e) {
+                    try {
+                        JSONArray jsonArray = JSONUtil.parseArray(s);
                         jsonGenerator.writeObject(jsonArray);
-                    }catch (Exception ex){
+                    } catch (Exception ex) {
                         jsonGenerator.writeString(s);
                     }
                 }
-            }else{
+            } else {
                 jsonGenerator.writeObject(new JSONObject());
             }
         }
@@ -256,19 +316,6 @@ public final class BeanJsonSerializer {
             return resultList;
         }
 
-        /**
-         * 判断是否为Redis序列化上下文（保留原逻辑，建议后续替换为ThreadLocal优化）
-         */
-        private boolean isRedisSerializationContext() {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            for (StackTraceElement element : stackTrace) {
-                String className = element.getClassName();
-                if (className.contains("Redis") || className.contains("Jackson2JsonRedisSerializer")) {
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 
 }

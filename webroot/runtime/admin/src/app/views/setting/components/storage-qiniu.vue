@@ -2,10 +2,13 @@
     <el-dialog v-model="showDialog" :title="t('qiniuStorage')" width="580px" :destroy-on-close="true">
         <el-form :model="formData" label-width="140px" ref="formRef" :rules="formRules" class="page-form" v-loading="loading">
             <el-form-item :label="t('isUse')">
-                <el-radio-group v-model="formData.is_use">
-                    <el-radio label="1">{{ t('startUsing') }}</el-radio>
-                    <el-radio label="0">{{ t('statusDeactivate') }}</el-radio>
-                </el-radio-group>
+                <div>
+                    <el-radio-group v-model="formData.is_use">
+                        <el-radio label="1">{{ t('startUsing') }}</el-radio>
+                        <el-radio label="0">{{ t('statusDeactivate') }}</el-radio>
+                    </el-radio-group>
+                    <div class="text-[12px] text-[#999]">七牛云存储官网：<a class="text-primary cursor-pointer" href="https://www.qiniu.com/" target="_blank">https://www.qiniu.com/</a></div>
+                </div>
             </el-form-item>
 
             <el-form-item :label="t('qiniuBucket')" prop="bucket">

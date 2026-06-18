@@ -1,5 +1,7 @@
 package com.niu.mall.service.site.goods.param;
+
 import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -42,6 +44,10 @@ public class MallGoodsSearchParam implements Serializable {
     private Integer virtualSaleNum;
 
     private Integer status;
+    /**
+     * 复合条件 同时查询商品状态和审核状态
+     */
+    private Integer statusType;
 
     private String deliveryType;
 

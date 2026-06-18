@@ -169,43 +169,45 @@ public final class AddonModuleContext {
             if (!readResult) {
                 // 如果在生产模式下，jar包内部读取
                 Class<?> addonModuleClazz = addonModuleMap.get(addonModuleCode);
-                InputStream openInputStream = null;
-                JarInputStream inputStream = null;
-                try {
-                    String jarPath = (addonModuleClazz.getProtectionDomain().getCodeSource().getLocation().getPath());
-                    String jarProtocol = "jar:" + jarPath;
-                    URL url = URI.create(jarProtocol).toURL();
-                    openInputStream = url.openStream();
-                    JarInputStream jarInputStream = new JarInputStream(openInputStream);
-                    String innerEntry = addonModuleCode + "/" + relativePath;
-                    JarEntry entry;
-                    while ((entry = jarInputStream.getNextJarEntry()) != null) {
-                        if (entry.getName().equals(innerEntry)) {
-                            inputStream = jarInputStream;
+                if (addonModuleClazz != null) {
+                    InputStream openInputStream = null;
+                    JarInputStream inputStream = null;
+                    try {
+                        String jarPath = (addonModuleClazz.getProtectionDomain().getCodeSource().getLocation().getPath());
+                        String jarProtocol = "jar:" + jarPath;
+                        URL url = URI.create(jarProtocol).toURL();
+                        openInputStream = url.openStream();
+                        JarInputStream jarInputStream = new JarInputStream(openInputStream);
+                        String innerEntry = addonModuleCode + "/" + relativePath;
+                        JarEntry entry;
+                        while ((entry = jarInputStream.getNextJarEntry()) != null) {
+                            if (entry.getName().equals(innerEntry)) {
+                                inputStream = jarInputStream;
+                            } else {
+                                jarInputStream.closeEntry();
+                            }
+                        }
+                        if (inputStream == null) {
+                            log.debug("当前环境<URL>无法读取文件：{}{}", jarProtocol, innerEntry);
                         } else {
-                            jarInputStream.closeEntry();
+                            context = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
                         }
-                    }
-                    if (inputStream == null) {
-                        log.error("当前环境<URL>无法读取文件：" + jarProtocol + "!" + innerEntry);
-                    } else {
-                        context = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-                    }
-                } catch (Exception e) {
-//                    e.printStackTrace();
-                } finally {
-                    if (inputStream != null) {
-                        try {
-                            inputStream.close();
-                        } catch (IOException e) {
-//                            e.printStackTrace();
+                    } catch (Exception e) {
+                        log.debug("跳过 JAR 回退读取 {}/{}: {}", addonModuleCode, relativePath, e.getMessage());
+                    } finally {
+                        if (inputStream != null) {
+                            try {
+                                inputStream.close();
+                            } catch (IOException e) {
+                                log.debug("关闭资源流失败: {}", e.getMessage());
+                            }
                         }
-                    }
-                    if (openInputStream != null) {
-                        try {
-                            openInputStream.close();
-                        } catch (IOException e) {
-//                            e.printStackTrace();
+                        if (openInputStream != null) {
+                            try {
+                                openInputStream.close();
+                            } catch (IOException e) {
+                                log.debug("关闭资源流失败: {}", e.getMessage());
+                            }
                         }
                     }
                 }
@@ -291,15 +293,13 @@ public final class AddonModuleContext {
                         readResult = true;
                     }
                 } catch (Exception e) {
-                    // ignore
-                    // e.printStackTrace();
-                    log.warn("当前环境<ResourceLoader>无法读取文件：" + e.getMessage());
+                    log.debug("当前环境<ResourceLoader>无法读取文件 {}/{}: {}", largeModuleCode, relativePath, e.getMessage());
                 } finally {
                     if (inputStream != null) {
                         try {
                             inputStream.close();
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            log.debug("关闭资源流失败: {}", e.getMessage());
                         }
                     }
                 }
@@ -307,43 +307,45 @@ public final class AddonModuleContext {
             if (!readResult) {
                 // 如果在生产模式下，jar包内部读取
                 Class<?> largeModuleClazz = addonModuleMap.get(largeModuleCode);
-                InputStream openInputStream = null;
-                JarInputStream inputStream = null;
-                try {
-                    String jarPath = (largeModuleClazz.getProtectionDomain().getCodeSource().getLocation().getPath());
-                    String jarProtocol = "jar:" + jarPath;
-                    URL url = URI.create(jarProtocol).toURL();
-                    openInputStream = url.openStream();
-                    JarInputStream jarInputStream = new JarInputStream(openInputStream);
-                    String innerEntry = largeModuleCode + "/" + relativePath;
-                    JarEntry entry;
-                    while ((entry = jarInputStream.getNextJarEntry()) != null) {
-                        if (entry.getName().equals(innerEntry)) {
-                            inputStream = jarInputStream;
+                if (largeModuleClazz != null) {
+                    InputStream openInputStream = null;
+                    JarInputStream inputStream = null;
+                    try {
+                        String jarPath = (largeModuleClazz.getProtectionDomain().getCodeSource().getLocation().getPath());
+                        String jarProtocol = "jar:" + jarPath;
+                        URL url = URI.create(jarProtocol).toURL();
+                        openInputStream = url.openStream();
+                        JarInputStream jarInputStream = new JarInputStream(openInputStream);
+                        String innerEntry = largeModuleCode + "/" + relativePath;
+                        JarEntry entry;
+                        while ((entry = jarInputStream.getNextJarEntry()) != null) {
+                            if (entry.getName().equals(innerEntry)) {
+                                inputStream = jarInputStream;
+                            } else {
+                                jarInputStream.closeEntry();
+                            }
+                        }
+                        if (inputStream == null) {
+                            log.debug("当前环境<URL>无法读取文件：{}{}", jarProtocol, innerEntry);
                         } else {
-                            jarInputStream.closeEntry();
+                            properties.load(inputStream);
                         }
-                    }
-                    if (inputStream == null) {
-                        log.error("当前环境<URL>无法读取文件：" + jarProtocol + "!" + innerEntry);
-                    } else {
-                        properties.load(inputStream);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (inputStream != null) {
-                        try {
-                            inputStream.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                    } catch (Exception e) {
+                        log.debug("跳过 JAR 回退读取 {}/{}: {}", largeModuleCode, relativePath, e.getMessage());
+                    } finally {
+                        if (inputStream != null) {
+                            try {
+                                inputStream.close();
+                            } catch (IOException e) {
+                                log.debug("关闭资源流失败: {}", e.getMessage());
+                            }
                         }
-                    }
-                    if (openInputStream != null) {
-                        try {
-                            openInputStream.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        if (openInputStream != null) {
+                            try {
+                                openInputStream.close();
+                            } catch (IOException e) {
+                                log.debug("关闭资源流失败: {}", e.getMessage());
+                            }
                         }
                     }
                 }

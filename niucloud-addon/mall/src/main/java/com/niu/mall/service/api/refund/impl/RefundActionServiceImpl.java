@@ -195,7 +195,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
                 .eq("order_id", orderGoods.getOrderId()));
         if (order == null) throw new CommonException("订单已失效");
 
-        BigDecimal maxRefundMoney = orderGoods.getGoodsMoney().subtract(orderGoods.getDiscountMoney());
+        BigDecimal maxRefundMoney = coreRefundService.getItemRefundableMoney(orderGoods.getOrderGoodsId());
         if (refund.getIsRefundDelivery().equals(1)) maxRefundMoney = maxRefundMoney.add(order.getDeliveryMoney());
 
         if (param.getApplyMoney().compareTo(maxRefundMoney) == 1)
@@ -346,7 +346,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
     @Override
     public RefundDataVo getRefundData(Integer orderGoodsId) {
         MallOrderGoods orderGoods = mallOrderGoodsMapper.selectOne(new QueryWrapper<MallOrderGoods>()
-                .select("order_id,order_goods_money")
+                .select("order_id")
                 .eq("order_goods_id", orderGoodsId)
                 .eq("member_id", RequestUtils.memberId()));
         if (orderGoods == null) throw new CommonException("订单已失效");
@@ -369,8 +369,9 @@ public class RefundActionServiceImpl implements IRefundActionService {
         }
 
         RefundDataVo vo = new RefundDataVo();
-        vo.setRefundMoney(orderGoods.getOrderGoodsMoney());
-        vo.setRefundOrderGoodsMoney(orderGoods.getOrderGoodsMoney());
+        BigDecimal itemRefundableMoney = coreRefundService.getItemRefundableMoney(orderGoodsId);
+        vo.setRefundMoney(itemRefundableMoney);
+        vo.setRefundOrderGoodsMoney(itemRefundableMoney);
         vo.setIsRefundDelivery(isRefundDelivery);
 
         if (isRefundDelivery.equals(1)) {
@@ -394,20 +395,15 @@ public class RefundActionServiceImpl implements IRefundActionService {
                 .eq("member_id", RequestUtils.memberId()));
         if (refund == null) throw new CommonException("退款已失效");
 
-        MallOrderGoods orderGoods = mallOrderGoodsMapper.selectOne(new QueryWrapper<MallOrderGoods>()
-                .select("order_id,order_goods_money")
-                .eq("order_goods_id", refund.getOrderGoodsId())
-                .eq("member_id", RequestUtils.memberId()));
-        if (orderGoods == null) throw new CommonException("订单已失效");
-
         MallOrder order = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>()
                 .select("delivery_money")
-                .eq("order_id", orderGoods.getOrderId()));
+                .eq("order_id", refund.getOrderId()));
         if (order == null) throw new CommonException("订单已失效");
 
         RefundDataVo vo = new RefundDataVo();
-        vo.setRefundMoney(orderGoods.getOrderGoodsMoney());
-        vo.setRefundOrderGoodsMoney(orderGoods.getOrderGoodsMoney());
+        BigDecimal itemRefundableMoney = coreRefundService.getItemRefundableMoney(refund.getOrderGoodsId());
+        vo.setRefundMoney(itemRefundableMoney);
+        vo.setRefundOrderGoodsMoney(itemRefundableMoney);
         vo.setIsRefundDelivery(refund.getIsRefundDelivery());
         if (refund.getIsRefundDelivery().equals(1)) {
             vo.setRefundMoney(vo.getRefundMoney().add(order.getDeliveryMoney()));

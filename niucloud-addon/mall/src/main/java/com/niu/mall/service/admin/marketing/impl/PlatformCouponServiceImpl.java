@@ -35,6 +35,8 @@ import com.niu.mall.service.admin.marketing.IPlatformCouponService;
 import com.niu.mall.service.admin.marketing.param.MallCouponParam;
 import com.niu.mall.service.admin.marketing.param.MallCouponSearchParam;
 import com.niu.mall.service.admin.marketing.param.MallCouponSelectParam;
+import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
+import com.niu.mall.service.site.marketing.param.MallCouponSendParam;
 import com.niu.mall.service.admin.marketing.vo.MallCouponInfoVo;
 import com.niu.mall.service.admin.marketing.vo.MallCouponListVo;
 import com.niu.mall.service.admin.marketing.vo.MallCouponMemberListVo;
@@ -46,9 +48,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,6 +80,8 @@ PlatformCouponServiceImpl implements IPlatformCouponService {
     ISiteShopService siteShopService;
     @Resource
     ICoreActiveGoodsService coreActiveGoodsService;
+    @Resource
+    ICoreCouponMemberService coreCouponMemberService;
 
     @Override
     public JSONObject getInit() {
@@ -314,12 +316,12 @@ PlatformCouponServiceImpl implements IPlatformCouponService {
         } else {
             model.setMinConditionMoney(addParam.getMinConditionMoney());
         }
-        if (ObjectUtil.isNotEmpty(addParam.getIsAllSiteJoin())){
+        if (ObjectUtil.isNotEmpty(addParam.getIsAllSiteJoin())) {
             model.setIsAllSiteJoin(addParam.getIsAllSiteJoin());
-            if(ObjectUtil.isNotEmpty(addParam.getJoinSiteIds())){
+            if (ObjectUtil.isNotEmpty(addParam.getJoinSiteIds())) {
                 model.setJoinSiteIds(JSONUtil.parseArray(addParam.getJoinSiteIds()).toString());
             }
-        }else{
+        } else {
             model.setIsAllSiteJoin(0);
         }
         if (addParam.getReceiveType() != 2) {
@@ -363,8 +365,8 @@ PlatformCouponServiceImpl implements IPlatformCouponService {
         mallCouponMapper.insert(model);
 
 
-
         if (ObjectUtil.isNotEmpty(addParam.getBrandIds()) || ObjectUtil.isNotEmpty(addParam.getGoodsCategoryIds())) {
+
 
             if (ObjectUtil.isNotEmpty(addParam.getBrandIds())) {
                 List<MallCouponGoods> list = new ArrayList<>();
@@ -373,7 +375,6 @@ PlatformCouponServiceImpl implements IPlatformCouponService {
                     mallCouponGoods.setSiteId(siteId);
                     mallCouponGoods.setCouponId(model.getId());
                     mallCouponGoods.setBrandId(brandId);
-                    mallCouponGoodsMapper.insert(mallCouponGoods);
                     list.add(mallCouponGoods);
                 }
                 shopCouponGoodsService.insertAll(list);
@@ -383,21 +384,40 @@ PlatformCouponServiceImpl implements IPlatformCouponService {
             if (ObjectUtil.isNotEmpty(addParam.getGoodsCategoryIds())) {
                 JSONArray goodsCategoryIds = addParam.getGoodsCategoryIds();
                 List<MallCouponGoods> list = new ArrayList<>();
-                for (Object goodsCategoryId : goodsCategoryIds) {
-                    MallCouponGoods mallCouponGoods = new MallCouponGoods();
-                    mallCouponGoods.setSiteId(siteId);
-                    mallCouponGoods.setCouponId(model.getId());
-                    JSONArray goodsCategoryArr = (JSONArray) goodsCategoryId;
-                    mallCouponGoods.setCategoryId(goodsCategoryArr.getInt(goodsCategoryArr.toArray().length - 1));
-                    mallCouponGoodsMapper.insert(mallCouponGoods);
-                    list.add(mallCouponGoods);
+                if (!isTwoDimensionalArray(goodsCategoryIds)) {
+                    for (Object goodsCategoryId : goodsCategoryIds) {
+                        MallCouponGoods mallCouponGoods = new MallCouponGoods();
+                        mallCouponGoods.setSiteId(siteId);
+                        mallCouponGoods.setCouponId(model.getId());
+                        JSONArray goodsCategoryArr = (JSONArray) goodsCategoryId;
+                        mallCouponGoods.setCategoryId(goodsCategoryArr.getInt(goodsCategoryArr.toArray().length - 1));
+                        list.add(mallCouponGoods);
+                    }
+                } else {
+                    // 二维数组：每个元素是一个路径数组，只保留叶子节点（最后一个），并去重（出现次数为1才保留）
+                    Map<Integer, Integer> countMap = new HashMap<>();
+                    for (Object item : goodsCategoryIds) {
+                        JSONArray path = (JSONArray) item;
+                        if (path.isEmpty()) continue;
+                        Integer leafId = path.getInt(path.size() - 1);
+                        countMap.put(leafId, countMap.getOrDefault(leafId, 0) + 1);
+                    }
+                    for (Map.Entry<Integer, Integer> entry : countMap.entrySet()) {
+                        if (entry.getValue() == 1) {  // 仅出现一次的保留
+                            MallCouponGoods relation = new MallCouponGoods();
+                            relation.setSiteId(siteId);
+                            relation.setCouponId(model.getId());
+                            relation.setCategoryId(entry.getKey());
+                            list.add(relation);
+                        }
+                    }
                 }
                 shopCouponGoodsService.insertAll(list);
                 //同步优惠券商品
                 coreActiveGoodsService.couponGoodsCache();
             }
 
-        }else{
+        } else {
             //实现关联表中添加数据
             MallCouponGoods mallCouponGoods = new MallCouponGoods();
             mallCouponGoods.setSiteId(siteId);//店铺ID 全部店铺为0
@@ -425,12 +445,12 @@ PlatformCouponServiceImpl implements IPlatformCouponService {
         } else {
             model.setMinConditionMoney(mallCouponParam.getMinConditionMoney());
         }
-        if (ObjectUtil.isNotEmpty(mallCouponParam.getIsAllSiteJoin())){
+        if (ObjectUtil.isNotEmpty(mallCouponParam.getIsAllSiteJoin())) {
             model.setIsAllSiteJoin(mallCouponParam.getIsAllSiteJoin());
-            if(ObjectUtil.isNotEmpty(mallCouponParam.getJoinSiteIds())){
+            if (ObjectUtil.isNotEmpty(mallCouponParam.getJoinSiteIds())) {
                 model.setJoinSiteIds(JSONUtil.parseArray(mallCouponParam.getJoinSiteIds()).toString());
             }
-        }else{
+        } else {
             model.setIsAllSiteJoin(0);
         }
         if (mallCouponParam.getReceiveType() != 2) {
@@ -493,15 +513,37 @@ PlatformCouponServiceImpl implements IPlatformCouponService {
             if (ObjectUtil.isNotEmpty(mallCouponParam.getGoodsCategoryIds())) {
                 JSONArray goodsCategoryIds = mallCouponParam.getGoodsCategoryIds();
                 List<MallCouponGoods> list = new ArrayList<>();
-                for (Object goodsCategoryId : goodsCategoryIds) {
-                    MallCouponGoods mallCouponGoods = new MallCouponGoods();
-                    mallCouponGoods.setSiteId(siteId);
-                    mallCouponGoods.setCouponId(model.getId());
-                    JSONArray goodsCategoryArr = (JSONArray) goodsCategoryId;
-                    mallCouponGoods.setCategoryId(goodsCategoryArr.getInt(goodsCategoryArr.toArray().length - 1));
+                if (!isTwoDimensionalArray(goodsCategoryIds)) {
+                    for (Object goodsCategoryId : goodsCategoryIds) {
+                        MallCouponGoods mallCouponGoods = new MallCouponGoods();
+                        mallCouponGoods.setSiteId(siteId);
+                        mallCouponGoods.setCouponId(model.getId());
+                        JSONArray goodsCategoryArr = (JSONArray) goodsCategoryId;
+                        mallCouponGoods.setCategoryId(goodsCategoryArr.getInt(goodsCategoryArr.toArray().length - 1));
 
-                    list.add(mallCouponGoods);
+                        list.add(mallCouponGoods);
+                    }
+                } else {
+                    // 二维数组：每个元素是一个路径数组，只保留叶子节点（最后一个），并去重（出现次数为1才保留）
+                    Map<Integer, Integer> countMap = new HashMap<>();
+                    for (Object item : goodsCategoryIds) {
+                        JSONArray path = (JSONArray) item;
+                        if (path.isEmpty()) continue;
+                        Integer leafId = path.getInt(path.size() - 1);
+                        countMap.put(leafId, countMap.getOrDefault(leafId, 0) + 1);
+                    }
+                    for (Map.Entry<Integer, Integer> entry : countMap.entrySet()) {
+                        if (entry.getValue() == 1) {  // 仅出现一次的保留
+                            MallCouponGoods relation = new MallCouponGoods();
+                            relation.setSiteId(siteId);
+                            relation.setCouponId(model.getId());
+                            relation.setCategoryId(entry.getKey());
+                            list.add(relation);
+                        }
+                    }
                 }
+
+
                 shopCouponGoodsService.insertAll(list);
                 //同步优惠券商品
                 coreActiveGoodsService.couponGoodsCache();
@@ -539,7 +581,7 @@ PlatformCouponServiceImpl implements IPlatformCouponService {
 
         if (!keywords.isEmpty()) {
             //查询逻辑应该是在领取该优惠券的用户中模糊查询，不是在所有用户中模糊查询
-            queryWrapper.and((qw)->qw.like("m.username", keywords).or()
+            queryWrapper.and((qw) -> qw.like("m.username", keywords).or()
                     .like("m.nickname", keywords).or()
                     .like("m.mobile", keywords));
         }
@@ -568,5 +610,42 @@ PlatformCouponServiceImpl implements IPlatformCouponService {
         MallCoupon mallCoupon = new MallCoupon();
         mallCoupon.setStatus(CouponStatusEnum.INVALID.getStatus());
         mallCouponMapper.update(mallCoupon, new QueryWrapper<MallCoupon>().eq("id", couponId).eq("site_id", RequestUtils.defaultSiteId()));
+    }
+
+    @Override
+    public Boolean sendCoupon(List<MallCouponSendParam.CouponData> couponData, List<Integer> memberIds) {
+        if (couponData == null || couponData.isEmpty() || memberIds == null || memberIds.isEmpty()) {
+            throw new AdminException("MALL_COUPON_SEND_PARAM_ERROR");
+        }
+        Integer siteId = RequestUtils.defaultSiteId();
+        for (Integer memberId : memberIds) {
+            for (MallCouponSendParam.CouponData coupon : couponData) {
+                Integer couponId = coupon.getCouponId();
+                Integer num = coupon.getNum();
+                try {
+                    coreCouponMemberService.sendCoupon(siteId, memberId, couponId, num, "平台发券");
+                } catch (Exception e) {
+                    // 记录日志但不中断发放流程
+                    System.out.println("平台优惠券发放失败，优惠券ID：" + couponId + "，用户ID：" + memberId + "，数量：" + num + "，错误信息：" + e.getMessage());
+                }
+            }
+        }
+        return true;
+    }
+
+
+    /**
+     * 判断 JSONArray 是否为二维数组（至少有一个元素是 JSONArray）
+     */
+    private boolean isTwoDimensionalArray(JSONArray arr) {
+        if (arr == null || arr.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < arr.size(); i++) {
+            if (arr.get(i) instanceof JSONArray) {
+                return true;
+            }
+        }
+        return false;
     }
 }

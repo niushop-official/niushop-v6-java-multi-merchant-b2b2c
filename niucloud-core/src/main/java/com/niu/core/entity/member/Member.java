@@ -149,6 +149,9 @@ public class Member implements Serializable {
     /** 0正常  1已删除 */
     private Integer isDel;
 
+    /** 是否老用户，1是 0否 */
+    private Integer isOld;
+
     /** 省id */
     private Integer provinceId;
 

@@ -36,10 +36,11 @@
   "batchDeleteGoods": "批量删除",
   "batchEmptySelectedGoodsTips": "请选择要操作的商品",
 
-  "goodsInfo": "商品",
+  "goodsInfo": "商品（点击商品名称或图片预览）",
   "stock": "库存",
   "lablel": "标签",
   "status": "状态",
+  "auditStatus": "审核状态",
   "sort": "排序权重",
   "sortTips": "排序号格式输入错误",
   "createTime": "创建时间",

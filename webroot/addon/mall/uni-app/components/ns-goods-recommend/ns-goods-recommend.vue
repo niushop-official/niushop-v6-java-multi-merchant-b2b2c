@@ -35,6 +35,9 @@ const goodsData = ref({
         bottom: 0,
         top: 0
     },
+    searchCondition:{
+        isShow: false,
+    },
     priceStyle: {
         mainColor: "#FF4142",
         control: true
