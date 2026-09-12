@@ -22,6 +22,7 @@ import com.niu.core.entity.site.SiteAddress;
 import com.niu.core.mapper.delivery.DeliveryElectronicSheetMapper;
 import com.niu.core.mapper.site.DeliveryCompanyMapper;
 import com.niu.core.mapper.site.SiteAddressMapper;
+import com.niu.core.service.core.delivery.param.ShopDeliveryPrintElectronicSheetParam;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderBatchDelivery;
 import com.niu.mall.entity.order.MallOrderGoods;
@@ -344,7 +345,7 @@ public class CoreOrderBatchDeliveryServiceImpl implements ICoreOrderBatchDeliver
                         deliveryParam.setExpressNumber(expressNumber);
                         deliveryParam.setDeliveryWay(deliveryWay);
                         deliveryParam.setElectronicSheetId(electronicSheetId);
-//                        deliveryParam.put("address", address);
+                        deliveryParam.setAddress(toSenderAddress(address));
                         deliveryParam.setRemark("");
                         coreOrderDeliveryService.delivery(deliveryParam);
                     }
@@ -523,6 +524,20 @@ public class CoreOrderBatchDeliveryServiceImpl implements ICoreOrderBatchDeliver
         @Override
         public void doAfterAllAnalysed(AnalysisContext context) {
         }
+    }
+
+    private ShopDeliveryPrintElectronicSheetParam.SenderAddress toSenderAddress(SiteAddress siteAddress) {
+        if (siteAddress == null) {
+            return null;
+        }
+        ShopDeliveryPrintElectronicSheetParam.SenderAddress address = new ShopDeliveryPrintElectronicSheetParam.SenderAddress();
+        address.setContactName(siteAddress.getContactName());
+        address.setMobile(siteAddress.getMobile());
+        address.setProvinceId(siteAddress.getProvinceId());
+        address.setCityId(siteAddress.getCityId());
+        address.setDistrictId(siteAddress.getDistrictId());
+        address.setAddress(siteAddress.getAddress());
+        return address;
     }
 
 }

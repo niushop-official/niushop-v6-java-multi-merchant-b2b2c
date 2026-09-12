@@ -257,7 +257,7 @@
 import {ref, computed, reactive} from 'vue'
 import {t} from '@/lang'
 import {useRoute, useRouter} from 'vue-router'
-import { getFullGiftInfo,editFullGift,addFullGift,checkFullGift } from "@/addon/mall/api/site/marketing";
+import { getFullGiftInfo,editFullGift,addFullGift,checkFullGift } from "@/app/lang/zh-cn/api/site/marketing";
 import {FormInstance, ElMessage} from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { getMemberLabelAll, getMemberLevelAll } from '@/app/api/member'

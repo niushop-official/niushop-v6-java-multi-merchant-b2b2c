@@ -36,6 +36,7 @@ public class AddShopDeliveryOrderParam implements Serializable {
         private String takerLongitude; // 收货地址经度
         private String takerLatitude; // 收货详细纬度
         private Integer siteId; // 站点id
+        private Integer takeStoreId; // 取货门店id（对齐 PHP take_store_id）
         private String takerFullAddress; // 收货详细地址
         private Integer takerProvinceId; // 收货省
         private Integer takerCityId; // 收货市

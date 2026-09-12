@@ -23,6 +23,7 @@ public class ShopSearchParam {
     private Integer isLocalDelivery;
     private Integer isLocation;
     private List<String> deliveryType;
+    private Integer circleId;
     private Position position;
     @Data
     public static class Position {

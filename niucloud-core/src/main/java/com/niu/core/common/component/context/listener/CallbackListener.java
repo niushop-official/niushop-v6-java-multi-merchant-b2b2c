@@ -5,6 +5,7 @@ import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.component.context.event.Event;
 import com.niu.core.common.component.context.event.EventResult;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public abstract class CallbackListener<T extends Event> {
@@ -45,11 +46,12 @@ public abstract class CallbackListener<T extends Event> {
                 } catch (Exception e) {
                     e.printStackTrace();
                     // 运行时异常需要抛出去，中继业务
-                    if (e.getCause() != null) {
-                        throw new RuntimeException(e.getCause().getMessage());
-                    } else {
-                        throw new RuntimeException(e.getMessage());
-                    }
+//                    if (e.getCause() != null) {
+//                        throw new RuntimeException(e.getCause().getMessage());
+//                    } else {
+//                        throw new RuntimeException(e.getMessage());
+//                    }
+                    rethrowCallbackException(e);
                 }
             }
         } else {
@@ -59,18 +61,40 @@ public abstract class CallbackListener<T extends Event> {
                     result = method.invoke(this, (Object) event);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    // 运行时异常需要抛出去，中继业务
-                    if (e.getCause() != null) {
-                        throw new RuntimeException(e.getCause().getMessage());
-                    } else {
-                        throw new RuntimeException(e.getMessage());
-                    }
+//                    // 运行时异常需要抛出去，中继业务
+//                    if (e.getCause() != null) {
+//                        throw new RuntimeException(e.getCause().getMessage());
+//                    } else {
+//                        throw new RuntimeException(e.getMessage());
+//                    }
+                    rethrowCallbackException(e);
                 }
             }
         }
         return result;
     }
 
+    /**
+     * Method.invoke 会将监听器异常包装为 InvocationTargetException，需解包后原样抛出业务异常。
+     */
+    private static void rethrowCallbackException(Exception e) {
+        Throwable target = e;
+        if (e instanceof InvocationTargetException) {
+            Throwable targetException = ((InvocationTargetException) e).getTargetException();
+            if (targetException != null) {
+                target = targetException;
+            } else if (e.getCause() != null) {
+                target = e.getCause();
+            }
+        }
+        if (target instanceof RuntimeException) {
+            throw (RuntimeException) target;
+        }
+        if (target != null) {
+            throw new RuntimeException(target);
+        }
+        throw new RuntimeException(e);
+    }
 
     public abstract EventResult handleCallback(T event);
 

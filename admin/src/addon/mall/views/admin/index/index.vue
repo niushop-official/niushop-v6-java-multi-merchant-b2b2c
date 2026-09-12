@@ -80,7 +80,7 @@
 						</div>
 					</div>
 					<div class="flex-1 box-border mr-[20px]">
-						<div class="bg-[#F4F7FC] h-[170px] box-border py-[20px] px-[16px] cursor-pointer" @click="toLink('/shop/list')">
+						<div class="bg-[#F4F7FC] h-[170px] box-border py-[20px] px-[16px] cursor-pointer" @click="toLink('/mall/shop/list')">
 							<div class="flex justify-between items-center mb-[14px]">
 								<span class="text-[14px] text-[#333]">今日申请店铺数</span>
 								<el-tooltip effect="light" :content="'申请店铺数:' + statInfo.site_stat.yesterday_site_count" placement="bottom">

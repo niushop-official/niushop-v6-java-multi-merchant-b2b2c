@@ -8,10 +8,10 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
-import com.niu.mall.entity.goods.MallGoodsLabel;
 import com.niu.mall.entity.goods.MallGoodsLabelGroup;
 import com.niu.mall.mapper.goods.MallGoodsLabelGroupMapper;
-import com.niu.mall.mapper.goods.MallGoodsLabelMapper;
+import com.niu.core.entity.goods.GoodsLabel;
+import com.niu.core.mapper.goods.GoodsLabelMapper;
 import com.niu.mall.service.admin.goods.ILabelGroupService;
 import com.niu.mall.service.admin.goods.param.LabelGroupModifySortParam;
 import com.niu.mall.service.admin.goods.param.LabelGroupParam;
@@ -38,7 +38,7 @@ public class LabelGroupServiceImpl implements ILabelGroupService {
     MallGoodsLabelGroupMapper mallGoodsLabelGroupMapper;
 
     @Resource
-    MallGoodsLabelMapper mallGoodsLabelMapper;
+    GoodsLabelMapper goodsLabelMapper;
 
     @Override
     public PageResult<LabelGroupListVo> page(PageParam pageParam, LabelGroupSearchParam searchParam) {
@@ -111,7 +111,7 @@ public class LabelGroupServiceImpl implements ILabelGroupService {
 
     @Override
     public void del(Integer id) {
-        Long count = mallGoodsLabelMapper.selectCount(new QueryWrapper<MallGoodsLabel>().eq("group_id", id));
+        Long count = goodsLabelMapper.selectCount(new QueryWrapper<GoodsLabel>().eq("group_id", id));
         if (count > 0) throw new CommonException("该标签分组正在使用中，无法删除");
 
         mallGoodsLabelGroupMapper.delete(new QueryWrapper<MallGoodsLabelGroup>().eq("group_id", id).eq("site_id", RequestUtils.siteId()));

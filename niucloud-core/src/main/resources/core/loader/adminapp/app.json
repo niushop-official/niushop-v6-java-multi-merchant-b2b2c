@@ -39,7 +39,7 @@
     "name": "核销",
     "key": "verify",
     "group": "site",
-    "menu_key": "",
+    "menu_key": "verify_index",
     "sort": 3,
     "page": "/app/pages/verify/index",
     "icon": "/addon/mall/site/menu/verify.png"
@@ -48,7 +48,7 @@
     "name": "核销记录",
     "key": "verify_record",
     "group": "site",
-    "menu_key": "",
+    "menu_key": "verify_list",
     "sort": 4,
     "page": "/app/pages/verify/record",
     "icon": "/addon/mall/site/menu/verify_record.png"
@@ -57,7 +57,7 @@
     "name": "提现",
     "key": "cash_out",
     "group": "finance",
-    "menu_key": "",
+    "menu_key": "account_index",
     "sort": 5,
     "page": "/app/pages/account/cash_out",
     "icon": "/addon/mall/site/menu/cash_out.png"
@@ -66,7 +66,7 @@
     "name": "提现方式",
     "key": "transfer_type",
     "group": "finance",
-    "menu_key": "",
+    "menu_key": "sett_account",
     "sort": 6,
     "page": "/app/pages/account/transfer_type",
     "icon": "/addon/mall/site/menu/transfer_type.png"
@@ -75,7 +75,7 @@
     "name": "提现管理",
     "key": "cash_out_record",
     "group": "finance",
-    "menu_key": "",
+    "menu_key": "account_cash_out",
     "sort": 7,
     "page": "/app/pages/account/cash_out_record",
     "icon": "/addon/mall/site/menu/cash_out_record.png"
@@ -84,16 +84,25 @@
     "name": "商城看板",
     "key": "mall_stat",
     "group": "stats",
-    "menu_key": "",
+    "menu_key": "mall_account_bill_list",
     "sort": 7,
     "page": "/addon/mall/pages/account/bill",
     "icon": "/addon/mall/site/menu/shop.png"
   },
   {
+    "name": "o2o看板",
+    "key": "o2o_stat",
+    "group": "stats",
+    "menu_key": "o2o_account_bill_list",
+    "sort": 7,
+    "page": "/addon/o2o/pages/account/bill",
+    "icon": "/addon/o2o/site/menu/shop.png"
+  },
+  {
     "name": "资产概况",
     "key": "account",
     "group": "stats",
-    "menu_key": "",
+    "menu_key": "account_index",
     "sort": 8,
     "page": "/app/pages/account/index",
     "icon": "/addon/mall/site/menu/account_index.png"

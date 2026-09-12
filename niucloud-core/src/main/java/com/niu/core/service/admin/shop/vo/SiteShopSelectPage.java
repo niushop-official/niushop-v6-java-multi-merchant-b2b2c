@@ -5,7 +5,6 @@ import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.service.admin.site.vo.SiteAdminVo;
-import io.swagger.models.auth.In;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

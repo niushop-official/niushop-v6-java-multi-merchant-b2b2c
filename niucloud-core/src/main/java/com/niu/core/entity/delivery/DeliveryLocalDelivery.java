@@ -56,4 +56,5 @@ public class DeliveryLocalDelivery implements Serializable {
     /** 配送时间段 */
     private String deliveryTime;
 
+    private BigDecimal freeGoodsMoney;
 }

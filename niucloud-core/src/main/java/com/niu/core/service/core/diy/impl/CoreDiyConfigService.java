@@ -15,10 +15,10 @@ import com.niu.core.service.core.diy.param.StartUpPageConfigParam;
 import com.niu.core.service.core.diy.vo.BottomConfigVo;
 import com.niu.core.service.core.diy.vo.StartUpPageConfigVo;
 import com.niu.core.service.core.sys.ICoreConfigService;
+import jakarta.annotation.Resource;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +61,7 @@ public class CoreDiyConfigService implements ICoreDiyConfigService {
         return addonMap;
     }
 
-    private List<BottomConfigVo> buildBottomListFromJson(JSONArray bottomJsonArray) {
+    private List<BottomConfigVo> buildBottomListFromJson(JSONArray bottomJsonArray, Integer siteId) {
         List<String> keys = new ArrayList<>();
         for (Object bottomMap : bottomJsonArray) {
             keys.add(((JSONObject) bottomMap).getStr("key"));
@@ -77,20 +77,44 @@ public class CoreDiyConfigService implements ICoreDiyConfigService {
             vo.setKey(key);
             JSONObject bottomValueJson = jsonObject.getJSONObject("value");
             BottomConfigValue bottomConfigValue = JSONUtil.toBean(bottomValueJson, BottomConfigValue.class);
+            if (siteId != null && siteId > 0) {
+                JSONArray bottomList = bottomConfigValue.getList();
+                if (bottomList != null && !bottomList.isEmpty()) {
+                    // 遍历所有导航项，修改每个链接的 url
+                    for (int i = 0; i < bottomList.size(); i++) {
+                        JSONObject item = bottomList.getJSONObject(i);
+                        JSONObject link = item.getJSONObject("link");
+                        if (link != null) {
+                            String oldUrl = link.getStr("url");
+                            if (oldUrl != null) {
+                                // 如果已经有参数，则追加 &site_id=xxx，否则追加 ?site_id=xxx
+                                String newUrl = oldUrl + (oldUrl.contains("?") ? "&" : "?") + "site_id=" + siteId;
+                                link.set("url", newUrl);
+                            }
+                        }
+                    }
+                }
+            }
             vo.setValue(bottomConfigValue);
             list.add(vo);
         }
+        // 将 'app' 放到第一个位置（对齐 PHP 逻辑）
+        list.sort((a, b) -> {
+            if ("app".equals(a.getKey())) return -1;
+            if ("app".equals(b.getKey())) return 1;
+            return 0;
+        });
         return list;
     }
 
     @Override
     public List<BottomConfigVo> getBottomList() {
-        return buildBottomListFromJson(getBottomJson());
+        return buildBottomListFromJson(getBottomJson(), null);
     }
 
     @Override
-    public List<BottomConfigVo> getSiteBottomList() {
-        return buildBottomListFromJson(getSiteBottomJson());
+    public List<BottomConfigVo> getSiteBottomList(Integer siteId) {
+        return buildBottomListFromJson(getSiteBottomJson(), siteId);
     }
 
     @Override
@@ -104,7 +128,7 @@ public class CoreDiyConfigService implements ICoreDiyConfigService {
         if (keys == null || keys.isEmpty()) {
             return new ArrayList<>();
         }
-        List<BottomConfigVo> list = siteId == 0 ? getBottomList() : getSiteBottomList();
+        List<BottomConfigVo> list = siteId == 0 ? getBottomList() : getSiteBottomList(siteId);
         Map<String, BottomConfigVo> configMap = list.stream()
                 .filter(vo -> keys.contains(vo.getKey()))
                 .collect(Collectors.toMap(BottomConfigVo::getKey, vo -> vo, (a, b) -> a));
@@ -112,6 +136,9 @@ public class CoreDiyConfigService implements ICoreDiyConfigService {
         List<BottomConfigVo> result = new ArrayList<>();
         for (String key : keys) {
             BottomConfigVo config = configMap.get(key);
+            if (config == null && !"app".equals(key)) {
+                config = configMap.get("app");
+            }
             if (config == null) {
                 continue;
             }
@@ -179,4 +206,23 @@ public class CoreDiyConfigService implements ICoreDiyConfigService {
         if (config.isEmpty()) return null;
         return JSONUtil.toBean(config, StartUpPageConfigVo.class);
     }
+
+    @Override
+    public Map<String, Object> getSiteQrcodeConfig(Integer siteId, String key) {
+        Map<String, Object> defaultConfig = new HashMap<>();
+        defaultConfig.put("is_hidden_plat_index", 0);
+        defaultConfig.put("is_show", 1);
+        JSONObject info = coreConfigService.getConfigValue(siteId, "diy_site_qrcode_" + key);
+        if (info == null || info.isEmpty()) {
+            return defaultConfig;
+        }
+        return info;
+    }
+
+
+    @Override
+    public void setSiteQrcodeConfig(Integer siteId, Map<String, Object> data, String type) {
+        coreConfigService.setConfig(siteId, "diy_site_qrcode_" + type, JSONUtil.parseObj(data));
+    }
+
 }

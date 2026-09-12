@@ -136,7 +136,11 @@ public class SysPrinterTemplateServiceImpl implements ISysPrinterTemplateService
                         .eq("site_id", RequestUtils.siteId()));
 
         Assert.notNull(model, "小票打印模板不存在");
-        BeanUtils.copyProperties(editParam, model);
+        // value 是 Object→String，BeanUtils 不会拷贝，需与 add 一样手动序列化
+        model.setTemplateName(editParam.getTemplateName());
+        model.setTemplateType(editParam.getTemplateType());
+        model.setValue(JSON.toJSONString(editParam.getValue()));
+        model.setUpdateTime(System.currentTimeMillis() / 1000);
         sysPrinterTemplateMapper.updateById(model);
     }
 

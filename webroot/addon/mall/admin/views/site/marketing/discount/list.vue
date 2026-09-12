@@ -11,12 +11,13 @@
 
             <!-- 搜索 -->
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="tableData.searchParam" ref="searchFormRef">
+                <el-form label-width="70px" :inline="true" :model="tableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('name')" prop="active_name">
-                        <el-input v-model.trim="tableData.searchParam.active_name" :placeholder="t('namePlaceholder')" />
+                        <el-input v-model.trim="tableData.searchParam.active_name" :placeholder="t('namePlaceholder')" class="search-input" clearable />
                     </el-form-item>
                     <el-form-item :label="t('status')" prop='active_status'>
-                        <el-select v-model="tableData.searchParam.active_status" clearable :placeholder="t('statusPlaceholder')" class="input-item">
+                        <el-select v-model="tableData.searchParam.active_status" clearable :placeholder="t('statusPlaceholder')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item, key) in activeStatusOption" :key="key" :label="item" :value="key"></el-option>
                         </el-select>
                     </el-form-item>
@@ -72,7 +73,7 @@
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, FormInstance } from 'element-plus'
-import { getActiveDiscountPageList,getActiveDiscountStatusList,closeActiveDiscount,deleteActiveDiscount } from "@/addon/mall/api/site/marketing";
+import { getActiveDiscountPageList,getActiveDiscountStatusList,closeActiveDiscount,deleteActiveDiscount } from "@/app/lang/zh-cn/api/site/marketing";
 import { t } from '@/lang'
 
 const router = useRouter()

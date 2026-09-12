@@ -26,10 +26,19 @@ public interface IShopSiteGroupService {
     PageResult<SiteGroupListVo> list(PageParam pageParam, SiteGroupSearchParam searchParam);
 
     /**
+     * 获取所有站点分组，app 可选（对齐 PHP getAll $data['app']）
+     * @param app 应用标识
+     * @return
+     */
+    List<SiteGroup> getAll(String app);
+
+    /**
      * 获取所有站点分组
      * @return
      */
-    List<SiteGroup> getAll();
+    default List<SiteGroup> getAll() {
+        return getAll(null);
+    }
 
     /**
      * 店铺分组（分组权限）详情
@@ -39,10 +48,16 @@ public interface IShopSiteGroupService {
     SiteGroup info(Integer id);
 
     /**
+     * C 端入驻可选套餐（对齐 PHP ShopSiteGroupService.getAll：group_id + group_name，create_time desc）
+     */
+    List<SiteGroup> getApplyList();
+
+    /**
      * 店铺分组（分组权限）添加
      * @param addParam 添加参数
+     * @return 新建套餐 group_id
      */
-    void add(SiteGroupAddParam addParam);
+    Integer add(SiteGroupAddParam addParam);
 
     /**
      * 店铺分组（分组权限）编辑

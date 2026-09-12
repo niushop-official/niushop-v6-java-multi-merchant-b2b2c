@@ -42,6 +42,13 @@ public interface ICorePayService {
 
     void closeByTrade(String tradeType, Integer tradeId);
 
+    /**
+     * 根据支付交易号关闭支付单（仅待支付状态可关闭）
+     *
+     * @param outTradeNo 支付交易号
+     */
+    void close(String outTradeNo);
+
     List<PayTypeVo> getPayTypeByTrade(String tradeType, ChannelEnum channel);
 
     void payEdit(String json, Integer id);

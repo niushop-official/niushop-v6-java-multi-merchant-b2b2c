@@ -1,7 +1,6 @@
 package com.niu.core.service.admin.site.vo;
 
 
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
@@ -37,6 +36,7 @@ public class SiteCategoryListVo implements Serializable {
     private String addon; // 归属应用
     private BigDecimal serviceRate; // 服务费比率
     private Integer groupId; // 套餐id
+    @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
     private String bannerList; // 轮播图（JSON格式）
 
     private List<SiteCategoryListVo> childList;

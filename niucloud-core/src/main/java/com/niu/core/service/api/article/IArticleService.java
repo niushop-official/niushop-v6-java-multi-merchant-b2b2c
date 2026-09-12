@@ -6,8 +6,6 @@ import com.niu.core.service.api.article.param.ArticeSearchParam;
 import com.niu.core.service.api.article.param.ArticleParam;
 import com.niu.core.service.api.article.vo.ArticleInfoVo;
 import com.niu.core.service.api.article.vo.ArticleListVo;
-import io.swagger.models.auth.In;
-
 import java.util.List;
 
 public interface IArticleService {

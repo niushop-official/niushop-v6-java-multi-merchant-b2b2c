@@ -1,5 +1,6 @@
 package com.niu.core.service.admin.upgrade.vo;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -26,8 +27,10 @@ public class UpgradeTaskVo implements Serializable {
 
     private String step;
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private LinkedList<String> executed = new LinkedList<>();
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private LinkedList<String> log = new LinkedList<>();
 
     private Map<String, Object> params;
@@ -36,6 +39,11 @@ public class UpgradeTaskVo implements Serializable {
 
     private String status;
 
+    /**
+     * 对齐 PHP：error 仅在有错误时才存在于返回结果中，
+     * 空列表不序列化，避免前端 if (data.error) 误判为有错误而清除计时器。
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private LinkedList<String> error = new LinkedList<>();
 
     private String version;

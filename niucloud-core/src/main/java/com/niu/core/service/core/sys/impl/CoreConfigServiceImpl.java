@@ -34,6 +34,8 @@ public class CoreConfigServiceImpl implements ICoreConfigService {
     @Resource
     SysConfigMapper sysConfigMapper;
 
+    public static final String WAIMAI_SITE_ORDER_CONFIG_KEY = "WAIMAI_SITE_ORDER_CONFIG";
+
     /**
      * 获取配置项
      *
@@ -55,7 +57,31 @@ public class CoreConfigServiceImpl implements ICoreConfigService {
         return vo;
     }
 
+    /**
+     * 解析自动接单开关，未配置时默认关闭
+     */
+    @Override
+    public Integer resolveIsAutoAccept(Integer siteId) {
+        JSONObject orderConfig = getConfigValue(siteId, WAIMAI_SITE_ORDER_CONFIG_KEY);
+        if (orderConfig == null || orderConfig.isEmpty()) {
+            return 0;
+        }
+        JSONObject autoAccept = orderConfig.getJSONObject("auto_accept");
+        if (autoAccept == null || autoAccept.isEmpty()) {
+            return 0;
+        }
+        return ObjectUtil.defaultIfNull(autoAccept.getInt("is_auto_accept"), 0);
+    }
 
+    @Override
+    public boolean isAutoAccept(Integer siteId) {
+        if (siteId == null) {
+            return false;
+        }
+
+        Integer isAutoAccept = resolveIsAutoAccept(siteId);
+        return isAutoAccept != null && isAutoAccept == 1;
+    }
     /**
      * 获取系统配置项 返回values
      *

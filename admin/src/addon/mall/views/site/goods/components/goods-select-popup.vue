@@ -22,9 +22,9 @@
                 <el-form-item :label="t('goodsSelectPopupGoodsName')" prop="keyword" class="form-item-wrap">
                     <el-input v-model="goodsTable.searchParam.keyword" :placeholder="t('goodsSelectPopupGoodsNamePlaceholder')" maxlength="60" />
                 </el-form-item>
-                <el-form-item :label="t('goodsSelectPopupGoodsCategory')" prop="goods_mall_category" class="form-item-wrap">
+                <el-form-item :label="t('商品类目')" prop="goods_mall_category" class="form-item-wrap">
                     <el-cascader v-model="goodsTable.searchParam.goods_mall_category"
-                        :options="goodsCategoryOptions" :placeholder="t('请选择商品分类')"
+                        :options="goodsCategoryOptions" :placeholder="t('请选择商品类目')"
                         clearable :props="{ value: 'value', label: 'label', emitPath:false }" />
                 </el-form-item>
                 <el-form-item :label="t('goodsSelectPopupGoodsType')" prop="goods_type" class="form-item-wrap">
@@ -144,13 +144,13 @@ import { ref, reactive, computed, nextTick } from 'vue'
 import { cloneDeep } from 'lodash-es'
 import { img, deepClone } from '@/utils/common'
 import { ElMessage } from 'element-plus'
-import { getGoodsSelectPageList, getGoodsSkuNoPageList, getGoodsType } from '@/addon/mall/api/site/goods'
+import { getGoodsSelectPageList, getGoodsSkuNoPageList, getGoodsType } from '@/app/lang/zh-cn/api/site/goods'
   import { getCategoryTree } from '@/app/api/basic_admin'
 
 const prop = defineProps({
     modelValue: {
-        type: [String, Array],
-        default: () => []
+        type: String,
+        default: ''
     },
     max: {
         type: Number,
@@ -164,12 +164,15 @@ const prop = defineProps({
         type: String,
         default: 'spu' // spu：按商品，sku：按多规格
     },
+    exclude_goods_id: {
+        type: String,
+        default: ''
+    },
     disabled: {
         type: Boolean,
         default: false
     }
 })
-
 const emit = defineEmits(['update:modelValue','goodsSelect'])
 const isStairIndeterminate = ref(false);
 const staircheckAll = ref(false);
@@ -211,7 +214,8 @@ const goodsTable = reactive({
         goods_ids: '',
         verify_goods_ids: '',
       	verify_sku_ids: '',
-        goods_type: ''
+        goods_type: '',
+        exclude_goods_id: prop.exclude_goods_id,
     }
 })
 
@@ -233,7 +237,9 @@ const goodsType: any = reactive([])
 // 初始化数据
 const initData = () => {
 // 查询商品分类树结构
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []
@@ -553,9 +559,6 @@ const resetForm = (formEl: FormInstance | undefined) => {
 }
 
 const show = () => {
-    if (!Array.isArray(goodsIds.value)) {
-        goodsIds.value = []
-    }
     for (let k in selectGoods) {
         delete selectGoods[k];
     }

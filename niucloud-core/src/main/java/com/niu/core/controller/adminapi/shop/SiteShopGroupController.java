@@ -6,18 +6,17 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
 import com.niu.core.entity.site.SiteGroup;
 import com.niu.core.service.admin.shop.IShopSiteGroupService;
-import com.niu.core.service.admin.site.ISiteGroupService;
 import com.niu.core.service.admin.site.param.SiteGroupAddParam;
 import com.niu.core.service.admin.site.param.SiteGroupParam;
 import com.niu.core.service.admin.site.param.SiteGroupSearchParam;
 import com.niu.core.service.admin.site.vo.SiteGroupListVo;
-import com.niu.core.service.core.addon.CoreAddonBaseService;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 店铺分组（分组权限）控制器
@@ -44,10 +43,15 @@ public class SiteShopGroupController {
         return Result.success(list);
     }
 
+    /**
+     * 店铺分组（分组权限）添加
+     */
     @PostMapping("")
-    public Result<Object> add(@Validated @RequestBody SiteGroupAddParam siteGroupAddParam){
-        siteGroupService.add(siteGroupAddParam);
-        return Result.success();
+    public Result<Map<String, Integer>> add(@Validated @RequestBody SiteGroupAddParam siteGroupAddParam) {
+        Integer groupId = siteGroupService.add(siteGroupAddParam);
+        Map<String, Integer> data = new HashMap<>(1);
+        data.put("group_id", groupId);
+        return Result.success(data);
     }
 
     /**
@@ -88,8 +92,8 @@ public class SiteShopGroupController {
      * @return
      */
     @GetMapping("/all")
-    public Result<List<SiteGroup>> all(){
-        return Result.success(siteGroupService.getAll());
+    public Result<List<SiteGroup>> all(@RequestParam(value = "app", required = false) String app) {
+        return Result.success(siteGroupService.getAll(app));
     }
 
 

@@ -1,16 +1,21 @@
 package com.niu.mall.service.site.goods.param;
+
 import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.niu.core.common.domain.BeanJsonSerializer;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import jakarta.validation.constraints.*;
 
 /**
  * 商品参数
-*/
+ */
 @Data
 public class MallGoodsParam implements Serializable {
 
@@ -119,19 +124,89 @@ public class MallGoodsParam implements Serializable {
     @NotNull(message = "member_discount参数缺失")
     private String memberDiscount;
 
+    /**
+     * 付费会员等级折扣，不参与：空，付费会员折扣：discount，指定付费会员价：fixed_price
+     */
+    private String vipCardDiscount = "";
+
+    /**
+     * 单规格指定会员价，json：{"level_1":"10.00"}（member_discount=fixed_price 时有效）
+     */
+    private JSONObject memberPrice;
+
     private Integer posterId = 0;
 
     private Integer formId = 0;
-    /** 自定义详情 */
+    /**
+     * 自定义详情
+     */
     private Integer diyDetailId;
 
-    /** 供应商是否有更新 */
+    /**
+     * 供应商是否有更新
+     */
     private Integer supplySync;
 
-    /** 积分折扣类型 site=默认设置(店铺统一设置) custom=单独定制 */
+    /**
+     * 积分折扣类型 site=默认设置(店铺统一设置) custom=单独定制
+     */
     private String pointDeductType;
-    /** 积分折扣比例 */
+    /**
+     * 积分折扣比例
+     */
     private BigDecimal pointDeductRate;
+
+    /**
+     * 定时上架状态
+     */
+    private Integer timerOnStatus;
+    /**
+     * 定时上架时间
+     */
+    @JsonDeserialize(using = BeanJsonSerializer.UnixMillisDeserializer.class)
+    private Long timerOnTime;
+    /**
+     * 定时下架状态
+     */
+    private Integer timerOffStatus;
+    /**
+     * 定时下架时间
+     */
+    @JsonDeserialize(using = BeanJsonSerializer.UnixMillisDeserializer.class)
+    private Long timerOffTime;
+    /**
+     * 支持的支付方式
+     */
+    private List<String> supportPayType;
+    /**
+     * 是否允许退款
+     */
+    private Integer isEnableRefund;
+    /**
+     * 关联推荐商品id集合
+     */
+    private Integer[] recommendGoodsIds;
+
+    /**
+     * 商品来源 0本地 1导入 2采集
+     */
+    private Integer sourceType;
+    /**
+     * 导入/采集商品关联 goods_id/spu_id
+     */
+    private String sourceGoodsId;
+    /**
+     * 单规格导入/采集关联 sku_id
+     */
+    private String sourceSkuId;
+    /**
+     * 采集商品平台标识
+     */
+    private String sourceFlatform;
+    /**
+     * 采集商品第三方标识
+     */
+    private String sourceParty;
 
     @Data
     public static class SkuData {
@@ -167,5 +242,15 @@ public class MallGoodsParam implements Serializable {
         private Integer isDefault = 0;
 
         private Integer isSell = 1;
+
+        private String sourceGoodsId;
+        private String sourceSkuId;
+        private String sourceFlatform;
+        private String sourceParty;
+
+        /**
+         * 多规格指定会员价，json：{"level_1":"10.00"}
+         */
+        private JSONObject memberPrice;
     }
 }

@@ -1,5 +1,6 @@
 package com.niu.mall.service.core.notice.driver;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.loader.notice.BaseNotice;
 import com.niu.core.common.loader.notice.NoticeDataVo;
@@ -15,24 +16,29 @@ import java.util.Map;
 public class MallRefundRefuse extends BaseNotice {
 
     public NoticeDataVo noticeData(Map<String, Object> vars) {
-        Integer refundId = (Integer) vars.get("mallRefundId");
-        MallOrderRefundMapper mallOrderRefundMapper = SpringContext.bean(MallOrderRefundMapper.class);
-        MallOrderRefund refund = mallOrderRefundMapper.selectById(refundId);
-        MallOrderMapper mallOrderMapper = SpringContext.bean(MallOrderMapper.class);
-        MallOrder order = mallOrderMapper.selectById(refund.getOrderId());
+        MallNoticeSupport support = SpringContext.bean(MallNoticeSupport.class);
+        MallOrderRefund refund = support.resolveRefund(vars.get("refund"), vars.get("mallRefundId"), vars.get("order_refund_no"));
+        if (ObjectUtil.isEmpty(refund)) {
+            return new NoticeDataVo();
+        }
+        MallOrder order = support.loadOrderByRefund(refund);
 
-        Map<String, Object> param = new HashMap<String, Object>();
-        param.put("wechat_page", "/addon/mall/pages/refund/detail?order_refund_no="+refund.getOrderRefundNo());
-        param.put("weapp_page", "addon/mall/pages/refund/detail?order_refund_no="+refund.getOrderRefundNo());
+        String wapDomain = support.getCoreSysConfigService().getSceneDomain().getWapUrl();
+        String detailPath = "/addon/mall/pages/refund/detail?order_refund_no=" + refund.getOrderRefundNo();
+
+        Map<String, Object> param = new HashMap<>();
+        param.put("wechat_page", wapDomain + detailPath);
+        param.put("weapp_page", "addon/mall/pages/refund/detail?order_refund_no=" + refund.getOrderRefundNo());
         param.put("order_refund_no", refund.getOrderRefundNo());
-        param.put("order_no", order.getOrderNo());
+        param.put("order_no", order != null ? order.getOrderNo() : "");
         param.put("refund_money", refund.getApplyMoney());
         param.put("result", "未通过申请");
-        param.put("weapp_version", refund.getWeappVersion());
+        param.put("url", wapDomain + detailPath);
+        param.put("weapp_version", refund.getWeappVersion() != null ? refund.getWeappVersion() : "");
+
         NoticeDataVo vo = new NoticeDataVo();
         vo.setMemberId(refund.getMemberId());
         vo.setVars(param);
-
         return vo;
     }
 }

@@ -16,4 +16,7 @@ public class PayTypeVo implements Serializable {
     private String name;
 
     private String config;
+
+    private String encryptParams;
+
 }

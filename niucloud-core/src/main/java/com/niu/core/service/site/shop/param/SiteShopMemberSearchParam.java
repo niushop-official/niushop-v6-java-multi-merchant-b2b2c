@@ -46,5 +46,8 @@ public class SiteShopMemberSearchParam implements Serializable {
     /** 注册途径 */
     private String registerChannel;
 
+    /** 所属插件 */
+    private String addon;
+
     private String[] createTime;
 }

@@ -250,7 +250,7 @@ public class CoreDeliveryStoreServiceImpl implements ICoreDeliveryStoreService {
         SiteShop siteShop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id",id).last("limit 1"));
         DeliveryStore data = new DeliveryStore();
         data.setStoreName(site.getSiteName());
-        data.setContactName(ObjectUtil.defaultIfEmpty(siteShop.getContactName(),""));
+        data.setContactName(ObjectUtil.defaultIfEmpty(site.getContactName(), ""));
         data.setMobile(site.getPhone());
         data.setTradeTime(site.getBusinessHours());
         data.setProvinceId(site.getProvinceId());

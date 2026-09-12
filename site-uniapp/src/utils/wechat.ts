@@ -57,9 +57,13 @@ class Wechat {
         wx.ready(() => {
             wx.scanQRCode({
                 needResult: 1,
-                scanType: ["qrCode"],
+                scanType: ["qrCode","barCode"],
                 success: function (res) {
+                    console.log(res,'scanQRCode')
                     typeof callback == 'function' && callback(res);
+                },
+                fail(err) {
+                    console.log(err)
                 }
             });
         })

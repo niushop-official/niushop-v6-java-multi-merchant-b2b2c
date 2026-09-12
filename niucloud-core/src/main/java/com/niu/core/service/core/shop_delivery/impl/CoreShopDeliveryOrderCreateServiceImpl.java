@@ -2,22 +2,22 @@ package com.niu.core.service.core.shop_delivery.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.loader.local_delivery.param.AddShopDeliveryOrderParam;
 import com.niu.core.common.loader.local_delivery.param.NotifyShopDeliveryOrderParam;
 import com.niu.core.common.utils.DistanceCalculateUtils;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.delivery.DeliveryDeliver;
 import com.niu.core.entity.delivery.DeliveryShopDeliveryOrder;
-import com.niu.core.entity.site.SiteAddress;
+import com.niu.core.entity.delivery.DeliveryStore;
 import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryMainTypeEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryOperateEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryStatusEnum;
-import com.niu.core.enums.order.OrderDeliveryEnum;
 import com.niu.core.enums.shop_delivery.ShopDeliveryStatusEnum;
 import com.niu.core.mapper.delivery.DeliveryDeliverMapper;
 import com.niu.core.mapper.delivery.DeliveryShopDeliveryOrderMapper;
-import com.niu.core.mapper.site.SiteAddressMapper;
+import com.niu.core.mapper.delivery.DeliveryStoreMapper;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderNotifyService;
 import com.niu.core.service.core.shop_delivery.ICoreShopDeliveryOrderCreateService;
 import com.niu.core.service.core.shop_delivery.ICoreShopDeliveryOrderLogService;
@@ -40,7 +40,7 @@ public class CoreShopDeliveryOrderCreateServiceImpl implements ICoreShopDelivery
     @Resource
     private DeliveryShopDeliveryOrderMapper deliveryShopDeliveryOrderMapper;
     @Resource
-    private SiteAddressMapper siteAddressMapper;
+    private DeliveryStoreMapper deliveryStoreMapper;
     @Resource
     private ICoreShopDeliveryOrderLogService coreShopDeliveryOrderLogService;
     @Resource
@@ -49,24 +49,33 @@ public class CoreShopDeliveryOrderCreateServiceImpl implements ICoreShopDelivery
     @Override
     public ShopDeliveryOrderCreateVo createOrder(AddShopDeliveryOrderParam param) {
         Integer siteId = param.getOrderDate().getSiteId();
+        Integer takeStoreId = resolveTakeStoreId(param);
         DeliveryDeliver deliver = deliveryDeliverMapper.selectById(param.getDeliveryId());
-        SiteAddress deliveryAddress = siteAddressMapper.selectOne(
-                new QueryWrapper<SiteAddress>()
-                        .eq("is_default_delivery", 1)
-                        .eq("site_id", siteId).last("limit 1"));
+        if (ObjectUtil.isEmpty(deliver)) {
+            throw new CommonException("配送员不存在");
+        }
+        // 对齐 PHP：取货地址来自 DeliveryStore(take_store_id)，而非默认发货 SiteAddress
+        DeliveryStore deliveryStore = deliveryStoreMapper.selectOne(
+                new QueryWrapper<DeliveryStore>()
+                        .eq("site_id", siteId)
+                        .eq("store_id", takeStoreId)
+                        .last("limit 1"));
+        if (ObjectUtil.isEmpty(deliveryStore)) {
+            throw new CommonException("提货点不存在");
+        }
 
         // 计算收货地址与取货地址的距离
         BigDecimal distance = BigDecimal.ZERO;
-        if(StringUtils.isNotEmpty(param.getOrderDate().getTakerLatitude())
+        if (StringUtils.isNotEmpty(param.getOrderDate().getTakerLatitude())
                 && StringUtils.isNotEmpty(param.getOrderDate().getTakerLongitude())
-                && StringUtils.isNotEmpty(deliveryAddress.getLat())
-                && StringUtils.isNotEmpty(deliveryAddress.getLng())){
+                && StringUtils.isNotEmpty(deliveryStore.getLatitude())
+                && StringUtils.isNotEmpty(deliveryStore.getLongitude())) {
 
             distance = BigDecimal.valueOf(DistanceCalculateUtils.calculateDistance(
                     Double.parseDouble(param.getOrderDate().getTakerLatitude()),
                     Double.parseDouble(param.getOrderDate().getTakerLongitude()),
-                    Double.parseDouble(deliveryAddress.getLat()),
-                    Double.parseDouble(deliveryAddress.getLng())
+                    Double.parseDouble(deliveryStore.getLatitude()),
+                    Double.parseDouble(deliveryStore.getLongitude())
             )).divide(new BigDecimal(1000), 2, RoundingMode.HALF_UP);
         }
 
@@ -80,13 +89,13 @@ public class CoreShopDeliveryOrderCreateServiceImpl implements ICoreShopDelivery
         deliveryOrder.setTradeType(param.getTradeType());
         deliveryOrder.setDeliveryMoney(param.getOrderDate().getDeliveryMoney());
 
-        // 设置配送起始地址
-        deliveryOrder.setDeliveryStart(deliveryAddress.getFullAddress());
-        deliveryOrder.setDeliveryStartProvinceId(ObjectUtil.isNotEmpty(deliveryAddress.getProvinceId()) ? deliveryAddress.getProvinceId() : 0);
-        deliveryOrder.setDeliveryStartCityId(ObjectUtil.isNotEmpty(deliveryAddress.getCityId()) ? deliveryAddress.getCityId() : 0);
-        deliveryOrder.setDeliveryStartDistrictId(ObjectUtil.isNotEmpty(deliveryAddress.getDistrictId()) ? deliveryAddress.getDistrictId() : 0);
-        deliveryOrder.setDeliveryStartLng(StringUtils.isNotEmpty(deliveryAddress.getLng()) ? deliveryAddress.getLng() : "");
-        deliveryOrder.setDeliveryStartLat(StringUtils.isNotEmpty(deliveryAddress.getLat()) ? deliveryAddress.getLat() : "");
+        // 设置配送起始地址（门店取货点）
+        deliveryOrder.setDeliveryStart(deliveryStore.getFullAddress());
+        deliveryOrder.setDeliveryStartProvinceId(ObjectUtil.isNotEmpty(deliveryStore.getProvinceId()) ? deliveryStore.getProvinceId() : 0);
+        deliveryOrder.setDeliveryStartCityId(ObjectUtil.isNotEmpty(deliveryStore.getCityId()) ? deliveryStore.getCityId() : 0);
+        deliveryOrder.setDeliveryStartDistrictId(ObjectUtil.isNotEmpty(deliveryStore.getDistrictId()) ? deliveryStore.getDistrictId() : 0);
+        deliveryOrder.setDeliveryStartLng(StringUtils.isNotEmpty(deliveryStore.getLongitude()) ? deliveryStore.getLongitude() : "");
+        deliveryOrder.setDeliveryStartLat(StringUtils.isNotEmpty(deliveryStore.getLatitude()) ? deliveryStore.getLatitude() : "");
 
 
         // 设置配送结束地址
@@ -134,5 +143,23 @@ public class CoreShopDeliveryOrderCreateServiceImpl implements ICoreShopDelivery
         vo.setRiderName(deliveryOrder.getDeliverName());
         vo.setRiderMobile(deliveryOrder.getDeliverMobile());
         return vo;
+    }
+
+    private Integer resolveTakeStoreId(AddShopDeliveryOrderParam param) {
+        Integer takeStoreId = param.getOrderDate() != null ? param.getOrderDate().getTakeStoreId() : null;
+        if (ObjectUtil.isEmpty(takeStoreId) && ObjectUtil.isNotEmpty(param.getCreateParam())) {
+            Map<String, Object> createParam = param.getCreateParam();
+            Object storeId = createParam.get("storeId");
+            if (storeId == null) {
+                storeId = createParam.get("store_id");
+            }
+            if (storeId != null && StringUtils.isNotEmpty(storeId.toString())) {
+                takeStoreId = Integer.valueOf(storeId.toString());
+            }
+        }
+        if (ObjectUtil.isEmpty(takeStoreId)) {
+            throw new CommonException("提货点不存在");
+        }
+        return takeStoreId;
     }
 }

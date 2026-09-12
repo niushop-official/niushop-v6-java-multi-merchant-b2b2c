@@ -88,16 +88,19 @@ public class WebMvcConfig implements WebMvcConfigurer {
 //                        "/api/**",
                         // "/core/**",
                         "/swagger/**",
+                        "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/swagger-resources/**",
                         "/doc.html",
                         "/webjars/**",
+                        "/v3/api-docs/**",
                         "/v2/**",
                         "/v2/api-docs/**",
                         "/v2/api-docs-ext/**",
                         "/favicon.ico",
                         "/error",
                         "/adminapi/login/**",
+                        "/adminapi/send/**",
                         "/adminapi/sys/web/**",
                         "/adminapi/captcha/**")
         ;
@@ -157,6 +160,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // resource目录的映射
         File webRootDownResourceFile = new File(webAppEnvs.webRootDownResource);
         String resourceMapping = "file:" + webRootDownResourceFile.getAbsolutePath() + "/";
+        
+        // 添加额外的addon映射，支持前端直接访问 /addon/xxx 路径
+        File staticAddonDir = new File(webAppEnvs.webRootDownResource + "static/addon");
+        if (staticAddonDir.exists() && staticAddonDir.isDirectory()) {
+            registry.addResourceHandler("/addon/**").addResourceLocations(resourceMapping + "static/addon/");
+            log.info("Static resource: /addon/**, Locations:" + resourceMapping + "static/addon/");
+        }
+        
         File[] webRootDownResourceFiles = webRootDownResourceFile.listFiles();
         if (webRootDownResourceFiles != null && webRootDownResourceFiles.length > 0) {
             Arrays.stream(webRootDownResourceFiles).forEach(file -> {

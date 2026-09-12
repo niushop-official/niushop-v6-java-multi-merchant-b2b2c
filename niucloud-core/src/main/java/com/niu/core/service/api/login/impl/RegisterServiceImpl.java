@@ -23,11 +23,11 @@ import com.niu.core.service.api.login.vo.LoginVo;
 import com.niu.core.service.api.login.vo.MobileCodeCacheVo;
 import com.niu.core.service.core.member.ICoreMemberConfigService;
 import com.niu.core.service.core.member.ICoreMemberService;
-import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Service;
-
+import com.niu.core.service.core.shop.ICoreShopMemberService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
@@ -52,19 +52,26 @@ public class RegisterServiceImpl implements IRegisterService {
     @Resource
     private Cached cached;
 
+    @Resource
+    private ICoreShopMemberService coreShopMemberService;
+
     /**
      * 校验登录注册方式
+     *
      * @param type
      */
     @Override
     public void checkLoginConfig(String type) {
         LoginConfigVo config = coreMemberConfigService.getLoginConfig(RequestUtils.siteId());
-        if (MemberLoginTypeEnum.USERNAME.getType().equals(type) && config.getIsUsername() != 1) throw new CommonException("未开启账号登录注册");
-        if (MemberLoginTypeEnum.MOBILE.getType().equals(type) && config.getIsMobile() != 1) throw new CommonException("未开启手机验证码登录注册");
+        if (MemberLoginTypeEnum.USERNAME.getType().equals(type) && config.getIsUsername() != 1)
+            throw new CommonException("未开启账号登录注册");
+        if (MemberLoginTypeEnum.MOBILE.getType().equals(type) && config.getIsMobile() != 1)
+            throw new CommonException("未开启手机验证码登录注册");
     }
 
     /**
      * 账号注册
+     *
      * @param param
      * @return
      */
@@ -93,6 +100,7 @@ public class RegisterServiceImpl implements IRegisterService {
 
     /**
      * 手机号注册
+     *
      * @param param
      * @return
      */
@@ -116,6 +124,7 @@ public class RegisterServiceImpl implements IRegisterService {
 
     /**
      * 注册
+     *
      * @param member
      * @return
      */
@@ -155,31 +164,38 @@ public class RegisterServiceImpl implements IRegisterService {
         registerEvent.setMember(member);
         EventPublisher.publishEvent(registerEvent);
 
+        if (member.getSiteId() > 0 && member.getMemberId() > 0) {
+            coreShopMemberService.batchFindShopMemberCreateIfcNotExist(member.getSiteId(), member.getMemberId());
+        }
+
         return loginService.login(member);
     }
 
     private String createName() {
-        Set<String> set = RandomUtil.randomEleSet(CollUtil.newArrayList("0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W"), 10);
+        Set<String> set = RandomUtil.randomEleSet(CollUtil.newArrayList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W"), 10);
         return String.join("", set);
     }
 
     /**
      * 校验手机验证码
+     *
      * @param mobile
      */
     public void checkMobileCode(String mobile, String mobileKey, String mobileCode) {
         if (mobile.isEmpty()) throw new CommonException("手机号必须填写");
         HttpServletRequest request = RequestUtils.handler();
-        if (ObjectUtil.isEmpty(mobileKey) || ObjectUtil.isEmpty(mobileCode)) throw new CommonException("手机验证码有误");
+        if (ObjectUtil.isEmpty(mobileKey) || ObjectUtil.isEmpty(mobileCode))
+            throw new CommonException("手机验证码有误");
         Object cache = cached.get(mobileKey);
         if (ObjectUtil.isNull(cache)) throw new CommonException("手机验证码有误");
         MobileCodeCacheVo vo = new MobileCodeCacheVo();
         BeanUtils.copyProperties(cache, vo);
-        if (!vo.getMobile().equals(mobile) || !vo.getCode().equals(mobileCode)) throw new CommonException("手机验证码有误");
+        if (!vo.getMobile().equals(mobile) || !vo.getCode().equals(mobileCode))
+            throw new CommonException("手机验证码有误");
         clearMobileCode(mobileKey);
     }
 
-    private void clearMobileCode(String key){
+    private void clearMobileCode(String key) {
         cached.remove(key);
     }
 }

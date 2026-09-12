@@ -1,154 +1,5 @@
 import request from '@/utils/request'
 
-/***************************************************** 平台优惠券 ****************************************************/
-
-/**
- * 获取商品分类列表
- * @param params
- * @returns
- */
-export function getGoodsCategoryList() {
-    return request.get(`mall/admin/goods/platform_coupon/init`)
-}
-
-/**
- * 获取初始化店铺列表
- * @param params
- * @returns
- */
-export function getSiteList() {
-    return request.get(`mall/admin/goods/platform_coupon/site`)
-}
-
-/**
- * 添加优惠券
- * @param params
- * @returns
- */
-export function addPlatformCoupon(params: Record<string, any>) {
-    return request.post(`mall/admin/goods/platform_coupon`, params, {showErrorMessage: true, showSuccessMessage: true})
-}
-
-/**
- * 获取优惠券列表
- * @param params
- * @returns
- */
-export function getPlatformCouponList(params: Record<string, any>) {
-    return request.get(`mall/admin/goods/platform_coupon`, {params})
-}
-/**
- * 获取会员优惠券列表
- * @param params
- * @returns
- */
-export function getMemberPlatformCouponList(member_id: number,params: Record<string, any>) {
-    return request.get(`mall/admin/member/platform_coupon/list/${member_id}`,{ params})
-}
-/**
- * 获取优惠券领取记录
- * @param params
- * @returns
- */
-export function getPlatformCouponRecords(params: Record<string, any>) {
-    return request.get(`mall/admin/goods/platform_coupon/records`, {params});
-}
-
-/**
- * 获取优惠券详情
- * @param id
- * @returns
- */
-export function getPlatformCouponInfo(id: number) {
-    return request.get(`mall/admin/goods/platform_coupon/detail/${id}`);
-}
-
-/**
- * 优惠券状态变更
- * @param params
- * @returns
- */
-export function editPlatformCouponStatus(params: Record<string, any>) {
-    return request.put(`mall/admin/goods/platform_coupon/setstatus/${params.status}`, params, {showSuccessMessage: true})
-}
-
-/**
- * 编辑优惠券
- * @param params
- * @returns
- */
-export function editPlatformCoupon(params: Record<string, any>) {
-    return request.put(`mall/admin/goods/platform_coupon/edit/${params.id}`, params, {
-        showErrorMessage: true,
-        showSuccessMessage: true
-    })
-}
-
-/**
- * 删除优惠券
- * @param id
- * @returns
- */
-export function deletePlatformCoupon(id: number) {
-    return request.delete(`mall/admin/goods/platform_coupon/${id}`, {showSuccessMessage: true})
-}
-
-/**
- * 关闭优惠券
- * @param id
- * @returns
- */
-export function closePlatformCoupon(id: number) {
-    return request.put(`mall/admin/goods/platform_coupon/invalid/${ id }`, { showSuccessMessage: true })
-}
-
-/**
- * 获取选中优惠券列表
- * @param params
- * @returns
- */
-export function getSelectedCouponList(params: Record<string, any>) {
-    return request.get(`mall/admin/goods/platform_coupon/selected`, { params })
-}
-
-/**
- * 获取优惠券状态
- * @param id
- * @returns
- */
-export function getStatusList() {
-    return request.get(`mall/admin/goods/platform_coupon/status`);
-}
-
-/***************************************************** 店铺优惠券 ****************************************************/
-
-/**
- * 获取优惠券列表
- * @param params
- * @returns
- */
-export function getCouponList(params: Record<string, any>) {
-    return request.get(`mall/admin/goods/coupon`, {params})
-}
-
-/**
- * 获取优惠券领取记录
- * @param params
- * @returns
- */
-export function getCouponRecords(params: Record<string, any>) {
-    return request.get(`mall/admin/goods/coupon/records`, {params});
-}
-
-/**
- * 获取优惠券详情
- * @param id
- * @returns
- */
-export function getCouponInfo(id: number) {
-    return request.get(`mall/admin/goods/coupon/detail/${id}`);
-}
-
 /************ 商品榜单 ****************/
 
 /**
@@ -285,7 +136,7 @@ export function setPointDeductConfig(params: Record<string, any>) {
  * @returns
  */
 export function getFullReductionList(params: Record<string, any>) {
-    return request.get(`mall/admin/full_reduction/list`,{ params })
+    return request.get(`marketing/admin/full_reduction/list`,{ params })
 }
 
 /**
@@ -294,7 +145,7 @@ export function getFullReductionList(params: Record<string, any>) {
  * @returns
  */
 export function getFullReductionInfo(id: number) {
-    return request.get(`mall/admin/full_reduction/info/${id}`)
+    return request.get(`marketing/admin/full_reduction/info/${id}`)
 }
 
 /**
@@ -303,7 +154,7 @@ export function getFullReductionInfo(id: number) {
  * @returns
  */
 export function getFullReductionInit() {
-    return request.get(`mall/admin/full_reduction/init`)
+    return request.get(`marketing/admin/full_reduction/init`)
 }
 /***************************************************** 满赠 ****************************************************/
 
@@ -332,4 +183,104 @@ export function getFullGiftInfo(id: number) {
  */
 export function getFullGiftInit() {
     return request.get(`mall/admin/full_gift/init`)
+}
+
+/***************************************************** 平台优惠券 ****************************************************/
+
+/**
+ * 获取商品分类列表
+ * @returns
+ */
+export function getGoodsCategoryList() {
+    return request.get(`marketing/admin/goods/platform_coupon/init`)
+}
+
+/**
+ * 获取初始化店铺列表
+ * @param params
+ * @returns
+ */
+export function getSiteList(params: Record<string, any>) {
+    return request.get(`marketing/admin/goods/platform_coupon/site`, {params})
+}
+
+/**
+ * 添加优惠券
+ * @param params
+ * @returns
+ */
+export function addPlatformCoupon(params: Record<string, any>) {
+    return request.post(`marketing/admin/goods/platform_coupon`, params, {showErrorMessage: true, showSuccessMessage: true})
+}
+
+/**
+ * 获取优惠券列表
+ * @param params
+ * @returns
+ */
+export function getPlatformCouponList(params: Record<string, any>) {
+    return request.get(`marketing/admin/goods/platform_coupon`, {params})
+}
+
+/**
+ * 获取优惠券领取记录
+ * @param params
+ * @returns
+ */
+export function getPlatformCouponRecords(params: Record<string, any>) {
+    return request.get(`marketing/admin/goods/platform_coupon/records`, {params});
+}
+
+/**
+ * 获取优惠券详情
+ * @param id
+ * @returns
+ */
+export function getPlatformCouponInfo(id: number) {
+    return request.get(`marketing/admin/goods/platform_coupon/detail/${id}`);
+}
+
+/**
+ * 编辑优惠券
+ * @param params
+ * @returns
+ */
+export function editPlatformCoupon(params: Record<string, any>) {
+    return request.put(`marketing/admin/goods/platform_coupon/edit/${params.id}`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+
+/**
+ * 删除优惠券
+ * @param id
+ * @returns
+ */
+export function deletePlatformCoupon(id: number) {
+    return request.delete(`marketing/admin/goods/platform_coupon/${id}`, {showSuccessMessage: true})
+}
+
+/**
+ * 关闭优惠券
+ * @param id
+ * @returns
+ */
+export function closePlatformCoupon(id: number) {
+    return request.put(`marketing/admin/goods/platform_coupon/invalid/${ id }`, { showSuccessMessage: true })
+}
+
+/**
+ * 获取优惠券状态
+ * @returns
+ */
+export function getStatusList() {
+    return request.get(`marketing/admin/goods/platform_coupon/status`);
+}
+
+/**
+ * 获取业务类型
+ */
+export function getTradeTypeList() {
+    return request.get(`marketing/admin/goods/platform_coupon/trade_type`);
 }

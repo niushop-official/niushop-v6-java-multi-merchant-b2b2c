@@ -53,7 +53,6 @@ private static final long serialVersionUID = 1L;
 
     /** DIY组件列表 */
     @JsonProperty("diy_component_list")
-    @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
-    private String diyComponentList;
+    private Object diyComponentList;
 
 }

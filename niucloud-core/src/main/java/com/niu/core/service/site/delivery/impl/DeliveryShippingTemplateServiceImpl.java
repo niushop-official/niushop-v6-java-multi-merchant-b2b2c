@@ -9,12 +9,15 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.PageParam;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.CollectUtils;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.delivery.DeliveryShippingTemplate;
 import com.niu.core.entity.delivery.DeliveryShippingTemplateItem;
+import com.niu.core.event.delivery.CheckShippingTemplateInUseEventDefiner;
 import com.niu.core.mapper.delivery.DeliveryShippingTemplateItemMapper;
 import com.niu.core.mapper.delivery.DeliveryShippingTemplateMapper;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.site.delivery.param.DeliveryShippingTemplateParam;
 import com.niu.core.service.site.delivery.param.DeliveryShippingTemplateSearchParam;
 import com.niu.core.service.site.delivery.IDeliveryShippingTemplateService;
@@ -218,8 +221,17 @@ public class DeliveryShippingTemplateServiceImpl extends ServiceImpl<DeliveryShi
      */
     @Override
     public void del(Integer id) {
-/*        Long count = mallGoodsMapper.selectCount(new QueryWrapper<MallGoods>().eq("delivery_template_id", id));
-        if (count > 0) throw new CommonException("运费模板有商品正在使用中不能删除");*/
+        CheckShippingTemplateInUseEventDefiner.CheckShippingTemplateInUseEvent event =
+                new CheckShippingTemplateInUseEventDefiner.CheckShippingTemplateInUseEvent();
+        event.setSiteId(RequestUtils.siteId());
+        event.setTemplateId(id);
+        List<CheckShippingTemplateInUseEventDefiner.CheckShippingTemplateInUseResult> results =
+                EventAndSubscribeOfPublisher.publishAndCallback(event);
+        boolean inUse = results.stream()
+                .anyMatch(r -> r != null && Boolean.TRUE.equals(r.getInUse()));
+        if (inUse) {
+            throw new CommonException("运费模板已被使用，不能删除");
+        }
 
         DeliveryShippingTemplate model = deliveryShippingTemplateMapper.selectOne(
                 new QueryWrapper<DeliveryShippingTemplate>()

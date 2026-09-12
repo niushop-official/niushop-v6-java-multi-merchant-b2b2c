@@ -9,7 +9,7 @@ import com.niu.core.service.core.sys.vo.SysPrinterPrintTicketVo;
 public interface ICorePrinterService {
     void setYlyTokenConfig(JSON config);
 
-    JSON getYlyTokenConfig();
+    JSON getYlyTokenConfig(Integer siteId);
 
     String getYlyToken(String id, String secret);
 

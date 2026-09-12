@@ -20,8 +20,10 @@ public class MallGoodsSearchParam implements Serializable {
 
     //商品分类
     private String goodsCategory;
+    // 是否付费会员商品
+    private Integer isVipCard;
 
-
+    private Integer circleId;
 
     private Integer brandId;
 

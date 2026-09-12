@@ -23,8 +23,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import jakarta.annotation.Resource;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -73,18 +75,21 @@ public class MallGoodsLabelServiceImpl implements IMallGoodsLabelService {
     @Override
     public List<MallGoodsLabelListVo> list(MallGoodsLabelSearchParam searchParam) {
         QueryWrapper<MallGoodsLabel> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("site_id", RequestUtils.siteId());
         if (ObjectUtil.isNotEmpty(searchParam.getLabelName())) queryWrapper.like("label_name", searchParam.getLabelName());
-        queryWrapper.orderByDesc("label_id");
+        queryWrapper.orderByAsc("sort");
+        queryWrapper.orderByDesc("create_time");
 
         List<MallGoodsLabel> record = mallGoodsLabelMapper.selectList(queryWrapper);
-        List<MallGoodsLabelListVo> list = new LinkedList<>();
+        Map<String, MallGoodsLabelListVo> dedupMap = new LinkedHashMap<>();
         for (MallGoodsLabel item : record) {
+            if (dedupMap.containsKey(item.getLabelName())) {
+                continue;
+            }
             MallGoodsLabelListVo vo = new MallGoodsLabelListVo();
             BeanUtils.copyProperties(item, vo);
-            list.add(vo);
+            dedupMap.put(item.getLabelName(), vo);
         }
-        return list;
+        return new ArrayList<>(dedupMap.values());
     }
 
     /**

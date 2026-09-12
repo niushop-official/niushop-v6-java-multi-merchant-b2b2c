@@ -88,8 +88,10 @@ public class Pay implements Serializable {
     /** 未分账的金额 */
     private BigDecimal unconfirmAmt = BigDecimal.ZERO;
 
-    /** 支付服务商 wechat  微信支付   ali 支付宝支付  douyin 抖音支付  union银联支付 */
+    /** 支付服务商  汇付 易宝 ... */
     private String payService;
 
+    /** 支付平台 wechat  微信支付   ali 支付宝支付  douyin 抖音支付  union银联支付 */
+    private String payPlatform;
 
 }

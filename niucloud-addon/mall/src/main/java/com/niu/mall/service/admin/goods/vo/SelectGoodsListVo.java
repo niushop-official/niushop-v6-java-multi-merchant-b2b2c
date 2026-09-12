@@ -6,6 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * ShopGoods列表视图
@@ -61,6 +62,12 @@ public class SelectGoodsListVo implements Serializable {
         private Integer sourceSkuId;
         private Integer stock;
         private Integer supplyId;
+
+        @JsonProperty("price_config")
+        private Map<String, Object> priceConfig;
+
+        @JsonProperty("is_join")
+        private Integer isJoin;
     }
 
     @Data

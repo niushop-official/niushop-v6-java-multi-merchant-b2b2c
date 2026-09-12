@@ -24,6 +24,7 @@ import com.niu.core.service.api.sys.vo.SysVerifyDetailVo;
 import com.niu.core.service.api.sys.vo.SysVerifyGetCodeVo;
 import com.niu.core.service.api.sys.vo.SysVerifyRecordsVo;
 import com.niu.core.service.core.verify.ICoreVerifyService;
+import com.niu.core.service.core.verify.vo.CoreVerifyCreateCodeVo;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -59,12 +60,13 @@ public class SysVerifyServiceImpl implements ISysVerifyService {
                 ((data.get("site_id") instanceof Integer) ? (Integer) data.get("site_id") : Integer.valueOf(data.get("site_id").toString())) : 0;
 
         // 生成核销码(对应业务调用)
-        List<String> verifyCodeList = coreVerifyService.create(siteId, param.memberId(), param.getType(), param.getData());
+        List<CoreVerifyCreateCodeVo> verifyCodeList = coreVerifyService.create(siteId, param.memberId(), param.getType(), param.getData());
         List<SysVerifyGetCodeVo> sysVerifyGetCodeVoList = new ArrayList<>();
-        for (String verifyCode : verifyCodeList) {
+        for (CoreVerifyCreateCodeVo verifyCodeItem : verifyCodeList) {
             SysVerifyGetCodeVo sysVerifyGetCodeVo = new SysVerifyGetCodeVo();
-            sysVerifyGetCodeVo.setCode(verifyCode);
-            sysVerifyGetCodeVo.setQrcode(QrcodeUtils.qrcode(siteId, "h5", verifyCode, "", null));
+            sysVerifyGetCodeVo.setCode(verifyCodeItem.getCode());
+            sysVerifyGetCodeVo.setItem(verifyCodeItem);
+            sysVerifyGetCodeVo.setQrcode(QrcodeUtils.qrcode(siteId, "h5", verifyCodeItem.getCode(), "", null));
             sysVerifyGetCodeVoList.add(sysVerifyGetCodeVo);
         }
         return sysVerifyGetCodeVoList;

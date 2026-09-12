@@ -49,6 +49,7 @@ public class MallGoodsInitVo implements Serializable {
         private Object supplyId;  // 供应商id
         private String attrFormat;  // 商品参数内容，json格式
         private String memberDiscount;  // 会员等级折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
+        private String vipCardDiscount;  // 付费会员卡折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
         private Object posterId;  // 海报id
         private Integer formId;
         private List<SkuInfo> skuList;

@@ -1,0 +1,21 @@
+{
+    "basicInfo": "基本信息",
+    "isOpen": "是否开启",
+    "isOpenTips": "开启后新注册用户将自动获得新人礼包",
+    "newcomerGift": "新人礼包",
+    "save": "保存",
+    "receiveList": "领取列表",
+    "newcomerGiftConfig": "新人礼配置",
+    "searchKeywords": "请输入会员昵称/手机号",
+    "nickname": "会员昵称",
+    "mobile": "手机号",
+    "giftContent": "礼包内容",
+    "receiveTime": "领取时间",
+    "memberId": "会员编号",
+    "memberInfo": "会员信息",
+    "createTime": "领取时间",
+    "startDate": "开始时间",
+    "endDate": "结束时间",
+    "search": "搜索",
+    "reset": "重置"
+}

@@ -3,6 +3,11 @@ package com.niu.core.service.core.member.impl;
 import cn.hutool.core.util.ClassLoaderUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.niu.core.common.component.context.queue.AsyncTask;
+import com.niu.core.common.component.context.queue.AsyncTaskManager;
+import com.niu.core.common.component.context.queue.AsyncTaskQueueManager;
+import com.niu.core.common.component.context.queue.TaskArgument;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -395,6 +400,33 @@ public class CoreMemberServiceImpl implements ICoreMemberService {
             e.printStackTrace();
             System.out.println("会员礼包发放失败");
         }
+    }
+
+    @Override
+    public void asyncMemberGiftGrant(Integer siteId, Integer memberId, Object gifts, Map<String, Object> vars) {
+        JSONObject giftJson = gifts instanceof JSONObject
+                ? (JSONObject) gifts
+                : JSONUtil.parseObj(JSONUtil.toJsonStr(gifts));
+        AsyncTask asyncTask = AsyncTaskManager.build(ICoreMemberService.class)
+                .setMethodName("memberGiftGrantQueueTask")
+                .addMethodParameter("siteId", siteId)
+                .addMethodParameter("memberId", memberId)
+                .addMethodParameter("gifts", giftJson)
+                .addMethodParameter("vars", vars);
+        AsyncTaskQueueManager.delayExecute(asyncTask);
+    }
+
+    /**
+     * 队列任务入口（AsyncTask 框架调用）
+     */
+    @Override
+    public void memberGiftGrantQueueTask(TaskArgument taskArgument) {
+        memberGiftGrant(
+                (Integer) taskArgument.get("siteId"),
+                (Integer) taskArgument.get("memberId"),
+                (JSONObject) taskArgument.get("gifts"),
+                (Map<String, Object>) taskArgument.get("vars")
+        );
     }
 
     /**

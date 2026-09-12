@@ -7,8 +7,10 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 商户入驻申请表实体
+ * 商户入驻申请表实体（v120 已迁移至 site_apply，此类仅保留兼容）
+ * @deprecated 请使用 {@link com.niu.core.entity.site.SiteApply}
  */
+@Deprecated
 @Data
 public class SiteShopApply implements Serializable {
 
@@ -93,7 +95,7 @@ public class SiteShopApply implements Serializable {
     /**
      * 用户账号
      */
-    private String Account;
+    private String account;
 
     /**
      * 登录密码
@@ -106,10 +108,4 @@ public class SiteShopApply implements Serializable {
     private Integer formRecordId;
 
     private Integer uid;
-
-    //所属应用
-    private String addon;
-
-    //申请方式  member 客户端用户申请  site 站点端用户申请
-    private String applyType;
 }

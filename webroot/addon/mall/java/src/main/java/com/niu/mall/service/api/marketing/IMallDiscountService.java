@@ -5,7 +5,7 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.mall.service.api.marketing.param.MallDiscountListParam;
 import com.niu.mall.service.api.marketing.vo.MallDiscountGoodsInfoVo;
-import com.niu.mall.service.api.marketing.vo.MallDiscountGoodsListVo;
+import com.niu.mall.service.api.marketing.vo.MallDiscountGoodsPageVo;
 import com.niu.mall.service.api.marketing.vo.MallDiscountListVo;
 
 import java.util.List;
@@ -20,7 +20,10 @@ public interface IMallDiscountService {
 
     JSONArray getDiscountBannerConfig();
 
-    PageResult<MallDiscountGoodsListVo> getGoodsPage(PageParam pageParam, Integer activeId);
+    /**
+     * 获取活动商品列表（对齐 PHP DiscountService::getGoodsPage）
+     */
+    PageResult<MallDiscountGoodsPageVo> getGoodsPage(PageParam pageParam, Integer activeId);
 
     List<MallDiscountListVo> getList(MallDiscountListParam mallDiscountListParam);
 

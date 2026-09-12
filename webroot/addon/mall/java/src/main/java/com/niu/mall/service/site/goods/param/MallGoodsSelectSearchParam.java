@@ -31,4 +31,10 @@ public class MallGoodsSelectSearchParam implements Serializable {
     private List<Integer> verifySkuIds;
 
     private Integer isGift;
+
+    /** 是否可选供货商商品，对应 need_supply_goods，默认 1 */
+    private Integer needSupplyGoods = 1;
+
+    /** 排除商品id，对应 exclude_goods_id，默认 0 */
+    private Integer excludeGoodsId = 0;
 }

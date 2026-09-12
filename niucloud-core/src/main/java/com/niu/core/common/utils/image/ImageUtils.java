@@ -7,6 +7,9 @@ import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 
 import javax.imageio.ImageIO;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -198,6 +201,56 @@ public class ImageUtils {
 
         String firstImage = imageArray[0].trim();
         return getImageSize(firstImage);
+    }
+
+    /**
+     * 将图片拉伸到目标尺寸（对齐 PHP imagecopyresized）
+     */
+    public static BufferedImage resizeToFill(BufferedImage source, int targetWidth, int targetHeight) {
+        if (source == null || targetWidth <= 0 || targetHeight <= 0) {
+            return source;
+        }
+        if (source.getWidth() == targetWidth && source.getHeight() == targetHeight) {
+            return source;
+        }
+        BufferedImage target = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = target.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        graphics.drawImage(source, 0, 0, targetWidth, targetHeight, null);
+        graphics.dispose();
+        return target;
+    }
+
+    /**
+     * 将图片裁剪为圆形（对齐 PHP poster shape=circle）
+     */
+    public static BufferedImage applyCircleMask(BufferedImage source) {
+        if (source == null) {
+            return null;
+        }
+        int width = source.getWidth();
+        int height = source.getHeight();
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = output.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setClip(new Ellipse2D.Float(0, 0, width, height));
+        graphics.drawImage(source, 0, 0, null);
+        graphics.dispose();
+        return output;
+    }
+
+    /**
+     * 按海报模板要求处理图片：先拉伸到目标尺寸，再按需裁圆
+     */
+    public static BufferedImage preparePosterImage(BufferedImage source, int targetWidth, int targetHeight, String shape) {
+        if (source == null || targetWidth <= 0 || targetHeight <= 0) {
+            return source;
+        }
+        BufferedImage processed = resizeToFill(source, targetWidth, targetHeight);
+        if ("circle".equalsIgnoreCase(shape)) {
+            return applyCircleMask(processed);
+        }
+        return processed;
     }
 
     @Data

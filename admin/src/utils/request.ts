@@ -6,7 +6,6 @@ import type { MessageParams } from 'element-plus'
 import { t } from '@/lang'
 import useUserStore from '@/stores/modules/user'
 import storage from '@/utils/storage'
-import { isAddonInstallRestarting } from '@/utils/addon-install-state'
 
 interface RequestConfig extends AxiosRequestConfig {
     showErrorMessage?: boolean
@@ -42,6 +41,7 @@ class Request {
                     config.headers[import.meta.env.VITE_REQUEST_HEADER_TOKEN_KEY] = getToken()
                 }
                 config.headers[import.meta.env.VITE_REQUEST_HEADER_SITEID_KEY] = storage.get('siteId') || 0
+                config.headers['circle-id'] = storage.get('circleId') || 0
                 return config
             },
             (err: any) => {
@@ -51,51 +51,51 @@ class Request {
 
         // 全局响应拦截器
         this.instance.interceptors.response.use(
-			(response : requestResponse) => {
-				if (response.request.responseType != 'blob') {
-					const res = response.data
-					if (res.code != 1) { // 业务错误（code != 1）
-						this.handleAuthError(res.code) // 保留原有权限处理
-						// 关键：针对/auth/site接口且code=403的情况，返回完整原始信息
-						if ((response.config.url?.includes('auth/site') || response.config.url?.includes('auth/site/authmenu')) && res.code === 403) {
-							return Promise.reject({
-								...res, // 返回后端原始数据（包含code、msg、data等）
-								originalResponse: response // 附加完整响应对象
-							})
-						}
+            (response: requestResponse) => {
+                if (response.request.responseType != 'blob') {
+                    const res = response.data
+                    if (res.code != 1) { // 业务错误（code != 1）
+                        this.handleAuthError(res.code) // 保留原有权限处理
+                        // 关键：针对/auth/site接口且code=403的情况，返回完整原始信息
+                        if ((response.config.url?.includes('auth/site') || response.config.url?.includes('auth/site/authmenu')) && res.code === 403) {
+                            return Promise.reject({
+                                ...res, // 返回后端原始数据（包含code、msg、data等）
+                                originalResponse: response // 附加完整响应对象
+                            })
+                        }
 
-						// 其他情况保持原有逻辑
-						if (res.code != 401 && this.shouldShowError(response.config)) {
-							this.showElMessage({
-								message: res.msg,
-								type: 'error',
-								dangerouslyUseHTMLString: true,
-								duration: 5000
-							})
-						}
+                        // 其他情况保持原有逻辑
+                        if (res.code != 401 && response.config.showErrorMessage !== false) {
+                            this.showElMessage({
+                                message: res.msg,
+                                type: 'error',
+                                dangerouslyUseHTMLString: true,
+                                duration: 5000
+                            })
+                        }
 
-						// 普通业务错误，保持原有结构
-						const error : ExtendedError = new Error(res.msg || 'Error')
-						error.code = res.code
-						error.originalData = res
-						error.originalResponse = response
-						return Promise.reject(error)
-					} else {
-						// 成功响应保持不变
-						if (response.config.showSuccessMessage) {
-							ElMessage({ message: res.msg, type: 'success' })
-						}
-						return res
-					}
-				}
-				return response.data
-			},
-			(err : any) => {
-				// 网络错误保持原有处理
-				this.handleNetworkError(err)
-				return Promise.reject(err)
-			}
-		)
+                        // 普通业务错误，保持原有结构
+                        const error: ExtendedError = new Error(res.msg || 'Error')
+                        error.code = res.code
+                        error.originalData = res
+                        error.originalResponse = response
+                        return Promise.reject(error)
+                    } else {
+                        // 成功响应保持不变
+                        if (response.config.showSuccessMessage) {
+                            ElMessage({ message: res.msg, type: 'success' })
+                        }
+                        return res
+                    }
+                }
+                return response.data
+            },
+            (err: any) => {
+                // 网络错误保持原有处理
+                this.handleNetworkError(err)
+                return Promise.reject(err)
+            }
+        )
     }
 
     /**
@@ -195,12 +195,7 @@ class Request {
             const baseURL = isUrl(err.config.baseURL) ? err.config.baseURL : `${location.origin}${err.config.baseURL}`
             errMessage = baseURL + t('axios.baseUrlError')
         }
-        err.config && this.shouldShowError(err.config) && errMessage && this.showElMessage({ dangerouslyUseHTMLString: true, duration: 5000, message: errMessage, type: 'error' })
-    }
-
-    private shouldShowError(config: InternalRequestConfig): boolean {
-        if (isAddonInstallRestarting()) return false
-        return config.showErrorMessage !== false
+        err.config.showErrorMessage !== false && errMessage && this.showElMessage({ dangerouslyUseHTMLString: true, duration: 5000, message: errMessage, type: 'error' })
     }
 
     private handleAuthError(code: number) {

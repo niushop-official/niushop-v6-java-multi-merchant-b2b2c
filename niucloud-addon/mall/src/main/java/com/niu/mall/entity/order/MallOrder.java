@@ -17,7 +17,7 @@ public class MallOrder implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @TableId(value="order_id", type= IdType.AUTO)
-    private Integer orderId; // 
+    private Integer orderId; //
     private Integer siteId; // 站点id
     private String siteName; //站点名称
     private Integer groupId; //订单组id
@@ -90,7 +90,7 @@ public class MallOrder implements Serializable {
     private BigDecimal supplyDeliveryMoney; // 供货商运费
     private String settlementStatus; // 结算状态
     private Long settlementTime; // 结算时间
-    
+
     /** 购买人要求的配送/发货/自提时间（文本） */
     private String buyerAskDeliveryTime;
 
@@ -105,8 +105,11 @@ public class MallOrder implements Serializable {
     private Long evaluateTimer; //自动好评时间，评价后重置为0
     private String weappVersion;//小程序类型，developer为开发版；trial为体验版；formal为正式版；默认为正式版
 
+    /** 商圈id */
+    private Integer circleId;
+
     /** 使用积分数 */
-    private Integer usePoint;
+    private BigDecimal usePoint;
 
     /** 积分抵扣金额 */
     private BigDecimal pointDeductMoney;

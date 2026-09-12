@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Getter
 @AllArgsConstructor
 public enum UploadExtTypeEnum {
-    IMAGE("image", new String[]{"jpg", "png", "gif", "jpeg"}),
+    IMAGE("image", new String[]{"jpg", "png", "gif", "jpeg", "webp"}),
     VIDEO("video", new String[]{"mp4"}),
     DOCUMENT("document", new String[]{"crt", "pem", "zip", "rar", "key", "xls", "xlsx"}),
     ;

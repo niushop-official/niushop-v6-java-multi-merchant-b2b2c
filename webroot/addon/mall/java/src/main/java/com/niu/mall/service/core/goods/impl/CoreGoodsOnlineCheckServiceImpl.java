@@ -2,12 +2,12 @@ package com.niu.mall.service.core.goods.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
+import com.niu.core.event.goods.CheckGoodsStatusEvent;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.goods.MallGoodsSku;
-import com.niu.mall.event.goods.CheckGoodsStatusEvent;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoodsSku;
+import com.niu.core.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsOnlineCheckService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;

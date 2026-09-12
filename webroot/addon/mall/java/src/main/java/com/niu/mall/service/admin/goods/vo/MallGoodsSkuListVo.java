@@ -30,5 +30,7 @@ public class MallGoodsSkuListVo implements Serializable {
     private Integer saleNum;  // 销量
     private Integer isDefault;  // 是否默认
     private String memberPrice;  // 会员价，json格式，指定会员价，数据结构为：{"level_1":"10.00","level_2":"10.00"}
+    private String svipPrice;  // 付费会员价，json格式
+    private String svipDiscount;  // 付费会员折扣，json格式
 
 }

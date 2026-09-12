@@ -5,7 +5,7 @@
     </el-card>
 
     <el-card class="box-card mt-[15px] !border-none" shadow="never" v-loading="loading">
-      <el-form :model="formData" label-width="120px" ref="formRef" :rules="formRules" class="page-form">
+      <el-form :model="formData" label-width="140px" ref="formRef" :rules="formRules" class="page-form">
         <el-form-item :label="t('rankName')" prop="name">
           <el-input v-model.trim="formData.name" clearable :placeholder="t('rankNamePlaceholder')" class="input-width" maxlength="10" show-word-limit />
         </el-form-item>
@@ -119,6 +119,31 @@
         <el-form-item :label="t('isShow')" prop="status">
             <el-switch v-model="formData.status" :active-value="1" :inactive-value="0" />
         </el-form-item>
+        <el-form-item label="是否显示到搜索页" prop="is_show_search">
+          <el-radio-group v-model="formData.is_show_search">
+            <el-radio :label="1">是</el-radio>
+            <el-radio :label="0">否</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <template v-if="formData.is_show_search == 1">
+            <el-form-item label="背景类型" prop="config.bg_type">
+                <el-radio-group v-model="formData.config.bg_type">
+                    <el-radio label="bg_image">背景图</el-radio>
+                    <el-radio label="bg_color">背景色</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="背景颜色" prop="config.bg_color_start" v-if="formData.config.bg_type == 'bg_color'">
+                <el-color-picker v-model="formData.config.bg_color_start" show-alpha />
+                <icon name="iconfont iconmap-connect" size="20px" class="block !text-gray-400 mx-[5px]" />
+                <el-color-picker v-model="formData.config.bg_color_end" show-alpha />
+            </el-form-item>
+            <el-form-item label="背景图" prop="config.bg_image" v-else>
+                <upload-image v-model="formData.config.bg_image" :limit="1" />
+            </el-form-item>
+            <el-form-item label="标题颜色" prop="config.text_color">
+              <el-color-picker v-model="formData.config.text_color" show-alpha  />
+            </el-form-item>
+        </template>
       </el-form>
     </el-card>
 
@@ -137,11 +162,10 @@ import { t } from "@/lang";
 import { useRoute, useRouter } from "vue-router";
 import { ArrowLeft } from "@element-plus/icons-vue";
 import { FormInstance, ElMessage } from "element-plus";
-import {optionData,getRankInfo,addGoodRank,editGoodRank,} from "@/addon/mall/api/admin/marketing";
+import {optionData,getRankInfo,addGoodRank,editGoodRank,} from "@/app/lang/zh-cn/api/admin/marketing";
 import goodsSelectPopup from "@/addon/mall/views/admin/goods/components/goods-select-popup.vue";
-import { getLabelList } from "@/addon/mall/api/admin/goods";
-import {getBrandList,getCategoryTree} from "@/app/api/basic_admin";
-import {img, deepClone ,filterNumber} from '@/utils/common'
+import { getBrandList, getCategoryTree, getLabelList } from "@/app/api/basic_admin";
+import { img, deepClone, filterNumber } from '@/utils/common'
 
 const router = useRouter();
 const route = useRoute();
@@ -160,6 +184,14 @@ const formData = reactive({
     label_ids: [],
     goods_json: <Array<any>>[],
     goods_ids: [],
+    is_show_search: 1,
+    config: {
+        bg_type: 'bg_image',
+        bg_image: 'addon/mall/rank/rank_bg.png',
+        bg_color_start: '#FFECEC',
+        bg_color_end: '#FFFFFF',
+        text_color: '#F40005'
+    }
 });
 
 const formList = reactive({
@@ -259,6 +291,27 @@ const formRules = computed(() => {
         }
       }
     ],
+    'config.bg_color_start': [
+        {
+        required: true,
+        message: '背景颜色不能为空',
+        trigger: "change",
+      },
+    ],
+    'config.text_color': [
+      {
+        required: true,
+        message: '标题颜色不能为空',
+        trigger: "change",
+      },
+    ],
+    'config.bg_image' : [
+        {
+        required: true,
+        message: '背景图不能为空',
+        trigger: "change",
+      },
+    ],
   };
 });
 
@@ -285,15 +338,26 @@ const getRankDetails= () => {
 
             }
             goods_json.value = data.goods_list.map((item: any) => {
-            return {
-                goods_id: item.goods_id,
-                sort: item.sort,
-                price:item.goodsSku.price,
-                goods_type_name: item.goods_type_name,
-                goods_name: item.goods_name,
-                goods_image: item.goodsSku.sku_image,
-            };
+                return {
+                    goods_id: item.goods_id,
+                    sort: item.sort,
+                    price:item.goodsSku.price,
+                    goods_type_name: item.goods_type_name,
+                    goods_name: item.goods_name,
+                    goods_image: item.goodsSku.sku_image,
+                };
             });
+            if (JSON.stringify(data.config == '[]') || data.config == null ){
+                formData.config = {
+                    bg_type: 'bg_image',
+                    bg_image: 'addon/mall/rank/rank_bg.png',
+                    bg_color_start: '#FFECEC',
+                    bg_color_end: '#FFFFFF',
+                    text_color: '#F40005'
+                }
+            } else {
+                formData.config = deepClone(data.config)
+            }
             loading.value = false;
 
         }
@@ -322,7 +386,9 @@ const toGoodsCategoryEvent = () => {
 
 // 刷新商品分类
 const refreshGoodsCategory = (bool = false) => {
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data;
         if (data) {
         const goodsCategoryTree: any = [];
@@ -472,6 +538,7 @@ const save = async () => {
             goodsCategory.push(item);
         }
     });
+    console.log(formData)
         formData.category_ids = goodsCategory
         if (rank_id) {
             formData.id = rank_id; // 将 rank_id 拼接到 dataToSubmit 中

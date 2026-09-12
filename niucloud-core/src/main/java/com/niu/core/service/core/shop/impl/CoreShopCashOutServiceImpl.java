@@ -5,16 +5,13 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.pay.PayTransfer;
-import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.entity.shop.SiteShopCashOut;
+import com.niu.core.entity.site.Site;
 import com.niu.core.enums.cashout.CashOutTypeEnum;
-import com.niu.core.enums.pay.PayTypeEnum;
-import com.niu.core.enums.pay.TransferTypeEnum;
 import com.niu.core.enums.shop.ShopCashOutEnum;
 import com.niu.core.enums.shop.ShopTransferEnum;
-import com.niu.core.listener.pay.PayExportDataListener;
 import com.niu.core.mapper.shop.SiteShopCashOutMapper;
-import com.niu.core.mapper.shop.SiteShopMapper;
+import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.core.pay.ICoreTransferService;
 import com.niu.core.service.core.shop.ICoreShopCashOutService;
 import com.niu.core.service.core.shop.param.ShopTransferParam;
@@ -22,6 +19,7 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +30,7 @@ public class CoreShopCashOutServiceImpl implements ICoreShopCashOutService {
     SiteShopCashOutMapper siteShopCashOutMapper;
 
     @Resource
-    SiteShopMapper siteShopMapper;
+    SiteMapper siteMapper;
 
     @Resource
     ICoreTransferService coreTransferService;
@@ -41,7 +39,8 @@ public class CoreShopCashOutServiceImpl implements ICoreShopCashOutService {
     public void transferFinish(String transferNo) {
         SiteShopCashOut siteShopCashOut = siteShopCashOutMapper.selectOne(new QueryWrapper<SiteShopCashOut>().eq("transfer_no", transferNo));
         if (siteShopCashOut == null) throw new CommonException("店铺提现不存在");
-        if(!siteShopCashOut.getStatus().equals(ShopCashOutEnum.WAIT_TRANSFER.getState()) && !siteShopCashOut.getStatus().equals(ShopCashOutEnum.TRANSFER_ING.getState()) ) throw new CommonException("店铺提现状态不正确");
+        if (!siteShopCashOut.getStatus().equals(ShopCashOutEnum.WAIT_TRANSFER.getState()) && !siteShopCashOut.getStatus().equals(ShopCashOutEnum.TRANSFER_ING.getState()))
+            throw new CommonException("店铺提现状态不正确");
         this.give(siteShopCashOut);
         siteShopCashOut.setStatus(ShopCashOutEnum.TRANSFERED.getState());
         siteShopCashOut.setTransferTime(System.currentTimeMillis() / 1000);
@@ -50,10 +49,11 @@ public class CoreShopCashOutServiceImpl implements ICoreShopCashOutService {
 
     @Override
     public void give(SiteShopCashOut siteShopCashOut) {
-        SiteShop shop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", siteShopCashOut.getSiteId()));
-        if(ObjectUtil.isEmpty(shop)) throw new CommonException("店铺不存在");
-        shop.setMoneyCashOuting(shop.getMoneyCashOuting().subtract(siteShopCashOut.getApplyMoney()));
-        siteShopMapper.updateById(shop);
+        Site site = siteMapper.selectById(siteShopCashOut.getSiteId());
+        if (ObjectUtil.isEmpty(site)) throw new CommonException("站点不存在");
+        BigDecimal cashOuting = site.getMoneyCashOuting() != null ? site.getMoneyCashOuting() : BigDecimal.ZERO;
+        site.setMoneyCashOuting(cashOuting.subtract(siteShopCashOut.getApplyMoney()));
+        siteMapper.updateById(site);
     }
 
     @Override

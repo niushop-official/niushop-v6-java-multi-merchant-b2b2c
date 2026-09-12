@@ -5,19 +5,19 @@
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="invoiceManagementTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="invoiceManagementTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('headerName')" prop="header_name">
                         <el-input v-model.trim="invoiceManagementTableData.searchParam.header_name" :placeholder="t('headerNamePlaceholder')" clearable />
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
                         <el-date-picker v-model="invoiceManagementTableData.searchParam.create_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('invoiceTime')" prop="invoice_time">
                         <el-date-picker v-model="invoiceManagementTableData.searchParam.invoice_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadInvoiceList()">{{ t('search') }}</el-button>
@@ -163,19 +163,24 @@ const invoiceEvent = (data: any) => {
 
 // 订单详情
 const checkOrder = (data: any) => {
-    if (data.trade_type === 'mall') {
-        const routeUrl = router.resolve({
-            path: '/mall/order/detail',
-            query: { order_id: data.trade_id }
-        })
-        window.open(routeUrl.href, '_blank')
-    } else {
-        const routeUrl = router.resolve({
-            path: '/supply/order/detail',
-            query: { order_id: data.trade_id }
-        })
-        window.open(routeUrl.href, '_blank')
-    }
+    const routeUrl = router.resolve({
+        path: '/' + data.trade_type + '/order/detail',
+        query: { order_id: data.trade_id }
+    })
+    window.open(routeUrl.href, '_blank')
+    // if (data.trade_type === 'mall') {
+    //     const routeUrl = router.resolve({
+    //         path: '/mall/order/detail',
+    //         query: { order_id: data.trade_id }
+    //     })
+    //     window.open(routeUrl.href, '_blank')
+    // } else {
+    //     const routeUrl = router.resolve({
+    //         path: '/supply/order/detail',
+    //         query: { order_id: data.trade_id }
+    //     })
+    //     window.open(routeUrl.href, '_blank')
+    // }
 }
 
 </script>

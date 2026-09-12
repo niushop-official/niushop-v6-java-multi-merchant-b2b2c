@@ -54,9 +54,11 @@ public class InstallSystemServiceImpl implements IInstallSystemService {
     public void installMenu() {
         List<InstallMenuVo> adminMenulist = this.loadMenu(AppTypeEnum.ADMIN.getName());
         List<InstallMenuVo> siteMenulist = this.loadMenu(AppTypeEnum.SITE.getName());
+        List<InstallMenuVo> circleMenulist = this.loadMenu(AppTypeEnum.CIRCLE.getName());
         List<InstallMenuVo> menulist = new ArrayList<>();
         menulist.addAll(adminMenulist);
         menulist.addAll(siteMenulist);
+        menulist.addAll(circleMenulist);
         log.warn("菜单信息: " + menulist);
         sysMenuMapper.delete(new QueryWrapper<SysMenu>().eq("addon", "").eq("source", MenuSourceEnum.SYSTEM.getCode()));
         for (InstallMenuVo menuVo : menulist) {

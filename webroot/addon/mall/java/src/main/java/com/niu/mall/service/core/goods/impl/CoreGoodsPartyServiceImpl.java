@@ -1,27 +1,28 @@
 package com.niu.mall.service.core.goods.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.entity.goods.GoodsBrand;
 import com.niu.core.entity.goods.GoodsCategory;
+import com.niu.core.entity.goods.GoodsLabel;
 import com.niu.core.entity.goods.GoodsService;
 import com.niu.core.entity.site.Site;
 import com.niu.core.mapper.goods.GoodsBrandMapper;
 import com.niu.core.mapper.goods.GoodsCategoryMapper;
+import com.niu.core.mapper.goods.GoodsLabelMapper;
 import com.niu.core.mapper.goods.GoodsServiceMapper;
 import com.niu.core.mapper.site.SiteMapper;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.goods.MallGoodsLabel;
-import com.niu.mall.enums.goods.GoodsStatusEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.service.core.upload.ICoreFetchService;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.enums.goods.GoodsStatusEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.goods.MallGoodsSourceTypeEnum;
-import com.niu.mall.mapper.goods.MallGoodsLabelMapper;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.service.core.goods.DTO.GoodsImportCollectDTO;
 import com.niu.mall.service.core.goods.ICoreGoodsPartyService;
 import com.niu.mall.service.core.goods.param.GoodsPartyParam;
@@ -34,11 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,7 +54,7 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
     @Resource
     private GoodsBrandMapper brandMapper;
     @Resource
-    private MallGoodsLabelMapper labelMapper;
+    private GoodsLabelMapper labelMapper;
     @Resource
     private GoodsServiceMapper serviceMapper;
     @Resource
@@ -66,6 +63,8 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
     private IMallGoodsService goodsService;
     @Resource
     private IMallVirtualGoodsService virtualGoodsService;
+    @Resource
+    private ICoreFetchService coreFetchService;
 
     // ================== 公开方法 ==================
 
@@ -266,7 +265,7 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
                 }
                 // 到店核销校验
                 if ("verify".equals(virtualDeliveryType)) {
-                    Integer verifyType = (Integer) row.get("virtual_verify_type");
+                    Integer verifyType = parseIntValue(row.get("virtual_verify_type"));
                     if (verifyType == null) {
                         throw new CommonException("参数值不能为空：虚拟商品核销有效期类型");
                     }
@@ -274,12 +273,12 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
                         throw new CommonException("参数值非法：虚拟商品核销有效期类型");
                     }
                     if (verifyType == 1 || verifyType == 2) {
-                        Object indate = row.get("virtual_indate");
-                        if (!(indate instanceof Number)) {
+                        String indate = row.get("virtual_indate") != null ? row.get("virtual_indate").toString().trim() : "";
+                        if (StrUtil.isBlank(indate) || !StrUtil.isNumeric(indate)) {
                             throw new CommonException("参数值非法：虚拟到期时间");
                         }
                     }
-                    Integer refund = (Integer) row.get("virtual_refund");
+                    Integer refund = parseIntValue(row.get("virtual_refund"));
                     if (refund == null) {
                         throw new CommonException("参数值不能为空：虚拟商品退款类型");
                     }
@@ -287,8 +286,8 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
                         throw new CommonException("参数值非法：虚拟商品退款类型");
                     }
                     if (refund == 1) {
-                        Object refundDay = row.get("virtual_refund_day");
-                        if (!(refundDay instanceof Number)) {
+                        String refundDay = row.get("virtual_refund_day") != null ? row.get("virtual_refund_day").toString().trim() : "";
+                        if (StrUtil.isBlank(refundDay) || !StrUtil.isNumeric(refundDay)) {
                             throw new CommonException("参数值非法：退款有效天数");
                         }
                     }
@@ -311,7 +310,7 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
 
         if ("multi".equals(specType)) {
             // 多规格
-            Map<String, GoodsPartyParam.SkuData> skuData = buildGoodsSkuData(rawData, dto.getBizType());
+            Map<String, GoodsPartyParam.SkuData> skuData = buildGoodsSkuData(rawData, dto.getBizType(), siteId);
             goodsData.setGoodsSkuData(skuData);
             // 总库存
             int totalStock = skuData.values().stream().mapToInt(GoodsPartyParam.SkuData::getStock).sum();
@@ -351,7 +350,7 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
         partyParam.setSkuName((String) firstItem.get("sku_name"));
         partyParam.setSubTitle((String) firstItem.get("sub_title"));
         partyParam.setGoodsType(goodsType);
-        partyParam.setGoodsImage(buildGoodsImage(firstItem.get("goods_image")));
+        partyParam.setGoodsImage(buildGoodsImage(firstItem.get("goods_image"), siteId));
         partyParam.setGoodsMallCategory(handleMallCategory((String) firstItem.get("goods_mall_category")));
         partyParam.setGoodsCategory(handleCategory((String) firstItem.get("goods_category"), siteId));
         partyParam.setBrandId(handleBrand((String) firstItem.get("brand_name"), siteId));
@@ -417,21 +416,30 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
     }
 
     // ========== 辅助构建方法 ==========
-    private String buildGoodsImage(Object goodsImage) {
-        if (goodsImage == null) return "";
+    private String buildGoodsImage(Object goodsImage, Integer siteId) {
+        if (goodsImage == null) {
+            return "";
+        }
         List<String> imgList;
         if (goodsImage instanceof List) {
             imgList = (List<String>) goodsImage;
         } else {
-            imgList = Arrays.asList(goodsImage.toString().split(","));
+            imgList = Arrays.stream(goodsImage.toString().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
         }
-        // 本地化图片逻辑（省略，可调用文件服务）
-        return String.join(",", imgList);
+        return imgList.stream()
+                .map(img -> localizeImage(img, siteId))
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.joining(","));
     }
 
-    private String buildSkuImage(Object skuImage) {
-        // 本地化图片逻辑
-        return skuImage != null ? skuImage.toString() : "";
+    private String buildSkuImage(Object skuImage, Integer siteId) {
+        if (skuImage == null || skuImage.toString().trim().isEmpty()) {
+            return "";
+        }
+        return localizeImage(skuImage.toString().trim(), siteId);
     }
 
     private String buildGoodsVideo(String goodsVideo) {
@@ -444,7 +452,7 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
         return goodsDesc != null ? goodsDesc : "";
     }
 
-    private Map<String, GoodsPartyParam.SkuData> buildGoodsSkuData(List<Map<String, Object>> rawData, int bizType) {
+    private Map<String, GoodsPartyParam.SkuData> buildGoodsSkuData(List<Map<String, Object>> rawData, int bizType, Integer siteId) {
         Map<String, GoodsPartyParam.SkuData> skuList = new HashMap<>();
         for (int i = 0; i < rawData.size(); i++) {
             Map<String, Object> item = rawData.get(i);
@@ -461,7 +469,7 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
             sku.setSpecName((String) item.get("sku_name"));
             sku.setSkuSpec(JSONUtil.parseArray(skuSpec));
             sku.setSkuNo((String) getValue("sku_no", item.get("sku_no"), ""));
-            sku.setSkuImage(buildSkuImage(item.get("sku_image")));
+            sku.setSkuImage(buildSkuImage(item.get("sku_image"), siteId));
             sku.setPrice(getBigDecimalValue("price", item.get("price"), BigDecimal.ZERO));
             sku.setMarketPrice(getBigDecimalValue("market_price", item.get("market_price"), BigDecimal.ZERO));
             sku.setCostPrice(getBigDecimalValue("cost_price", item.get("cost_price"), BigDecimal.ZERO));
@@ -552,6 +560,21 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
         }
     }
 
+    private Integer parseIntValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String str = value.toString().trim();
+        if (StrUtil.isBlank(str)) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     private BigDecimal getBigDecimalValue(String key, Object value, BigDecimal defaultValue) {
         if (value == null) return defaultValue;
         try {
@@ -601,10 +624,10 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
     private Integer[] handleLabels(String labelNames) {
         if (StrUtil.isBlank(labelNames)) return new Integer[0];
         List<String> nameList = Arrays.asList(labelNames.split(";"));
-        List<MallGoodsLabel> labels = labelMapper.selectList(new LambdaQueryWrapper<MallGoodsLabel>()
-                .in(MallGoodsLabel::getLabelName, nameList)
-                .eq(MallGoodsLabel::getStatus, 1));
-        return labels.stream().map(MallGoodsLabel::getLabelId).toArray(Integer[]::new);
+        List<GoodsLabel> labels = labelMapper.selectList(new LambdaQueryWrapper<GoodsLabel>()
+                .in(GoodsLabel::getLabelName, nameList)
+                .eq(GoodsLabel::getStatus, 1));
+        return labels.stream().map(GoodsLabel::getLabelId).toArray(Integer[]::new);
     }
 
     private Integer[] handleServices(String serviceNames) {
@@ -626,7 +649,7 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
                 .eq(Site::getSiteName, supplierName)
                 .eq(Site::getAppType, "site")
                 .eq(Site::getStatus, 1)
-                .like(Site::getApp, "%\"supply\"%"));
+                .like(Site::getApp, "\"supply\""));
         return site != null ? site.getSiteId() : 0;
     }
 
@@ -661,31 +684,29 @@ public class CoreGoodsPartyServiceImpl implements ICoreGoodsPartyService {
         }
     }
 
-    // ========== 文件相关方法（简化） ==========
-    private boolean checkFile(String fileUrl) {
+    /**
+     * 图片本地化处理
+     * 如果图片是远程URL，则下载到本地存储
+     */
+    private String localizeImage(String imageUrl, Integer siteId) {
+        if (ObjectUtil.isEmpty(imageUrl) || "".equals(imageUrl.trim())) {
+            return "";
+        }
         try {
-            URL url = new URL(fileUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("HEAD");
-            conn.setConnectTimeout(30000);
-            conn.setReadTimeout(30000);
-            conn.connect();
-            int responseCode = conn.getResponseCode();
-            return responseCode == 200 || responseCode == 206;
-        } catch (IOException e) {
-            log.error("检查文件失败", e);
-            return false;
+            if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+                String localPath = coreFetchService.image(imageUrl, siteId);
+                if (ObjectUtil.isEmpty(localPath) || localPath.startsWith("http")) {
+                    log.warn("【localizeImage】图片下载失败，imageUrl: {}, 返回: {}", imageUrl, localPath);
+                    return "";
+                }
+                return localPath;
+            }
+            return imageUrl;
+        } catch (Exception e) {
+            log.error("【localizeImage】图片本地化异常，imageUrl: {}, 异常: {}", imageUrl, e.getMessage());
+            return "";
         }
     }
-
-    private String remoteFilePullToLocal(String fileUrl, String localPath) throws IOException {
-        File localFile = new File(localPath);
-        File parent = localFile.getParentFile();
-        if (!parent.exists()) parent.mkdirs();
-        HttpUtil.downloadFile(fileUrl, localFile);
-        return localPath;
-    }
-
 
     // ========== 商品导入字段映射字典 ==========
 

@@ -3,6 +3,8 @@ package com.niu.mall.service.site.order.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -46,13 +48,13 @@ import com.niu.core.service.core.delivery.vo.DeliveryConfigVo;
 import com.niu.core.service.core.delivery.vo.LocalInfoVo;
 import com.niu.core.service.core.pay.ICorePayService;
 import com.niu.core.service.site.delivery.IDeliveryService;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoodsSku;
 import com.niu.mall.entity.order.*;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.*;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import com.niu.mall.mapper.order.*;
 import com.niu.mall.service.admin.order.vo.MallOrderInfoVo;
 import com.niu.mall.service.admin.order.vo.MallOrderLogListVo;
@@ -193,9 +195,11 @@ public class MallOrderServiceImpl implements IMallOrderService {
 
         }
         if (ObjectUtil.isNotEmpty(searchParam.getStatus())) queryWrapper.eq("o.status", searchParam.getStatus());
-        if (ObjectUtil.isNotEmpty(searchParam.getOrderFrom()))
+        if (ObjectUtil.isNotEmpty(searchParam.getOrderFrom()) && !"all".equals(searchParam.getOrderFrom()))
             queryWrapper.eq("o.order_from", searchParam.getOrderFrom());
-        if (ObjectUtil.isNotEmpty(searchParam.getPayType())) queryWrapper.eq("p.type", searchParam.getPayType());
+        if (ObjectUtil.isNotEmpty(searchParam.getPayType()) && !"all".equals(searchParam.getPayType())) {
+            queryWrapper.eq("p.type", searchParam.getPayType());
+        }
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime()))
             QueryMapperUtils.buildByTime(queryWrapper, "o.create_time", searchParam.getCreateTime());
         if (ObjectUtil.isNotEmpty(searchParam.getPayTime()))
@@ -219,9 +223,9 @@ public class MallOrderServiceImpl implements IMallOrderService {
         }
         if (ObjectUtil.isNotEmpty(searchParam.getActivityType()))
             queryWrapper.eq("o.activity_type", searchParam.getActivityType());
-        if (ObjectUtil.isNotEmpty(searchParam.getDeliveryType()))
+        if (ObjectUtil.isNotEmpty(searchParam.getDeliveryType()) && !"all".equals(searchParam.getDeliveryType()))
             queryWrapper.eq("o.delivery_type", searchParam.getDeliveryType());
-        if (ObjectUtil.isNotEmpty(searchParam.getGoodsSource())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getGoodsSource()) && !"all".equals(searchParam.getGoodsSource())) {
             if (searchParam.getGoodsSource().equals("self_goods") || searchParam.getGoodsSource().equals("0")) {
                 queryWrapper.eq("o.supply_order_id", 0);
             } else {
@@ -323,7 +327,7 @@ public class MallOrderServiceImpl implements IMallOrderService {
 
         MallOrderInfoVo vo = new MallOrderInfoVo();
         BeanUtils.copyProperties(model, vo);
-        vo.setUsePoint(model.getUsePoint() != null ? new BigDecimal(model.getUsePoint()) : BigDecimal.ZERO);
+        vo.setUsePoint(model.getUsePoint() != null ? new BigDecimal(String.valueOf(model.getUsePoint())) : BigDecimal.ZERO);
         vo.setRefundDeductPoint(model.getRefundDeductPoint() != null ? new BigDecimal(model.getRefundDeductPoint()) : BigDecimal.ZERO);
 
         // 2. 查询会员信息
@@ -866,30 +870,59 @@ public class MallOrderServiceImpl implements IMallOrderService {
         }
         if (ObjectUtil.isNotEmpty(store) && StringUtils.isEmpty(store.getArea())) {
             result.setErrorCode(-1);
-            result.setErrorMsg("该门店未配置配送区域");
+            result.setErrorMsg("该门店未设置配送范围");
             return;
         }
 
         // 判断所在区域
         LocalInfoVo.Area locatedInArea = null;
-        List<LocalInfoVo.Area> areaList = JSONUtil.toList(JSONUtil.parseArray(store), LocalInfoVo.Area.class);
-        for (LocalInfoVo.Area area : areaList) {
-            if ("radius".equals(area.getAreaType())) {
-                // 圆形区域判断
-                Double distance = DistanceCalculateUtils.calculateDistance(Double.parseDouble(param.getTakerLatitude()),
+        JSONArray areas = JSONUtil.isTypeJSON(store.getArea()) ? JSONUtil.parseArray(store.getArea()) : new JSONArray();
+        for (int i = 0; i < areas.size(); i++) {
+            JSONObject area = areas.getJSONObject(i);
+            JSONObject areaJson = area.getJSONObject("area_json");
+            if (areaJson == null) {
+                continue;
+            }
+            if ("radius".equals(area.getStr("area_type"))) {
+                JSONObject center = areaJson.getJSONObject("center");
+                if (center == null || center.get("lat") == null || center.get("lng") == null || areaJson.get("radius") == null) {
+                    continue;
+                }
+                double distance = DistanceCalculateUtils.calculateDistance(
+                        Double.parseDouble(param.getTakerLatitude()),
                         Double.parseDouble(param.getTakerLongitude()),
-                        area.getAreaJson().getCenter().getLat().doubleValue(),
-                        area.getAreaJson().getCenter().getLng().doubleValue());
-                if (distance <= area.getAreaJson().getRadius()) {
-                    locatedInArea = area;
+                        Double.parseDouble(center.getStr("lat")),
+                        Double.parseDouble(center.getStr("lng"))
+                );
+                if (distance <= areaJson.getInt("radius")) {
+                    locatedInArea = new LocalInfoVo.Area();
+                    locatedInArea.setAreaName(area.getStr("area_name"));
+                    locatedInArea.setAreaType(area.getStr("area_type"));
+                    locatedInArea.setStartPrice(ObjectUtil.defaultIfNull(area.getBigDecimal("start_price"), BigDecimal.ZERO));
+                    locatedInArea.setDeliveryPrice(ObjectUtil.defaultIfNull(area.getBigDecimal("delivery_price"), BigDecimal.ZERO));
                     break;
                 }
             } else {
-                // 多边形区域判断
-                double[] polyLats = area.getAreaJson().getPaths().stream().mapToDouble(latlng -> latlng.getLat().doubleValue()).toArray();
-                double[] polyLngs = area.getAreaJson().getPaths().stream().mapToDouble(latlng -> latlng.getLng().doubleValue()).toArray();
+                JSONArray paths = areaJson.getJSONArray("paths");
+                if (paths == null || paths.isEmpty()) {
+                    continue;
+                }
+                double[] polyLats = new double[paths.size()];
+                double[] polyLngs = new double[paths.size()];
+                for (int j = 0; j < paths.size(); j++) {
+                    JSONObject latLng = paths.getJSONObject(j);
+                    if (latLng.get("lat") == null || latLng.get("lng") == null) {
+                        continue;
+                    }
+                    polyLats[j] = latLng.getDouble("lat");
+                    polyLngs[j] = latLng.getDouble("lng");
+                }
                 if (DistanceCalculateUtils.isPointInPolygon(Double.parseDouble(param.getTakerLatitude()), Double.parseDouble(param.getTakerLongitude()), polyLats, polyLngs)) {
-                    locatedInArea = area;
+                    locatedInArea = new LocalInfoVo.Area();
+                    locatedInArea.setAreaName(area.getStr("area_name"));
+                    locatedInArea.setAreaType(area.getStr("area_type"));
+                    locatedInArea.setStartPrice(ObjectUtil.defaultIfNull(area.getBigDecimal("start_price"), BigDecimal.ZERO));
+                    locatedInArea.setDeliveryPrice(ObjectUtil.defaultIfNull(area.getBigDecimal("delivery_price"), BigDecimal.ZERO));
                     break;
                 }
             }

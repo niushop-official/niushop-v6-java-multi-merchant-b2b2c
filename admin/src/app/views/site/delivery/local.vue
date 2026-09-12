@@ -12,6 +12,15 @@
                         <el-radio label="distance">{{ t('distance') }}</el-radio>
                     </el-radio-group>
                 </el-form-item>
+                <el-form-item :label="t('配送费')" prop="free_goods_money" >
+                    <div class="flex">
+                        商品金额满
+                        <div class="w-[60px] mx-[5px]">
+                            <el-input v-model.number="formData.free_goods_money" type="text" maxlength="6" @keyup="filterDigit($event)" />
+                        </div>
+                        元免配送费
+                    </div>
+                </el-form-item>
                 <el-form-item :label="t('feeSetting')" prop="distance" v-show="formData.fee_type == 'distance'">
                     <div class="flex">
                         <div class="w-[60px] mx-[5px]">
@@ -33,24 +42,27 @@
                     </div>
                 </el-form-item>
                 <el-form-item :label="t('weightFee')" prop="weight">
-                    <div class="flex">
-                        {{ t('weightFeeTextOne') }}
-                        <div class="w-[60px] mx-[5px]">
-                            <el-input v-model.trim="formData.weight_start" type="text"  maxlength="6" @keyup="filterDigit($event)" />
+                    <div>
+                        <div class="flex">
+                            {{ t('weightFeeTextOne') }}
+                            <div class="w-[60px] mx-[5px]">
+                                <el-input v-model.trim="formData.weight_start" type="text"  maxlength="6" @keyup="filterDigit($event)" />
+                            </div>
+                            {{ t('weightFeeTextTwo') }}
+                            <div class="w-[60px] mx-[5px]">
+                                <el-input v-model.trim="formData.weight_unit" type="text"  maxlength="6" @keyup="filterDigit($event)" />
+                            </div>
+                            {{ t('weightFeeTextThree') }}
+                            <div class="w-[60px] mx-[5px]">
+                                <el-input v-model.trim="formData.weight_price" type="text"  maxlength="8" @keyup="filterDigit($event)" />
+                            </div>
+                            {{ t('priceUnit') }}
                         </div>
-                        {{ t('weightFeeTextTwo') }}
-                        <div class="w-[60px] mx-[5px]">
-                            <el-input v-model.trim="formData.weight_unit" type="text"  maxlength="6" @keyup="filterDigit($event)" />
-                        </div>
-                        {{ t('weightFeeTextThree') }}
-                        <div class="w-[60px] mx-[5px]">
-                            <el-input v-model.trim="formData.weight_price" type="text"  maxlength="8" @keyup="filterDigit($event)" />
-                        </div>
-                        {{ t('priceUnit') }}
+                        <div class="text-[12px] text-[#999]">超出部分重量不足设置阈值时，统一按该阈值计费。示例：系统设置 1kg 内免收超重费，每超重 1kg 加收 5 元；商品总重 2.5kg，基础免重 1kg，实际超重 1.5kg，因不足 1kg 按 1kg 进位核算，最终计费超重重量 2kg，配送超重费 = 2×5=10 元。</div>
                     </div>
                 </el-form-item>
                 <el-form-item :label="t('deliveryArea')" prop="delivery_area">
-                     <div class="w-full border-[1px] border-solid border-[#dcdfe6] flex" v-loading="mapLoading">
+                     <div class="w-full border-[1px] border-solid border-[#dcdfe6] flex">
                         <div class="store-wrap  w-[270px] h-[520px] border-r-[1px] border-solid border-[#dcdfe6]">
                             <div class="relative h-[520px]" v-if="deliveryStoreList.length">
                                 <div class="h-[450px] overflow-y-auto">
@@ -71,27 +83,39 @@
                                 <el-button type="primary" @click="newWindow()" link class="ml-[10px]">{{ t('toSetting') }}</el-button>
                             </div>
                         </div>
-                        <div class="relative flex-1">
-                            <div id="container" class="w-full h-[520px]"></div>
-                            <div class="absolute bg-white w-[270px] h-[500px] top-[10px] left-[10px] region-list" v-if="deliveryStoreList.length">
+                        <div class="relative flex-1 overflow-hidden">
+                            <map-selector
+                                ref="mapSelectorRef"
+                                id="container-radius"
+                                 :container-id="'container-radius'"
+                                :longitude="curDelivery?.longitude"
+                                :latitude="curDelivery?.latitude"
+                                :zoom="14"
+                                :disabled-click-marker="true"
+                                :container-style="{width: '100%', height: '100%'}"
+                                :selected-key="curDelivery?.area[currArea]?.area_json?.key || ''"
+                                @areaChange="handleAreaChange"
+                                @selectChange="handleSelectChange"
+                            />
+                            <div class="absolute bg-white w-[270px] h-[500px] top-[10px] left-[10px] region-list" v-if="deliveryStoreList.length" @mousedown.stop>
                                 <el-scrollbar>
-                                    <div class="p-[10px] region-item pr-[50px] relative"  v-for="(item, index) in curDelivery.area" :key="index" :class="{ '!border-primary': index == currArea }" @click="selectArea(index)">
+                                    <div class="p-[10px] region-item pr-[50px] relative"  v-for="(item, index) in curDelivery.area" :key="item.area_json?.key || index" :class="{ '!border-primary': index == currArea }" @click="selectArea(index)">
                                         <el-form label-width="80px" :model="item" :rules="formRules" class="page-form" ref="areaFromRef">
                                             <div class="pb-[18px]">
                                                 <el-form-item :label="t('areaName')" prop="area_name">
-                                                    <el-input v-model.trim="curDelivery.area[index].area_name" type="text" @click.stop=""/>
+                                                    <el-input v-model.trim="curDelivery.area[index].area_name" type="text" @click.stop="" @focus="onAreaFormFocus" @keydown.stop=""/>
                                                 </el-form-item>
                                             </div>
                                             <div class="pb-[18px]">
                                                 <el-form-item :label="t('startPrice')" prop="start_price">
                                                 <el-input v-model.trim="curDelivery.area[index].start_price"  maxlength="8" type="text"
-                                                    @keyup="filterDigit($event)" @click.stop="" />
+                                                    @keyup="filterDigit($event)" @blur="curDelivery.area[index].start_price = $event.target.value" @click.stop="" @focus="onAreaFormFocus" @keydown.stop="" />
                                             </el-form-item>
                                         </div>
                                         <div class="pb-[10px]" v-show="formData.fee_type == 'region'">
                                             <el-form-item :label="t('deliveryPrice')" prop="delivery_price">
                                                 <el-input v-model.trim="curDelivery.area[index].delivery_price" type="text"
-                                                    @keyup="filterDigit($event)"  @click.stop=""/>
+                                                    @keyup="filterDigit($event)" @blur="curDelivery.area[index].delivery_price = $event.target.value" @click.stop="" @focus="onAreaFormFocus" @keydown.stop=""/>
                                             </el-form-item>
                                         </div>
                                         <el-form-item :label="t('areaType')">
@@ -128,18 +152,18 @@ import { ref, computed, onMounted, onBeforeUnmount, toRaw } from 'vue'
 import { t } from '@/lang'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getMap } from '@/app/api/sys'
 import { guid, filterDigit, deepClone } from '@/utils/common'
-import { createCircle, deleteGeometry, createPolygon, selectGeometry, createMarker } from '@/utils/qqmap'
 import { setLocal, getLocal, getShopDefaultDeliveryAddressInfo, getDeliveryStoreListAll } from '@/app/api/delivery_site'
 import { FormInstance, ElMessage } from 'element-plus'
 import Test from '@/utils/test'
+import MapSelector from '@/components/map-selector/index.vue'
 
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
 const pageName = route.meta.title
 const formRef = ref<FormInstance>()
+const mapSelectorRef = ref()
 
 const deliveryStoreList = ref<any>([])
 const curDelivery = ref<any>({
@@ -157,7 +181,9 @@ const curDelivery = ref<any>({
 })
 const getDeliveryStoreListAllFn = async () => {
     deliveryStoreList.value = await (await getDeliveryStoreListAll({ pick_up_type: 'local_delivery' })).data
-    curDelivery.value = deliveryStoreList.value[0]
+    if (deliveryStoreList.value.length) {
+        curDelivery.value = deliveryStoreList.value[0]
+    }
 }
 getDeliveryStoreListAllFn()
 
@@ -173,7 +199,8 @@ const formData = ref({
     grad_price: '',
     weight_start: 0.000,
     weight_unit: 0,
-    weight_price: 0
+    weight_price: 0,
+    free_goods_money: 0
 })
 
 // 正则表达式
@@ -229,6 +256,14 @@ const formRules = computed(() => {
                         if (Number(formData.value.weight_unit) <= 0) { // 超出重量不能小于等于0
                             callback(new Error(t('商品超出重量不能小于等于0')))
                         }
+                        if (Number(formData.value.weight_unit) > 0 && Number(formData.value.weight_price) <= 0) {
+                            callback(new Error(t('商品超出价格不能小于等于0')))
+                        }
+                        if (Number(formData.value.weight_price) > 0 && Number(formData.value.weight_unit) <= 0) {
+                            callback(new Error(t('商品超出重量不能小于等于0')))
+                        }
+                    } else if ((Number(formData.value.weight_price) > 0 || Number(formData.value.weight_unit) > 0) && Number(formData.value.weight_start) <= 0) {
+                        callback(new Error(t('商品重量不能小于等于0')))
                     }
                     callback()
                 },
@@ -241,119 +276,211 @@ const formRules = computed(() => {
 getLocal().then(({ data }) => {
     loading.value = false
     if (data) Object.assign(formData.value, data)
+    initMapAreas()
 }).catch(() => {
     loading.value = false
 })
 
 onMounted(() => {
-    const mapScript = document.createElement('script')
-    getMap().then(res => {
-        mapScript.type = 'text/javascript'
-        mapScript.src = 'https://map.qq.com/api/gljs?libraries=tools,service&v=1.exp&key=' + res.data.key
-        document.body.appendChild(mapScript)
-    })
-    mapScript.onload = () => {
-        setTimeout(() => {
-            initMap()
-        }, 500)
-    }
 })
 
-/**
- * 初始化地图
- */
-let map: any
-let marker: any
-const mapLoading = ref(true)
-const initMap = () => {
-    const TMap = (window as any).TMap
-    const LatLng = TMap.LatLng
-    const center = new LatLng(
-        curDelivery.value ? curDelivery.value.latitude : 39.980619,
-        curDelivery.value ? curDelivery.value.longitude : 116.321277
-    )
-
-    map = new TMap.Map('container', {
-        center,
-        zoom: 14
-    })
-
-    marker = createMarker(map)
-
-    map.on('tilesloaded', () => {
-        mapLoading.value = false
-    })
-
-    curDelivery.value.area.forEach((item: any) => {
-        item.area_type == 'radius' ? createCircle(map, item.area_json) : createPolygon(map, item.area_json)
-    })
-}
 const currArea = ref<number>(0)
+/**
+ * 初始化地图区域
+ */
+const initMapAreas = async () => {
+    if (!mapSelectorRef.value) return
+    // 等待地图初始化完成
+    const checkMapReady = async () => {
+        let attempts = 0
+        const maxAttempts = 10
+        while (attempts < maxAttempts) {
+            try {
+                // 尝试获取地图实例，检查地图是否已初始化
+                const map = await mapSelectorRef.value.getMap()
+                if (map) {
+                    return true
+                }
+            } catch (error) {
+                // 地图未初始化完成，继续等待
+            }
+            attempts++
+            await new Promise(resolve => setTimeout(resolve, 200))
+        }
+        return false
+    }
+    // 检查地图是否就绪
+    const isReady = await checkMapReady()
+    if (!isReady) {
+        console.warn('地图初始化超时，无法加载区域')
+        return
+    }
+    // 清空现有覆盖物
+    await mapSelectorRef.value.clearOverlays()
+    // 绘制所有区域
+    for (const item of curDelivery.value.area) {
+        if (item.area_type === 'radius') {
+            await mapSelectorRef.value.addCircle(item.area_json.center, item.area_json.radius, {
+                key: item.area_json.key
+            })
+        } else if (item.area_type === 'custom') {
+            await mapSelectorRef.value.addPolygon(item.area_json.paths, {
+                key: item.area_json.key
+            })
+        }
+    }
+    // 选中第一个区域
+    if (curDelivery.value.area.length > 0) {
+        currArea.value = 0
+        mapSelectorRef.value.selectGeometry(curDelivery.value.area[0].area_json.key)
+    }
+}
 
-const addArea = () => {
-    curDelivery.value.area.push({
+// 编辑区域表单时取消地图图形编辑状态，防止按键操作影响地图范围
+const onAreaFormFocus = () => {
+    console.log('onAreaFormFocus')
+    mapSelectorRef.value.deselectGeometry?.()
+}
+/**
+ * 添加配送区域
+ */
+const addArea = async () => {
+    if (!mapSelectorRef.value) return
+    // 获取地图中心点
+    const map = await mapSelectorRef.value.getMap()
+    const mapCenter = map ? map.getCenter() : { lat: 39.909187, lng: 116.397463 }
+    // 创建新区域
+    const newArea = {
         area_name: '',
         area_type: 'radius',
         start_price: 0,
         delivery_price: 0,
         area_json: {
-            key: guid()
-        }
-    })
+            key: guid(),
+            center: { lat: mapCenter.lat, lng: mapCenter.lng },
+            radius: 1000
+        } as any
+    }
+    curDelivery.value.area.push(newArea)
     const index = curDelivery.value.area.length - 1
-    createCircle(map, curDelivery.value.area[index].area_json)
+    // 添加圆形覆盖物
+    await mapSelectorRef.value.addCircle(newArea.area_json.center, newArea.area_json.radius, {
+        key: newArea.area_json.key
+    })
+    // 选中新添加的区域
+    currArea.value = index
+    await mapSelectorRef.value.selectGeometry(newArea.area_json.key)
 }
 
 /**
  * 删除配送区域
  */
-const deleteArea = (index: number) => {
+const deleteArea = async (index: number) => {
     const data = curDelivery.value.area[index]
-    deleteGeometry(data.area_json.key)
+
+    if (mapSelectorRef.value) {
+        try {
+            await mapSelectorRef.value.removeOverlay({ key: data.area_json.key })
+        } catch (error) {
+            console.error('删除区域失败:', error)
+        }
+    }
+
     curDelivery.value.area.splice(index, 1)
 }
 
-const selectArea = (index: number) => {
+const selectArea = async (index: number) => {
+    if (!mapSelectorRef.value) return
     currArea.value = index
     const data = curDelivery.value.area[index]
-    selectGeometry(data.area_json.key)
+    await mapSelectorRef.value.selectGeometry(data.area_json.key)
 }
 
-const areaTypeChange = (index: number) => {
+/**
+ * 区域类型改变时处理
+ */
+const areaTypeChange = async (index: number) => {
     const data = curDelivery.value.area[index]
-    deleteGeometry(data.area_json.key)
-    data.area_type == 'radius' ? createCircle(map, data.area_json) : createPolygon(map, data.area_json)
+    mapSelectorRef.value.removeOverlay({ key: data.area_json.key })
+    const map = await mapSelectorRef.value.getMap()
+    if (data.area_type == 'radius') {
+        const mapCenter = map?.getCenter() || { lat: 39.909187, lng: 116.39746 }
+        data.area_json.center = data.area_json.center || { lat: mapCenter.lat, lng: mapCenter.lng }
+        data.area_json.radius = data.area_json.radius || 1000
+        await mapSelectorRef.value.addCircle(data.area_json.center, data.area_json.radius, data.area_json)
+    } else {
+        if (!data.area_json.paths?.length) {
+            const center = data.area_json.center || map?.getCenter() || { lat: 39.909187, lng: 116.397463 }
+            data.area_json.paths = [
+                { lat: center.lat + 0.01, lng: center.lng + 0.01 },
+                { lat: center.lat - 0.01, lng: center.lng + 0.01 },
+                { lat: center.lat - 0.01, lng: center.lng - 0.01 },
+                { lat: center.lat + 0.01, lng: center.lng - 0.01 }
+            ]
+        }
+        mapSelectorRef.value.addPolygon(data.area_json.paths, data.area_json)
+    }
+    setTimeout(() => {
+        currArea.value = index
+        mapSelectorRef.value.selectGeometry(data.area_json.key)
+    }, 100)
 }
-const handleMap = (data:any) => {
+
+const handleMap = async (data: any) => {
     deliveryStoreList.value.forEach((item: any) => {
         if (item.store_id == curDelivery.value.store_id) {
             item = deepClone(toRaw(item))
         }
     })
-    curDelivery.value.area.forEach((item: any) => {
-        deleteGeometry(item.area_json.key)
-    })
+
+    // 清空所有覆盖物
+    if (mapSelectorRef.value) {
+        try {
+            await mapSelectorRef.value.clearOverlays()
+        } catch (error) {
+            console.error('清空覆盖物失败:', error)
+        }
+    }
+
     curDelivery.value = data
-    setTimeout(() => {
-        const latLng = new (window as any).TMap.LatLng(curDelivery.value.latitude, curDelivery.value.longitude)
-        map.setCenter(latLng)
-        marker.updateGeometries({
-            id: 'center',
-            position: latLng
-        })
-        curDelivery.value.area.forEach((item: any) => {
-            // 重新创建图形
-            item.area_json.center = {
-                lat: curDelivery.value.latitude,
-                lng: curDelivery.value.longitude
-            }
-            item.area_type == 'radius' ? createCircle(map, item.area_json) : createPolygon(map, item.area_json)
-        })
-    }, 500)
+
+    // 更新地图中心
+    if (mapSelectorRef.value && data.latitude && data.longitude) {
+        try {
+            await mapSelectorRef.value.updateLocation(Number(data.latitude), Number(data.longitude))
+        } catch (error) {
+            console.error('更新地图位置失败:', error)
+        }
+    }
+
+    initMapAreas()
+}
+
+// 处理地图区域变化事件
+const handleAreaChange = (data: any) => {
+    if (!data || !data.key) return
+    // 根据key找到对应的区域
+    const areaIndex = curDelivery.value.area.findIndex((item: any) => item.area_json?.key === data.key)
+    if (areaIndex === -1) return
+    // 更新区域路径数据
+    const path = data.path || {}
+    curDelivery.value.area[areaIndex].area_json = {
+        ...curDelivery.value.area[areaIndex].area_json,
+        ...path
+    }
+}
+
+// 处理地图选中事件
+const handleSelectChange = (key: string) => {
+    // 找到对应的区域并设置选中状态
+    const areaIndex = curDelivery.value.area.findIndex((item: any) => item.area_json?.key === key)
+    if (areaIndex !== -1) {
+        currArea.value = areaIndex
+    }
 }
 
 onBeforeUnmount(() => {
-    map?.destroy()
+    // 地图组件会自动清理
 })
 
 const verify = () => {
@@ -447,14 +574,17 @@ const toLink = (data: any) => {
 #container :deep(div){
     z-index: 2 !important;
 }
-
+  #container-radius {
+    z-index: 1 !important; // 降低地图容器的z-index
+    pointer-events: auto;
+  }
 .store-wrap::-webkit-scrollbar{
-	width:4px;
-	border-radius:2px;
-	background-color:#f1f1f1;
+    width:4px;
+    border-radius:2px;
+    background-color:#f1f1f1;
 }
 .store-wrap::-webkit-scrollbar-thumb{
-	background-color:#c1c1c1;
-	border-radius:2px;
+    background-color:#c1c1c1;
+    border-radius:2px;
 }
 </style>

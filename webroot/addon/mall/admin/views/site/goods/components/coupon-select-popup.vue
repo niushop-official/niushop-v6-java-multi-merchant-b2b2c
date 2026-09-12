@@ -13,7 +13,7 @@
         <el-dialog v-model="showDialog" :title="t('优惠券选择')" width="1000px" :close-on-press-escape="false" :destroy-on-close="true" :close-on-click-modal="false">
 
             <el-form :inline="true" :model="couponTable.searchParam" ref="searchFormRef">
-                <el-form-item :label="t('优惠券名称')" prop="keyword" class="form-item-wrap">
+                <el-form-item :label="t('优惠券名称')" prop="title" class="form-item-wrap">
                     <el-input v-model="couponTable.searchParam.title" :placeholder="t('请输入优惠券名称')" maxlength="60" />
                 </el-form-item>
                 <el-form-item class="form-item-wrap">

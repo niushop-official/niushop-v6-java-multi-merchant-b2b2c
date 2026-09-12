@@ -5,6 +5,7 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
+import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.StringUtils;
@@ -36,7 +37,7 @@ public class ShopMemberExportDataListener extends ExportDataEventDefiner {
         MPJQueryWrapper<SiteShopMember> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("ssm");
         queryWrapper.select("ssm.id,ssm.site_id,ssm.member_id, ssm.is_follow, ssm.first_consum_time, ssm.last_consum_time, ssm.shop_member_label, m.member_no, m.mobile, m.nickname, m.username, m.headimg, m.register_channel");
-        queryWrapper.leftJoin("?_member m ON m.`member_id` = ssm.member_id".replace("?_", "ns_"));
+        queryWrapper.leftJoin("?_member m ON m.`member_id` = ssm.member_id".replace("?_", GlobalConfig.tablePrefix));
 
         queryWrapper.eq("ssm.site_id", RequestUtils.siteId());
         JSONObject where = event.getWhere();
@@ -60,6 +61,10 @@ public class ShopMemberExportDataListener extends ExportDataEventDefiner {
             Object registerChannel = where.get("register_channel");
             if (ObjectUtil.isNotEmpty(registerChannel)) {
                 queryWrapper.eq("m.register_channel", registerChannel);
+            }
+            Object addon = where.get("addon");
+            if (ObjectUtil.isNotEmpty(addon)) {
+                queryWrapper.eq("ssm.addon", addon);
             }
             if ((where.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
                 QueryMapperUtils.buildByTime(queryWrapper, "ssm.create_time", StringUtils.jsonArrayToStringArray(createTimes));

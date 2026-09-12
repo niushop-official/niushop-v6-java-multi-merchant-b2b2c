@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class SysPrinterAddPrinterYlyParam {
+    private Integer siteId;
     private String brand;
     private String printerName;
     private String printerCode;

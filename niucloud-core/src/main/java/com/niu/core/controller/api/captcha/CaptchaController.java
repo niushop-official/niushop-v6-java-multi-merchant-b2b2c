@@ -1,7 +1,7 @@
 package com.niu.core.controller.api.captcha;
 
+import cn.dev33.satoken.annotation.SaIgnore;
 import com.niu.core.common.domain.Result;
-import com.niu.core.enums.captcha.CaptchaImgEnum;
 import com.niu.core.service.core.captcha.ICoreCaptchaImgService;
 import com.niu.core.service.core.captcha.param.CoreCaptchaValiDateParam;
 import jakarta.annotation.Resource;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/captcha")
+@SaIgnore
 public class CaptchaController {
 
     @Resource

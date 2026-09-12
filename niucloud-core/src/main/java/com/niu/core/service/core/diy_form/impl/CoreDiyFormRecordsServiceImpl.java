@@ -37,6 +37,7 @@ import com.niu.core.service.core.diy_form.vo.DiyFormRecordsFieldsListVo;
 import com.niu.core.service.core.diy_form.vo.DiyFormRecordsInfoVo;
 import com.niu.core.service.core.diy_form.vo.DiyFormRecordsListVo;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +52,7 @@ import java.util.stream.Collectors;
  * 万能表单填写记录实现
  */
 @Service
+@Slf4j
 public class CoreDiyFormRecordsServiceImpl implements ICoreDiyFormRecordsService {
 
     @Resource
@@ -169,12 +171,24 @@ public class CoreDiyFormRecordsServiceImpl implements ICoreDiyFormRecordsService
         }
         List<DiyFormRecordsFields> recordsFieldsList = new ArrayList<>();
 
+        log.info("【CoreDiyFormRecordsServiceImpl.add】addParam.getValue(): {}", addParam.getValue());
+        log.info("【CoreDiyFormRecordsServiceImpl.add】addParam.getValue() 是否为空: {}", ObjectUtil.isEmpty(addParam.getValue()));
+        
         if (ObjectUtil.isNotEmpty(addParam.getValue())) {
             JSONArray components = JSONUtil.parseArray(addParam.getValue());
+            log.info("【CoreDiyFormRecordsServiceImpl.add】解析到的组件数量: {}", components.size());
+            
             for (Object componentObj : components) {
                 JSONObject component = JSONUtil.parseObj(componentObj);
+                String componentType = component.getStr("componentType");
+                String componentName = component.getStr("componentName");
+                boolean isHidden = component.getBool("isHidden");
+                
+                log.info("【CoreDiyFormRecordsServiceImpl.add】组件: componentType={}, componentName={}, isHidden={}", componentType, componentName, isHidden);
+                
                 // 过滤非表单组件和表单提交按钮组件
-                if (!"diy_form".equals(component.getStr("componentType")) || "FormSubmit".equals(component.getStr("componentName")) || component.getBool("isHidden")) {
+                if (!"diy_form".equals(componentType) || "FormSubmit".equals(componentName) || isHidden) {
+                    log.info("【CoreDiyFormRecordsServiceImpl.add】跳过组件: {}", componentName);
                     continue;
                 }
 
@@ -232,10 +246,14 @@ public class CoreDiyFormRecordsServiceImpl implements ICoreDiyFormRecordsService
                 recordsField.setCreateTime(System.currentTimeMillis() / 1000);
                 recordsField.setUpdateTime(System.currentTimeMillis() / 1000);
                 recordsFieldsList.add(recordsField);
+                log.info("【CoreDiyFormRecordsServiceImpl.add】添加表单字段: fieldKey={}, fieldName={}, fieldValue={}", recordsField.getFieldKey(), recordsField.getFieldName(), recordsField.getFieldValue());
             }
         }
 
+        log.info("【CoreDiyFormRecordsServiceImpl.add】recordsFieldsList 大小: {}", recordsFieldsList.size());
+        
         if (!recordsFieldsList.isEmpty()) {
+            log.info("【CoreDiyFormRecordsServiceImpl.add】开始批量插入表单字段");
             diyFormRecordsFieldsMapper.insert(recordsFieldsList);
 
             // 累计填写数量

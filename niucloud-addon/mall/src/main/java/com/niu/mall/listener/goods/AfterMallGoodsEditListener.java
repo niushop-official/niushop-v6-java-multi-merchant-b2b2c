@@ -5,11 +5,11 @@ import com.niu.core.common.annotation.EventListen;
 import com.niu.core.common.component.context.listener.AbstractListener;
 import com.niu.core.service.core.shop.ICoreShopStatService;
 import com.niu.core.service.core.shop.param.ShopStatParam;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.enums.goods.GoodsAuditStatusEnum;
-import com.niu.mall.enums.goods.GoodsStatusEnum;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.enums.goods.GoodsAuditStatusEnum;
+import com.niu.core.enums.goods.GoodsStatusEnum;
 import com.niu.mall.event.goods.AfterGoodsEditEvent;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -30,6 +30,7 @@ public class AfterMallGoodsEditListener extends AbstractListener {
             Long count = mallGoodsMapper.selectCount(new QueryWrapper<MallGoods>().eq("site_id", event.getGoodsData().getSiteId())
                     .eq("status", GoodsStatusEnum.ONLINE.getStatus())
                     .eq("audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus())
+                    .eq("delete_time", 0)
             );
             ShopStatParam param = new ShopStatParam();
             param.setSiteId(event.getGoodsData().getSiteId());

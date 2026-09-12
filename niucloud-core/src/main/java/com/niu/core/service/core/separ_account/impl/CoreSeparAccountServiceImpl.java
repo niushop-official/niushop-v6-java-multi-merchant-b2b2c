@@ -83,13 +83,22 @@ public class CoreSeparAccountServiceImpl implements ICoreSeparAccountService {
     @Override
     public void toSpear(SeparAccount account) {
         log.info("进入分账");
-        SeparAccountModel model = new SeparAccountModel();
-        BeanUtils.copyProperties(account, model);
-        model.setDetail(separAccountDetailMapper.selectList(new QueryWrapper<SeparAccountDetail>().eq("separ_id", account.getId())));
-        ToSeparEvent event = new ToSeparEvent();
-        event.setSiteId(RequestUtils.defaultSiteId());
-        event.setAccount(model);
-        event.setName("ToSeparEvent");
-        EventAndSubscribeOfPublisher.publishAll(event);
+        try {
+            SeparAccountModel model = new SeparAccountModel();
+            BeanUtils.copyProperties(account, model);
+            model.setDetail(separAccountDetailMapper.selectList(new QueryWrapper<SeparAccountDetail>().eq("separ_id", account.getId())));
+            ToSeparEvent event = new ToSeparEvent();
+            event.setSiteId(RequestUtils.defaultSiteId());
+            event.setAccount(model);
+            event.setName("ToSeparEvent");
+            EventAndSubscribeOfPublisher.publishAll(event);
+        } catch (Exception e) {
+            log.error("toSpear failed, accountId={}", account.getId(), e);
+            SeparNotifyParam param = new SeparNotifyParam();
+            param.setId(account.getId());
+            param.setStatus(SeparStatusEnum.FAIL);
+            param.setFailReason(e.getMessage());
+            notify(param);
+        }
     }
 }

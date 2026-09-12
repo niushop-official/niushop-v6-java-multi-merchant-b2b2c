@@ -1,9 +1,7 @@
 package com.niu.core.service.site.shop.impl;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import cn.hutool.core.util.ObjectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
@@ -14,26 +12,28 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.QrcodeUtils;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
-import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.entity.shop.SiteShopAccountLog;
 import com.niu.core.entity.shop.SiteShopCashOut;
+import com.niu.core.entity.site.Site;
+import com.niu.core.entity.site.SiteSettAccount;
 import com.niu.core.enums.shop.ShopCashOutEnum;
 import com.niu.core.enums.shop.ShopTransferEnum;
 import com.niu.core.mapper.shop.SiteShopAccountLogMapper;
 import com.niu.core.mapper.shop.SiteShopCashOutMapper;
-import com.niu.core.mapper.shop.SiteShopMapper;
+import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.admin.shop.IShopConfigService;
+import com.niu.core.service.admin.shop.param.SiteShopCashOutSearchParam;
 import com.niu.core.service.admin.shop.vo.SiteShopCashOutInfoVo;
+import com.niu.core.service.admin.shop.vo.SiteShopCashOutListVo;
+import com.niu.core.service.admin.site.ISiteSettAccountService;
+import com.niu.core.service.api.shop.param.WithdrawApplyParam;
+import com.niu.core.service.core.shop.vo.ShopCashOutConfigVo;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import com.niu.core.service.core.sys.vo.SceneDomainVo;
 import com.niu.core.service.core.weapp.ICoreWeappService;
 import com.niu.core.service.site.shop.ISiteShopCashOutService;
-import com.niu.core.service.admin.shop.param.SiteShopCashOutSearchParam;
-import com.niu.core.service.admin.shop.vo.SiteShopCashOutListVo;
-import com.niu.core.service.api.shop.param.WithdrawApplyParam;
-import com.niu.core.service.core.shop.vo.ShopCashOutConfigVo;
-import com.niu.core.service.site.shop.vo.SiteShopCashOutCancelVo;
 import com.niu.core.service.site.shop.vo.SiteShopCashOutCodeVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -41,6 +41,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -56,13 +58,15 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
     @Resource
     private Cached cached;
     @Resource
-    SiteShopMapper siteShopMapper;
+    SiteMapper siteMapper;
     @Resource
     SiteShopAccountLogMapper siteShopAccountLogMapper;
     @Resource
     IShopConfigService shopConfigService;
     @Resource
     ICoreSysConfigService coreSysConfigService;
+    @Resource
+    ISiteSettAccountService siteSettAccountService;
     @Resource
     ICoreWeappService coreWeappService;
 
@@ -149,7 +153,7 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
                 .leftJoin("?_site ns ON nssco.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .select("ns.site_id as 'siteInfo.siteId', ns.site_name as 'siteInfo.siteName', " +
                         "ns.phone as 'siteInfo.phone', ns.logo as 'siteInfo.logo', " +
-                        "ns.group_id as 'siteInfo.groupId', ns.keywords as 'siteInfo.keywords', " +
+                        "ns.group_id as 'siteInfo.groupId', " +
                         "ns.app_type as 'siteInfo.appType', ns.addons as 'siteInfo.addons', " +
                         "ns.address as 'siteInfo.address', ns.app as 'siteInfo.app', " +
                         "ns.business_hours as 'siteInfo.businessHours', ns.city_id as 'siteInfo.cityId', " +
@@ -160,7 +164,7 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
                         "ns.latitude as 'siteInfo.latitude', ns.longitude as 'siteInfo.longitude', " +
                         "ns.member_no as 'siteInfo.memberNo', ns.province_id as 'siteInfo.provinceId', " +
                         "ns.site_domain as 'siteInfo.siteDomain', ns.status as 'siteInfo.status'")
-                .eq("nssco.id", id) .or()
+                .eq("nssco.id", id).or()
                 .eq("nssco.cash_out_no", id);
         queryWrapper.eq("nssco.site_id", RequestUtils.siteId());
         SiteShopCashOutInfoVo infoVo = siteShopCashOutMapper.selectJoinOne(SiteShopCashOutInfoVo.class, queryWrapper);
@@ -175,17 +179,11 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
         }
         if (infoVo.getSiteInfo() == null) {
             SiteShopCashOutInfoVo.SiteInfoVO siteInfo = new SiteShopCashOutInfoVo.SiteInfoVO();
-            QueryWrapper<SiteShop> siteQueryWrapper = new QueryWrapper<>();
-            siteQueryWrapper.eq("site_id", infoVo.getSiteId());
-            SiteShop siteShop = siteShopMapper.selectOne(siteQueryWrapper);
 
-            if (siteShop != null) {
-                // 手动设置站点的基本信息
-                siteInfo.setSiteId(siteShop.getSiteId());
-                siteInfo.setSiteName(infoVo.getSiteInfo().getSiteName());
-                siteInfo.setPhone(infoVo.getSiteInfo().getPhone());
-                siteInfo.setLogo(infoVo.getSiteInfo().getLogo());
-            }
+            siteInfo.setSiteId(infoVo.getSiteId());
+            siteInfo.setSiteName(infoVo.getSiteInfo().getSiteName());
+            siteInfo.setPhone(infoVo.getSiteInfo().getPhone());
+            siteInfo.setLogo(infoVo.getSiteInfo().getLogo());
 
             infoVo.setSiteInfo(siteInfo);
         }
@@ -220,6 +218,7 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
 
     /**
      * 申请提现
+     *
      * @param withdrawParam 提现申请参数
      * @return Integer 提现记录ID
      */
@@ -237,29 +236,43 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
         // 检查最低提现金额
         BigDecimal minAmount = new BigDecimal(cashOutConfig.getMin());
         if (minAmount.compareTo(withdrawParam.getApplyMoney()) > 0) {
-            throw new CommonException("最低提现金额不能小于" + minAmount);
+            throw new CommonException("最低提现金额不能小于 " + minAmount);
         }
 
-        // 获取店铺账户信息
+        // 获取站点账户信息
         Integer siteId = RequestUtils.siteId();
-        SiteShop shopAccount = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", siteId));
-        // 检查转账方式是否支持
-        String transferType = cashOutConfig.getTransferType();
-        String bankType = String.valueOf(shopAccount.getBankType());
-        if (transferType.equals(bankType)) {
-            throw new CommonException("系统暂不支持该转账方式");
-        }
-        if (ObjectUtil.isEmpty(shopAccount)) {
+        Site siteAccount = siteMapper.selectById(siteId);
+        if (ObjectUtil.isEmpty(siteAccount)) {
             throw new CommonException("提现账户不存在");
         }
+
+        // 获取结算账户信息（关键：使用结算账户服务）
+        SiteSettAccount siteSettAccount = siteSettAccountService.getSiteSettAccountById(withdrawParam.getAccountId());
+        if (ObjectUtil.isEmpty(siteSettAccount)) {
+            throw new CommonException("提现账户不存在");
+        }
+
+        // 检查转账方式是否支持
+        String transferTypeJson = cashOutConfig.getTransferType();
+        if (StringUtils.isEmpty(transferTypeJson)) {
+            throw new CommonException("未配置转账方式");
+        }
+        List<String> transferType = JSONUtil.toList(transferTypeJson, String.class);
+        if (!transferType.contains(ShopTransferEnum.getKeyByTag(siteSettAccount.getType()))) {
+            throw new CommonException("系统暂不支持该转账方式");
+        }
+
         // 检查提现金额是否合法
-        if (withdrawParam.getApplyMoney().signum()<=0) {
+        if (withdrawParam.getApplyMoney().signum() <= 0) {
             throw new CommonException("提现金额必须大于零");
         }
+
         // 检查余额是否足够
-        if (shopAccount.getMoney().compareTo(withdrawParam.getApplyMoney()) < 0) {
+        BigDecimal siteMoney = siteAccount.getMoney() != null ? siteAccount.getMoney() : BigDecimal.ZERO;
+        if (siteMoney.compareTo(withdrawParam.getApplyMoney()) < 0) {
             throw new CommonException("超出最大可提现余额");
         }
+
         // 计算手续费
         BigDecimal rate = new BigDecimal(cashOutConfig.getRate());
         BigDecimal serviceMoney = withdrawParam.getApplyMoney()
@@ -282,39 +295,36 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
             cashOut.setRate(rate);
             cashOut.setTransferMobile("");
 
-            // 设置转账方式信息
-            Integer bankTypeInt = shopAccount.getBankType();
-            cashOut.setTransferType(bankTypeInt.toString());
-            if (bankTypeInt == 1) { // 银行卡
-                cashOut.setTransferBank(shopAccount.getBankName());
-                cashOut.setTransferRealname(shopAccount.getBankAccountName());
-                cashOut.setTransferAccount(shopAccount.getBankAccountNo());
-            } else if (bankTypeInt == 2) { // 支付宝
-                cashOut.setTransferRealname(shopAccount.getAlipayName());
-                cashOut.setTransferAccount(shopAccount.getAlipayAccountNo());
-                cashOut.setTransferPaymentCode(shopAccount.getAlipayPaymentCode());
-            } else if (bankTypeInt == 3) { // 微信收款码
-                cashOut.setTransferRealname(shopAccount.getWechatName());
-                cashOut.setTransferAccount(shopAccount.getWechatAccountNo());
-                cashOut.setTransferPaymentCode(shopAccount.getWechatPaymentCode());
-            }
+            // 使用结算账户服务获取转账数据格式 同步php端
+            Map<String, Object> transferData = siteSettAccountService.getTransferDataBySettAccount(siteSettAccount);
+            cashOut.setTransferType(String.valueOf(transferData.get("transfer_type")));
+            cashOut.setTransferBank(String.valueOf(transferData.get("transfer_bank")));
+            cashOut.setTransferRealname(String.valueOf(transferData.get("transfer_realname")));
+            cashOut.setTransferAccount(String.valueOf(transferData.get("transfer_account")));
+            cashOut.setTransferPaymentCode(String.valueOf(transferData.get("transfer_payment_code")));
 
             // 设置状态：是否自动审核
             cashOut.setStatus("1".equals(cashOutConfig.getIsAutoVerify()) ? 2 : 1);
             cashOut.setCreateTime(System.currentTimeMillis() / 1000);
+
+            if ("1".equals(cashOutConfig.getIsAutoVerify())) {
+                cashOut.setAuditTime(System.currentTimeMillis() / 1000);
+            }
+
             // 保存提现记录
             siteShopCashOutMapper.insert(cashOut);
 
-            // 更新店铺账户信息
-            shopAccount.setMoneyCashOuting(shopAccount.getMoneyCashOuting().add(withdrawParam.getApplyMoney()));
-            shopAccount.setMoney(shopAccount.getMoney().subtract(withdrawParam.getApplyMoney()));
-            siteShopMapper.updateById(shopAccount);
+            // 更新站点账户信息
+            BigDecimal cashOuting = siteAccount.getMoneyCashOuting() != null ? siteAccount.getMoneyCashOuting() : BigDecimal.ZERO;
+            siteAccount.setMoneyCashOuting(cashOuting.add(withdrawParam.getApplyMoney()));
+            siteAccount.setMoney(siteMoney.subtract(withdrawParam.getApplyMoney()));
+            siteMapper.updateById(siteAccount);
 
             // 添加账户收支记录
             SiteShopAccountLog accountLog = new SiteShopAccountLog();
             accountLog.setSiteId(siteId);
-            accountLog.setMoney(withdrawParam.getApplyMoney().negate()); // 负数表示支出
-            accountLog.setMoneySum(shopAccount.getMoney());
+            accountLog.setMoney(withdrawParam.getApplyMoney().negate());
+            accountLog.setMoneySum(siteAccount.getMoney());
             accountLog.setFromType("cash_out");
             accountLog.setRelatedId(cashOutNo);
             accountLog.setMemo("店铺提现");
@@ -331,8 +341,8 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
     @Transactional
     public Boolean cancel(Integer id) {
         SiteShopCashOut info = siteShopCashOutMapper.selectById(id);
-        if(ObjectUtil.isEmpty(info)){
-           return true;
+        if (ObjectUtil.isEmpty(info)) {
+            return true;
         }
         SiteShopCashOut update = new SiteShopCashOut();
         update.setCancelTime(System.currentTimeMillis() / 1000);
@@ -341,16 +351,18 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
         update.setId(id);
         siteShopCashOutMapper.updateById(update);
         //审核取消，退回余额及减去提现中金额
-        SiteShop shopAccount =siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", info.getSiteId()));
-        shopAccount.setMoneyCashOuting(shopAccount.getMoneyCashOuting().subtract(info.getApplyMoney()));
-        shopAccount.setMoney(shopAccount.getMoney().add(info.getApplyMoney()));
-        siteShopMapper.updateById(shopAccount);
+        Site siteAccount = siteMapper.selectById(info.getSiteId());
+        BigDecimal cashOuting = siteAccount.getMoneyCashOuting() != null ? siteAccount.getMoneyCashOuting() : BigDecimal.ZERO;
+        BigDecimal money = siteAccount.getMoney() != null ? siteAccount.getMoney() : BigDecimal.ZERO;
+        siteAccount.setMoneyCashOuting(cashOuting.subtract(info.getApplyMoney()));
+        siteAccount.setMoney(money.add(info.getApplyMoney()));
+        siteMapper.updateById(siteAccount);
 
         // 添加账户收支记录
         SiteShopAccountLog accountLog = new SiteShopAccountLog();
         accountLog.setSiteId(info.getSiteId());
-        accountLog.setMoney(info.getApplyMoney()); // 负数表示支出
-        accountLog.setMoneySum(shopAccount.getMoney().add(info.getApplyMoney()));
+        accountLog.setMoney(info.getApplyMoney());
+        accountLog.setMoneySum(money.add(info.getApplyMoney()));
         accountLog.setFromType("cash_out");
         accountLog.setRelatedId(info.getCashOutNo());
         accountLog.setMemo("用户取消提现，退回余额");
@@ -363,31 +375,31 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
     @Transactional
     public SiteShopCashOutCodeVo transfer(Integer id) {
         SiteShopCashOut siteShopCashOut = siteShopCashOutMapper.selectById(id);
-        if(ObjectUtil.isEmpty(siteShopCashOut)){
+        if (ObjectUtil.isEmpty(siteShopCashOut)) {
             throw new CommonException("提现记录不存在");
         }
         List<Integer> status = Arrays.asList(ShopCashOutEnum.WAIT_TRANSFER.getState(), ShopCashOutEnum.TRANSFER_ING.getState());
-        if(!status.contains(siteShopCashOut.getStatus())){
+        if (!status.contains(siteShopCashOut.getStatus())) {
             throw new CommonException("审核未通过或已转账");
         }
-        if(!ShopTransferEnum.WECHAT.getTag().toString().equals(siteShopCashOut.getTransferType())){
+        if (!ShopTransferEnum.WECHAT.getTag().toString().equals(siteShopCashOut.getTransferType())) {
             throw new CommonException("不支持该提现方式");
         }
         SiteShopCashOutCodeVo updateData = new SiteShopCashOutCodeVo();
         String checkCode = generateCheckCode();
         cached.put(checkCode, id, 900);
 
-        updateData.setPage("app/pages/site/transfer?cod="+checkCode);
+        updateData.setPage("app/pages/site/transfer?cod=" + checkCode);
 
         try {
             updateData.setQrcode(getQrcode(RequestUtils.siteId(), checkCode));
-        }catch ( Exception e){
+        } catch (Exception e) {
 
         }
 
         try {
             updateData.setUrlLink(getUrlLink(checkCode));
-        }catch ( Exception e){
+        } catch (Exception e) {
 
         }
 
@@ -397,6 +409,7 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
 
     /**
      * 生成转账小程序二维码
+     *
      * @param checkCode $check_code
      * @return string
      */
@@ -413,6 +426,7 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
 
     /**
      * 生成转账小程序短链
+     *
      * @param checkCode $check_code
      * @return string
      */
@@ -421,7 +435,7 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
         Map<String, Object> data = new HashMap<>();
         data.put("key", "cod");
         data.put("value", checkCode);
-        return coreWeappService.getUrlLink(page,data);
+        return coreWeappService.getUrlLink(page, data);
     }
 
     public static String generateCheckCode() {

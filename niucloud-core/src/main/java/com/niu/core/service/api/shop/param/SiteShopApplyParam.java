@@ -1,58 +1,87 @@
 package com.niu.core.service.api.shop.param;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 商户入驻申请表参数
-*/
+ */
 @Data
 public class SiteShopApplyParam implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** 主键 */
+    /**
+     * 主键
+     */
     private Integer applyId;
 
-    /** 审核通过时间 */
+    /**
+     * 审核通过时间
+     */
     private Long auditTime;
 
-    /** 营业执照图片路径 */
+    /**
+     * 营业执照图片路径
+     */
     private String businessLicense;
 
-    /** 店铺分类id */
+    /**
+     * 店铺分类id
+     */
     private Integer categoryId;
+
     //分类名称
     private String categoryName;
 
-    /** 店铺套餐id */
+    /**
+     * 店铺套餐id
+     */
     private Integer groupId;
 
     private String groupName;
 
-    /** 申请会员 */
+    /**
+     * 申请会员
+     */
     private Integer memberId;
 
-    /** 开店状态（1待开店，2已开店） */
+    /**
+     * 开店状态（1待开店，2已开店）
+     */
     private Integer openStatus;
 
-    /** 拒绝原因 */
+    /**
+     * 拒绝原因
+     */
     private String refuseReason;
 
-    /** 开店店铺id */
+    /**
+     * 开店店铺id
+     */
     private Integer siteId;
 
-    /** 商户名称 */
+    /**
+     * 商户名称
+     */
     private String siteName;
 
-    /** 申请状态（1待审核，2已通过，-1已拒绝） */
+    /**
+     * 申请状态（1待审核，2已通过，-1已拒绝）
+     */
     private Integer status = 1;
 
-    /** 用户手机号 */
+    /**
+     * 用户手机号
+     */
     private String userMobile;
 
-    /** 用户姓名 */
+    /**
+     * 用户姓名
+     */
     private String userName;
 
 //    /** 登录账号 */
@@ -61,9 +90,37 @@ public class SiteShopApplyParam implements Serializable {
 //    /** 登录密码 */
 //    private String password;
 
-    /** 用户ID */
+    /**
+     * 用户ID
+     */
     private Integer uid;
 
     private String mobileKey;
     private String mobileCode;
+
+    /**
+     * 子级行业id
+     */
+    private Integer childCategoryId;
+
+    /**
+     * 所属应用
+     */
+    private String addon;
+
+    /**
+     * 申请方式  member 客户端用户申请  site 站点端用户申请
+     */
+    private String applyType;
+
+    /**
+     * 商圈id
+     */
+    private Integer circleId;
+
+    /**
+     * 自定义表单数据
+     */
+    @JsonProperty("form_data")
+    private Object formData;
 }

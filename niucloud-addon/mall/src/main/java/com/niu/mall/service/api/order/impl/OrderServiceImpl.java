@@ -38,7 +38,7 @@ import com.niu.core.service.core.delivery_weapp.vo.IsTradeManagedVo;
 import com.niu.core.service.core.pay.ICorePayService;
 import com.niu.mall.entity.order.*;
 import com.niu.mall.enums.common.CommonActiveEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.*;
 import com.niu.mall.event.pintuan.CheckInvoiceStatusEventDefiner;
 import com.niu.mall.mapper.order.*;
@@ -143,7 +143,7 @@ public class OrderServiceImpl implements IOrderService {
         Integer limit = pageParam.getLimit();
 
         QueryWrapper<MallOrder> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("site_id,order_id,order_no,order_type,order_from,out_trade_no,status,member_id,ip,goods_money,delivery_money,order_money,invoice_id,create_time,pay_time,delivery_type,taker_name,taker_mobile,taker_full_address,take_store_id,is_enable_refund,member_remark,mall_remark,close_remark,is_evaluate, group_id,extend_field_1,extend_field_2,use_point,point_deduct_money");
+        queryWrapper.select("site_id,order_id,order_no,order_type,order_from,out_trade_no,status,member_id,ip,goods_money,delivery_money,order_money,refund_money,invoice_id,create_time,pay_time,delivery_type,taker_name,taker_mobile,taker_full_address,take_store_id,is_enable_refund,member_remark,mall_remark,close_remark,is_evaluate, group_id,extend_field_1,extend_field_2,use_point,point_deduct_money");
         queryWrapper.eq("member_id", RequestUtils.memberId());
         if (ObjectUtil.isNotEmpty(searchParam.getOrderNo())) queryWrapper.like("order_no", searchParam.getOrderNo());
         if (ObjectUtil.isNotEmpty(searchParam.getStatus())) queryWrapper.eq("status", searchParam.getStatus());
@@ -225,6 +225,7 @@ public class OrderServiceImpl implements IOrderService {
             vo.setSite(site);
             //校验发票
             vo.setCanInvoice(checkIfCanInvoice(item.getInvoiceId(), item.getOrderType(), item.getStatus()));
+            vo.setInvoiceMoney(calcInvoiceMoney(item.getOrderMoney(), item.getRefundMoney()));
             list.add(vo);
         }
 
@@ -246,13 +247,7 @@ public class OrderServiceImpl implements IOrderService {
                 new QueryWrapper<MallOrder>()
                         .eq("order_id", orderId)
                         .eq("member_id", RequestUtils.memberId())
-                        .select("order_id,group_id,site_id,order_no,order_type,order_from,out_trade_no,status," +
-                                "member_id,ip,goods_money,delivery_money,order_money,invoice_id,create_time,pay_time," +
-                                "delivery_time,take_time,finish_time,close_time,delivery_type,taker_name,taker_mobile," +
-                                "taker_province,taker_city,taker_district,taker_address,taker_full_address,taker_longitude," +
-                                "taker_latitude,take_store_id,is_enable_refund,member_remark,shop_remark,close_remark," +
-                                "discount_money,is_evaluate,mall_discount_money,form_record_id,buyer_ask_delivery_time,extend_field_1,extend_field_2," +
-                                "sub_delivery_type,use_point,point_deduct_money,mall_coupon_money,full_reduction_money"));
+                        .select("*"));
 
         Assert.notNull(model, "订单不存在");
 
@@ -270,12 +265,16 @@ public class OrderServiceImpl implements IOrderService {
         long now = System.currentTimeMillis() / 1000;
         for (MallOrderInfoVo.OrderGoods goods : orderGoods) {
             if (GoodsTypeEnum.VIRTUAL.getType().equals(goods.getGoodsType())) {
+                if (StringUtils.isEmpty(goods.getGoodsConfig())) {
+                    continue;
+                }
                 Map<String, Object> goodsConfig = JSON.parseObject(goods.getGoodsConfig());
                 if (goodsConfig == null) continue;
-                String virtualDeliveryType = (String) goodsConfig.getOrDefault("virtual_delivery_type", "");
+                String virtualDeliveryType = String.valueOf(goodsConfig.getOrDefault("virtual_delivery_type", ""));
                 if ("verify".equals(virtualDeliveryType)) {
-                    int virtualRefund = ((Number) goodsConfig.getOrDefault("virtual_refund", 0)).intValue();
-                    int refundExpireTime = ((Number) goodsConfig.getOrDefault("refund_expire_time", 0)).intValue();
+                    repairVirtualVerifyExpireTime(vo, goods, goodsConfig);
+                    int virtualRefund = parseIntValue(goodsConfig.get("virtual_refund"), 0);
+                    long refundExpireTime = parseLongValue(goodsConfig.get("refund_expire_time"), 0L);
 
                     if (virtualRefund == 1 && goods.getIsEnableRefund() == 1) {
                         // 手动退款且允许退款，判断是否过期
@@ -308,6 +307,34 @@ public class OrderServiceImpl implements IOrderService {
         if (ObjectUtil.isNotEmpty(mallOrderGroup)) {
             MallOrderInfoVo.OrderGroup orderGroup = new MallOrderInfoVo.OrderGroup();
             BeanUtils.copyProperties(mallOrderGroup, orderGroup);
+            
+            // 查询订单组下的其他订单（排除当前订单）
+            List<MallOrder> groupOrders = mallOrderMapper.selectList(
+                new QueryWrapper<MallOrder>()
+                    .eq("group_id", vo.getGroupId())
+                    .ne("order_id", vo.getOrderId())
+                    .select("*")
+            );
+            groupOrders.add(model);
+            // 转换为MallOrderInfoVo列表
+            List<MallOrderInfoVo> orderGroupOrders = new ArrayList<>();
+            for (MallOrder groupOrder : groupOrders) {
+                MallOrderInfoVo groupOrderVo = new MallOrderInfoVo();
+                BeanUtils.copyProperties(groupOrder, groupOrderVo);
+                
+                // 查询订单商品
+                List<MallOrderInfoVo.OrderGoods> groupOrderGoods = CollectUtils.convert(
+                    mallOrderGoodsMapper.selectList(
+                        new QueryWrapper<MallOrderGoods>().eq("order_id", groupOrder.getOrderId())
+                    ),
+                    MallOrderInfoVo.OrderGoods.class
+                );
+                groupOrderVo.setOrderGoods(groupOrderGoods);
+                
+                orderGroupOrders.add(groupOrderVo);
+            }
+            orderGroup.setMallOrders(orderGroupOrders);
+            
             vo.setOrderGroup(orderGroup);
         }
 
@@ -397,7 +424,7 @@ public class OrderServiceImpl implements IOrderService {
                             Double.parseDouble(storeInfoVo.getLatitude()),
                             Double.parseDouble(storeInfoVo.getLongitude())
                     );
-                    vo.getStore().setDistance(distance);
+                    vo.getStore().setDistance(BigDecimal.valueOf(distance).divide(BigDecimal.valueOf(1000), 3, RoundingMode.HALF_UP).doubleValue());
                 }
             }
         }
@@ -450,6 +477,7 @@ public class OrderServiceImpl implements IOrderService {
         vo.setSite(site);
 
         vo.setCanInvoice(checkIfCanInvoice(vo.getInvoiceId(), vo.getOrderType(), vo.getStatus()));
+        vo.setInvoiceMoney(calcInvoiceMoney(vo.getOrderMoney(), vo.getRefundMoney()));
 
         // 16. 虚拟商品发货内容
         MallOrderDeliveryContent deliveryContent = orderDeliveryContentMapper.selectOne(
@@ -495,28 +523,6 @@ public class OrderServiceImpl implements IOrderService {
                 .eq("member_id", memberId)
                 .eq("status", OrderStatusEnum.FINISH.getStatus())
                 .eq("is_evaluate", 0)
-        ));
-        /**
-         * 514
-         */
-        vo.setWaitDelivery(mallOrderMapper.selectCount(new QueryWrapper<MallOrder>()
-                .eq("member_id", memberId)
-                .eq("status", OrderStatusEnum.WAIT_DELIVERY.getStatus())
-        ));
-
-        vo.setWaitRefund(mallOrderMapper.selectCount(new QueryWrapper<MallOrder>()
-                .eq("member_id", memberId)
-                .eq("status", OrderStatusEnum.WAIT_PAY.getStatus())
-        ));
-        vo.setWaitVerify(mallOrderMapper.selectCount(new QueryWrapper<MallOrder>()
-                .eq("member_id", memberId)
-                .eq("status", OrderStatusEnum.WAIT_TAKE.getStatus())
-        ));
-        /**
-         * 516
-         */
-        vo.setWaitTransfer(siteShopCashOutMapper.selectCount(new QueryWrapper<SiteShopCashOut>()
-                .eq("status", OrderGoodsRefundEnum.REFUNDING.getStatus())
         ));
         Integer[] refundStatus = new Integer[]{
                 OrderRefundStatusEnum.BUYER_APPLY_WAIT_STORE.getStatus(),
@@ -619,6 +625,79 @@ public class OrderServiceImpl implements IOrderService {
         return vo;
     }
 
+    private void repairVirtualVerifyExpireTime(MallOrderInfoVo order, MallOrderInfoVo.OrderGoods goods, Map<String, Object> goodsConfig) {
+        if (ObjectUtil.defaultIfNull(goods.getVerifyExpireTime(), 0L) > 0) {
+            return;
+        }
+        int virtualVerifyType = parseIntValue(goodsConfig.get("virtual_verify_type"), 0);
+        if (virtualVerifyType == 0) {
+            return;
+        }
+
+        long virtualIndate = parseLongValue(goodsConfig.get("virtual_indate"), 0L);
+        if (virtualIndate <= 0) {
+            return;
+        }
+
+        long expireTime = virtualVerifyType == 1
+                ? resolveVirtualVerifyBaseTime(order) + virtualIndate * 86400L
+                : virtualIndate;
+        if (expireTime <= 0) {
+            return;
+        }
+
+        MallOrderGoods update = new MallOrderGoods();
+        update.setOrderGoodsId(goods.getOrderGoodsId());
+        update.setVerifyExpireTime(expireTime);
+        if (ObjectUtil.defaultIfNull(goods.getIsVerify(), 0) == 0) {
+            update.setIsVerify(1);
+            goods.setIsVerify(1);
+        }
+        mallOrderGoodsMapper.updateById(update);
+        goods.setVerifyExpireTime(expireTime);
+    }
+
+    private static long resolveVirtualVerifyBaseTime(MallOrderInfoVo order) {
+        if (ObjectUtil.defaultIfNull(order.getPayTime(), 0L) > 0) {
+            return order.getPayTime();
+        }
+        if (ObjectUtil.defaultIfNull(order.getDeliveryTime(), 0L) > 0) {
+            return order.getDeliveryTime();
+        }
+        if (ObjectUtil.defaultIfNull(order.getCreateTime(), 0L) > 0) {
+            return order.getCreateTime();
+        }
+        return System.currentTimeMillis() / 1000;
+    }
+
+    private static int parseIntValue(Object value, int defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        try {
+            return Integer.parseInt(value.toString());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    private static long parseLongValue(Object value, long defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        try {
+            return Long.parseLong(value.toString());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
     private static List<Map<String, Object>> buildGiftOrderGoodsList(List<MallOrderGiftGoods> giftGoodsList) {
         List<Map<String, Object>> giftOrderGoods = new ArrayList<>();
         if (ObjectUtil.isEmpty(giftGoodsList)) {
@@ -680,5 +759,14 @@ public class OrderServiceImpl implements IOrderService {
             }
         }
         return canInvoice;
+    }
+
+    /**
+     * 可开票金额 = order_money - refund_money，对齐 PHP
+     */
+    private BigDecimal calcInvoiceMoney(BigDecimal orderMoney, BigDecimal refundMoney) {
+        BigDecimal order = orderMoney != null ? orderMoney : BigDecimal.ZERO;
+        BigDecimal refund = refundMoney != null ? refundMoney : BigDecimal.ZERO;
+        return order.subtract(refund).setScale(2, RoundingMode.HALF_UP);
     }
 }

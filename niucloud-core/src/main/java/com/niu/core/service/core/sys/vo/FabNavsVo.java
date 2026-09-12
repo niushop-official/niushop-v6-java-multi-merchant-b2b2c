@@ -30,6 +30,6 @@ public class FabNavsVo implements Serializable {
          private Integer type = 1;
          private String position = "right";
          private Integer bottom = 300;
-         private String icon; // 悬浮球图标
+         private String icon = ""; // 悬浮球图标
     }
 }

@@ -1,10 +1,14 @@
 package com.niu.core.service.core.pay.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.entity.pay.PayChannel;
+import com.niu.core.enums.pay.PayTypeByTradeEnum;
+import com.niu.core.enums.pay.PayTypeEnum;
 import com.niu.core.mapper.pay.PayChannelMapper;
 import com.niu.core.service.core.pay.ICorePayChannelService;
 import com.niu.core.service.core.pay.ICorePayService;
@@ -22,7 +26,6 @@ import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 /**
@@ -73,14 +76,23 @@ public class CorePayChannelServiceImpl implements ICorePayChannelService {
                 .eq("channel", channel));
         List<String> typeList = new ArrayList<>();
         for (PayChannel item : payChannelList) {
-            if (item.getConfig().isEmpty()) continue;
-            PayTypeVo type = corePayService.driver(channel, item.getType()).filterPayTypeByTradeType(tradeType);
+            if (item.getConfig().isEmpty()) {
+                continue;
+            }
+            String payTypeKey = item.getType();
+            if (!isPayTypeSupportedOnChannel(payTypeKey, channel)) {
+                continue;
+            }
+            if (!PayTypeByTradeEnum.isPayTypeAllowed(payTypeKey, tradeType)) {
+                continue;
+            }
+            PayTypeVo type = corePayService.driver(channel, payTypeKey).filterPayTypeByTradeType(tradeType);
             if (type != null) {
                 type.setConfig(item.getConfig());
                 list.add(type);
             }
-            if (type == null){
-                typeList.add(item.getType());
+            if (type == null) {
+                typeList.add(payTypeKey);
             }
         }
         if (list.isEmpty()){
@@ -115,5 +127,23 @@ public class CorePayChannelServiceImpl implements ICorePayChannelService {
         }
 
         return config;
+    }
+
+    /**
+     * 支付方式是否支持当前渠道（对齐 PHP not_support_channel）
+     */
+    private boolean isPayTypeSupportedOnChannel(String payTypeKey, String channel) {
+        if (StrUtil.isBlank(payTypeKey) || StrUtil.isBlank(channel)) {
+            return true;
+        }
+        JSONObject payTypeConfig = PayTypeEnum.getType().getJSONObject(payTypeKey);
+        if (payTypeConfig == null || payTypeConfig.isEmpty()) {
+            return true;
+        }
+        JSONArray notSupportChannel = payTypeConfig.getJSONArray("not_support_channel");
+        if (notSupportChannel == null || notSupportChannel.isEmpty()) {
+            return true;
+        }
+        return !notSupportChannel.contains(channel);
     }
 }

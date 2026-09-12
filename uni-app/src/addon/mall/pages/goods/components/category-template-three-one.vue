@@ -11,7 +11,7 @@
 			<view class="tabs-box z-2 fixed left-0 bg-[#fff] bottom-[50px] top-0" :style="tabsBoxCss">
 				<scroll-view :scroll-y="true" class="scroll-height">
 					<view class="bg-[var(--temp-bg)]">
-						<view class="tab-item" :class="{ 'tab-item-active': index == tabActive,'rounded-br-[12rpx]':tabActive-1===index,'rounded-tr-[12rpx]':tabActive+1===index  }" v-for="(item, index) in tabsData" :key="item.site_id" @click="firstLevelClick(index, item)">
+						<view class="tab-item" :class="{ 'tab-item-active': index == tabActive,'rounded-br-12':tabActive-1===index,'rounded-tr-12':tabActive+1===index  }" v-for="(item, index) in tabsData" :key="item.site_id" @click="firstLevelClick(index, item)">
 							<view class="text-box text-left leading-[1.3] break-words px-[16rpx]">
 								{{ item.category_name }}
 							</view>
@@ -21,10 +21,10 @@
 			</view>
 			
 			<scroll-view class="h-[100vh]" :scroll-y="true">
-				<view class="pl-[188rpx] scroll-ios pt-[20rpx] pr-[20rpx]" :class="{ '!pt-[100rpx]': config.search.control }">
+				<view class="goods-box-wrap scroll-ios" :class="{ 'pt100': config.search.control }">
 					<template v-if="tabsData[tabActive]?.child_list && !loading">
 						<view v-for="(item,index) in tabsData[tabActive]?.child_list" :key="item.category_id">
-							<view class="text-[24rpx] leading-[36rpx] mb-[20rpx]" :class="{'mt-[30rpx]':index}" @click="toLink(item.category_id)">{{ item.category_name }}</view>
+							<view class="category-box" :class="{'mt30':index}" @click="toLink(item.category_id)">{{ item.category_name }}</view>
 							<view v-if="item?.child_list&&item?.child_list.length" class="bg-[#fff] grid grid-cols-3 gap-x-[50rpx] gap-y-[32rpx] py-[32rpx] px-[24rpx] rounded-[var(--rounded-big)]">
 								<template v-for="threeItem in item?.child_list" :key="threeItem.category_id">
 									<view class="flex flex-col items-center" @click="toLink(threeItem.category_id)">
@@ -57,7 +57,6 @@
 				</view>
 			</scroll-view>
 		</view>
-		<tabbar />
 		<mescroll-empty v-if="!tabsData.length && !loading" :option="{tip : '暂无商品分类'}"></mescroll-empty>
 		<u-loading-page bg-color="rgb(248,248,248)" :loading="loading" loadingText="" ></u-loading-page>
 	</view>
@@ -110,7 +109,9 @@ const tabsBoxCss = computed(() => {
 const tabsData = ref<Array<Object>>([])
 const getCategoryData = () => {
     loading.value = true;
-    getGoodsCategoryTree({}).then((res: any) => {
+    getGoodsCategoryTree({
+		addon: 'mall'
+	}).then((res: any) => {
         tabsData.value = res.data;
         if (categoryId) {
             for (let i = 0; i < tabsData.value.length; i++) {
@@ -199,7 +200,28 @@ const searchNameFn = () => {
 .transform-rotate {
 	transform: rotate(180deg);
 }
-
+.rounded-br-12 {
+	border-bottom-right-radius: 0rpx;
+}
+.rounded-tr-12 {
+	border-top-right-radius: 0rpx;
+}
+.goods-box-wrap {
+	padding-left: 188rpx;
+	padding-right: 20rpx;
+	padding-top: 20rpx;
+	&.pt100 {
+		padding-top: 100rpx !important;
+	}
+}
+.category-box {
+	font-size: 24rpx;
+	line-height: 36rpx;
+	margin-bottom: 20rpx;
+	&.mt30 {
+		margin-top: 30rpx;
+	}
+}
 .text-color {
 	color: $u-primary;
 }

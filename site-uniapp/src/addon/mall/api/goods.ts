@@ -156,3 +156,12 @@ export function editGoodsListPrice(params: Record<string, any>) {
 export function editGoodsListStock(params: Record<string, any>) {
     return request.put(`mall/site/goods/sku/stock`, params, { showSuccessMessage: true })
 }
+
+/**
+ * 获取商品选择分页列表
+ * @param params
+ * @returns
+ */
+export function getGoodsSelectPageList(params: Record<string, any>) {
+    return request.get(`mall/site/goods/select`, params)
+}

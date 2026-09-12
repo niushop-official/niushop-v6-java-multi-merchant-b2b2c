@@ -8,10 +8,10 @@ import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.shop.SiteShop;
-import com.niu.core.entity.shop.SiteShopCategory;
+import com.niu.core.entity.site.SiteCategory;
 import com.niu.core.entity.site.Site;
 import com.niu.core.enums.addon.AddonActionEnum;
-import com.niu.core.mapper.shop.SiteShopCategoryMapper;
+import com.niu.core.mapper.site.SiteCategoryMapper;
 import com.niu.core.mapper.shop.SiteShopMapper;
 import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.admin.addon.IAddonService;
@@ -20,14 +20,11 @@ import com.niu.core.service.admin.shop.param.SiteShopAccountInfoParam;
 import com.niu.core.service.admin.shop.param.SiteShopBasicInfoParam;
 import com.niu.core.service.admin.shop.vo.SiteShopInShopVo;
 import com.niu.core.service.admin.shop.vo.SiteShopInfoVo;
-import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.site.shop.ISiteShopSettingService;
 import com.niu.core.service.site.shop.vo.ShopSiteInfoVo;
 import jakarta.annotation.Resource;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,7 +41,7 @@ public class SiteShopSettingServiceImpl implements ISiteShopSettingService {
     private SiteShopMapper siteShopMapper;
 
     @Resource
-    private SiteShopCategoryMapper siteShopCategoryMapper;
+    private SiteCategoryMapper siteCategoryMapper;
 
     @Resource
     private IAddonService addonService;
@@ -78,10 +75,10 @@ public class SiteShopSettingServiceImpl implements ISiteShopSettingService {
         {
 
             shopSiteInfoVo.setIsSelf(shopInfo.getIsSelf());
-            SiteShopCategory siteShopCategory = siteShopCategoryMapper.selectById(shopInfo.getCategoryId());
-            if(ObjectUtil.isNotEmpty(siteShopCategory))
+            SiteCategory siteCategory = siteCategoryMapper.selectById(shopInfo.getCategoryId());
+            if(ObjectUtil.isNotEmpty(siteCategory))
             {
-                shopSiteInfoVo.setCategoryName(siteShopCategory.getCategoryName());
+                shopSiteInfoVo.setCategoryName(siteCategory.getName());
             }
         }
         return shopSiteInfoVo;
@@ -89,29 +86,12 @@ public class SiteShopSettingServiceImpl implements ISiteShopSettingService {
 
     @Override
     public SiteShopInShopVo getShopAccountInfo() {
-        SiteShop model = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", RequestUtils.siteId()));
-        if (ObjectUtil.isEmpty(model)) throw new AdminException("店铺信息不存在");
-        SiteShopInShopVo vo = new SiteShopInShopVo();
-        BeanUtils.copyProperties(model, vo);
-        vo.setMoney(model.getMoney().setScale(2, RoundingMode.HALF_UP).toString());
-        vo.setMoneyGet(model.getMoneyGet().setScale(2, RoundingMode.HALF_UP).toString());
-        vo.setMoneyCashOuting(model.getMoneyCashOuting().setScale(2, RoundingMode.HALF_UP).toString());
-        vo.setShopDeposit(model.getShopDeposit().setScale(2, RoundingMode.HALF_UP).toString());
-        vo.setWithdrawalMoney((model.getMoneyGet().subtract(model.getMoney()).subtract(model.getMoneyCashOuting())).setScale(2, RoundingMode.HALF_UP).toString());
-        vo.setSupplyServiceRate(model.getSupplyServiceRate().toString());
-        return vo;
+        return siteShopService.getShopAccountInfo(RequestUtils.siteId());
     }
 
     @Override
     public void editShopAccount(SiteShopAccountInfoParam siteShopAccountInfoParam) {
-        SiteShop shop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>()
-                .eq("site_id", RequestUtils.siteId()));
-        if (ObjectUtil.isEmpty(shop)) {
-            throw new AdminException("店铺信息不存在");
-        }
-        BeanUtils.copyProperties(siteShopAccountInfoParam, shop);
-        siteShopMapper.update(shop, new QueryWrapper<SiteShop>()
-                .eq("site_id", RequestUtils.siteId()));
+        throw new AdminException("请使用结算账户管理接口维护提现账户");
     }
 
 }

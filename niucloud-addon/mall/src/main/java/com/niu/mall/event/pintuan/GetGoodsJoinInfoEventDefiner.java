@@ -6,6 +6,7 @@ import com.niu.core.common.component.context.event.EventResult;
 import com.niu.core.common.component.context.listener.CallbackListener;
 import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 public abstract class GetGoodsJoinInfoEventDefiner extends CallbackListener<GetGoodsJoinInfoEventDefiner.GetGoodsJoinInfoEvent> {
 
@@ -13,6 +14,7 @@ public abstract class GetGoodsJoinInfoEventDefiner extends CallbackListener<GetG
      * 事件主题定义
      */
     @Data
+    @EqualsAndHashCode(callSuper=false)
     public static class GetGoodsJoinInfoEvent extends Event {
 
         private Integer[] goodsIds;

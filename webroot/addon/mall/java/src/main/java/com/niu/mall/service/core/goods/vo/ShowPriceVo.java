@@ -11,6 +11,7 @@ public class ShowPriceVo {
 
     private BigDecimal showPrice;
 
+    @Builder.Default
     private String showType = "";
 
     private Integer activeId;

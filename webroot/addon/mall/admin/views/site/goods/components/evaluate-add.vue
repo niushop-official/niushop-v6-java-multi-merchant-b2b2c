@@ -50,7 +50,7 @@ import { t } from '@/lang'
 import goodsSelectPopup from '@/addon/mall/views/site/goods/components/goods-select-popup.vue'
 import type { FormInstance } from 'element-plus'
 
-import { addEvaluate } from '@/addon/mall/api/site/goods'
+import { addEvaluate } from '@/app/lang/zh-cn/api/site/goods'
 
 const showDialog = ref(false)
 const loading = ref(false)

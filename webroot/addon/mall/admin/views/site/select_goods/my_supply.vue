@@ -5,9 +5,9 @@
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="supplyTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true"  label-width="70px" :model="supplyTable.searchParam" ref="searchFormRef"  class="page-form">
                     <el-form-item :label="t('供货商名称')" prop="keyword">
-                        <el-input v-model.trim="supplyTable.searchParam.keyword" :placeholder="t('请输入供货商名称')" maxlength="60" />
+                        <el-input v-model.trim="supplyTable.searchParam.keyword" :placeholder="t('请输入供货商名称')" maxlength="60" clearable class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadSupplyList()">{{ t('search') }}</el-button>
@@ -50,7 +50,7 @@ import { t } from '@/lang'
 import { img } from '@/utils/common'
 import { useRoute, useRouter } from 'vue-router'
 import { FormInstance } from 'element-plus'
-import { getMysupplyList } from '@/addon/mall/api/site/select_goods'
+import { getMysupplyList } from '@/app/lang/zh-cn/api/site/select_goods'
 
 const router = useRouter()
 const route = useRoute()

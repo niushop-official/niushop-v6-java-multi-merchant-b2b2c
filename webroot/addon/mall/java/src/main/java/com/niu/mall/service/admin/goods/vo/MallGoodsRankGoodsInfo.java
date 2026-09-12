@@ -1,7 +1,7 @@
 package com.niu.mall.service.admin.goods.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoodsSku;
 import lombok.Data;
 
 import java.math.BigDecimal;

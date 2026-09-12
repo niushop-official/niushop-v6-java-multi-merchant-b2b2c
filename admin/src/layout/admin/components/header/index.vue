@@ -13,14 +13,14 @@
             </div>
             <div class="flex items-center h-[60px] leading-[60px] text-[#fff]">
                 <template v-for="(item, index) in oneMenuData" :key="index">
-                    <div v-if="item.meta.show" class="px-[12px] flex items-center cursor-pointer" :class="{'bg-[var(--el-color-primary)]':oneMenuActive===item.original_name}" @click="handleTabClick(item.name)">
-                        <div class="w-[20px] h-full flex items-center mr-[8px]">
+                    <div v-if="item.meta.show" class="px-[14px] flex items-center cursor-pointer" :class="{'bg-[var(--el-color-primary)]':oneMenuActive===item.original_name}" @click="handleTabClick(item.name)">
+                        <!-- <div class="w-[20px] h-full flex items-center mr-[8px]">
                             <template v-if="item.meta.icon">
                                 <el-image class="w-[16px] h-[16px] overflow-hidden" :src="item.meta.icon" fit="fill" v-if="isUrl(item.meta.icon)"/>
                                 <icon :name="item.meta.icon" v-else />
                             </template>
                             <icon v-else :name="'iconfont iconshezhi1'" />
-                        </div>
+                        </div> -->
                         <span class="w-full truncate text-[14px]">{{ item.meta.short_title || item.meta.title }}</span>
                     </div>
                 </template>

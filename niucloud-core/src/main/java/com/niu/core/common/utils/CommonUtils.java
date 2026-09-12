@@ -55,6 +55,59 @@ public class CommonUtils {
         return prefix + DateUtil.format(DateUtil.date(System.currentTimeMillis()), "yyyyMMdd") + tag + id;
     }
 
+    /**
+     * PHP Snowflake 起始时间戳（与 core/util/Snowflake.php 一致）
+     */
+    private static final long PHP_SNOWFLAKE_START_EPOCH = 1609459200000L;
+
+    private static final int PHP_SNOWFLAKE_SEQUENCE_MASK = 4095;
+
+    private static long phpSnowflakeLastTimestamp = -1L;
+
+    private static long phpSnowflakeSequence = 0L;
+
+    /**
+     * 生成订单缓存 key（与 PHP create_no 算法一致，约 23 位，非 32 位 UUID）
+     */
+    public static String createOrderKey() {
+        return createOrderKey("", "");
+    }
+
+    /**
+     * 生成订单缓存 key（对应 PHP create_no($prefix, $tag)）
+     */
+    public static String createOrderKey(String prefix, String tag) {
+        prefix = StringUtils.isNotEmpty(prefix) ? prefix : "";
+        tag = StringUtils.isNotEmpty(tag) ? tag : "";
+        long timestamp = System.currentTimeMillis();
+        long id = nextPhpStyleSnowflakeId(timestamp);
+        return prefix + DateUtil.format(DateUtil.date(timestamp), "yyyyMMdd") + tag + id;
+    }
+
+    private static synchronized long nextPhpStyleSnowflakeId(long timestamp) {
+        if (timestamp < phpSnowflakeLastTimestamp) {
+            throw new IllegalStateException("Clock moved backwards.");
+        }
+        if (timestamp == phpSnowflakeLastTimestamp) {
+            phpSnowflakeSequence = (phpSnowflakeSequence + 1) & PHP_SNOWFLAKE_SEQUENCE_MASK;
+            if (phpSnowflakeSequence == 0) {
+                timestamp = waitNextMillis(phpSnowflakeLastTimestamp);
+            }
+        } else {
+            phpSnowflakeSequence = 0L;
+        }
+        phpSnowflakeLastTimestamp = timestamp;
+        return ((timestamp - PHP_SNOWFLAKE_START_EPOCH) << 12) | phpSnowflakeSequence;
+    }
+
+    private static long waitNextMillis(long lastTimestamp) {
+        long timestamp = System.currentTimeMillis();
+        while (timestamp <= lastTimestamp) {
+            timestamp = System.currentTimeMillis();
+        }
+        return timestamp;
+    }
+
 
     /**
      * 生成缩略图

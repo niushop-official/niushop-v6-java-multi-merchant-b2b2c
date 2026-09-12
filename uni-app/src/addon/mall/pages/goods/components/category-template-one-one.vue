@@ -1,6 +1,6 @@
 <template>
 	<view class="min-h-screen bg-[var(--page-bg-color)] overflow-hidden">
-		<view class="mescroll-box bg-[var(--page-bg-color)]" :class="{ 'cart': config.cart.control && config.cart.event === 'cart', 'detail': !(config.cart.control && config.cart.event === 'cart') }" v-if="tabsData.length">
+		<view class="mescroll-box page-bg-color" :class="{ 'cart': config.cart.control && config.cart.event === 'cart', 'detail': !(config.cart.control && config.cart.event === 'cart') }" v-if="tabsData.length">
 			<mescroll-body ref="mescrollRef" :down="{ use: false }" @init="mescrollInit" @up="getListFn">
 				<view v-if="config.search.control" class="search-box z-10 bg-[var(--page-bg-color)] fixed top-0 left-0 right-0 h-[100rpx] box-border" :style="{'top': systemStore.topTabbarInfo.fullHeight || 0}">
 					<view class="flex-1 search-input bg-[#fff]">
@@ -13,7 +13,7 @@
 				<view class="tabs-box z-2 fixed left-0 bg-[#fff] bottom-[50px] top-0" :class="{ '!top-[100rpx]': config.search.control, 'pb-[98rpx]': config.cart.control && config.cart.event === 'cart' }">
 					<scroll-view :scroll-y="true" class="scroll-height">
 						<view class="bg-[var(--temp-bg)]">
-							<view class="tab-item" :class="{ 'tab-item-active': index == tabActive,'rounded-br-[12rpx]':tabActive-1===index,'rounded-tr-[12rpx]':tabActive+1===index}" v-for="(item, index) in tabsData" :key="index" @click="firstLevelClick(index, item)">
+							<view class="tab-item" :class="{ 'tab-item-active': index == tabActive,'rounded-br-12':tabActive-1===index,'rounded-tr-12':tabActive+1===index}" v-for="(item, index) in tabsData" :key="index" @click="firstLevelClick(index, item)">
 								<view class="text-box text-left leading-[1.3] break-words px-[16rpx]">
 									{{ item.category_name }}
 								</view>
@@ -26,16 +26,16 @@
 				<view class="tabs-box z-2 fixed left-0 bg-[#fff] pb-ios bottom-[100rpx] top-0" :style="tabsBoxCss">
 					<scroll-view :scroll-y="true" class="scroll-height">
 						<view class="bg-[var(--temp-bg)]">
-							<view class="tab-item truncate" :class="{ 'tab-item-active': index == tabActive,'rounded-br-[12rpx]':tabActive-1===index,'rounded-tr-[12rpx]':tabActive+1===index}" v-for="(item, index) in tabsData" :key="index" @click="firstLevelClick(index, item)">
+							<view class="tab-item truncate" :class="{ 'tab-item-active': index == tabActive,'rounded-br-12':tabActive-1===index,'rounded-tr-12':tabActive+1===index}" v-for="(item, index) in tabsData" :key="index" @click="firstLevelClick(index, item)">
 								<view class="text-box text-left leading-[1.3] break-words px-[16rpx]">{{ item.category_name }}</view>
 							</view>
 						</view>
 					</scroll-view>
 				</view>
 				<!--  #endif -->
-				<view class="flex justify-center flex-wrap pl-[188rpx] pb-[20rpx]" :class="{ 'pt-[100rpx]': config.search.control, ' pt-[20rpx]': !(config.search.control) }">
+				<view class="flex justify-center flex-wrap goods-box-wrap" :class="{ 'pt100': config.search.control, ' pt20': !(config.search.control) }">
 					<template v-for="(item, index) in list" :key="item.goods_id">
-						<view class="box-border bg-white w-full flex mr-[20rpx] py-[24rpx] px-[20rpx] rounded-[var(--rounded-small)]" :class="{ 'mt-[16rpx]': index }" @click.stop="toLink(item.goods_id)">
+						<view class="box-border bg-white w-full flex goods-item-wrap" :class="{ 'mt16': index }" @click.stop="toLink(item.goods_id)">
 							<view class="w-[168rpx] h-[168rpx] flex items-center justify-center rounded-[var(--goods-rounded-small)] overflow-hidden">
 								<up-image width="168rpx" height="168rpx" radius="var(--goods-rounded-small)" :src="img(item.goods_cover_thumb_mid ? item.goods_cover_thumb_mid : '')" mode="aspectFill">
 									<template #error>
@@ -50,6 +50,7 @@
 										<text class="text-[24rpx] font-500">￥</text>
 										<text class="text-[40rpx] font-500">{{ parseFloat(goodsPrice(item)).toFixed(2).split('.')[0] }}</text>
 										<text class="text-[24rpx] font-500">.{{ parseFloat(goodsPrice(item)).toFixed(2).split('.')[1] }}</text>
+										<image v-if="priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
 										<image class="h-[24rpx] max-w-[46rpx] ml-[6rpx]" v-if="priceType(item) == 'member_price'" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 										<image class="h-[24rpx] max-w-[80rpx] ml-[6rpx]" v-if="priceType(item) == 'discount_price'" :src="img('addon/mall/discount.png')" mode="heightFix" />
 									</view>
@@ -73,7 +74,7 @@
 												</view>
 												<view
 													v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-													:class="['absolute right-[-16rpx] top-[-16rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)]  text-[#fff] text-[20rpx] font-500 box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">
+													:class="['absolute total-num-box text-center font-500 box-border ', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px10' : '']">
 													{{ cartList['goods_' + item.goods_id].totalNum }}
 												</view>
 											</view>
@@ -83,7 +84,7 @@
 													@click.stop="itemCart(item, 'itemCart' + index)"></text>
 												<view
 													v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-													:class="['absolute right-[-16rpx] top-[-16rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">
+													:class="['absolute total-num-box text-center font-500 box-border ', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px10' : '']">
 													{{ cartList['goods_' + item.goods_id].totalNum }}
 												</view>
 											</view>
@@ -93,7 +94,7 @@
 													@click.stop="itemCart(item, 'itemCart' + index)"></text>
 												<view
 													v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-													:class="['absolute right-[-10rpx] top-[-2rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">
+													:class="['absolute total-num-box-style3 text-center font-500 box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px10' : '']">
 													{{ cartList['goods_' + item.goods_id].totalNum }}
 												</view>
 											</view>
@@ -105,7 +106,7 @@
 												</view>
 												<view
 													v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-													:class="['absolute right-[-10rpx] top-[-10rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">
+													:class="['absolute total-num-box-style4  text-center font-500 box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px10' : '']">
 													{{ cartList['goods_' + item.goods_id].totalNum }}
 												</view>
 											</view>
@@ -148,7 +149,7 @@
 						<view id="animation-end" class="w-[66rpx] h-[66rpx] rounded-[35rpx] bg-[var(--primary-color)] text-center leading-[66rpx]" @click.stop="toCart">
 							<text class="nc-iconfont nc-icon-gouwucheV6mm1 text-[#fff] text-[32rpx]"></text>
 						</view>
-						<view v-if="totalNum" class="border-[1rpx] border-solid border-[#fff]" :class="['absolute left-[40rpx] top-[-10rpx] rounded-[28rpx] h-[28rpx] min-w-[28rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border', totalNum > 9 ? 'px-[10rpx]' : '']">
+						<view v-if="totalNum" :class="['absolute  total-all-box-weapp r text-center font-500 box-border', totalNum > 9 ? 'px10' : '']">
 							{{ totalNum > 99 ? "99+" : totalNum }}
 						</view>
 					</view>
@@ -160,9 +161,8 @@
 				</view>
 				<!-- <button v-if="isBindMobile && userInfo && !userInfo.mobile" class="w-[180rpx] h-[70rpx] text-[26rpx] leading-[70rpx] font-500 !text-[#fff] m-0 rounded-full primary-btn-bg remove-border" open-type="getPhoneNumber" @getphonenumber="memberStore.bindMobile">去结算</button>
 				<button v-else class="w-[180rpx] h-[70rpx] text-[26rpx] leading-[70rpx] font-500 !text-[#fff] m-0 rounded-full primary-btn-bg remove-border" @click="settlement">去结算</button> -->
-				<button
-                    class="w-[180rpx] h-[70rpx] text-[26rpx] leading-[70rpx] font-500 m-0 rounded-full remove-border"
-                    :class="{'primary-btn-bg !text-[#fff]': parseFloat(totalMoney) > 0, 'bg-[#F7F7F7] !text-[var(--text-color-light9)]': parseFloat(totalMoney) <= 0}" @click="settlement">去结算</button>
+				<button class="settle-box  font-500 m-0 rounded-full remove-border"
+                    :class="{'primary-btn-bg color-white': parseFloat(totalMoney) > 0, 'bg-gray text-color-light9': parseFloat(totalMoney) <= 0}" @click="settlement">去结算</button>
 			</view>
 			<!--  #endif -->
 		</view>
@@ -173,7 +173,6 @@
 		<mescroll-empty v-if="!tabsData.length && !loading" :option="{tip : '暂无商品分类'}"></mescroll-empty>
 		<loading-page :loading="loading"></loading-page>
 		
-		<tabbar />
 		<!-- 强制绑定手机号 -->
 		<bind-mobile ref="bindMobileRef" />
 	</view>
@@ -392,7 +391,9 @@ const animationAddCart = (row: any, id: any) => {
 const tabsData:any = ref<Array<Object>>([])
 const getCategoryData = () => {
 	loading.value = true;
-	getGoodsCategoryTree().then((res: any) => {
+	getGoodsCategoryTree({
+		addon: 'mall'
+	}).then((res: any) => {
 		tabsData.value = res.data;
         if (categoryId) {
             for (let i = 0; i < tabsData.value.length; i++) {
@@ -608,6 +609,9 @@ const goodsPrice = (data:any) =>{
 		border: none;
 	}
 }
+.page-bg-color{
+	background-color: var(--page-bg-color);
+}
 .border-color {
 	border-color: var(--primary-color) !important;
 }
@@ -724,6 +728,98 @@ const goodsPrice = (data:any) =>{
 		height: 48rpx;
 		background-color: var(--primary-color);
 	}
+}
+
+.rounded-br-12 {
+	border-bottom-right-radius: 0rpx;
+}
+.rounded-tr-12 {
+	border-top-right-radius: 0rpx;
+}
+.goods-box-wrap {
+	padding-left: 188rpx;
+	padding-bottom: 20rpx;
+	&.pt100 {
+		padding-top: 100rpx;
+	}
+	&.pt20 {
+		padding-top: 20rpx;
+	}
+}
+.goods-item-wrap {
+	margin-right: 20rpx;
+	padding: 24rpx 20rpx;
+	border-radius: var(--rounded-small);
+	&.mt16 {
+		margin-top: 16rpx;
+	}
+}
+.total-num-box {
+	right: -16rpx;
+	top: -16rpx;
+	border-radius: 30rpx;
+	height: 30rpx;
+	min-width: 30rpx;
+	line-height: 26rpx;
+	background-color: var(--primary-color);
+	color: #fff;
+	font-size: 20rpx;
+	border: 2rpx solid #fff;
+}
+.total-num-box-style3 {
+	right: -10rpx;
+	top: -2rpx;
+	border-radius: 30rpx;
+	height: 30rpx;
+	min-width: 30rpx;
+	line-height: 26rpx;
+	background-color: var(--primary-color);
+	color: #fff;
+	font-size: 20rpx;
+	border: 2rpx solid #fff;
+}
+.total-num-box-style4 {
+	right: -10rpx;
+	top: -10rpx;
+	border-radius: 30rpx;
+	height: 30rpx;
+	min-width: 30rpx;
+	line-height: 26rpx;
+	background-color: var(--primary-color);
+	color: #fff;
+	font-size: 20rpx;
+	border: 2rpx solid #fff;
+}
+.total-all-box-weapp{
+	right: -40rpx;
+	top: -10rpx;
+	border-radius: 28rpx;
+	height: 28rpx;
+	min-width: 28rpx;
+	line-height: 26rpx;
+	background-color: var(--primary-color);
+	color: #fff;
+	font-size: 20rpx;
+	border: 1rpx solid #fff;
+}
+.px10 {
+	padding-left: 10rpx;
+	padding-right: 10rpx;
+}
+.settle-box {
+	width: 180rpx;
+	height: 70rpx;
+	font-size: 26rpx;
+	line-height: 70rpx;
+}
+.text-color-light9 {
+	color: var(--text-color-light9) !important;
+}
+.color-white {
+	color: #fff !important;
+}
+.bg-gray {
+	background-color: #F7F7F7;
 }
 
 .scroll-height{

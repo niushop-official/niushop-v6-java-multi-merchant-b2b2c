@@ -1,4 +1,4 @@
-import { addBatchOrderDelivery } from '@/addon/mall/api/site/order'
+import { addBatchOrderDelivery } from '@/app/lang/zh-cn/api/site/order'
 export function useBatchDelivery() {
     const handleBatchDelivery = (data: any, callback: any) => { //data中有goods,formData,type
         const orderMap = new Map()

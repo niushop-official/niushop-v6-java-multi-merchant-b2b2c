@@ -3,36 +3,42 @@
         <div class="main-container">
             <!-- 筛选表单 -->
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="orderList.searchParam" ref="searchFormRef">
+                <el-form label-width="70px" :inline="true" :model="orderList.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item label="订单信息" prop="search_name">
-                         <el-select v-model="orderList.searchParam.search_type" clearable class="input-item">
-                            <el-option :label="t('订单编号')" value="order_no"></el-option>
-                            <el-option :label="t('交易流水号')" value="out_trade_no"></el-option>
-                            <el-option :label="t('商品名称')" value="goods_name"></el-option>
-                        </el-select>
-                        <el-input class="input-item ml-3" v-model.trim="orderList.searchParam.search_name" placeholder="请输入订单编号/收货人姓名/收货人电话" />
+                        <el-input class="search-input" v-model.trim="orderList.searchParam.search_name" placeholder="请输入订单编号/收货人姓名/收货人电话" clearable>
+                            <template #prepend>
+                                <el-select v-model="orderList.searchParam.search_type" clearable class="!w-[120px]">
+                                    <el-option :label="t('订单编号')" value="order_no"></el-option>
+                                    <el-option :label="t('交易流水号')" value="out_trade_no"></el-option>
+                                    <el-option :label="t('商品名称')" value="goods_name"></el-option>
+                                </el-select>
+                            </template>
+                        </el-input>
                     </el-form-item>
                      <el-form-item :label="t('挑货状态')" prop="goods_source">
-                        <el-select v-model="orderList.searchParam.goods_source" :placeholder="t('goodsSourcePlaceholder')" :disabled="true"  clearable>
+                        <el-select v-model="orderList.searchParam.goods_source" :placeholder="t('goodsSourcePlaceholder')" :disabled="true"  clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,index) in goodsSource" :key="index" :label="item.name" :value="index" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('配送方式')" prop="delivery_type">
-                        <el-select v-model="orderList.searchParam.delivery_type" :placeholder="t('请选择配送方式')" :disabled="true" clearable>
+                        <el-select v-model="orderList.searchParam.delivery_type" :placeholder="t('请选择配送方式')" :disabled="true" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,index) in deliveryTypeData" :key="index" :label="item" :value="index" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('发货状态')" prop="status">
-                        <el-select v-model="orderList.searchParam.status" :placeholder="t('请选择发货状态')" :disabled="true" clearable>
+                        <el-select v-model="orderList.searchParam.status" :placeholder="t('请选择发货状态')" :disabled="true" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,index) in statusData" :key="index" :label="item.name" :value="item.status" />
                         </el-select>
                     </el-form-item>
                     <el-form-item label="下单时间" prop="create_time">
-                        <el-date-picker  v-model="orderList.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" start-placeholder="开始时间" end-placeholder="结束时间"/>
+                        <el-date-picker  v-model="orderList.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" start-placeholder="开始时间" end-placeholder="结束时间" class="search-input" />
                     </el-form-item>
 
                     <el-form-item label="支付时间" prop="pay_time">
-                        <el-date-picker v-model="orderList.searchParam.pay_time"  type="datetimerange"  value-format="YYYY-MM-DD HH:mm:ss" start-placeholder="开始时间" end-placeholder="结束时间" />
+                        <el-date-picker v-model="orderList.searchParam.pay_time"  type="datetimerange"  value-format="YYYY-MM-DD HH:mm:ss" start-placeholder="开始时间" end-placeholder="结束时间" class="search-input" />
                     </el-form-item>
 
                     <el-form-item>
@@ -164,8 +170,8 @@
 <script lang="ts" setup>
 import { reactive, ref, defineExpose, defineEmits, computed } from 'vue'
 import { t } from '@/lang'
-import { getGoodsSource } from '@/addon/mall/api/site/goods'
-import { getOrderList, getOrderStatus } from '@/addon/mall/api/site/order'
+import { getGoodsSource } from '@/app/lang/zh-cn/api/site/goods'
+import { getOrderList, getOrderStatus } from '@/app/lang/zh-cn/api/site/order'
 import { getShopDeliveryType } from '@/app/api/delivery_site'
 import { img } from '@/utils/common'
 import { cloneDeep } from 'lodash-es'

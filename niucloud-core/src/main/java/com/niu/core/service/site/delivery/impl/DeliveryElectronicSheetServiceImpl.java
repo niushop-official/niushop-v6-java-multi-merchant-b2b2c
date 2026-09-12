@@ -77,7 +77,7 @@ public class DeliveryElectronicSheetServiceImpl implements IDeliveryElectronicSh
             queryWrapper.eq(DeliveryElectronicSheet::getIsNotice, listsParam.getIsNotice());
         }
 
-        if (ObjectUtil.isNotEmpty(listsParam.getStatus())) {
+        if (ObjectUtil.isNotEmpty(listsParam.getStatus()) && !"all".equals(String.valueOf(listsParam.getStatus()))) {
             queryWrapper.eq(DeliveryElectronicSheet::getStatus, listsParam.getStatus());
         }
 

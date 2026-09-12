@@ -52,7 +52,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { img, moneyFormat } from '@/utils/common'
-import { getBatchPick, batchPickGoods } from '@/addon/mall/api/site/select_goods'
+import { getBatchPick, batchPickGoods } from '@/app/lang/zh-cn/api/site/select_goods'
 import { cloneDeep } from 'lodash-es'
 
 const showDialog = ref(false)

@@ -10,18 +10,21 @@ public interface ICoreSysConfigService {
 
     /**
      * 获取网站设置
+     *
      * @return
      */
     SysWebsiteVo getWebSite(Integer siteId);
 
     /**
      * 设置网站设置
+     *
      * @return
      */
     void setWebSite(Integer siteId, SysWebsiteParam configParam);
 
     /**
      * 获取服务信息
+     *
      * @param siteId
      * @return
      */
@@ -29,18 +32,21 @@ public interface ICoreSysConfigService {
 
     /**
      * 获取版权信息
+     *
      * @return
      */
     SysCopyRightVo getCopyRight(Integer siteId);
 
     /**
      * 设置版权信息
+     *
      * @param configParam
      */
     void setCopyRight(Integer siteId, SysCopyRightParam configParam);
 
     /**
      * 获取地图配置
+     *
      * @param siteId
      * @return
      */
@@ -48,6 +54,7 @@ public interface ICoreSysConfigService {
 
     /**
      * 设置地图配置
+     *
      * @param siteId
      * @param configParam
      */
@@ -55,24 +62,28 @@ public interface ICoreSysConfigService {
 
     /**
      * 获取开发者key
+     *
      * @return
      */
     SysDeveloperTokenVo getDeveloperToken();
 
     /**
      * 设置开发者key
+     *
      * @param configParam
      */
     void setDeveloperToken(SysDeveloperTokenParam configParam);
 
     /**
      * 获取布局风格
+     *
      * @return
      */
     JSONObject getLayout(Integer siteId);
 
     /**
      * 设置布局风格
+     *
      * @param siteId
      * @param configParam
      */
@@ -117,6 +128,7 @@ public interface ICoreSysConfigService {
     SceneDomainVo getSceneDomain();
 
     void setConfig(Integer siteId, String key, JSONObject value);
+
     CoreSysConfigVo getConfig(Integer siteId, String key);
 
 }

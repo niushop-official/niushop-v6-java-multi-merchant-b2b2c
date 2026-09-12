@@ -15,12 +15,13 @@
             </el-tabs>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="printerTemplateTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="printerTemplateTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('templateName')" prop="template_name">
-                        <el-input v-model="printerTemplateTable.searchParam.template_name" :placeholder="t('templateNamePlaceholder')" />
+                        <el-input v-model="printerTemplateTable.searchParam.template_name" :placeholder="t('templateNamePlaceholder')"  clearable  class="search-input"/>
                     </el-form-item>
                     <el-form-item :label="t('templateType')" prop="template_type">
-                        <el-select v-model="printerTemplateTable.searchParam.template_type" :placeholder="t('templateTypePlaceholder')" clearable>
+                        <el-select v-model="printerTemplateTable.searchParam.template_type" :placeholder="t('templateTypePlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,key) in printerType" :key="itemkey" :label="item.title" :value="item.key" />
                         </el-select>
                     </el-form-item>

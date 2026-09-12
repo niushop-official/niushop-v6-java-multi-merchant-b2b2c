@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { getToken, setToken, removeToken, getAppType } from '@/utils/common'
 import { login,mobileLogin, logout, getAdminAuthMenus, getSiteAuthMenus, getSiteInfo,getAddons } from '@/app/api/auth'
+import { ElMessage } from 'element-plus'
 import storage from '@/utils/storage'
 import router from '@/router'
 import { formatRouters, findFirstValidRoute } from '@/router/routers'
@@ -81,6 +82,9 @@ const userStore = defineStore('user', {
                     })
             })
         },
+        clearRouters() {
+            this.routers = []
+        },
         logout() {
             if (!this.token) return
             this.token = ''
@@ -92,12 +96,15 @@ const userStore = defineStore('user', {
             logout()
             // 清除tabbar
             useTabbarStore().clearTab()
-            const login = getAppType() == 'admin' ? '/admin/login' : '/site/login'
+            //todo 商圈
+            // const login = getAppType() == 'admin' ? '/admin/login' : '/site/login'
+            const login = '/' + getAppType() + '/login'
             // router.push(login)
             location.href = `${location.origin}${login}`
         },
         getAuthMenus() {
-            const getAuthMenusFun = getAppType() == 'admin' ? getAdminAuthMenus : getSiteAuthMenus
+            //todo 商圈
+            const getAuthMenusFun = (getAppType() == 'admin' || getAppType() == 'circle') ? getAdminAuthMenus : getSiteAuthMenus
             return new Promise((resolve, reject) => {
                 getAuthMenusFun({})
                     .then((res) => {
@@ -127,7 +134,8 @@ const userStore = defineStore('user', {
 							this.routers = []
 							// 清除tabbar
 							useTabbarStore().clearTab()
-							const login = getAppType() == 'admin' ? '/admin/login' : '/site/login'
+							// const login = getAppType() == 'admin' ? '/admin/login' : '/site/login'
+                            const login = '/' + getAppType() + '/login'
 							location.href = `${location.origin}${login}`
 						}
                     })

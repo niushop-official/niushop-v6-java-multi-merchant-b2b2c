@@ -2,7 +2,7 @@ package com.niu.mall.service.admin.goods.vo;
 
 import com.niu.core.common.utils.CommonUtils;
 import com.niu.core.common.utils.StringUtils;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoodsSku;
 import lombok.Data;
 
 import java.math.BigDecimal;

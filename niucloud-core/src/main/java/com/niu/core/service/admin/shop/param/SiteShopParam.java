@@ -88,6 +88,12 @@ public class SiteShopParam implements Serializable {
     /** 商家分类id */
     private Integer categoryId;
 
+    /** 子分类id */
+    private Integer childCategoryId;
+
+    /** 商圈id */
+    private Integer circleId;
+
     /** 是否自营 */
     private Integer isSelf = 0;
 

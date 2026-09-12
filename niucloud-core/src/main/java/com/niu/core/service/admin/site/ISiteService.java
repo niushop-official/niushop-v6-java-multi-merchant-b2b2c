@@ -6,10 +6,8 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteGroup;
-import com.niu.core.service.admin.site.param.SiteAddParam;
-import com.niu.core.service.admin.site.param.SiteAppToolsParam;
-import com.niu.core.service.admin.site.param.SiteEditParam;
-import com.niu.core.service.admin.site.param.SiteSearchParam;
+import com.niu.core.entity.sys.SysMenu;
+import com.niu.core.service.admin.site.param.*;
 import com.niu.core.service.admin.site.vo.ShowAppListVo;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.admin.site.vo.SiteListVo;
@@ -34,6 +32,14 @@ public interface ISiteService {
     PageResult<SiteListVo> list(PageParam pageParam, SiteSearchParam searchParam);
 
     /**
+     * 站点列表（不分页），对齐 PHP SiteService::getList
+     *
+     * @param searchParam 搜索参数
+     * @return List<SiteListVo>
+     */
+    List<SiteListVo> getList(SiteSearchParam searchParam);
+
+    /**
      * 站点详情
      *
      * @param id 主键ID
@@ -45,8 +51,9 @@ public interface ISiteService {
      * 站点添加
      *
      * @param addParam 添加参数
+     * @return
      */
-    void add(SiteAddParam addParam);
+    Integer add(SiteAddParam addParam);
 
     /**
      * 站点编辑
@@ -110,13 +117,6 @@ public interface ISiteService {
     void siteAddonChange(Site site, SiteGroup siteGroup);
 
     /**
-     * 应用展示工具
-     *
-     * @return
-     */
-    Map<String, ShowAppListVo> getShowAppTools(String appType);
-
-    /**
      * 获取站点拥有的应用工具列表
      *
      * @param param 搜索参数
@@ -139,4 +139,22 @@ public interface ISiteService {
     Map<String, Map<String, Object>> getSitePromotionTools(SiteAppToolsParam param);
 
     Map<String, Map<String, Object>> getAdminPromotionTools(SiteAppToolsParam param);
+
+    /**
+     * 获取商圈列表（不分页），对齐 PHP SiteService::getCircleList
+     *
+     * @param param 搜索参数
+     * @return 商圈树形列表
+     */
+    List<?> getCircleList(SiteCircleListParam param);
+
+    /**
+     * 编辑站点营业状态，对齐 PHP SiteService::editSiteBusinessStatus
+     */
+    void editBusinessStatus(Integer businessStatus);
+
+    /**
+     * 查询当前站点可以单独显示的菜单
+     */
+    List<SysMenu> getShowMenuList(Integer siteId);
 }

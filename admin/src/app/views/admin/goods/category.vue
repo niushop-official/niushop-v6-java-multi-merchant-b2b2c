@@ -8,6 +8,9 @@
                 </el-button>
             </div>
             <div class="mt-[10px]">
+                <el-tabs v-model="currentTab" class="goods-tabs" @tab-click="tabHandleClick">
+                    <el-tab-pane v-for="(item,key) in tradeTypeList" :key="key" :label="item" :name="key"></el-tab-pane>
+                </el-tabs>
                 <el-table :data="categoryTable.data" ref="tableRef" size="large" v-loading="categoryTable.loading" row-key="category_id" :tree-props="{ hasChildren: 'hasChildren', children: 'child_list' }">
                     <template #empty>
                         <span>{{ !categoryTable.loading ? t('emptyData') : '' }}</span>
@@ -33,7 +36,7 @@
                     </el-table-column>
                     <el-table-column prop="is_show" :label="t('isShow')" min-width="200">
                         <template #default="{ row }">
-                            <el-tag class="cursor-pointer" :type="row.is_show != 2 ? 'success' : 'danger'" @click="showClick(row)">{{ row.is_show != 2 ? '是' : '否' }}</el-tag>
+                            <el-switch v-model="row.is_show" :active-value="1" :inactive-value="2" inline-prompt active-text="是" inactive-text="否" @change="(value) => showClick(row, value)" />
                         </template>
                     </el-table-column>
                     <el-table-column prop="sort"  min-width="120">
@@ -57,7 +60,7 @@
                 </el-table>
             </div>
 
-            <category-edit ref="editCategoryDialog" @complete="loadCategoryList" />
+            <category-edit ref="editCategoryDialog" :addon="currentTab" @complete="loadCategoryList" />
         </el-card>
 
         <!-- 商品分类推广弹出框 -->
@@ -69,118 +72,50 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted, nextTick } from 'vue'
 import { t } from '@/lang'
-import { getCategoryTree, deleteCategory, editCategory } from '@/app/api/basic_admin'
+import { getCategoryTree, deleteCategory, editCategory, getCategoryTradeType } from '@/app/api/basic_admin'
 import { img } from '@/utils/common'
 import { ElMessageBox } from 'element-plus'
 import categoryEdit from '@/app/views/admin/goods/components/category-edit.vue'
 import goodsCategorySpreadPopup from '@/app/views/admin/goods/components/goods-category-spread-popup.vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useTemplateRefsList } from '@vueuse/core'
 import { cloneDeep } from 'lodash-es'
 
 const route = useRoute()
 const router = useRouter()
 const pageName = route.meta.title
-const tableRef = useTemplateRefsList<HTMLElement>()
 const categoryTable = reactive({
     loading: true,
     data: []
 })
 
 onMounted(() => {
-    nextTick(() => {
-        // rowDrop()
-    })
-    loadCategoryList()
+    getCategoryTradeTypeFn()
 })
 
-// 拖拽
-// const activeRows = ref<any[]>([])
-// 拖拽排序
-// const rowDrop = () => {
-//     const tbody = tableRef.value.$el.querySelector(
-//         '.el-table__body-wrapper tbody'
-//     )
-//     Sortable.create(tbody, {
-//         handle: '.vues-rank',
-//         animation: 300,
-//         onMove: ({ dragged, related }) => {
-//             const oldRow = activeRows.value[dragged.rowIndex] // 移动的那个元素
-//             const newRow = activeRows.value[related.rowIndex] // 新的元素
-//             if (oldRow.pid !== newRow.pid) { // 移动的元素与新元素父级id不相同
-//                 return false // 不允许跨级拖动
-//             }
-//         },
-//         onStart: () => { // 开始拖拽前把树形结构数据扁平化
-//             activeRows.value = treeToTile(cloneDeep(categoryTable.data)) // 把树形的结构转为列表再进行拖拽
-//         },
-//         onEnd: e => {
-//             const oldRow = activeRows.value[e.oldIndex] // 移动的那个元素
-//             const newRow = activeRows.value[e.newIndex] // 新的元素
-//             if (e.oldIndex === e.newIndex || oldRow.pid !== newRow.pid) return false
-//             const index = activeRows.value.indexOf(oldRow)
-//             if (index < 0) return false
-//             //   activeRows.value.splice(index, 1)
-//             //   activeRows.value.splice(index + changeIndex, 0, oldRow)
-//             const currRow = activeRows.value.splice(e.oldIndex, 1)[0]
-//             activeRows.value.splice(e.newIndex, 0, currRow)
-//             const pid = newRow.pid
-//             const currentRows = activeRows.value
-//                 .filter(c => c.pid === pid)
-//                 ?.map((item, index) => {
-//                     if (item.level === 1 && item.category_id === currRow.category_id) {
-//                         categoryTable.data = categoryTable.data.filter(c => c.category_id !== currRow.category_id)
-//                         categoryTable.data.splice(index, 0, currRow)
-//                     }
-//                     if (item.level === 2 && item.category_id === currRow.category_id) {
-//                         const treeIndex = categoryTable.data.findIndex(el => el.category_id === item.pid)
-//                         const obj = cloneDeep(categoryTable.data[treeIndex].child_list.filter(c => c.category_id !== currRow.category_id))
-//                         categoryTable.data[treeIndex].child_list = []
-//                         categoryTable.data[treeIndex].child_list.push(...obj)
-//                         categoryTable.data[treeIndex].child_list.splice(index, 0, currRow)
-//                         // obj.child_list//.splice(index,0,currRow)
-//                     }
-//                     return {
-//                         category_id: item.category_id, // 当前行的唯一标识
-//                         sort: 9999 - index
-//                     }
-//                 })
-//             // 请求接口排序，根据后端要求填写参数
-//             // nextTick(() => {
-//                 // rowDrop()
-//             // })
-//             updateCategoryFn({ category_sort_array: currentRows })
-//         }
-//     })
-// }
+const currentTab = ref('')
+const tradeTypeList = ref([])
+const getCategoryTradeTypeFn = () => {
+    getCategoryTradeType().then(res => {
+        tradeTypeList.value = res.data
+        currentTab.value = Object.keys(tradeTypeList.value)[0]
+        loadCategoryList()
+    })
+}
 
-/**
-  * 将树数据转化为平铺数据
-  * @param <Array> treeData当前要转的id
-  * @param <String> childKey 子级字段
-  * @return <Array> 返回数据
-  */
-// const treeToTile = (treeData:any, childKey = 'child_list') => {
-//     const arr:Array<any> = []
-//     const expanded = (data:any) => {
-//         if (data && data.length > 0) {
-//             data.filter((d:any) => d).forEach((e:any) => {
-//                 arr.push(e)
-//                 expanded(e[childKey] || [])
-//             })
-//         }
-//     }
-//     expanded(treeData)
-//     return arr
-// }
-
+// 当前选中tab页面
+const tabHandleClick = (tab: any, event: Event) => {
+    currentTab.value = tab.props.name
+    loadCategoryList()
+}
 /**
  * 获取商品分类列表
  */
 const loadCategoryList = () => {
     categoryTable.loading = true
 
-    getCategoryTree().then(res => {
+    getCategoryTree({
+        addon: currentTab.value
+    }).then(res => {
         categoryTable.loading = false
         categoryTable.data = res.data
     }).catch(() => {
@@ -199,11 +134,13 @@ const loadCategoryList = () => {
 //     })
 // }
 
-const showClick = (row: any) => {
-    row.is_show = row.is_show === 1 ? 2 : 1
+const showClick = (row: any, value: number) => {
     const obj = cloneDeep(row)
+    obj.is_show = value
     delete obj.child_list
-    editCategory(obj)
+    editCategory(obj).catch(() => {
+        row.is_show = value == 1 ? 2 : 1
+    })
 }
 const editCategoryDialog: Record<string, any> | null = ref(null)
 
@@ -267,44 +204,5 @@ const spreadEvent = (data: any) => {
         }
 
     }
-}
-:deep(.el-tabs__item:hover) {
-    border-bottom: 2px solid var(--el-color-primary);
-}
-
-:deep(.el-tabs__item) {
-    padding: 0;
-}
-
-:deep(.el-tabs__item+.el-tabs__item) {
-    margin-right: 20px;
-    margin-left: 20px;
-    // border-bottom: 2px solid var(--el-color-primary);
-}
-
-:deep(.el-tabs--top) {
-    .el-tabs__active-bar {
-        display: none;
-    }
-
-    .el-tabs__item.is-active {
-        border-bottom: 2px solid var(--el-color-primary);
-    }
-
-    .el-tabs__item.is-top:nth-child(2) {
-        margin-right: 20px;
-    }
-
-}
-
-:deep(.el-step.is-vertical .el-step__icon.is-icon) {
-    padding: 8px 0;
-    height: 40px;
-    background-color: #fff;
-}
-
-:deep(.el-step__title) {
-    height: 40px;
-    line-height: 40px !important;
 }
 </style>

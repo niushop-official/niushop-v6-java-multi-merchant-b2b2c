@@ -181,8 +181,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
                 .eq("member_id", RequestUtils.memberId())
         );
         if (refund == null) throw new CommonException("退款已失效");
-        if (!refund.getStatus().equals(OrderRefundStatusEnum.BUYER_APPLY_WAIT_STORE.getStatus().toString())
-                && !refund.getStatus().equals(OrderRefundStatusEnum.STORE_REFUSE_REFUND_GOODS_APPLY_WAIT_BUYER.getStatus().toString())) {
+        if (!refund.getStatus().equals(OrderRefundStatusEnum.STORE_REFUSE_REFUND_GOODS_APPLY_WAIT_BUYER.getStatus().toString())) {
             throw new CommonException("退款已失效");
         }
 
@@ -218,7 +217,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
         logParam.setType(OrderRefundActionTypeEnum.EDIT_APPLY_ACTION.getType());
         coreRefundService.addLog(logParam);
         //同步供应商退款修改
-        if(orderGoods.getSupplyGoodsId() != null && orderGoods.getSupplyGoodsId() > 0){
+        if(orderGoods.getSupplyOrderGoodsId() != null && orderGoods.getSupplyOrderGoodsId() > 0){
             MallOrderRefund refundMode = mallOrderRefundMapper.selectById(model.getRefundId());
             //同步供应商退款信息
             // 触发事件 退款同步供货商的退款单据号
@@ -253,7 +252,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
 
         MallOrderRefund model = new MallOrderRefund();
         model.setRefundId(refund.getRefundId());
-        model.setDelivery(JSONUtil.parse(param.getDelivery()).toString());
+        model.setDelivery(buildDeliveryJson(param.getDelivery()));
         model.setStatus(OrderRefundStatusEnum.BUYER_REFUND_GOODS_WAIT_STORE.getStatus().toString());
         mallOrderRefundMapper.updateById(model);
 
@@ -274,7 +273,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
             SyncSupplyRefundDeliveryEvent eventRefund = new SyncSupplyRefundDeliveryEvent();
             eventRefund.setRefundData(refundMode);
             eventRefund.addAppSign("supply");
-            eventRefund.setDelivery(JSONUtil.parse(param.getDelivery()).toString());
+            eventRefund.setDelivery(buildDeliveryJson(param.getDelivery()));
             eventRefund.setSiteId(RequestUtils.siteId());
             EventAndSubscribeOfPublisher.publishAll(eventRefund);
         }
@@ -292,14 +291,13 @@ public class RefundActionServiceImpl implements IRefundActionService {
                 .eq("member_id", RequestUtils.memberId())
         );
         if (refund == null) throw new CommonException("退款已失效");
-        if (!refund.getStatus().equals(OrderRefundStatusEnum.STORE_REFUSE_TAKE_REFUND_GOODS_WAIT_BUYER.getStatus().toString())
-                && !refund.getStatus().equals(OrderRefundStatusEnum.BUYER_REFUND_GOODS_WAIT_STORE.getStatus().toString())) {
+        if (!refund.getStatus().equals(OrderRefundStatusEnum.STORE_REFUSE_TAKE_REFUND_GOODS_WAIT_BUYER.getStatus().toString())) {
             throw new CommonException("退款已失效");
         }
 
         MallOrderRefund model = new MallOrderRefund();
         model.setRefundId(refund.getRefundId());
-        model.setDelivery(JSONUtil.parse(param.getDelivery()).toString());
+        model.setDelivery(buildDeliveryJson(param.getDelivery()));
         model.setStatus(OrderRefundStatusEnum.BUYER_REFUND_GOODS_WAIT_STORE.getStatus().toString());
         mallOrderRefundMapper.updateById(model);
 
@@ -320,10 +318,21 @@ public class RefundActionServiceImpl implements IRefundActionService {
             SyncSupplyRefundEditDeliveryEvent eventRefund = new SyncSupplyRefundEditDeliveryEvent();
             eventRefund.setRefundData(refundMode);
             eventRefund.addAppSign("supply");
-            eventRefund.setDelivery(JSONUtil.parse(param.getDelivery()).toString());
+            eventRefund.setDelivery(buildDeliveryJson(param.getDelivery()));
             eventRefund.setSiteId(RequestUtils.siteId());
             EventAndSubscribeOfPublisher.publishAll(eventRefund);
         }
+    }
+
+    /**
+     * 组装退货物流 JSON（与 PHP express_number/express_company/remark 字段一致）
+     */
+    private String buildDeliveryJson(RefundDeliveryParam.Delivery delivery) {
+        cn.hutool.json.JSONObject deliveryJson = new cn.hutool.json.JSONObject();
+        deliveryJson.set("express_number", delivery.getExpressNumber());
+        deliveryJson.set("express_company", delivery.getExpressCompany());
+        deliveryJson.set("remark", delivery.getRemark() != null ? delivery.getRemark() : "");
+        return deliveryJson.toString();
     }
 
     /**
@@ -346,7 +355,7 @@ public class RefundActionServiceImpl implements IRefundActionService {
     @Override
     public RefundDataVo getRefundData(Integer orderGoodsId) {
         MallOrderGoods orderGoods = mallOrderGoodsMapper.selectOne(new QueryWrapper<MallOrderGoods>()
-                .select("order_id")
+                .select("order_id,order_goods_money")
                 .eq("order_goods_id", orderGoodsId)
                 .eq("member_id", RequestUtils.memberId()));
         if (orderGoods == null) throw new CommonException("订单已失效");
@@ -369,9 +378,9 @@ public class RefundActionServiceImpl implements IRefundActionService {
         }
 
         RefundDataVo vo = new RefundDataVo();
-        BigDecimal itemRefundableMoney = coreRefundService.getItemRefundableMoney(orderGoodsId);
-        vo.setRefundMoney(itemRefundableMoney);
-        vo.setRefundOrderGoodsMoney(itemRefundableMoney);
+        BigDecimal orderGoodsMoney = orderGoods.getOrderGoodsMoney() != null ? orderGoods.getOrderGoodsMoney() : BigDecimal.ZERO;
+        vo.setRefundMoney(orderGoodsMoney);
+        vo.setRefundOrderGoodsMoney(orderGoodsMoney);
         vo.setIsRefundDelivery(isRefundDelivery);
 
         if (isRefundDelivery.equals(1)) {
@@ -400,10 +409,16 @@ public class RefundActionServiceImpl implements IRefundActionService {
                 .eq("order_id", refund.getOrderId()));
         if (order == null) throw new CommonException("订单已失效");
 
+        MallOrderGoods orderGoods = mallOrderGoodsMapper.selectOne(new QueryWrapper<MallOrderGoods>()
+                .select("order_goods_money")
+                .eq("order_goods_id", refund.getOrderGoodsId())
+                .eq("member_id", RequestUtils.memberId()));
+        if (orderGoods == null) throw new CommonException("订单已失效");
+
         RefundDataVo vo = new RefundDataVo();
-        BigDecimal itemRefundableMoney = coreRefundService.getItemRefundableMoney(refund.getOrderGoodsId());
-        vo.setRefundMoney(itemRefundableMoney);
-        vo.setRefundOrderGoodsMoney(itemRefundableMoney);
+        BigDecimal orderGoodsMoney = orderGoods.getOrderGoodsMoney() != null ? orderGoods.getOrderGoodsMoney() : BigDecimal.ZERO;
+        vo.setRefundMoney(orderGoodsMoney);
+        vo.setRefundOrderGoodsMoney(orderGoodsMoney);
         vo.setIsRefundDelivery(refund.getIsRefundDelivery());
         if (refund.getIsRefundDelivery().equals(1)) {
             vo.setRefundMoney(vo.getRefundMoney().add(order.getDeliveryMoney()));

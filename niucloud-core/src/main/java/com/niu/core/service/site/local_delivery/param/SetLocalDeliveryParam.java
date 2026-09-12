@@ -53,4 +53,5 @@ public class SetLocalDeliveryParam implements Serializable {
     private JSONArray deliveryTime;
 
     private JSONObject areaData;
+    private BigDecimal freeGoodsMoney = BigDecimal.ZERO;
 }

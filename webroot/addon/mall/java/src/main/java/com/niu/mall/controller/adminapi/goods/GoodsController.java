@@ -5,7 +5,7 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
 import com.niu.mall.enums.goods.GoodsStatusTypeEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.service.admin.goods.IMallGoodsConfigService;
 import com.niu.mall.service.admin.goods.IMallGoodsService;
 import com.niu.mall.service.admin.goods.param.*;
@@ -271,6 +271,15 @@ public class GoodsController {
     @PutMapping("/sku/member_price")
     public Result editGoodsListMemberPrice(@Validated @RequestBody EditGoodsListMemberPriceParam param) {
         goodsService.editGoodsListMemberPrice(param);
+        return Result.success();
+    }
+
+    /**
+     * 编辑商品规格列表付费会员价
+     */
+    @PutMapping("/sku/vip_card_price")
+    public Result editGoodsListVipCardPrice(@Validated @RequestBody EditGoodsListVipCardPriceParam param) {
+        goodsService.editGoodsListVipCardPrice(param);
         return Result.success();
     }
 

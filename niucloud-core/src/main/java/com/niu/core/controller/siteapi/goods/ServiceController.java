@@ -61,4 +61,15 @@ public class ServiceController {
         return Result.success(info);
     }
 
+    /**
+     * 获取符合条件的插件多个数据
+     *
+     * @param addon 插件标识
+     * @return Result<List<GoodsServiceListVo>>
+     */
+    @GetMapping("/addon/{addon}")
+    public Result<List<GoodsServiceListVo>> getAddonServiceList(@PathVariable("addon") String addon) {
+        return Result.success(goodsServiceService.getAddonServiceList(addon));
+    }
+
 }

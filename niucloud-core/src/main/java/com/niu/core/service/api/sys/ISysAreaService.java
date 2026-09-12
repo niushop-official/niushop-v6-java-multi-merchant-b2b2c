@@ -2,13 +2,16 @@ package com.niu.core.service.api.sys;
 
 import cn.hutool.json.JSONObject;
 import com.niu.core.entity.sys.SysArea;
+
+import java.util.Collection;
+import java.util.List;
 import com.niu.core.service.api.sys.param.SysAreaAddressByLatlngParam;
 import com.niu.core.service.api.sys.vo.SysAreaLevelVo;
 import com.niu.core.service.api.sys.vo.SysAreaListVo;
 
-import java.util.List;
-
 public interface ISysAreaService {
+
+    List<SysArea> getAreaListByIds(Collection<Integer> ids);
 
     /**
      * @param id
@@ -44,5 +47,12 @@ public interface ISysAreaService {
      */
     JSONObject getAddressByLatlng(SysAreaAddressByLatlngParam param);
 
+    /**
+     * 通过客户端 IP 获取经纬度（对齐 PHP AreaService::getLatlngByIp）
+     * 定位失败时的降级方案，返回 lat、lng
+     *
+     * @return 经纬度对象，包含 lat、lng 字段
+     */
+    JSONObject getLatlngByIp();
 
 }

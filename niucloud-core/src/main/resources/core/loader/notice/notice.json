@@ -51,5 +51,35 @@
         "trade_no": "交易单号"
       },
       "driver": "com.niu.core.service.core.recharge.driver.RechargeSuccess"
+    },
+    "vip_card_open_success": {
+      "addon": "system",
+      "key": "vip_card_open_success",
+      "receiver_type": 1,
+      "name": "付费会员卡开通成功通知",
+      "title": "会员开通付费会员卡后发送",
+      "async": true,
+      "variable": {
+        "card_name": "会员名称",
+        "order_money": "支付金额",
+        "time": "会员期限",
+        "item_name": "会员类型",
+        "create_time": "开通日期"
+      },
+      "driver": "com.niu.core.service.core.notice.driver.VipCardOpenSuccess"
+    },
+    "vip_card_buy_expire_remind": {
+      "addon": "system",
+      "key": "vip_card_buy_expire_remind",
+      "receiver_type": 1,
+      "name": "付费会员卡到期提醒",
+      "title": "付费会员卡即将到期时发送",
+      "async": true,
+      "variable": {
+        "card_name": "会员名称",
+        "expire_time": "到期日期",
+        "create_time": "开通日期"
+      },
+      "driver": "com.niu.core.service.core.notice.driver.VipCardBuyExpireRemind"
     }
   }

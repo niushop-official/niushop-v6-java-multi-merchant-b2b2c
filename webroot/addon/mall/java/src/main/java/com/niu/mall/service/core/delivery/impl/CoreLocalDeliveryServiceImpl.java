@@ -79,6 +79,8 @@ public class CoreLocalDeliveryServiceImpl implements ICoreLocalDeliveryService {
 
         if (ObjectUtil.isEmpty(vo.getDelivery().getTakeStore())){
             vo.getError().add("请选择配送门店");
+            vo.getDelivery().setError("请选择配送门店");
+            return;
         }
 
         Map<Integer, List<OrderCreateDataVo.Sku>> siteGoodsData = new HashMap<>();
@@ -132,12 +134,19 @@ public class CoreLocalDeliveryServiceImpl implements ICoreLocalDeliveryService {
                         for (int i=0; i<areas.size(); i++){
                             JSONObject area = areas.getJSONObject(i);
                             JSONObject areaJson = area.getJSONObject("area_json");
-                            if (area.getStr("area_type").equals("radius")){
+                            if (areaJson == null) {
+                                continue;
+                            }
+                            if ("radius".equals(area.getStr("area_type"))){
+                                JSONObject center = areaJson.getJSONObject("center");
+                                if (center == null || center.get("lat") == null || center.get("lng") == null || areaJson.get("radius") == null) {
+                                    continue;
+                                }
                                 double distance = DistanceCalculateUtils.calculateDistance(
                                         Double.valueOf(latitude),
                                         Double.valueOf(longitude),
-                                        Double.valueOf(areaJson.getJSONObject("center").getStr("lat")),
-                                        Double.valueOf(areaJson.getJSONObject("center").getStr("lng"))
+                                        Double.valueOf(center.getStr("lat")),
+                                        Double.valueOf(center.getStr("lng"))
                                 );
                                 if (new BigDecimal(distance).compareTo(new BigDecimal(areaJson.getStr("radius"))) <= 0) {
                                     locatedInArea = area;
@@ -147,6 +156,9 @@ public class CoreLocalDeliveryServiceImpl implements ICoreLocalDeliveryService {
                                 // 创建电子围栏
                                 List<Coordinate> polygonCoordinates = new LinkedList<>();
                                 JSONArray paths = areaJson.getJSONArray("paths");
+                                if (paths == null || paths.isEmpty()) {
+                                    continue;
+                                }
                                 for(int j =0; j<paths.size(); j++){
                                     JSONObject latLng = paths.getJSONObject(j);
                                     polygonCoordinates.add(new Coordinate(latLng.getDouble("lat"), latLng.getDouble("lng")));
@@ -283,8 +295,8 @@ public class CoreLocalDeliveryServiceImpl implements ICoreLocalDeliveryService {
         DeliveryStore store = deliveryStoreMapper.selectOne(new QueryWrapper<DeliveryStore>()
                 .eq("store_id", takeStore.getStoreId()).eq("site_id", siteId).last("limit 1"));
         if(ObjectUtil.isEmpty(store)){
-            vo.getError().add("配送门店不存在");
-            vo.getDelivery().setError("配送门店不存在");
+            vo.getError().add("提货点不存在");
+            vo.getDelivery().setError("提货点不存在");
             return;
         }
 
@@ -301,36 +313,50 @@ public class CoreLocalDeliveryServiceImpl implements ICoreLocalDeliveryService {
             return;
         }
 
-        List<LocalInfoVo.Area> inArea = new ArrayList<>();
-        if (store.getArea() != null && JSONUtil.isTypeJSON(store.getArea())){
-            inArea = JSONUtil.toList(JSONUtil.parseArray(store.getArea()), LocalInfoVo.Area.class);
-        }
+        JSONArray areas = store.getArea() != null && JSONUtil.isTypeJSON(store.getArea())
+                ? JSONUtil.parseArray(store.getArea()) : new JSONArray();
 
-        LocalInfoVo.Area locatedInArea =null;
-        for (LocalInfoVo.Area item : inArea) {
-            if (item.getAreaJson() == null) {
+        LocalInfoVo.Area locatedInArea = null;
+        for (int i = 0; i < areas.size(); i++) {
+            JSONObject area = areas.getJSONObject(i);
+            JSONObject areaJson = area.getJSONObject("area_json");
+            if (areaJson == null) {
                 continue;
             }
-            if (item.getAreaType() != null && item.getAreaType().equals("radius")) {
+            if ("radius".equals(area.getStr("area_type"))) {
+                JSONObject center = areaJson.getJSONObject("center");
+                if (center == null || center.get("lat") == null || center.get("lng") == null || areaJson.get("radius") == null) {
+                    continue;
+                }
                 double distance = DistanceCalculateUtils.calculateDistance(
                         Double.parseDouble(address.getLat()),
                         Double.parseDouble(address.getLng()),
-                        Double.parseDouble(item.getAreaJson().getCenter().getLat().toString()),
-                        Double.parseDouble(item.getAreaJson().getCenter().getLng().toString())
+                        Double.parseDouble(center.getStr("lat")),
+                        Double.parseDouble(center.getStr("lng"))
                 );
-                if (new BigDecimal(item.getAreaJson().getRadius()).compareTo(new BigDecimal(distance)) >= 0) {
-                    locatedInArea = item;
+                if (new BigDecimal(areaJson.getStr("radius")).compareTo(new BigDecimal(distance)) >= 0) {
+                    locatedInArea = toArea(area);
                     break;
                 }
             } else {
+                JSONArray paths = areaJson.getJSONArray("paths");
+                if (paths == null || paths.isEmpty()) {
+                    continue;
+                }
                 List<Coordinate> polygonCoordinates = new LinkedList<>();
-                for (LocalInfoVo.LatLnt latLng: item.getAreaJson().getPaths()) {
-                    polygonCoordinates.add(new Coordinate(latLng.getLat().doubleValue(), latLng.getLng().doubleValue()));
+                for (int j = 0; j < paths.size(); j++) {
+                    JSONObject latLng = paths.getJSONObject(j);
+                    if (latLng.get("lat") == null || latLng.get("lng") == null) {
+                        continue;
+                    }
+                    polygonCoordinates.add(new Coordinate(latLng.getDouble("lat"), latLng.getDouble("lng")));
+                }
+                if (polygonCoordinates.size() < 3) {
+                    continue;
                 }
                 Polygon polygon = geometryFactory.createPolygon(polygonCoordinates.toArray(new Coordinate[0]));
-                // 判断收货地址是否在范围内
                 if (polygon.contains(addressPoint)) {
-                    locatedInArea = item;
+                    locatedInArea = toArea(area);
                     break;
                 }
             }
@@ -379,6 +405,20 @@ public class CoreLocalDeliveryServiceImpl implements ICoreLocalDeliveryService {
             BigDecimal weightPrice = BigDecimal.valueOf(Math.ceil(goodsWeight.subtract(local.getWeightStart()).divide(local.getWeightUnit(), 2, RoundingMode.HALF_UP).doubleValue())).multiply(local.getWeightPrice());
             deliveryMoney = deliveryMoney.add(weightPrice);
         }
+        // 满免运费：商品金额达到免运费阈值则免除配送费
+        if (ObjectUtil.isNotNull(mode.getFreeGoodsMoney()) && mode.getFreeGoodsMoney().compareTo(BigDecimal.ZERO) > 0
+                && goodsMoney.compareTo(mode.getFreeGoodsMoney()) >= 0) {
+            deliveryMoney = BigDecimal.ZERO;
+        }
         vo.getBasic().setDeliveryMoney(deliveryMoney);
+    }
+
+    private LocalInfoVo.Area toArea(JSONObject area) {
+        LocalInfoVo.Area areaVo = new LocalInfoVo.Area();
+        areaVo.setAreaName(area.getStr("area_name"));
+        areaVo.setAreaType(area.getStr("area_type"));
+        areaVo.setStartPrice(ObjectUtil.defaultIfNull(area.getBigDecimal("start_price"), BigDecimal.ZERO));
+        areaVo.setDeliveryPrice(ObjectUtil.defaultIfNull(area.getBigDecimal("delivery_price"), BigDecimal.ZERO));
+        return areaVo;
     }
 }

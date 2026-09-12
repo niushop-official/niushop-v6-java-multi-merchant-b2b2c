@@ -11,25 +11,23 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * ShopGoods视图
+ * 虚拟商品添加/编辑 init 视图（对齐 PHP VirtualGoodsService::getInit）
  */
 @Data
 public class MallVirtualGoodsInitVo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 商品实体
-     */
+    /** 商品信息 */
     private GoodsInfo goodsInfo;
 
-    /**
-     * 插件信息
-     */
+    /** 插件信息 */
     private Addon addonShopSupplier;
 
+    /** 禁止编辑区域 */
     private String[] disableEditArea = new String[]{};
 
+    /** 禁止编辑字段（供货商商品场景由后端计算） */
     private String[] disableEditField = new String[]{};
 
     @Data
@@ -40,12 +38,15 @@ public class MallVirtualGoodsInitVo implements Serializable {
         private String subTitle;  // 副标题
         private String goodsCover;  // 商品封面
         private String goodsImage;  // 商品图片
+        private String goodsVideo;  // 商品视频
         private Integer[] goodsCategory;  // 商品分类
+        private Object goodsMallCategory;  // 平台商品分类
         private String goodsDesc;  // 商品介绍
         private Object brandId;  // 商品品牌id
         private GoodsBrand brandOption;  // 商品品牌
         private Integer[] labelIds;  // 标签组
         private Integer[] serviceIds;  // 商品服务
+        private Object supplierId;  // 供应商id
         private String unit;  // 单位
         private Integer stock;  // 商品库存（总和）
         private Integer isLimit = 0;
@@ -53,101 +54,65 @@ public class MallVirtualGoodsInitVo implements Serializable {
         private Integer maxBuy = 0;
         private Integer minBuy = 0;
         private String status;  // 商品状态（1.正常0下架）
-        private Integer shopSort;  // 排序
+        private Integer shopSort;  // 店铺排序
         @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
         private String deliveryType;  // 支持的配送方式
         private Integer isFreeShipping;  // 是否免邮
-        private String feeType;  // 运费设置，选择模板：template，固定运费：fixed
+        private String feeType;  // 运费设置
         private BigDecimal deliveryMoney;  // 固定运费
         private Integer deliveryTemplateId;  // 运费模板
-        private Object supplyId;  // 供应商id
-        private Integer supplyGoodsId;
+        private Object supplyId;  // 供货商站点id
+        private Integer supplyGoodsId;  // 供货商商品id
         /**
          * 供应商设置同步，1.开启，0.关闭
          */
         private Integer supplySync;
-        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
-        private String attrIds;  // 商品参数id
-        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
-        private String shopAttrIds;  // 商品参数id
-        private List<MallGoodsAttrVo> attrFormat;  // 商品参数内容，json格式
-        private Integer virtualAutoDelivery; // 虚拟商品是否自动发货
-        private String virtualReceiveType; // 虚拟商品收货方式，auto：自动收货，artificial：买家确认收货，verify：到店核销
-        private Integer virtualVerifyType; // 虚拟商品核销有效期类型，0：不限，1：购买后几日有效，2：指定过期日期
-        private Integer virtualIndate; // 虚拟到期时间
-        private String memberDiscount;  // 会员等级折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
-        //private Object posterId;  // 海报id
-        private List<SkuInfo> skuList;
-        private String specType = "single";
-        private List<SpecInfo> specList;
-        private Long activeGoodsCount;
-        private Long orderGoodsCount = 0L;
-        private Integer isGift;
-        private Object formId;
-        private String pageTitle = "";
-        private Integer supplySyncShow = 0;
-
-        /**
-         * 商品平台分类
-         */
-        private Integer goodsMallCategory;
-        /**
-         * 自定义详情
-         */
-        private Integer diyDetailId;
-
-        private Integer virtualVerifyMobile;
-        /**
-         * 供应商是否有更新
-         */
-        private Integer isSupplyUpdate;
-
-        /**
-         * 积分抵扣类型 custom:自定义 site:继承店铺
-         */
-        private String pointDeductType;
-
-        /**
-         * 积分抵扣比例
-         */
-        private BigDecimal pointDeductRate;
-        //	定时上架状态
-        private Integer timerOnStatus;
-        //定时上架时间
+        private Integer[] attrIds;  // 平台商品参数id
+        private Integer[] shopAttrIds;  // 店铺商品参数id
+        private List<String> shopAttrNameArr;  // 店铺商品参数名称
+        private List<MallGoodsAttrVo> attrFormat;  // 商品参数内容
+        private Integer virtualAutoDelivery;  // 虚拟商品是否自动发货
+        private String virtualReceiveType;  // 虚拟收货方式
+        private Integer virtualVerifyType;  // 虚拟核销有效期类型
+        private Integer virtualIndate;  // 虚拟到期时间
+        private String memberDiscount;  // 会员等级折扣
+        private String vipCardDiscount;  // 付费会员卡折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
+        private List<SkuInfo> skuList;  // sku列表
+        private String specType = "single";  // 规格类型（虚拟：sku数量>1 为多规格）
+        private List<SpecInfo> specList;  // 规格项列表
+        private Long activeGoodsCount;  // 参与营销活动数量
+        private Long orderGoodsCount = 0L;  // 未完成订单数量（核销场景，当前固定0）
+        private Integer isGift;  // 是否赠品
+        private Object formId;  // 万能表单id
+        private String pageTitle = "";  // 万能表单页面标题
+        private Integer supplySyncShow = 0;  // 是否展示供货商同步设置
+        private Object diyDetailId;  // 自定义详情页id
+        private Integer virtualVerifyMobile;  // 虚拟商品是否核销手机号
+        private Integer isSupplyUpdate;  // 供货商是否有更新
+        private String pointDeductType;  // 积分抵扣类型
+        private BigDecimal pointDeductRate;  // 积分抵扣比例
+        private String timerOnStatus;  // 定时上架开关
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
-        private Long timerOnTime;
-        //定时下架状态
-        private Integer timerOffStatus;
-        //定时下架时间
+        private Long timerOnTime;  // 定时上架时间
+        private String timerOffStatus;  // 定时下架开关
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
-        private Long timerOffTime;
-        //支持的支付方式
-        private List<String> supportPayType;
-        //是否允许退款
-        private Integer isEnableRefund;
-        //虚拟商品发货方式 auto/manual/verify
-        private String virtualDeliveryType;
-        //虚拟商品自动发货内容
-        private String virtualDeliveryContent;
-        //虚拟商品退款设置类型
-        private Integer virtualRefund;
-        //虚拟商品退款有效天数
-        private Integer virtualRefundDay;
+        private Long timerOffTime;  // 定时下架时间
+        private List<String> supportPayType;  // 支持的支付方式
+        private String isEnableRefund;  // 是否允许退款
+        private String virtualDeliveryType;  // 虚拟发货方式 auto/manual/verify
+        private String virtualDeliveryContent;  // 虚拟自动发货内容
+        private Integer virtualRefund;  // 虚拟退款设置
+        private Integer virtualRefundDay;  // 虚拟退款有效天数
+        private Integer[] recommendGoodsIds;  // 关联推荐商品id
     }
 
     @Data
     public static class MallGoodsAttrVo {
-
         private Object attr_child_value_id;
-
         private Object attr_child_value_name;
-
         private Long attr_value_id;
-
         private String attr_value_name;
-
         private String sort;
-
         private String type;
     }
 
@@ -162,11 +127,18 @@ public class MallVirtualGoodsInitVo implements Serializable {
         private String skuSpecFormat;  // sku规格格式
         private BigDecimal price;  // sku单价
         private BigDecimal marketPrice;  // 划线价
-        private BigDecimal salePrice;  // 实际卖价（有活动显示活动价，默认原价）
+        private BigDecimal salePrice;  // 实际卖价
         private BigDecimal costPrice;  // sku成本价
+        /** 会员价，json格式：{"level_1":"10.00"}；空字符串序列化为 {} */
+        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        private String memberPrice;
         private Integer stock;  // 商品sku库存
+        private BigDecimal weight;  // 重量
+        private BigDecimal volume;  // 体积
         private Integer isDefault;  // 是否默认
-        private Integer isSell;
+        private Integer isSell;  // 是否可售
+        private BigDecimal maxPrice;  // 控价最大值
+        private BigDecimal minPrice;  // 控价最小值
     }
 
     @Data
@@ -174,6 +146,6 @@ public class MallVirtualGoodsInitVo implements Serializable {
         private Integer specId;  // 规格id
         private Integer goodsId;  // 关联商品id
         private String specName;  // 规格项名称
-        private String specValues;  // 规格值名称，多个逗号隔开
+        private String specValues;  // 规格值名称
     }
 }

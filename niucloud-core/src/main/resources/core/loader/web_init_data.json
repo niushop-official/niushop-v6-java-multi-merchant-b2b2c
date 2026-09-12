@@ -5,23 +5,7 @@
       "ap_key": "ADV_INDEX",
       "adv_title": "首页广告",
       "adv_url": "{\"name\":\"\",\"title\":\"\",\"url\":\"\",\"parent\":\"\"}",
-      "adv_image": "static/resource/images/web/adv_08.jpg",
-      "slide_sort": "1",
-      "background": "#FFFFFF"
-    },
-    {
-      "ap_key": "ADV_INDEX",
-      "adv_title": "首页广告",
-      "adv_url": "{\"name\":\"\",\"title\":\"\",\"url\":\"\",\"parent\":\"\"}",
-      "adv_image": "static/resource/images/web/adv_09.jpg",
-      "slide_sort": "1",
-      "background": "#FFFFFF"
-    },
-    {
-      "ap_key": "ADV_INDEX",
-      "adv_title": "首页广告",
-      "adv_url": "{\"name\":\"\",\"title\":\"\",\"url\":\"\",\"parent\":\"\"}",
-      "adv_image": "static/resource/images/web/adv_10.jpg",
+      "adv_image": "static/resource/images/web/adv_13.png",
       "slide_sort": "1",
       "background": "#FFFFFF"
     }
@@ -452,6 +436,7 @@
       "site_id": "$site_id$",
       "service_name": "品类齐全 轻松购物",
       "image": "static/resource/images/web/footer-01.png",
+      "addon": "",
       "desc": "",
       "create_time": "$time$"
     },
@@ -460,6 +445,7 @@
       "service_name": "正品行货 精致服务",
       "image": "static/resource/images/web/footer-02.png",
       "desc": "",
+      "addon": "",
       "create_time": "$time$"
     },
     {
@@ -467,6 +453,7 @@
       "service_name": "天天低价 畅选无忧",
       "image": "static/resource/images/web/footer-03.png",
       "desc": "",
+      "addon": "",
       "create_time": "$time$"
     },
     {
@@ -474,6 +461,7 @@
       "service_name": "多仓直发 极速配送",
       "image": "static/resource/images/web/footer-04.png",
       "desc": "",
+      "addon": "",
       "create_time": "$time$"
     }
   ]

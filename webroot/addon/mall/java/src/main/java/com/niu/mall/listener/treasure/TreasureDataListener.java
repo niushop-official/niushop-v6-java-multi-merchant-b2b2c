@@ -11,10 +11,10 @@ import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.event.common.CommonEventDefiner;
 import com.niu.core.service.core.sys.ICoreUploadService;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.goods.MallGoodsSku;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoodsSku;
+import com.niu.core.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 

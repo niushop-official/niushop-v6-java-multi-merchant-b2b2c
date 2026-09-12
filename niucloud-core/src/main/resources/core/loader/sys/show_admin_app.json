@@ -1,6 +1,5 @@
 {
-  "app": [
-  ],
+  "app": [],
   "tool": [
     {
       "title": "万能表单",
@@ -11,7 +10,7 @@
     },
     {
       "title": "数据导出",
-      "desc": "数据导出管理",
+      "desc": "展示导出文件，支持删除与下载",
       "icon": "static/resource/images/tool/export_icon.png",
       "key": "setting_export",
       "url": "/setting/export"

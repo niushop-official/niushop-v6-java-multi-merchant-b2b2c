@@ -1,13 +1,13 @@
 <template>
     <view class="overflow-hidden relative" v-if="diyComponent && diyComponent.goods && Object.keys(diyComponent.goods).length">
         <view v-if="diyStore.mode != 'decorate'" class="tab-bar-placeholder"></view>
-        <view :style="warpCss" class="border-[0] border-t-[2rpx] border-solid border-[#f5f5f5] w-[100%] flex justify-between pl-[32rpx] pr-[4rpx] box-border tab-bar z-10 items-center" :class="{'fixed left-0 bottom-0': diyStore.mode != 'decorate'}">
+        <view :style="warpCss" class="bottom-wrap  tab-bar" :class="{'fixed left-0 bottom-0': diyStore.mode != 'decorate'}">
             <view class="flex items-center">
                 <view v-if="menuContent.includes('index')" class="flex flex-col justify-center items-center mr-[38rpx]" @click="redirect({ url: '/app/pages/index/index', mode: 'reLaunch' })">
                     <view class="nc-iconfont nc-icon-shouyeV6xx11 text-[36rpx]"></view>
                     <text class="text-[20rpx] mt-[10rpx]">首页</text>
                 </view>
-                <view v-if="menuContent.includes('site') && systemStore.auditFlag"  class="flex flex-col justify-center items-center mr-[38rpx]" @click="redirect({ url: '/addon/mall/pages/index', param:{site_id: diyComponent.shop_info.site_id } })">
+                <view v-if="menuContent.includes('site') && systemStore.auditFlag"  class="flex flex-col justify-center items-center mr-[38rpx]" @click="redirect({ url: '/addon/mall/pages/site/index', param:{site_id: diyComponent.shop_info.site_id } })">
                     <view class="nc-iconfont nc-icon-dianpuV6xx1 text-[34rpx]"></view>
                     <text class="text-[20rpx] mt-[10rpx]">店铺</text>
                 </view>
@@ -16,7 +16,7 @@
                     <text class="text-[20rpx] mt-[10rpx]">购物车</text>
                 </view>
                 <view v-if="menuContent.includes('collect')" class="flex flex-col justify-center items-center mr-[38rpx]" @click="collectFn">
-                    <text class="nc-iconfont text-[36rpx]" :class="{'text-[#ff0000] nc-icon-xihuanV6mm': isCollect, 'text-[#303133] nc-icon-guanzhuV6xx' : !isCollect}"></text>
+                    <text class="nc-iconfont collect-wrap" :class="{'active nc-icon-xihuanV6mm': isCollect, 'not-active nc-icon-guanzhuV6xx' : !isCollect}"></text>
                     <text class="text-[20rpx] mt-[10rpx]">收藏</text>
                 </view>
                 <view v-if="menuContent.includes('share')" class="flex flex-col justify-center items-center mr-[38rpx]"  @click="openShareFn">
@@ -290,5 +290,26 @@ const refresh = () => {
     padding-top: 16rpx;
     padding-bottom: calc(constant(safe-area-inset-bottom) + 16rpx);
     padding-bottom: calc(env(safe-area-inset-bottom) + 16rpx);
+}
+.bottom-wrap{
+    border-top: 2rpx solid #f5f5f5;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 32rpx;
+    padding-right: 4rpx;
+    box-sizing: border-box;
+    z-index: 10;
+}
+.collect-wrap{
+    font-size: 36rpx;
+    line-height: normal;
+    &.active{
+        color: #ff0000;
+    }
+    &.not-active{
+        color: #303133;
+    }
 }
 </style>

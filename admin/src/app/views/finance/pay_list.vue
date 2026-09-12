@@ -34,31 +34,31 @@
 				</el-row>
 			</el-card> -->
 			<el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-				<el-form :inline="true" :model="payListTable.searchParam" ref="searchFormRef">
+				<el-form :inline="true" label-width="70px"  :model="payListTable.searchParam" ref="searchFormRef" class="page-form">
 					<el-form-item :label="t('outTradeNo')" prop="out_trade_no">
 						<el-input v-model="payListTable.searchParam.out_trade_no"
-							:placeholder="t('outTradeNoPlaceholder')" />
+							:placeholder="t('outTradeNoPlaceholder')" clearable  class="search-input" />
 					</el-form-item>
 
 					<el-form-item :label="t('typeName')" prop="type">
-						<el-select v-model="payListTable.searchParam.type" clearable class="input-width"
+						<el-select v-model="payListTable.searchParam.type" clearable class="search-input"
 							:placeholder="t('typeNamePlaceholder')">
-							<el-option :label="t('selectPlaceholder')" value="" />
-							<el-option :label="item.name" :value="key" v-for="(item, key) in payTypeList" :key="key" />
+                            <el-option  label="全部" value="all" />
+                            <el-option :label="item.name" :value="key" v-for="(item, key) in payTypeList" :key="key" />
 						</el-select>
 					</el-form-item>
 
 					<el-form-item :label="t('channelName')" prop="channel">
-						<el-select v-model="payListTable.searchParam.channel" clearable class="input-width"
+						<el-select v-model="payListTable.searchParam.channel" clearable class="search-input"
 							:placeholder="t('channelNamePlaceholder')">
-							<el-option :label="t('selectPlaceholder')" value="" />
-							<el-option :label="item" :value="key" v-for="(item, key) in channelList" :key="key" />
+                            <el-option  label="全部" value="all" />
+                            <el-option :label="item" :value="key" v-for="(item, key) in channelList" :key="key" />
 						</el-select>
 					</el-form-item>
 					<el-form-item :label="t('createTime')" prop="create_time">
 						<el-date-picker v-model="payListTable.searchParam.create_time" type="datetimerange"
 							value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-							:end-placeholder="t('endDate')" />
+							:end-placeholder="t('endDate')" class="search-input" />
 					</el-form-item>
 
 					<el-form-item>

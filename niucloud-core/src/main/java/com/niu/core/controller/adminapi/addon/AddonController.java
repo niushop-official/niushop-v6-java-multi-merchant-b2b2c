@@ -9,6 +9,7 @@ import com.niu.core.common.domain.Result;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.enums.addon.AddonTypeEnum;
 import com.niu.core.service.admin.addon.IAddonService;
+import com.niu.core.service.admin.home.IAuthSiteService;
 import com.niu.core.service.admin.addon.param.AddonDownloadParam;
 import com.niu.core.service.admin.addon.param.AddonParam;
 import com.niu.core.service.admin.addon.param.AddonSearchParam;
@@ -35,6 +36,9 @@ public class AddonController {
 
     @Resource
     IAddonService addonService;
+
+    @Resource
+    IAuthSiteService authSiteService;
 
     /**
      * 本地插件列表
@@ -113,7 +117,7 @@ public class AddonController {
      * @return
      */
     @PostMapping("/addon/install/{addon}")
-    public Result<JSONObject> install(@PathVariable("addon") String addon) {
+    public Result<Object> install(@PathVariable("addon") String addon) {
         return Result.success(addonService.install(addon, "local"));
     }
 
@@ -124,7 +128,7 @@ public class AddonController {
      * @return
      */
     @PostMapping("/addon/cloudinstall/{addon}")
-    public Result<JSONObject> cloudInstall(@PathVariable("addon") String addon) {
+    public Result<Object> cloudInstall(@PathVariable("addon") String addon) {
         return Result.success(addonService.install(addon, "cloud"));
     }
 
@@ -237,6 +241,11 @@ public class AddonController {
     @GetMapping("/addon/app/select")
     public Result<?> getAppSelectList() {
         return Result.success(addonService.getAppSelectList());
+    }
+
+    @GetMapping("/addon/app/with_site_num")
+    public Result<?> getAppWithSiteNumList() {
+        return Result.success(authSiteService.getAppWithSiteNumList());
     }
 
     @GetMapping("/addon/addon/select")

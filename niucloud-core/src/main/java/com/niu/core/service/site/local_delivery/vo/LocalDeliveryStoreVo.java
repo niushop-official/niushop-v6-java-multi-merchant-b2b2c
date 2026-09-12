@@ -19,4 +19,5 @@ public class LocalDeliveryStoreVo {
     private BigDecimal weightStart; // 重量多少内不额外收费
     private BigDecimal weightUnit; // 每超出多少kg
     private BigDecimal weightPrice; // 价格
+    private BigDecimal freeGoodsMoney;
 }

@@ -3,7 +3,7 @@ package com.niu.mall.service.site.goods;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
-import com.niu.mall.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoods;
 import com.niu.mall.service.site.goods.param.*;
 import com.niu.mall.service.site.goods.vo.*;
 
@@ -179,6 +179,13 @@ public interface IMallGoodsService {
      */
     void editGoodsListMemberPrice(EditGoodsListMemberPriceParam param);
 
+    /**
+     * 编辑商品规格列表付费会员价格
+     *
+     * @param param 参数
+     */
+    void editGoodsListVipCardPrice(EditGoodsListVipCardPriceParam param);
+
     PageResult<GetBuyGoodsSelectVo> getBuyGoodsSelect(PageParam pageParam, BuyGoodsSelectParam param);
 
     GetBuySkuSelectVo getBuySkuSelect(BuySkuSelectParam param);
@@ -211,4 +218,6 @@ public interface IMallGoodsService {
     Map<String, Object> sync(Integer goodsId, Integer supplySync);
 
     Map<String, Map<String, Object>> getStatusType();
+
+
 }

@@ -19,6 +19,8 @@ public abstract class SupplyGoodsSyncEventDefiner extends CallbackListener<Suppl
         private String subTitle;
         private String goodsCover;
         private String goodsImage;
+        /** 商品视频（ENABLE_SYNC_FIELD） */
+        private String goodsVideo;
         private String goodsDesc;
     }
 

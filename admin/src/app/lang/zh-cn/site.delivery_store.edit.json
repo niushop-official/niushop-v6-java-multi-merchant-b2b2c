@@ -97,6 +97,8 @@
   "storeMobile": "联系人电话",
   "storeMobilePlaceholder": "请输入联系人电话",
   "tradeTime": "营业时间",
+  "tradeTimeAllDay": "全天",
+  "tradeTimeDailyRepeat": "每天重复",
   "tradeTimePlaceholder": "请输入营业时间",
   "tradeTimeTips": "例：上午9:00-12:00，下午2:00-6:00",
   "deliveryStoreTips": "当前提货点为系统自建提货点，无法删除且提货点名称、联系人电话、营业时间及地址只能在店铺设置中统一配置。"

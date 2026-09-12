@@ -2,16 +2,13 @@ package com.niu.core.service.site.diy.impl;
 
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.addon.Addon;
-import com.niu.core.service.admin.diy.param.DiyConfigParam;
 import com.niu.core.service.admin.diy.param.SetBottomConfigParam;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
-import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.diy.ICoreDiyConfigService;
 import com.niu.core.service.core.diy.vo.BottomConfigVo;
 import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.site.diy.IDiyConfigService;
 import jakarta.annotation.Resource;
-import org.apache.commons.math3.analysis.function.Add;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,7 +25,7 @@ public class DiyConfigServiceImpl implements IDiyConfigService {
 
     @Override
     public List<BottomConfigVo> getBottomList() {
-        List<BottomConfigVo> list = coreDiyConfigService.getSiteBottomList();
+        List<BottomConfigVo> list = coreDiyConfigService.getSiteBottomList(RequestUtils.siteId());
         SiteInfoVo siteInfoVo = coreSiteService.getSiteCache(RequestUtils.siteId());
 
         List<Addon> apps = siteInfoVo.getApps();

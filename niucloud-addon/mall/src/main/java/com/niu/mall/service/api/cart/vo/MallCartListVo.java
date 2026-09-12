@@ -52,6 +52,7 @@ public class MallCartListVo implements Serializable {
         private Integer saleNum; // 销量
         private Integer isDiscount; // 是否参与限时折扣
         private String memberDiscount;
+        private String vipCardDiscount;
         private Long deleteTime; // 创建时间
         private Integer hasBuy; //已购买数量
 
@@ -62,7 +63,7 @@ public class MallCartListVo implements Serializable {
 
         public String getGoodsCoverThumbSmall() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getGoodsCover(), UploadThumbTypeEnum.SMALL.getType()).getDataMap().get(UploadThumbTypeEnum.SMALL.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getGoodsCover();
             }
             return imageStr;
@@ -70,7 +71,7 @@ public class MallCartListVo implements Serializable {
 
         public String getGoodsCoverThumbMid() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getGoodsCover(), UploadThumbTypeEnum.MID.getType()).getDataMap().get(UploadThumbTypeEnum.MID.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getGoodsCover();
             }
             return imageStr;
@@ -78,7 +79,7 @@ public class MallCartListVo implements Serializable {
 
         public String getGoodsCoverThumbBig() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getGoodsCover(), UploadThumbTypeEnum.BIG.getType()).getDataMap().get(UploadThumbTypeEnum.BIG.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getGoodsCover();
             }
             return imageStr;
@@ -116,7 +117,7 @@ public class MallCartListVo implements Serializable {
 
         public String getSkuImageThumbSmall() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getSkuImage(), UploadThumbTypeEnum.SMALL.getType()).getDataMap().get(UploadThumbTypeEnum.SMALL.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getSkuImage();
             }
             return imageStr;
@@ -124,7 +125,7 @@ public class MallCartListVo implements Serializable {
 
         public String getSkuImageThumbMid() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getSkuImage(), UploadThumbTypeEnum.MID.getType()).getDataMap().get(UploadThumbTypeEnum.MID.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getSkuImage();
             }
             return imageStr;
@@ -132,7 +133,7 @@ public class MallCartListVo implements Serializable {
 
         public String getSkuImageThumbBig() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getSkuImage(), UploadThumbTypeEnum.BIG.getType()).getDataMap().get(UploadThumbTypeEnum.BIG.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getSkuImage();
             }
             return imageStr;

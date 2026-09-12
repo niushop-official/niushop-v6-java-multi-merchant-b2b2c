@@ -36,8 +36,9 @@ public interface IMallGoodsRankService {
      * 商品排行榜添加
      *
      * @param addParam 添加参数
+     * @return 榜单ID
      */
-    void add(MallGoodsRankParam addParam);
+    Integer add(MallGoodsRankParam addParam);
 
     /**
      * 商品排行榜编辑

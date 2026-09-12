@@ -182,7 +182,7 @@
 import { ref, onMounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
-import { getTradeStatBasic, getTradeTrend, getTradeConversion, getTradeChannel, getTradeDealMember } from '@/addon/mall/api/admin/stat'
+import { getTradeStatBasic, getTradeTrend, getTradeConversion, getTradeChannel, getTradeDealMember } from '@/app/lang/zh-cn/api/admin/stat'
 import { useRouter, useRoute } from 'vue-router'
 
 const route = useRoute()

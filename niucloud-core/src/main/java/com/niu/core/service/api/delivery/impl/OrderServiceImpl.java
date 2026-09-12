@@ -27,6 +27,7 @@ import com.niu.core.service.api.delivery.param.TrackOfLocalServiceParam;
 import com.niu.core.service.api.delivery.param.TradePackageSearchParam;
 import com.niu.core.service.api.delivery.vo.DeliveryPackageInfoVo;
 import com.niu.core.service.api.delivery.vo.OrderServiceVo;
+import com.niu.core.service.api.delivery.vo.RiderLocationVo;
 import com.niu.core.service.api.delivery.vo.TrackOfLocalServiceVo;
 import com.niu.core.service.core.delivery_search.ICoreDeliverySearchService;
 import com.niu.core.service.core.delivery_search.param.DeliverySearchParam;
@@ -95,6 +96,12 @@ public class OrderServiceImpl implements IOrderService {
     public TrackOfLocalServiceVo getTrackOfLocalDeliveryOrder(TrackOfLocalServiceParam data) {
         data.setMemberId(RequestUtils.memberId());
         return coreLocalDeliveryOrderService.getTrackInfo(data);
+    }
+
+    @Override
+    public RiderLocationVo getRiderLocation(TrackOfLocalServiceParam data) {
+        data.setMemberId(RequestUtils.memberId());
+        return coreLocalDeliveryOrderService.getRiderLocation(data);
     }
 
     @Override

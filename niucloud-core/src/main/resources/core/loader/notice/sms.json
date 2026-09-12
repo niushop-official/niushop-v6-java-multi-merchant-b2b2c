@@ -10,5 +10,11 @@
   },
   "recharge_success": {
     "content": "您充值金额￥{price}, 充值后金额￥{balance}"
+  },
+  "vip_card_open_success": {
+    "content": "您已开通“{card_name}”会员卡，有效期至{expire_time}"
+  },
+  "vip_card_buy_expire_remind": {
+    "content": "您的“{card_name}”会员卡即将到期，到期时间：{expire_time}"
   }
 }

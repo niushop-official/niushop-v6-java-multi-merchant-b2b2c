@@ -67,4 +67,37 @@ public class PayController {
     public Result<?> friendspayInfo(@PathVariable("trade_type") String tradeType, @PathVariable("trade_id") Integer tradeId) {
         return Result.success(payService.friendspayInfo(tradeType, tradeId));
     }
+
+    /**
+     * 获取某笔交易可用的支付方式
+     *
+     * @param tradeType 业务类型
+     * @return 可用支付方式列表
+     */
+    @GetMapping("/pay/type/{trade_type}")
+    public Result<?> getPayType(@PathVariable("trade_type") String tradeType) {
+        return Result.success(payService.getPayTypeByTrade(tradeType));
+    }
+
+    /**
+     * 关闭支付单（仅待支付状态、订单所属会员可关闭）
+     *
+     * @param param 支付交易号参数
+     * @return 操作结果
+     */
+    @PostMapping("/pay/close")
+    public Result<?> close(@RequestBody PayCloseParam param) {
+        payService.close(param.getOutTradeNo());
+        return Result.success();
+    }
+
+    /**
+     * 关闭支付入参
+     */
+    @lombok.Data
+    public static class PayCloseParam {
+        /** 支付交易号 */
+        @com.fasterxml.jackson.annotation.JsonProperty("out_trade_no")
+        private String outTradeNo;
+    }
 }

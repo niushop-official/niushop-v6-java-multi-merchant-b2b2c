@@ -21,17 +21,17 @@ import com.niu.core.service.core.local_delivery.param.LocalDeliveryOrderCreatePa
 import com.niu.core.service.core.pay.ICorePayService;
 import com.niu.core.service.core.pay.vo.PayInfoVo;
 import com.niu.core.service.core.weapp.ICoreWeappDeliveryService;
-import com.niu.mall.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoods;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderDelivery;
 import com.niu.mall.entity.order.MallOrderGoods;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.OrderDeliveryStatusEnum;
 import com.niu.mall.enums.order.OrderDeliveryTypeEnum;
 import com.niu.mall.enums.order.OrderGoodsRefundEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
 import com.niu.mall.event.order.OrderDeliveryAfterEvent;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderDeliveryMapper;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
@@ -309,12 +309,15 @@ public class CoreOrderDeliveryServiceImpl implements ICoreOrderDeliveryService {
                 param.setSiteId(orderDeliveryDataParam.getOrderData().getSiteId());
                 param.setOrderId(orderDeliveryDataParam.getOrderData().getOrderId());
                 param.setElectronicSheetId(orderDeliveryDataParam.getParam().getElectronicSheetId());
-                param.setOrderGoodsIds(CollStreamUtil.toList(orderDeliveryDataParam.getOrderGoodsData(), MallOrderGoodsDeliveryVo::getGoodsId));
+                param.setOrderGoodsIds(CollStreamUtil.toList(orderDeliveryDataParam.getOrderGoodsData(), MallOrderGoodsDeliveryVo::getOrderGoodsId));
+                param.setAddress(orderDeliveryParam.getAddress());
 
                 List<ElectronicSheetPrintVo> voList = coreElectronicSheetService.printElectronicSheet(param);
-                if (ObjectUtil.isNotEmpty(voList)) {
-                    mallOrderDelivery.setExpressNumber(String.valueOf(voList.get(0).getOrderInfo().get("LogisticCode")));
+                if (ObjectUtil.isEmpty(voList) || !voList.get(0).isSuccess()) {
+                    String reason = ObjectUtil.isNotEmpty(voList) ? voList.get(0).getReason() : "电子面单打印失败";
+                    throw new CommonException(reason);
                 }
+                mallOrderDelivery.setExpressNumber(String.valueOf(voList.get(0).getOrderInfo().get("LogisticCode")));
             }
         }
 

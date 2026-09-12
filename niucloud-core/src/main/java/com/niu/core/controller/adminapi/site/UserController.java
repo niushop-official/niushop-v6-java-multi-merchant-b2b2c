@@ -4,12 +4,8 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
-import com.niu.core.entity.site.SiteGroup;
-import com.niu.core.enums.member.MemberAccountChangeTypeEnum;
-import com.niu.core.service.admin.site.ISiteGroupService;
 import com.niu.core.service.admin.site.ISiteUserService;
 import com.niu.core.service.admin.site.param.*;
-import com.niu.core.service.admin.site.vo.SiteGroupListVo;
 import com.niu.core.service.admin.site.vo.SiteUserVo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -71,6 +67,15 @@ public class UserController {
     @PutMapping("user/{uid}")
     public Result edit(@Validated @RequestBody SiteUserParam siteUserParam, @Validated @PathVariable("uid") Integer uid){
         siteUserService.edit(uid, siteUserParam);
+        return Result.success();
+    }
+
+    /**
+     * 修改单个字段
+     */
+    @PutMapping("user/{uid}/{field}")
+    public Result modify(@PathVariable("uid") Integer uid, @PathVariable("field") String field, @RequestBody SiteUserModifyParam param) {
+        siteUserService.modify(uid, field, param.getValue());
         return Result.success();
     }
 

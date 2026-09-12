@@ -2,10 +2,8 @@ package com.niu.core.service.api.diy.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.fastjson2.JSONPath;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.addon.Addon;
@@ -25,10 +23,7 @@ import com.niu.core.service.api.diy.param.DiyShareParam;
 import com.niu.core.service.api.diy.param.DiyTabbarListParam;
 import com.niu.core.service.api.diy.param.DiyTabbarParam;
 import com.niu.core.service.api.diy.vo.DiyInfoVo;
-import com.niu.core.service.api.diy.vo.DiyShareVo;
-import com.niu.core.service.api.diy.vo.DiyTabbarInfoVo;
 import com.niu.core.service.api.diy.vo.DiyTabbarVo;
-import com.niu.core.service.api.sys.ISysConfigService;
 import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.addon.vo.InstallAddonListVo;
 import com.niu.core.service.core.diy.ICoreDiyConfigService;
@@ -36,14 +31,15 @@ import com.niu.core.service.core.diy.ICoreDiyService;
 import com.niu.core.service.core.diy.vo.BottomConfigVo;
 import com.niu.core.service.core.diy.vo.StartUpPageConfigVo;
 import com.niu.core.service.core.site.ICoreSiteService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,7 +83,7 @@ public class DiyServiceImpl implements IDiyService {
             log.info("startUpPage: {}", JSONUtil.toJsonStr(startUpPage));
 
             TemplateParam templateParam = new TemplateParam();
-            String[] key = { name };
+            String[] key = {name};
             templateParam.setKey(key);
             template = TemplateEnum.getTemplate(templateParam).getJSONObject(name);
         }
@@ -96,9 +92,10 @@ public class DiyServiceImpl implements IDiyService {
             log.info("enter if, template: {}", template.toString());
             return startUpPage;
         } else {
+            Integer siteId = param.getSiteId() != null && param.getSiteId() > 0 ? param.getSiteId() : RequestUtils.siteId();
             QueryWrapper<DiyPage> queryWrapper = new QueryWrapper();
-            queryWrapper.eq("site_id", param.getSiteId());
-            log.info("site_id: {}",param.getSiteId() );
+            queryWrapper.eq("site_id", siteId);
+            log.info("site_id: {}", siteId);
 
             DiyPage info = null;
 
@@ -119,21 +116,15 @@ public class DiyServiceImpl implements IDiyService {
                 if (!name.isEmpty()) {
                     JSONObject pageData = getFirstPageData(name, "");
                     if (pageData != null) {
-                        String mode = "diy";
-                        String value = "";
-                        info = JSONUtil.toBean(pageData, DiyPage.class);
-                        mode = JSONPath.eval(pageData, "$.mode") + "";
-                        value = JSONPath.eval(pageData, "$.data") + "";
-                        info.setMode(mode);
-                        info.setValue(value);
-                        info.setIsDefault(1);
-                        info.setId(param.getSiteId());
+                        DiyInfoVo fallbackVo = buildFallbackDiyInfoVo(param, name, pageData);
+                        log.info("vo: {}", JSONUtil.toJsonStr(fallbackVo));
+                        return fallbackVo;
                     }
                 }
             }
 
             log.info("info: {}", JSONUtil.toJsonStr(info));
-            if (info == null)  return null;
+            if (info == null) return null;
 
             DiyInfoVo vo = new DiyInfoVo();
             BeanUtils.copyProperties(info, vo);
@@ -144,6 +135,7 @@ public class DiyServiceImpl implements IDiyService {
 
     /**
      * 获取默认页面数据
+     *
      * @param type
      * @param addon
      * @return
@@ -152,13 +144,34 @@ public class DiyServiceImpl implements IDiyService {
         JSONObject pages = PagesEnum.getPagesByAddon(type, addon);
         if (pages == null || pages.keySet().size() == 0) return null;
 
-
         String template = pages.keySet().iterator().next();
-        JSONObject data = pages.getJSONObject(template);
-        data.set("type", type);
-        data.set("template", template);
+        JSONObject page = pages.getJSONObject(template);
+        if (page == null) return null;
 
-        return data;
+        JSONObject result = JSONUtil.parseObj(page);
+        result.set("type", type);
+        result.set("template", template);
+        return result;
+    }
+
+    /**
+     * 对齐 PHP DiyService::getInfo 兜底构造
+     */
+    private DiyInfoVo buildFallbackDiyInfoVo(DiyInfoParam param, String name, JSONObject pageData) {
+        Integer siteId = param.getSiteId() != null && param.getSiteId() > 0 ? param.getSiteId() : RequestUtils.siteId();
+        DiyInfoVo vo = new DiyInfoVo();
+        vo.setSiteId(siteId);
+        vo.setTitle(pageData.getStr("title"));
+        vo.setName(name);
+        vo.setType(name);
+        vo.setTemplate(pageData.getStr("template"));
+        vo.setMode(pageData.getStr("mode", "diy"));
+        JSONObject data = pageData.getJSONObject("data");
+        vo.setValue(data != null ? data.toString() : "");
+        vo.setIsDefault(1);
+        vo.setShare("");
+        vo.setVisitCount(0);
+        return vo;
     }
 
 
@@ -170,7 +183,7 @@ public class DiyServiceImpl implements IDiyService {
 
     @Override
     public List<BottomConfigVo> tabbarList(DiyTabbarListParam param) {
-        List<BottomConfigVo> list = coreDiyConfigService.getSiteBottomList();
+        List<BottomConfigVo> list = coreDiyConfigService.getSiteBottomList(param.getSiteId());
         SiteInfoVo siteInfoVo = coreSiteService.getSiteCache(param.getSiteId());
 
         List<Addon> apps = siteInfoVo.getApps();
@@ -255,7 +268,7 @@ public class DiyServiceImpl implements IDiyService {
 
         String queryStr = "";
         if (query.keySet().size() > 0) {
-            for (String key: query.keySet()) {
+            for (String key : query.keySet()) {
                 queryStr += queryStr.isEmpty() ? key + "=" + query.getStr(key) : "&" + key + "=" + query.getStr(key);
             }
         }
@@ -266,7 +279,7 @@ public class DiyServiceImpl implements IDiyService {
 
     @Override
     public JSONObject getDiyTheme() {
-        Map<String, InstallAddonListVo> siteAddon =  coreAddonService.getInstallAddonList();
+        Map<String, InstallAddonListVo> siteAddon = coreAddonService.getInstallAddonList();
         List<DiyTheme> themeDataList = diyThemeMapper.selectList(new QueryWrapper<DiyTheme>().eq("type", "app").eq("is_selected", 1));
         Map<String, DiyTheme> themeData = new HashMap<>();
         for (DiyTheme theme : themeDataList) {

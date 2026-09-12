@@ -1,7 +1,7 @@
 <template>
-	<view :style="warpCss" class="shop-info-search-wrap" :class="[diyComponent.style]">
+	<view :style="warpCss" class="shop-info-search-wrap" :class="[diyComponent.style]" v-if="Object.keys(shopInfo).length">
 		<view class="relative" v-if="diyComponent.style == 'style-1'">
-            <view class="bg-img" :class="{'!-bottom-[200rpx]': diyComponent.bgGradient == true}">
+            <view class="bg-img" :class="{'bottom200': diyComponent.bgGradient == true}">
 				<video v-if="diyComponent.bgVideo && diyComponent.curBgImg == diyComponent.bgVideo" id="bgVideo" class="w-full h-full" :src="img(diyComponent.bgVideo)" objectFit="cover" :muted="true" :autoplay="true" :loop="true" :controls="false" :show-center-play-btn="false" ref="videoRef"></video>
 				<image v-else-if="diyComponent.curBgImg" :src="img(diyComponent.curBgImg)" mode="aspectFill" class="w-full h-full"/>
 				<view v-else class="w-full h-full bg-[#ccc]"></view>
@@ -10,7 +10,7 @@
 			
             <view class="fixed-wrap" :style="fixedStyle">
 				<!-- 搜索 -->
-				<view class="diy-search-wrap relative z-10" @click.stop="toLink" :style="!props.global.topStatusBar.isShow ? navbarInnerStyle : ''">
+				<view class="diy-search-wrap relative z-10"  :style="!props.global.topStatusBar.isShow ? navbarInnerStyle : ''">
 					<view class="search-left flex-center h-[60rpx] rounded-[30rpx] box-border arrow-left pl-[12rpx] pr-[20rpx] leading-[1]" :style="navbarInnerArrowStyle">
 						<text class="nc-iconfont text-[#fff] nc-icon-zuoV6xx text-[18px]" :style="{color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }" @click.stop="backToPrevious()"></text>
 						<text class="w-[2rpx] h-[26rpx] bg-[#fff] ml-[8rpx] mr-[16rpx]" :style="{backgroundColor: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }"></text>
@@ -25,6 +25,9 @@
 								<view class="leading-[64rpx] text-[24rpx]" :style="{color:  props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }">{{ item.text }}</view>
 							</swiper-item>
 						</swiper>
+					</view>
+					<view class="w-[56rpx] h-[56rpx] flex items-center justify-center rounded-[50%] ml-[16rpx]" :style="{backgroundColor: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ?  diyComponent.fixedSearch.bgColor : diyComponent.search.bgColor }" v-if="shopInfo.qrcode_shop_config.is_show" @click="openShareFn">
+						<text class="nc-iconfont nc-icon-fukuanmaV6xx" :style="{color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }"></text>
 					</view>
 				</view>
 
@@ -42,14 +45,14 @@
 
 			<!-- 店铺信息 -->
 			<view class="relative mt-[200rpx] mx-[20rpx] rounded-[24rpx] box-border">
-				<view class="flex items-center" @click="toDetail" v-if="Object.keys(shopInfo).length">
+				<view class="flex items-center" @click="toDetail">
 					<view class="flex items-center">
 						<view class="text-[30rpx] font-600 truncate max-w-[260rpx]" :style="{ color : diyComponent.shop.textColor }">{{ shopInfo.siteName }}</view>
 						<view class="flex items-center text-[24rpx] ml-[8rpx]" :style="{ color : diyComponent.shop.textColor }">{{shopInfo.follow_number}}人关注</view>
 					</view>
 					<view class="flex-1 flex justify-end">
-						<view @click.stop="followShop" class="px-[18rpx] py-[8rpx] rounded-[50rpx] flex-center box-border" :class="{'bg-[#fff]':  isFollow == 0,'border-[2rpx] border-solid border-[#fff]': isFollow == 1}">
-							<text class="text-[22rpx] text-primary" :class="{'ml-[8rpx] !text-[#fff]': isFollow == 1 }">{{ isFollow  == 0 ? t('unFollowed') : t('followed') }}</text>
+						<view @click.stop="followShop" class="follow-box  flex-center box-border" :class="{'bg-white':  isFollow == 0,'border': isFollow == 1}">
+							<text class="follow-self text-primary" :class="{'active': isFollow == 1 }">{{ isFollow  == 0 ? t('unFollowed') : t('followed') }}</text>
 						</view>
 					</view>
 				</view>
@@ -69,7 +72,7 @@
 			</scroll-view>
         </view>
         <view class="relative" v-if="diyComponent.style == 'style-2'">
-            <view class="bg-img" :class="{'!-bottom-[200rpx]': diyComponent.bgGradient == true}">
+            <view class="bg-img" :class="{'bottom200': diyComponent.bgGradient == true}">
 				<image v-if="diyComponent.swiper.control && diyComponent.swiper.list && diyComponent.swiper.list[swiperIndex]?.imageUrl"
                     :src="img(diyComponent.swiper.list[swiperIndex]?.imageUrl)" mode="scaleToFill" class="w-full h-full"
                     :show-menu-by-longpress="true" />
@@ -78,7 +81,7 @@
 			</view>
             <view class="fixed-wrap" :style="fixedStyle">
 				<!-- 搜索 -->
-				<view class="diy-search-wrap relative z-10" @click.stop="toLink" :style="!props.global.topStatusBar.isShow ? navbarInnerStyle : ''">
+				<view class="diy-search-wrap relative z-10" :style="!props.global.topStatusBar.isShow ? navbarInnerStyle : ''">
 					<view class="search-left flex-center h-[60rpx] rounded-[30rpx] box-border arrow-left pl-[12rpx] pr-[20rpx] leading-[1]" :style="navbarInnerArrowStyle">
 						<text class="nc-iconfont text-[#fff] nc-icon-zuoV6xx text-[18px]" :style="{color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }" @click.stop="backToPrevious()"></text>
 						<text class="w-[2rpx] h-[26rpx] bg-[#fff] ml-[8rpx] mr-[16rpx]" :style="{backgroundColor: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }"></text>
@@ -94,9 +97,12 @@
 							</swiper-item>
 						</swiper>
 					</view>
+					<view class="w-[56rpx] h-[56rpx] flex items-center justify-center rounded-[50%] ml-[16rpx]" :style="{backgroundColor: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ?  diyComponent.fixedSearch.bgColor : diyComponent.search.bgColor }" v-if="shopInfo.qrcode_shop_config.is_show" @click="openShareFn">
+						<text class="nc-iconfont nc-icon-fukuanmaV6xx" :style="{color: props.scrollBool == 1 && diyComponent.positionWay == 'fixed'  ? diyComponent.fixedSearch.color : diyComponent.search.color }"></text>
+					</view>
 				</view>
 
-				<view class="bg-img  aaa" v-if="fixedStyleBg">
+				<view class="bg-img" v-if="fixedStyleBg">
 					<image v-if="diyComponent.swiper.control && diyComponent.swiper.list && diyComponent.swiper.list[swiperIndex].imageUrl"
                         :src="img(diyComponent.swiper.list[swiperIndex].imageUrl)" mode="widthFix" class="w-full h-full"
                         :show-menu-by-longpress="true" />
@@ -131,16 +137,16 @@
                         </view>
                     </view>
                     <view class="flex-1 flex justify-end">
-                        <view @click.stop="followShop" class="w-[120rpx] h-[50rpx] rounded-[50rpx] flex-center box-border" :class="{'primary-btn-bg':  isFollow == 0,'border-[2rpx] border-solid border-[#fff]': isFollow == 1}">
+                        <view @click.stop="followShop" class="follow-style2 flex-center box-border" :class="{'primary-btn-bg':  isFollow == 0,'border': isFollow == 1}">
                             <text class="nc-iconfont text-[22rpx]  mt-[2rpx] text-[#fff] nc-icon-guanzhuV6xx" v-if="isFollow  == 0"></text>
-                            <text class="text-[22rpx] text-[#fff]" :class="{'ml-[8rpx]': isFollow == 1 }">{{ isFollow  == 0 ? t('unFollowed') : t('followed') }}</text>
+                            <text class="font22 text-white" :class="{'ml8': isFollow == 1 }">{{ isFollow  == 0 ? t('unFollowed') : t('followed') }}</text>
                         </view>
                     </view>
                 </view>
             </view>
 			
 			<!-- 轮播图 -->
-            <view class="relative" :class="{'mx-[20rpx]': swiperStyleBool && diyComponent.swiper.swiperStyle != 'style-3', 'swiper-style-3': diyComponent.swiper.swiperStyle == 'style-3'}">
+            <view class="relative" :class="{'mx20': swiperStyleBool && diyComponent.swiper.swiperStyle != 'style-3', 'swiper-style-3': diyComponent.swiper.swiperStyle == 'style-3'}">
                 <swiper v-if="diyComponent.swiper.control" class="swiper" :style="{ height: imgHeight }" autoplay="true"
                         circular="true" @change="swiperChange"
                         :class="{ 'swiper-left': diyComponent.swiper.indicatorAlign == 'left', 'swiper-right': diyComponent.swiper.indicatorAlign == 'right', 'ns-indicator-dots': diyComponent.swiper.indicatorStyle == 'style-2', 'ns-indicator-dots-three': diyComponent.swiper.indicatorStyle == 'style-3' }"
@@ -177,6 +183,7 @@
                 <!-- #endif -->
             </view>
         </view>
+		<share-poster ref="sharePosterRef" posterType="mall_shop"  :posterParam="posterParam" :copyUrl="copyUrl" :copyUrlParam="copyUrlParam" />
 	</view>
 </template>
 
@@ -186,7 +193,7 @@ import { img,  redirect,getToken,currRoute, distance, getTopFixedStatusName } fr
 import { t } from '@/locale'
 import useDiyStore from '@/app/stores/diy'
 import { useLogin } from '@/hooks/useLogin'
-import { editShopCollect } from '@/addon/mall/api/shop';
+import { editShopCollect } from '@/app/api/shop';
 import useConfigStore from '@/stores/config'
 import useSystemStore from '@/stores/system'
 import useShopStore from '@/addon/mall/stores/shop';
@@ -279,7 +286,7 @@ const setModuleLocation = ()=> {
 			if (diyComponent.value.swiper.swiperStyle != 'style-3') {
 				const query = uni.createSelectorQuery().in(instance);
 				query.select('.fixed-wrap').boundingClientRect((data:any) => {
-					moduleHeight.value = (data.height || 0) + 'px';
+					moduleHeight.value = (data?.height || 0) + 'px';
 				}).exec();
 			} else {
 				moduleHeight.value = ''
@@ -477,7 +484,11 @@ const refresh = () => {
 			typeName: '直营店铺',
 			rate: 5,
 			isFollow: 0,
-			follow_number: 0
+			follow_number: 0,
+			qrcode_shop_config: {
+				is_hidden_plat_index: 0,
+				is_show: 1
+			}
 		};
 	} else {
 		setShopInfo();
@@ -495,6 +506,7 @@ const setShopInfo = ()=> {
 				isFollow.value = shopInfo.value.isFollow;
 			})
 		}
+		copyUrlFn()
 	}
 }
 
@@ -521,8 +533,9 @@ const followShop = ()=> {
 
 	editShopCollect({
 		site_id: shopInfo.value.siteId,
-		is_follow: isFollow.value == 0 ? 1 : 0
-	}).then(res => {
+		is_follow: isFollow.value == 0 ? 1 : 0,
+		addon: 'mall'
+		}).then(res => {
 		if (isFollow.value) {
 			uni.showToast({
 				title: '取消关注',
@@ -571,6 +584,24 @@ if(componentsScrollVal && (typeof componentsScrollVal == "object")){
 	uni.setStorageSync('componentsScrollValGroup', obj);
 }
 /******************************* 存储滚动值-end ***********************/ 
+
+
+/************* 分享海报-start **************/
+const sharePosterRef: any = ref(null);
+const copyUrl = ref('/addon/mall/pages/site/index')
+const copyUrlParam = ref('');
+let posterParam: any = {};
+
+// 分享海报链接
+const copyUrlFn = ()=>{
+	copyUrlParam.value = '?site_id=' + diyStore.siteId;
+}
+
+const openShareFn = ()=>{
+    posterParam.site_id = diyStore.siteId;
+	sharePosterRef.value.openShare()
+}
+/************* 分享海报-end **************/
 
 </script>
 
@@ -914,5 +945,41 @@ if(componentsScrollVal && (typeof componentsScrollVal == "object")){
 }
 .primary-btn-bg {
 	background: linear-gradient(94deg, #FB7939 0%, #FF4142 99%), #FF4142;
+}
+.follow-box{
+	padding: 8rpx 18rpx;
+	border-radius: 50rpx;
+	&.border {
+		border: 2rpx solid #fff;
+	}
+}
+.follow-self{
+	font-size: 22rpx;
+	&.active{
+		margin-left: 8rpx;
+		color: #fff !important;
+	}
+}
+.bottom200 {
+	bottom: -200rpx !important;
+
+}
+.follow-style2{
+	width: 120rpx;
+	height: 50rpx;
+	border-radius: 50rpx;
+	&.border {
+		border: 2rpx solid #fff;
+	}
+	.font22{
+		font-size: 22rpx;
+	}
+	.ml8{
+		margin-left: 8rpx;
+	}
+}
+.mx20 {
+	margin-left: 20rpx;
+	margin-right: 20rpx;
 }
 </style>

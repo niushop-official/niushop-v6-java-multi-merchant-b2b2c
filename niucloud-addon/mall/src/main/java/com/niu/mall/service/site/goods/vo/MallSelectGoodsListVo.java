@@ -3,8 +3,8 @@ package com.niu.mall.service.site.goods.vo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
-import com.niu.mall.entity.goods.MallGoodsSku;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.entity.goods.MallGoodsSku;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -40,6 +40,10 @@ public class MallSelectGoodsListVo implements Serializable {
         private Integer goodsId;  // 商品id
         private Integer siteId;  // 站点id
         private String goodsName;  // 商品名称
+        private String subTitle;  // 副标题
+        private String goodsDesc;  // 商品描述
+        private Integer supplyId;  // 供货商站点id
+        private String supplyName;  // 供货商名称
         private String goodsType;  // 商品类型
         private String goodsCover;  // 商品封面
         private String goodsImage;

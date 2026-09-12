@@ -6,6 +6,7 @@ import com.niu.core.service.core.diy.vo.BottomConfigVo;
 import com.niu.core.service.core.diy.vo.StartUpPageConfigVo;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ICoreDiyConfigService {
 
@@ -19,7 +20,7 @@ public interface ICoreDiyConfigService {
      * 获取底部导航配置
      * @return
      */
-    List<BottomConfigVo> getSiteBottomList();
+    List<BottomConfigVo> getSiteBottomList(Integer siteId);
 
     /**
      * 获取自定义导航配置
@@ -58,4 +59,16 @@ public interface ICoreDiyConfigService {
      * @return
      */
     StartUpPageConfigVo getStartUpPageConfig(Integer siteId, String name);
+
+    /**
+     * 设置店铺二维码配置
+     */
+    void setSiteQrcodeConfig(Integer siteId, Map<String, Object> data, String type);
+
+    /**
+     * 获取店铺二维码配置
+     */
+    Map<String, Object> getSiteQrcodeConfig(Integer siteId, String key);
+
+
 }

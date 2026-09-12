@@ -5,13 +5,13 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.mall.entity.active.MallActive;
-import com.niu.mall.entity.active.MallActiveGoods;
+import com.niu.core.entity.active.MallActiveGoods;
 import com.niu.mall.enums.active.ActiveStatusEnum;
 import com.niu.mall.event.marketing.ActiveEndAfterEvent;
 import com.niu.mall.event.marketing.ActiveStartAfterEvent;
-import com.niu.mall.mapper.active.MallActiveGoodsMapper;
+import com.niu.core.mapper.active.MallActiveGoodsMapper;
 import com.niu.mall.mapper.active.MallActiveMapper;
-import com.niu.mall.service.core.marketing.ICoreActiveGoodsService;
+import com.niu.core.service.core.marketing.ICoreActiveGoodsService;
 import com.niu.mall.service.core.marketing.ICoreActiveService;
 import org.springframework.stereotype.Service;
 

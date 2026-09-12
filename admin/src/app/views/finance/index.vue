@@ -5,9 +5,9 @@
 				<div class="flex justify-between items-start">
 					<span class="text-lg font-extrabold mr-[10px]">{{  pageName }}</span>
 					<div class="flex items-center">
-						<el-form :inline="true">
+						<el-form :inline="true" label-width="70px" class="page-form">
 							<el-form-item :label="t('时间选择')" prop="date">
-								<el-date-picker v-model="date" type="daterange" value-format="YYYY-MM-DD" :start-placeholder="t('startTime')" :end-placeholder="t('endTime')"  />
+								<el-date-picker v-model="date" type="daterange" value-format="YYYY-MM-DD" :start-placeholder="t('startTime')" :end-placeholder="t('endTime')" class="search-input" />
 							</el-form-item>
 							<el-form-item>
                                 <el-button type="primary"  @click="getFinanceFn()">{{ t('search') }}</el-button>

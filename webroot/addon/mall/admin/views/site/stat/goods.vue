@@ -8,7 +8,7 @@
                     <div class="flex items-center">
                         <el-form :inline="true">
                             <el-form-item :label="t('timeFilter')" prop="date">
-                                <el-date-picker v-model="date" type="daterange" value-format="YYYY/MM/DD" :start-placeholder="t('startTime')" :end-placeholder="t('endTime')" :shortcuts="shortcuts" />
+                                <el-date-picker v-model="date" type="daterange" value-format="YYYY/MM/DD" :start-placeholder="t('startTime')" :end-placeholder="t('endTime')" :shortcuts="shortcuts" class="search-input" />
                             </el-form-item>
                             <el-form-item>
                                 <el-button type="primary"  @click="getGoodsStatisticsFn()">{{ t('search') }}</el-button>
@@ -176,7 +176,7 @@
                             </el-select>
                         </el-form-item>
                         <el-form-item :label="t('timeFilter')" prop="date">
-                            <el-date-picker v-model="goodsData.searchParam.date" type="daterange" value-format="YYYY/MM/DD" :start-placeholder="t('startTime')" :end-placeholder="t('endTime')" :shortcuts="shortcuts" />
+                            <el-date-picker v-model="goodsData.searchParam.date" type="daterange" value-format="YYYY/MM/DD" :start-placeholder="t('startTime')" :end-placeholder="t('endTime')" :shortcuts="shortcuts" class="search-input" />
                         </el-form-item>
                         <el-form-item>
                             <el-button type="primary"  @click="loadGoodsList()">{{ t('search') }}</el-button>
@@ -234,7 +234,7 @@ import { t } from '@/lang'
 import * as echarts from 'echarts'
 import { useRouter } from 'vue-router'
 import { getCategoryTree } from '@/app/api/basic_site'
-import { getGoodsStatisticsBasic, getGoodsStatisticsTrend, getGoodsStatisticsType, getGoodsStatisticsRank } from '@/addon/mall/api/site/stat'
+import { getGoodsStatisticsBasic, getGoodsStatisticsTrend, getGoodsStatisticsType, getGoodsStatisticsRank } from '@/app/lang/zh-cn/api/site/stat'
 import { FormInstance } from 'element-plus'
 
 const router = useRouter()
@@ -453,7 +453,9 @@ const goodsCategoryOptions: any = reactive([])
 const goodsStatisticsType: any = reactive([])
 const initData = () => {
     // 查询商品分类树结构
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []

@@ -4,9 +4,9 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.mall.enums.common.CommonActiveEnum;
 import com.niu.mall.enums.fullactive.FullGiftRuleTypeEnum;
-import com.niu.mall.enums.fullactive.FullReductionPromotionTypeEnum;
-import com.niu.mall.enums.fullactive.FullReductionRuleTypeEnum;
-import com.niu.mall.enums.fullactive.FullReductionTypeEnum;
+import com.niu.core.enums.fullactive.FullReductionPromotionTypeEnum;
+import com.niu.core.enums.fullactive.FullReductionRuleTypeEnum;
+import com.niu.core.enums.fullactive.FullReductionTypeEnum;
 import com.niu.mall.service.api.marketing.IFullGiftService;
 import com.niu.mall.service.api.marketing.IFullReductionService;
 import com.niu.mall.service.api.marketing.IMallDiscountService;
@@ -129,8 +129,10 @@ public class MarketingServiceImpl implements IMarketingService {
                                     BigDecimal amount = new BigDecimal(first.get("amount").toString());
                                     first.put("is_enough", amount.compareTo(ruleUnit) <= 0 ? 1 : 0);
                                     BigDecimal reduce = new BigDecimal(first.get("reduce").toString());
-                                    // 计算抵扣金额
-                                    BigDecimal deductPrice = price.multiply(num).multiply(reduce).divide(amount, 2, RoundingMode.HALF_UP);
+                                    // 计算抵扣金额：floor(总金额/门槛) × 减免额
+                                    long cycles = ruleUnit.divide(amount, 0, RoundingMode.DOWN).longValue();
+                                    BigDecimal deductPrice = BigDecimal.valueOf(cycles).multiply(reduce)
+                                            .setScale(2, RoundingMode.DOWN);
                                     first.put("deduct_price", deductPrice);
                                 } else {
                                     // 累进档位
@@ -223,6 +225,11 @@ public class MarketingServiceImpl implements IMarketingService {
                 case "discount" -> {
                     detail = discountService.detail(marketId);
                     if (detail != null) {
+                        // 对齐 PHP：model timestamp 输出后，再把 end_time 格式化为 Y-m-d H:i；start_time 同步格式化供有效期展示/倒计时
+                        Object startTimeObj = detail.get("start_time");
+                        if (startTimeObj != null) {
+                            detail.put("start_time", formatTimestamp(startTimeObj));
+                        }
                         Object endTimeObj = detail.get("end_time");
                         if (endTimeObj != null) {
                             detail.put("end_time", formatTimestamp(endTimeObj));

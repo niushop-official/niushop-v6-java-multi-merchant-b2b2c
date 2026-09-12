@@ -8,7 +8,6 @@ import java.io.Serializable;
 import com.niu.core.entity.site.Site;
 import com.niu.core.enums.shop.ShopCashOutEnum;
 import com.niu.core.enums.shop.ShopTransferEnum;
-import io.swagger.models.auth.In;
 import lombok.Data;
 import java.math.BigDecimal;
 /**

@@ -11,6 +11,10 @@ import com.niu.core.entity.site.Site;
 import com.niu.core.mapper.goods.GoodsServiceMapper;
 import com.niu.core.mapper.shop.SiteShopMapper;
 import com.niu.core.mapper.site.SiteMapper;
+import com.niu.core.service.admin.site.ISiteSettAccountService;
+import com.niu.core.service.admin.site.param.SiteSettAccountSearchParam;
+import com.niu.core.service.admin.site.vo.SiteSettAccountVo;
+import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.site.shop.ISiteShopInfoService;
 import com.niu.core.service.site.shop.vo.SiteShopInfoVo;
 import jakarta.annotation.Resource;
@@ -34,7 +38,13 @@ public class SiteShopInfoServiceImpl implements ISiteShopInfoService {
     private SiteShopMapper siteShopMapper;
 
     @Resource
+    private ISiteSettAccountService siteSettAccountService;
+
+    @Resource
     private Cached cached;
+
+    @Resource
+    private ICoreSiteService coreSiteService;
 
     @Override
     public SiteShopInfoVo getShopInfo(Integer siteId) {
@@ -44,7 +54,7 @@ public class SiteShopInfoServiceImpl implements ISiteShopInfoService {
         SiteShop model = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", siteId));
         if(model != null){
             SiteShopInfoVo.shopInfo shopInfo = new SiteShopInfoVo.shopInfo();
-            shopInfo.setSupplyFollowNum(model.getSupplyFollowNum());
+            shopInfo.setSupplyFollowNum(model.getFollowNumber());
             siteShopInfoVo.setShop(shopInfo);
         }
         List<GoodsService> goodsServiceList = goodsServiceMapper.selectList(new QueryWrapper<GoodsService>().eq("site_id", RequestUtils.defaultSiteId()).orderByDesc("create_time"));
@@ -62,32 +72,26 @@ public class SiteShopInfoServiceImpl implements ISiteShopInfoService {
     @Transactional
     public void editBusinessStatus(Integer businessStatus) {
         Integer siteId = RequestUtils.siteId();
-        businessStatus = ObjectUtil.isNotEmpty(businessStatus) ? businessStatus : 0;
-        int num = siteShopMapper.update(new SiteShop(), new UpdateWrapper<SiteShop>().eq("site_id", siteId).set("business_status", businessStatus));
-        if(num>0) cached.tag("site_cache_"+siteId).clear();
+        coreSiteService.editSiteBusinessStatus(siteId, ObjectUtil.isNotEmpty(businessStatus) ? businessStatus : 0);
+        cached.tag("site_cache_" + siteId).clear();
     }
 
     @Override
     public boolean check() {
-        Integer siteId = RequestUtils.siteId();
-        SiteShop shopInfo = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", siteId));
-
-        if (ObjectUtil.isEmpty(shopInfo)) {
+        List<SiteSettAccountVo> accounts = siteSettAccountService.getList(new SiteSettAccountSearchParam());
+        if (ObjectUtil.isEmpty(accounts)) {
             return false;
-        } else {
-            if (shopInfo.getBankType() == 1) {
-                // 判断银行卡类型
-                if (ObjectUtil.isEmpty(shopInfo.getBankAccountName()) ||
-                        ObjectUtil.isEmpty(shopInfo.getBankAccountNo()) ||
-                        ObjectUtil.isEmpty(shopInfo.getBankName()) ||
-                        ObjectUtil.isEmpty(shopInfo.getBankAddress())) {
+        }
+        for (SiteSettAccountVo account : accounts) {
+            if (account.getType() == 1) {
+                if (ObjectUtil.isEmpty(account.getName()) ||
+                        ObjectUtil.isEmpty(account.getAccountNo()) ||
+                        ObjectUtil.isEmpty(account.getBankName())) {
                     return false;
                 }
-            }
-            if (shopInfo.getBankType() == 2) {
-                // 判断支付宝类型
-                if (ObjectUtil.isEmpty(shopInfo.getAlipayName()) ||
-                        ObjectUtil.isEmpty(shopInfo.getAlipayAccountNo())) {
+            } else if (account.getType() == 2) {
+                if (ObjectUtil.isEmpty(account.getName()) ||
+                        ObjectUtil.isEmpty(account.getAccountNo())) {
                     return false;
                 }
             }

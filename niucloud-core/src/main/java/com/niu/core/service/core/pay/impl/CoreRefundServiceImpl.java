@@ -120,7 +120,9 @@ public class CoreRefundServiceImpl implements ICoreRefundService {
         Pay pay = payMapper.selectOne(new QueryWrapper<Pay>().eq("out_trade_no", refund.getOutTradeNo()));
         if (pay == null) throw new CommonException("无效的支付交易号");
         //存入退款方式
-        payRefundMapper.update(new PayRefund(), new UpdateWrapper<PayRefund>().eq("id", param.getRefundNo()).set("refund_type",param.getRefundType()));
+        payRefundMapper.update(null, new UpdateWrapper<PayRefund>()
+                .eq("refund_no", param.getRefundNo())
+                .set("refund_type", param.getRefundType()));
         if (param.getRefundType().equals(RefundTypeEnum.BACK.getKey())) {
             RefundParam refundParam = new RefundParam();
             refundParam.setSiteId(param.getSiteId());

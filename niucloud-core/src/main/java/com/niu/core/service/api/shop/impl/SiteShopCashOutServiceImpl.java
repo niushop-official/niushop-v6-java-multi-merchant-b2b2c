@@ -13,8 +13,10 @@ import com.niu.core.common.exception.ApiException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
+import com.niu.core.entity.site.Site;
 import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.entity.shop.SiteShopCashOut;
+import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.enums.shop.ShopCashOutEnum;
 import com.niu.core.enums.shop.ShopTransferEnum;
 import com.niu.core.mapper.shop.SiteShopCashOutMapper;
@@ -51,6 +53,8 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
     ICoreShopCashOutService coreShopCashOutService;
     @Resource
     SiteShopMapper siteShopMapper;
+    @Resource
+    SiteMapper siteMapper;
     @Resource
     private Cached cached;
     @Override
@@ -126,9 +130,10 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
                 .setAlias("nssco")
                 // 2. 关联站点表
                 .leftJoin("?_site ns ON nssco.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix))
+                .leftJoin("?_site_shop nss ON nssco.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .select("ns.site_id as 'siteInfo.siteId', ns.site_name as 'siteInfo.siteName', " +
                         "ns.phone as 'siteInfo.phone', ns.logo as 'siteInfo.logo', " +
-                        "ns.group_id as 'siteInfo.groupId', ns.keywords as 'siteInfo.keywords', " +
+                        "ns.group_id as 'siteInfo.groupId', nss.keywords as 'siteInfo.keywords', " +
                         "ns.app_type as 'siteInfo.appType', ns.addons as 'siteInfo.addons', " +
                         "ns.address as 'siteInfo.address', ns.app as 'siteInfo.app', " +
                         "ns.business_hours as 'siteInfo.businessHours', ns.city_id as 'siteInfo.cityId', " +
@@ -274,10 +279,10 @@ public class SiteShopCashOutServiceImpl implements ISiteShopCashOutService {
 
     @Override
     public Map<String, BigDecimal> getWithdrawData() {
-        QueryWrapper<SiteShop> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<Site> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("SUM(money) AS money, SUM(money_get) AS money_get, SUM(money_cash_outing) AS money_cash_outing");
         queryWrapper.ne("site_id", 0);
-        List<Map<String, Object>> shopStatMap = siteShopMapper.selectMaps(queryWrapper);
+        List<Map<String, Object>> shopStatMap = siteMapper.selectMaps(queryWrapper);
         Map<String, Object> map = ObjectUtil.defaultIfNull(shopStatMap.get(0), new HashMap<>());
         Map<String, BigDecimal> statMap = new HashMap<>();
 

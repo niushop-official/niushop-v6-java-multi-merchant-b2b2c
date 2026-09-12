@@ -106,7 +106,7 @@ export function checkPermission(params: Record<string, any>) {
  * 备份功能 恢复升级备份
  */
 export function restoreUpgradeBackup(params: Record<string, any>) {
-    return request.post('backup/restore', params, { showErrorMessage: false })
+    return request.post('backup/restore', params)
 }
 
 /**

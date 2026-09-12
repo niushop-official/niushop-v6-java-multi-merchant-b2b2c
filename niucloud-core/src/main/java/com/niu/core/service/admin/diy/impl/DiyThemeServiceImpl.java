@@ -367,7 +367,7 @@ public class DiyThemeServiceImpl implements IDiyThemeService {
         if (data.getAddon().equals("app")){
             type = "app";
         }else{
-            Addon addonData = addonMapper.selectOne(new QueryWrapper<Addon>().eq("key", data.getAddon()).last("limit 1"));
+            Addon addonData = addonMapper.selectOne(new QueryWrapper<Addon>().eq("`key`", data.getAddon()).last("limit 1"));
             if(ObjectUtil.isEmpty(addonData)){
                 throw new AdminException("插件不存在");
             }

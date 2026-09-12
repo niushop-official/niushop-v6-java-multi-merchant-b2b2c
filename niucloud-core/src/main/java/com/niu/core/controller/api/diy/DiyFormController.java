@@ -2,7 +2,6 @@ package com.niu.core.controller.api.diy;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.niu.core.common.domain.Result;
-import com.niu.core.common.enums.HttpEnum;
 import com.niu.core.service.api.diy.IDiyFormService;
 import com.niu.core.service.core.diy_form.param.DiyFormRecordsParam;
 import jakarta.annotation.Resource;
@@ -10,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/diy/form")
@@ -43,7 +43,7 @@ public class DiyFormController {
     @SaCheckLogin
     @PostMapping("/record")
     public Result<?> addRecord(@RequestBody DiyFormRecordsParam param) {
-        return Result.success(HttpEnum.SUCCESS.getCode(), HttpEnum.SUCCESS.getMsg(), diyFormService.addRecord(param));
+        return Result.success(Map.of("id", diyFormService.addRecord(param)));
     }
 
     @SaCheckLogin

@@ -59,7 +59,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { t } from '@/lang'
-import { deliveryPackage } from '@/addon/mall/api/site/order'
+import { deliveryPackage } from '@/app/lang/zh-cn/api/site/order'
 import { img } from '@/utils/common'
 
 const showDialog = ref(false)

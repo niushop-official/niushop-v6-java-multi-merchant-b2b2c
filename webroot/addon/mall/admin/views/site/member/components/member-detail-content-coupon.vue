@@ -21,7 +21,7 @@
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
 import { img } from '@/utils/common'
-import { getShopMemberCoupon } from  '@/app/api/shop_site'
+import { getShopMemberCoupon } from '@/app/api/marketing_site'
 
 const props = defineProps({
     member_id: {

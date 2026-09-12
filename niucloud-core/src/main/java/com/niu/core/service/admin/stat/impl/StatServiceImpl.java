@@ -282,14 +282,10 @@ public class StatServiceImpl implements IStatService {
         BigDecimal moneyGet = BigDecimal.ZERO;
 
         if (siteId != 0) {
-            QueryWrapper<SiteShop> shopQueryWrapper = new QueryWrapper<>();
-            shopQueryWrapper.eq("site_id", siteId);
-            shopQueryWrapper.select("money", "money_get");
-            SiteShop siteShop = siteShopMapper.selectOne(shopQueryWrapper);
-
-            if (siteShop != null) {
-                money = Optional.ofNullable(siteShop.getMoney()).orElse(BigDecimal.ZERO);
-                moneyGet = Optional.ofNullable(siteShop.getMoneyGet()).orElse(BigDecimal.ZERO);
+            Site site = siteMapper.selectById(siteId);
+            if (site != null) {
+                money = Optional.ofNullable(site.getMoney()).orElse(BigDecimal.ZERO);
+                moneyGet = Optional.ofNullable(site.getMoneyGet()).orElse(BigDecimal.ZERO);
             }
         }
 

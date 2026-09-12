@@ -68,7 +68,7 @@
 <script lang="ts" setup>
 import { ref, reactive } from 'vue'
 import { t } from '@/lang'
-import { orderEditPrice } from '@/addon/mall/api/site/order'
+import { orderEditPrice } from '@/app/lang/zh-cn/api/site/order'
 import { filterDigit } from '@/utils/common'
 import { cloneDeep } from 'lodash-es'
 

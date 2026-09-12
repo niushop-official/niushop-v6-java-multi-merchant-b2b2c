@@ -13,16 +13,16 @@ import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.entity.addon.Addon;
-import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteGroup;
 import com.niu.core.entity.sys.SysUserRole;
 import com.niu.core.entity.user.UserCreateSiteLimit;
 import com.niu.core.enums.addon.AddonActionEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
+import com.niu.core.event.site.SiteExpireCloseAfterEvent;
 import com.niu.core.enums.sys.AppTypeEnum;
 import com.niu.core.mapper.addon.AddonMapper;
-import com.niu.core.mapper.shop.SiteShopMapper;
+import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.mapper.site.SiteGroupMapper;
 import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.mapper.sys.SysUserRoleMapper;
@@ -41,7 +41,9 @@ import com.niu.core.service.admin.site.ISiteGroupService;
 import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.site.param.SiteAddParam;
 import com.niu.core.service.admin.sys.ISysMenuService;
-import com.niu.core.service.core.site.ICoreSiteService;
+import com.niu.core.service.core.addon.ICoreAddonService;
+import com.niu.core.service.core.addon.vo.AppSelectVo;
+import com.niu.core.service.core.addon.vo.AppWithSiteNumVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -65,6 +67,9 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
     ICoreSiteService iCoreSiteService;
 
     @Resource
+    ICoreAddonService coreAddonService;
+
+    @Resource
     ISysMenuService sysMenuService;
 
     @Resource
@@ -84,8 +89,6 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
 
     @Resource
     ISiteService siteService;
-    @Resource
-    SiteShopMapper siteShopMapper;
 
     /**
      * 站点列表
@@ -95,203 +98,29 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
      */
     @Override
     public PageResult<SiteListVo> pages(PageParam pageParam, SiteSearchParam searchParam) {
-        Integer page  = pageParam.getPage();
-        Integer limit =pageParam.getLimit();
+        Integer page = pageParam.getPage();
+        Integer limit = pageParam.getLimit();
 
         QueryWrapper<Site> queryWrapper = new QueryWrapper<>();
-        //查询条件判断组装
-        if (ObjectUtil.isNotEmpty(searchParam.getKeywords())) {
-            queryWrapper.like("site_name", searchParam.getKeywords()).or().like("keywords", searchParam.getKeywords());
+        if (!applyHomeSiteSearch(queryWrapper, searchParam)) {
+            return PageResult.build(page, limit, 0).setData(new ArrayList<>());
         }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
-            queryWrapper.eq("status", searchParam.getStatus());
-        }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getGroupId())) {
-            queryWrapper.eq("group_id", searchParam.getGroupId());
-        }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getApp())) {
-            queryWrapper.like("app", searchParam.getApp());
-        }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getSiteDomain())) {
-            queryWrapper.like("site_domain", searchParam.getSiteDomain());
-        }
-        queryWrapper.ne("app_type", "admin");
-
-        List<Integer> siteIds = getSiteIds();
-        if(!authService.isSuperAdmin()) {
-            if (ObjectUtil.isNotEmpty(siteIds)) {
-                queryWrapper.in("site_id", siteIds);
-            } else {
-                return PageResult.build(page, limit, 0).setData(new ArrayList<>());
-            }
-        }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
-
-            String[] createTime = searchParam.getCreateTime();
-            Long startTime = (createTime[0] == null) ? 0: DateUtils.StringToTimestamp(createTime[0]);
-            System.out.println(startTime);
-            Long endTime = (createTime[1] == null) ? 0: DateUtils.StringToTimestamp(createTime[1]);
-            if(startTime > 0 && endTime > 0)
-            {
-                queryWrapper.between("create_time", startTime, endTime);
-            }else if (startTime > 0 && endTime == 0)
-            {
-                queryWrapper.ge("create_time", startTime);
-            }else if (startTime == 0 && endTime > 0)
-            {
-                queryWrapper.le("create_time", startTime);
-            }
-        }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getExpireTime())) {
-
-            String[] expireTime = searchParam.getExpireTime();
-            Long startTime = (expireTime[0] == null) ? 0: DateUtils.StringToTimestamp(expireTime[0]);
-            System.out.println(startTime);
-            Long endTime = (expireTime[1] == null) ? 0: DateUtils.StringToTimestamp(expireTime[1]);
-            if(startTime > 0 && endTime > 0)
-            {
-                queryWrapper.between("expire_time", startTime, endTime);
-            }else if (startTime > 0 && endTime == 0)
-            {
-                queryWrapper.ge("expire_time", startTime);
-            }else if (startTime == 0 && endTime > 0)
-            {
-                queryWrapper.le("expire_time", startTime);
-            }
-        }
-
-
         queryWrapper.orderByDesc("create_time");
 
         IPage<Site> iPage = siteMapper.selectPage(new Page<>(page, limit), queryWrapper);
-        List<Integer> groupIds = iPage.getRecords().stream().map(Site::getGroupId).distinct().toList();
-        //查询分组信息
-        List<SiteGroup> siteGroups = new ArrayList<>();
-        if(!groupIds.isEmpty()){
-            siteGroups = siteGroupMapper.selectByIds(groupIds);
-        }
-
-        List<Integer> siteListIds = iPage.getRecords().stream().map(Site::getSiteId).distinct().toList();
-        //查询店铺信息
-        List<SiteShop> siteShops = new ArrayList<>();
-        if(!siteListIds.isEmpty()){
-            siteShops = siteShopMapper.selectList(new QueryWrapper<SiteShop>().in("site_id", siteListIds));
-        }
-        List<SiteListVo> list = new LinkedList<>();
-        for (Site item : iPage.getRecords()) {
-            SiteListVo vo = new SiteListVo();
-            BeanUtils.copyProperties(item, vo);
-            List<SiteGroup> siteGroupThis = siteGroups.stream().filter(info -> info.getGroupId().equals(item.getGroupId())).toList();
-            if(!siteGroupThis.isEmpty()){
-                vo.setGroupName(siteGroupThis.get(0).getGroupName());
-            }
-            List<SiteShop> siteShopsThis = siteShops.stream().filter(info -> info.getSiteId().equals(item.getSiteId())).toList();
-            if(!siteShopsThis.isEmpty()){
-                vo.setBusinessStatus(siteShopsThis.get(0).getBusinessStatus());
-            }
-            list.add(vo);
-        }
-        return PageResult.build(page, limit, iPage.getTotal()).setData(list);
+        return PageResult.build(page, limit, iPage.getTotal()).setData(buildSiteListVoList(iPage.getRecords()));
     }
 
     @Override
     public List<SiteListVo> list(SiteSearchParam searchParam) {
-
         QueryWrapper<Site> queryWrapper = new QueryWrapper<>();
-        //查询条件判断组装
-        if (ObjectUtil.isNotEmpty(searchParam.getKeywords())) {
-            queryWrapper.like("site_name", searchParam.getKeywords()).or().like("keywords", searchParam.getKeywords());
+        if (!applyHomeSiteSearch(queryWrapper, searchParam)) {
+            return new ArrayList<>();
         }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
-            queryWrapper.eq("status", searchParam.getStatus());
-        }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getGroupId())) {
-            queryWrapper.eq("group_id", searchParam.getGroupId());
-        }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getApp())) {
-            queryWrapper.like("app", searchParam.getApp());
-        }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getSiteDomain())) {
-            queryWrapper.like("site_domain", searchParam.getSiteDomain());
-        }
-        queryWrapper.ne("app_type", "admin");
-
-        List<Integer> siteIds = getSiteIds();
-        if(!authService.isSuperAdmin()) {
-            if (ObjectUtil.isNotEmpty(siteIds)) {
-                queryWrapper.in("site_id", siteIds);
-            } else {
-                return new ArrayList<>();
-            }
-        }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
-
-            String[] createTime = searchParam.getCreateTime();
-            Long startTime = (createTime[0] == null) ? 0: DateUtils.StringToTimestamp(createTime[0]);
-            System.out.println(startTime);
-            Long endTime = (createTime[1] == null) ? 0: DateUtils.StringToTimestamp(createTime[1]);
-            if(startTime > 0 && endTime > 0)
-            {
-                queryWrapper.between("create_time", startTime, endTime);
-            }else if (startTime > 0 && endTime == 0)
-            {
-                queryWrapper.ge("create_time", startTime);
-            }else if (startTime == 0 && endTime > 0)
-            {
-                queryWrapper.le("create_time", startTime);
-            }
-        }
-
-        if (ObjectUtil.isNotEmpty(searchParam.getExpireTime())) {
-
-            String[] expireTime = searchParam.getExpireTime();
-            Long startTime = (expireTime[0] == null) ? 0: DateUtils.StringToTimestamp(expireTime[0]);
-            System.out.println(startTime);
-            Long endTime = (expireTime[1] == null) ? 0: DateUtils.StringToTimestamp(expireTime[1]);
-            if(startTime > 0 && endTime > 0)
-            {
-                queryWrapper.between("expire_time", startTime, endTime);
-            }else if (startTime > 0 && endTime == 0)
-            {
-                queryWrapper.ge("expire_time", startTime);
-            }else if (startTime == 0 && endTime > 0)
-            {
-                queryWrapper.le("expire_time", startTime);
-            }
-        }
-
-
         queryWrapper.orderByDesc("create_time");
 
-        List<Site> list = siteMapper.selectList(queryWrapper);
-        List<Integer> groupIds = list.stream().map(Site::getGroupId).distinct().toList();
-        //查询分组信息
-        List<SiteGroup> siteGroups = new ArrayList<>();
-        if(!groupIds.isEmpty()){
-            siteGroups = siteGroupMapper.selectByIds(groupIds);
-        }
-        List<SiteListVo> resultList = new LinkedList<>();
-        for (Site item : list) {
-            SiteListVo vo = new SiteListVo();
-            BeanUtils.copyProperties(item, vo);
-            List<SiteGroup> siteGroupThis = siteGroups.stream().filter(info -> info.getGroupId().equals(item.getGroupId())).toList();
-            if(!siteGroupThis.isEmpty()){
-                vo.setGroupName(siteGroupThis.get(0).getGroupName());
-            }
-            resultList.add(vo);
-        }
-        return resultList;
+        List<Site> sites = siteMapper.selectList(queryWrapper);
+        return buildSiteListVoList(sites);
     }
 
     /**
@@ -302,7 +131,7 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
     @Override
     public SiteInfoVo info(Integer id) {
         MPJQueryWrapper<Site> siteMPJQueryWrapper = new MPJQueryWrapper<>();
-        siteMPJQueryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app, ns.addons, ns.initalled_addon, ns.site_domain, nsg.group_name")
+        siteMPJQueryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.business_state, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.icon, ns.member_no, ns.app, ns.addons, ns.initalled_addon, ns.site_domain, nsg.group_name")
                 .setAlias("ns")
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix));
         siteMPJQueryWrapper.eq("ns.site_id", id);
@@ -315,6 +144,7 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
             siteInfoVo.setSiteAddons(new ArrayList<>());
             siteInfoVo.setApps(new ArrayList<>());
         }
+        siteInfoVo.setBusinessStatus(iCoreSiteService.getSiteBusinessStatus(id));
         return siteInfoVo;
     }
 
@@ -327,7 +157,6 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
         Site model = new Site();
         model.setSiteName(addParam.getSiteName());
         model.setGroupId(addParam.getGroupId());
-        model.setKeywords(addParam.getKeywords());
         model.setAppType(addParam.getAppType());
         //model.setLogo(UrlUtils.toRelativeUrl(addParam.getLogo()));
         model.setDesc(addParam.getDesc());
@@ -345,7 +174,6 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
         model.setExpireTime(addParam.getExpireTime());
         model.setFrontEndName(addParam.getFrontEndName());
         model.setFrontEndLogo(addParam.getFrontEndLogo());
-        model.setFrontEndIcon(addParam.getFrontEndIcon());
         model.setIcon(addParam.getIcon());
         model.setMemberNo(addParam.getMemberNo());
         model.setApp(addParam.getApp());
@@ -371,7 +199,6 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
         model.setSiteId(id);
         model.setSiteName(editParam.getSiteName());
         model.setGroupId(editParam.getGroupId());
-        model.setKeywords(editParam.getKeywords());
         model.setAppType(editParam.getAppType());
         //model.setLogo(UrlUtils.toRelativeUrl(editParam.getLogo()));
         model.setDesc(editParam.getDesc());
@@ -388,7 +215,6 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
         model.setExpireTime(editParam.getExpireTime());
         model.setFrontEndName(editParam.getFrontEndName());
         model.setFrontEndLogo(editParam.getFrontEndLogo());
-        model.setFrontEndIcon(editParam.getFrontEndIcon());
         model.setIcon(editParam.getIcon());
         model.setMemberNo(editParam.getMemberNo());
         model.setApp(editParam.getApp());
@@ -420,6 +246,11 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
         model.setSiteId(siteId);
         model.setStatus(SiteStatusEnum.CLOSE.getCode());
         siteMapper.updateById(model);
+
+        SiteExpireCloseAfterEvent event = new SiteExpireCloseAfterEvent();
+        event.setSiteId(siteId);
+        event.setName("SiteExpireCloseAfterEvent");
+        com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher.publishAll(event);
     }
 
     @Override
@@ -525,6 +356,68 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
     }
 
     /**
+     * 检测站点用户是否存在（uid 在非 defaultSiteId 下有角色）
+     */
+    @Override
+    public boolean checkSiteUserAccount() {
+        Long count = sysUserRoleMapper.selectCount(new QueryWrapper<SysUserRole>()
+                .eq("uid", RequestUtils.uid())
+                .ne("site_id", RequestUtils.defaultSiteId()));
+        return count != null && count > 0;
+    }
+
+    @Override
+    public Integer countSitesByApp(String appKey) {
+        QueryWrapper<Site> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne("app_type", "admin");
+        queryWrapper.like("app", "\"" + appKey + "\"");
+        if (!authService.isSuperAdmin()) {
+            List<Integer> siteIds = getSiteIds();
+            if (ObjectUtil.isEmpty(siteIds)) {
+                return 0;
+            }
+            queryWrapper.in("site_id", siteIds);
+        }
+        return siteMapper.selectCount(queryWrapper).intValue();
+    }
+
+    @Override
+    public List<AppWithSiteNumVo> getAppWithSiteNumList() {
+        // 对齐 PHP AddonService::getAppListWithSiteNum：在列表最前面插入"全部"项（key=''）
+        List<AppWithSiteNumVo> result = new ArrayList<>();
+
+        // 先加"全部"项：统计所有非 admin 的站点数量（带权限过滤）
+        AppWithSiteNumVo allVo = new AppWithSiteNumVo();
+        allVo.setKey("");
+        allVo.setTitle("全部");
+        QueryWrapper<Site> allWrapper = new QueryWrapper<>();
+        allWrapper.ne("app_type", "admin");
+        if (!authService.isSuperAdmin()) {
+            List<Integer> siteIds = getSiteIds();
+            if (ObjectUtil.isEmpty(siteIds)) {
+                allVo.setSiteNum(0);
+            } else {
+                allWrapper.in("site_id", siteIds);
+                allVo.setSiteNum(siteMapper.selectCount(allWrapper).intValue());
+            }
+        } else {
+            allVo.setSiteNum(siteMapper.selectCount(allWrapper).intValue());
+        }
+        result.add(allVo);
+
+        // 再追加各应用的站点数量
+        List<AppSelectVo> apps = coreAddonService.getAppSelectList();
+        for (AppSelectVo app : apps) {
+            AppWithSiteNumVo vo = new AppWithSiteNumVo();
+            vo.setKey(app.getKey());
+            vo.setTitle(app.getTitle());
+            vo.setSiteNum(countSitesByApp(app.getKey()));
+            result.add(vo);
+        }
+        return result;
+    }
+
+    /**
      * 获取可选择的店铺套餐
      *
      * @return
@@ -586,5 +479,88 @@ public class AuthSiteServiceImpl implements IAuthSiteService {
         siteAddParam.setGroupId(homeSiteAddParam.getGroupId());
         siteAddParam.setExpireTime(DateUtils.getDateAddMonth(month));
         siteService.add(siteAddParam);
+    }
+
+    /**
+     * 组装 home 站点搜索条件
+     *
+     * @return false 表示当前用户无可访问站点
+     */
+    private boolean applyHomeSiteSearch(QueryWrapper<Site> queryWrapper, SiteSearchParam searchParam) {
+        if (ObjectUtil.isNotEmpty(searchParam.getSearchType()) && ObjectUtil.isNotEmpty(searchParam.getSearchValue())) {
+            if ("site_id".equals(searchParam.getSearchType())) {
+                queryWrapper.eq("site_id", searchParam.getSearchValue());
+            } else {
+                queryWrapper.like("site_name", searchParam.getSearchValue());
+            }
+        } else if (ObjectUtil.isNotEmpty(searchParam.getKeywords())) {
+            queryWrapper.like("site_name", searchParam.getKeywords());
+        }
+
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+            queryWrapper.eq("status", searchParam.getStatus());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getGroupId())) {
+            queryWrapper.eq("group_id", searchParam.getGroupId());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getApp())) {
+            queryWrapper.like("app", "\"" + searchParam.getApp() + "\"");
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getSiteDomain())) {
+            queryWrapper.like("site_domain", searchParam.getSiteDomain());
+        }
+        queryWrapper.ne("app_type", "admin");
+
+        if (!authService.isSuperAdmin()) {
+            List<Integer> siteIds = getSiteIds();
+            if (ObjectUtil.isEmpty(siteIds)) {
+                return false;
+            }
+            queryWrapper.in("site_id", siteIds);
+        }
+
+        applyTimeRange(queryWrapper, "create_time", searchParam.getCreateTime());
+        applyTimeRange(queryWrapper, "expire_time", searchParam.getExpireTime());
+        return true;
+    }
+
+    private void applyTimeRange(QueryWrapper<Site> queryWrapper, String column, String[] timeRange) {
+        if (ObjectUtil.isEmpty(timeRange)) {
+            return;
+        }
+        Long startTime = (timeRange[0] == null) ? 0 : DateUtils.StringToTimestamp(timeRange[0]);
+        Long endTime = (timeRange[1] == null) ? 0 : DateUtils.StringToTimestamp(timeRange[1]);
+        if (startTime > 0 && endTime > 0) {
+            queryWrapper.between(column, startTime, endTime);
+        } else if (startTime > 0) {
+            queryWrapper.ge(column, startTime);
+        } else if (endTime > 0) {
+            queryWrapper.le(column, endTime);
+        }
+    }
+
+    private List<SiteListVo> buildSiteListVoList(List<Site> sites) {
+        if (ObjectUtil.isEmpty(sites)) {
+            return new ArrayList<>();
+        }
+        List<Integer> groupIds = sites.stream().map(Site::getGroupId).distinct().toList();
+        List<SiteGroup> siteGroups = groupIds.isEmpty() ? new ArrayList<>() : siteGroupMapper.selectByIds(groupIds);
+
+        List<SiteListVo> resultList = new LinkedList<>();
+        for (Site item : sites) {
+            SiteListVo vo = new SiteListVo();
+            BeanUtils.copyProperties(item, vo);
+            siteGroups.stream()
+                    .filter(info -> info.getGroupId().equals(item.getGroupId()))
+                    .findFirst()
+                    .ifPresent(group -> vo.setGroupName(group.getGroupName()));
+            vo.setBusinessStatus(iCoreSiteService.getSiteBusinessStatus(item.getSiteId()));
+            List<String> appTitles = addonService.getTitleArrayByKey(item.getApp());
+            vo.setAppName(appTitles);
+            vo.setPlugin(appTitles);
+            vo.setStatusName(SiteStatusEnum.getNameByCode(item.getStatus()));
+            resultList.add(vo);
+        }
+        return resultList;
     }
 }

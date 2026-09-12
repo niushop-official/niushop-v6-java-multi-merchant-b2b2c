@@ -3,8 +3,8 @@
         <scroll-view scroll-x="true" class="w-[100%] whitespace-nowrap">
             <view class="flex items-start">
                 <view class="inline-block" v-for="(item,index) in diyComponent.list" :key="index">
-                    <view class="w-[460rpx] px-[20rpx] pb-[20rpx] pt-[20rpx] flex flex-col items-start"
-                          :class="{'mr-[20rpx]': (diyComponent.list.length-1) != index}" :style="swiperItemCss(item)"
+                    <view class="item-wrap flex flex-col items-start"
+                          :class="{'margin-right': (diyComponent.list.length-1) != index}" :style="swiperItemCss(item)"
                           v-if="listGoods[item.rankIds[0]] && listGoods[item.rankIds[0]].length > 0">
                         <view class="flex items-center h-[50rpx]">
                             <image class="w-[30rpx] h-[30rpx] mr-[10rpx]" v-if="item.imgUrl" :src="img(item.imgUrl)" mode="aspectFill"/>
@@ -18,7 +18,7 @@
                             <text class="iconfont iconyouV6xx !text-[24rpx]" v-if="item.subTitle.text"></text>
                         </view>
                         <view class="mt-[24rpx]">
-                            <view class="flex bg-[rgba(255,255,255,0.94)] p-[10rpx] rounded-[16rpx] mb-[16rpx]"
+                            <view class="flex rank-wrap"
                                   v-for="(goods, gIndex) in listGoods[item.rankIds[0]]"
                                   :class="{'mb-0': gIndex === listGoods[item.rankIds[0]].length - 1}"
                                   @click="toDetail(goods.goods_id)">
@@ -193,4 +193,17 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.item-wrap{
+    width: 460rpx;
+    padding: 20rpx;
+    &.margin-right{
+        margin-right: 20rpx;
+    }
+}
+.rank-wrap{
+    background-color: rgba(255,255,255,0.94);
+    padding: 10rpx;
+    border-radius: 16rpx;
+    margin-bottom: 16rpx;
+}
 </style>

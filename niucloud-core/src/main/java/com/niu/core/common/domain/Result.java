@@ -26,9 +26,6 @@ public class Result<T> implements Serializable {
         return instance(HttpEnum.SUCCESS.getCode(), HttpEnum.SUCCESS.getMsg(), new ArrayList<>());
     }
 
-    public static <T> Result<Object> success(Integer code) {
-        return instance(code, HttpEnum.SUCCESS.getMsg(), new ArrayList<>());
-    }
     public static <T> Result<String> success(String msg) {
         return instance(HttpEnum.SUCCESS.getCode(), msg, "");
     }

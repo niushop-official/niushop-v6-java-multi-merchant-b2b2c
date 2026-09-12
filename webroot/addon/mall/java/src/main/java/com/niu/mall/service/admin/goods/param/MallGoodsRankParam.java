@@ -75,6 +75,16 @@ public class MallGoodsRankParam implements Serializable {
      */
     private Integer status;
 
+    /**
+     * 是否显示到搜索页（0不显示 1显示）
+     */
+    private Integer isShowSearch;
+
+    /**
+     * 榜单设置（搜索页样式）
+     */
+    private Object config;
+
     @Data
     public static class GoodsJson {
         private Integer goodsId;

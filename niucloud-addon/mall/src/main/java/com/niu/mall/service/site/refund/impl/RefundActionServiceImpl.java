@@ -39,6 +39,8 @@ import com.niu.mall.service.core.refund.param.ActiveRefundParam;
 import com.niu.mall.service.site.refund.param.AuditApplyParam;
 import com.niu.mall.service.site.refund.param.AuditRefundGoodsParam;
 import com.niu.mall.service.site.refund.param.RefundSearchParam;
+import com.niu.mall.service.core.refund.vo.OrderRefundMoneyVo;
+import com.niu.mall.service.site.refund.vo.RefundDataVo;
 import com.niu.mall.service.site.refund.vo.RefundDetailVo;
 import com.niu.mall.service.site.refund.vo.RefundListVo;
 import com.niu.mall.service.core.refund.ICoreRefundService;
@@ -233,5 +235,18 @@ public class RefundActionServiceImpl implements IRefundActionService {
         param.setSiteId(RequestUtils.siteId());
         param.setSource(OrderRefundSourceEnum.ACTIVE_REFUND.getType().toString());
         coreRefundActionService.shopActiveRefund(param);
+    }
+
+    /**
+     * 获取订单项可退款金额
+     *
+     * @param orderGoodsIds
+     */
+    @Override
+    public RefundDataVo getOrderRefundMoney(Integer[] orderGoodsIds) {
+        OrderRefundMoneyVo refundMoneyVo = coreRefundService.getOrderRefundMoney(orderGoodsIds);
+        RefundDataVo vo = new RefundDataVo();
+        vo.setRefundMoney(refundMoneyVo.getRefundMoney().setScale(2, java.math.RoundingMode.HALF_UP));
+        return vo;
     }
 }

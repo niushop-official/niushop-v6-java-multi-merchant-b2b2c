@@ -5,11 +5,14 @@ import com.niu.core.common.component.context.event.EventResult;
 import com.niu.core.common.component.context.listener.CallbackListener;
 import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public abstract class CheckPintuanOrderPayEventDefiner extends CallbackListener<CheckPintuanOrderPayEventDefiner.CheckPintuanOrderPayEvent> {
 
     @Data
+    @EqualsAndHashCode(callSuper=false)
     public static class CheckPintuanOrderPayEvent extends Event {
         private Integer groupId;
     }

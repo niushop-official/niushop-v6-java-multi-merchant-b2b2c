@@ -1,7 +1,9 @@
 package com.niu.core.service.admin.goods.vo;
+
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * ShopGoodsService视图
@@ -16,5 +18,6 @@ public class GoodsServiceInfoVo implements Serializable {
     private String serviceName;  // 服务名称
     private String image;  // 图片
     private String desc;  // 描述
-
+    private List<String> addon; //插件
+    private List<String> addonName; //插件名称
 }

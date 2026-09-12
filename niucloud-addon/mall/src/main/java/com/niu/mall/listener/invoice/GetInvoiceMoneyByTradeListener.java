@@ -2,25 +2,19 @@ package com.niu.mall.listener.invoice;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
-import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.event.order.GetInvoiceMoneyByTradeEventDefiner;
-import com.niu.core.event.order.OrderInvoiceEventDefiner;
-import com.niu.core.service.api.order.vo.InvoiceListVo;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.mall.entity.order.MallOrder;
-import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.enums.order.OrderStatusEnum;
 import com.niu.mall.event.pintuan.CheckInvoiceStatusEventDefiner;
-import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
 import jakarta.annotation.Resource;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Component
@@ -29,8 +23,6 @@ public class GetInvoiceMoneyByTradeListener extends GetInvoiceMoneyByTradeEventD
 
     @Resource
     MallOrderMapper mallOrderMapper;
-    @Resource
-    MallOrderGoodsMapper mallOrderGoodsMapper;
 
     @Override
     public GetInvoiceMoneyByTradeResult handleCallback(GetInvoiceMoneyByTradeEvent event) {
@@ -64,7 +56,9 @@ public class GetInvoiceMoneyByTradeListener extends GetInvoiceMoneyByTradeEventD
                     }
                 }
                 result.setSiteId(order.getSiteId());
-                result.setInvoiceMoney(order.getOrderMoney());
+                BigDecimal orderMoney = order.getOrderMoney() != null ? order.getOrderMoney() : BigDecimal.ZERO;
+                BigDecimal refundMoney = order.getRefundMoney() != null ? order.getRefundMoney() : BigDecimal.ZERO;
+                result.setInvoiceMoney(orderMoney.subtract(refundMoney).setScale(2, RoundingMode.HALF_UP));
                 return result;
             }
         }

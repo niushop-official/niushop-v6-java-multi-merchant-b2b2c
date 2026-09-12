@@ -43,15 +43,19 @@ public class AuthServiceImpl implements IAuthService {
      */
     @Override
     public void checkSite() {
-        Integer siteId= RequestUtils.apiSiteId();
-        SiteInfoVo siteInfoVo=coreSiteService.getSiteCache(siteId);
-        if(ObjectUtil.isNull(siteInfoVo) || ObjectUtil.isEmpty(siteInfoVo)){
-            throw new AuthException("SITE_NOT_EXIST", 400);
+        Integer siteId = RequestUtils.apiSiteId();
+        SiteInfoVo siteInfoVo = coreSiteService.getSiteCache(siteId);
+        if (ObjectUtil.isNull(siteInfoVo) || ObjectUtil.isEmpty(siteInfoVo)) {
+            throw new AuthException("店铺不存在", 403);
         }
-        String rule=RequestUtils.getReqeustURI();
-        if(!rule.equals("site")){
-            if(siteInfoVo.getStatus()== SiteStatusEnum.CLOSE.getCode()){
-                throw new AuthException("站点已停止", 400);
+        String rule = RequestUtils.getReqeustURI();
+        if (!rule.endsWith("/site")) {
+            if (siteInfoVo.getStatus() == SiteStatusEnum.CLOSE.getCode()) {
+                throw new AuthException("SITE_CLOSE_NOT_ALLOW", 402);
+            }
+            if (siteInfoVo.getExpireTime() != null && siteInfoVo.getExpireTime() > 0
+                    && siteInfoVo.getExpireTime() < DateUtils.currTime()) {
+                throw new AuthException("SITE_CLOSE_NOT_ALLOW", 402);
             }
         }
         RequestUtils.setSiteId(siteId);
@@ -87,13 +91,13 @@ public class AuthServiceImpl implements IAuthService {
                 H5ConfigVo h5ConfigVo=coreH5Service.getH5(siteId);
                 Integer isOpen=h5ConfigVo.getIsOpen();
                 if(isOpen==0){
-                    throw new AuthException("站点已停止", 402);
+                    throw new AuthException("SITE_CLOSE_NOT_ALLOW", 402);
                 }
             }else if (channel.equals(ChannelEnum.PC.getCode())){
                 PcConfigVo pcConfigVo=corePcService.getPc(siteId);
                 Integer isOpen=pcConfigVo.getIsOpen();
                 if(isOpen==0){
-                    throw new AuthException("站点已停止", 402);
+                    throw new AuthException("SITE_CLOSE_NOT_ALLOW", 402);
                 }
             }
         }

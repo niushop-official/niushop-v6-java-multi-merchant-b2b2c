@@ -43,7 +43,7 @@ private static final long serialVersionUID = 1L;
         private Integer memberId;
 
         /** 店铺会员标签 */
-        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        @JsonSerialize(using = BeanJsonSerializer.StringToJsonArraySerializer.class)
         private String shopMemberLabel;
 
         /** 站点id */

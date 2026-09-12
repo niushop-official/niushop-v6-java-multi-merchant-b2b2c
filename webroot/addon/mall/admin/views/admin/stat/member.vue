@@ -166,7 +166,7 @@ import { ref, reactive, onMounted, nextTick } from 'vue'
 import { img } from '@/utils/common'
 import * as echarts from 'echarts'
 import { QuestionFilled } from '@element-plus/icons-vue'
-import { getMemberStatBasic, getMemberData, getTrendData, getSourceData, getDurationData, getRankingData } from '@/addon/mall/api/admin/stat'
+import { getMemberStatBasic, getMemberData, getTrendData, getSourceData, getDurationData, getRankingData } from '@/app/lang/zh-cn/api/admin/stat'
 import { ElMessage } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 

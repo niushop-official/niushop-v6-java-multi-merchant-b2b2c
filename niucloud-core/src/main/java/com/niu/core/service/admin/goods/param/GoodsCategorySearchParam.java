@@ -15,4 +15,7 @@ public class GoodsCategorySearchParam implements Serializable {
     private Integer isShow;
 
     private Integer level;
+
+    /** 所属应用，对齐 PHP addon */
+    private String addon;
 }

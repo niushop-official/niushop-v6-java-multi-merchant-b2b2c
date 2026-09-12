@@ -98,14 +98,26 @@ public class PipeNameUtils {
         String command = PipeNameUtils.getBootCommand(GlobalConfig.applicationName);
         log.warn(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         log.warn("命名管道内容为：" + command);
+        log.warn("管道内容长度：" + command.length() + "，字节：" + bytesToHex(command.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        log.warn("----------------------------------------------------------------------");
+        log.warn("startsWith(uninstall,) =" + command.startsWith("uninstall,"));
+        log.warn("startsWith(uninstalled,)=" + command.startsWith("uninstalled,"));
+        log.warn("startsWith(installing,) =" + command.startsWith("installing,"));
+        log.warn("startsWith(installed,)  =" + command.startsWith("installed,"));
+        log.warn("startsWith(rollback,)  =" + command.startsWith("rollback,"));
         log.warn(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        boolean matched = false;
         if (command.startsWith("uninstall,")) {
+            matched = true;
+            log.warn(">>> 匹配: uninstall,");
             // 不做处理，不需要重置命令，这时boot还未执行
             String addon = command.replaceAll("uninstall,", "");
             addonResult.setResult(-1);
             addonResult.setOperate(AddonResult.OPERATE_UNINSTALL);
             addonResult.setAddon(addon);
         } else if (command.startsWith("uninstalled,")) {
+            matched = true;
+            log.warn(">>> 匹配: uninstalled,");
             PipeNameUtils.noticeBootCommand(applicationName, "");
             String addon = command.replaceAll("uninstalled,", "");
             addonResult.setResult(1);
@@ -113,26 +125,34 @@ public class PipeNameUtils {
             addonResult.setAddon(addon);
             // 卸载完成
         } else if (command.startsWith("installing,")) {
+            matched = true;
+            log.warn(">>> 匹配: installing,");
             PipeNameUtils.noticeBootCommand(applicationName, "");
             String addon = command.replaceAll("installing,", "");
             addonResult.setResult(1);
             addonResult.setOperate(AddonResult.OPERATE_ROLLBACK);
             addonResult.setAddon(addon);
         } else if (command.startsWith("installed,")) {
+            matched = true;
+            log.warn(">>> 匹配: installed,");
             PipeNameUtils.noticeBootCommand(applicationName, "");
             String addon = command.replaceAll("installed,", "");
             addonResult.setResult(1);
             addonResult.setOperate(AddonResult.OPERATE_ROLLBACK);
             addonResult.setAddon(addon);
         } else if (command.startsWith("rollback,")) {
+            matched = true;
+            log.warn(">>> 匹配: rollback,");
             PipeNameUtils.noticeBootCommand(applicationName, "");
             String addon = command.replaceAll("rollback,", "");
             addonResult.setResult(-1);
             addonResult.setOperate(AddonResult.OPERATE_ROLLBACK);
             addonResult.setAddon(addon);
         } else if (command.startsWith("upgrade,") || command.startsWith("upgraderollback,")) {
+            matched = true;
             PipeNameUtils.noticeBootCommand(applicationName, "");
         } else if (command.startsWith("upgradefail,")) {
+            matched = true;
             PipeNameUtils.noticeBootCommand(applicationName, "");
             IUpgradeService upgradeService = SpringContext.bean(IUpgradeService.class);
             UpgradeTaskVo task = upgradeService.getUpgradeTask();
@@ -144,6 +164,7 @@ public class PipeNameUtils {
                 upgradeService.upgradeErrorHandle(task);
             }
         } else if (command.startsWith("upgradesuccess,")) {
+            matched = true;
             PipeNameUtils.noticeBootCommand(applicationName, "");
             IUpgradeService upgradeService = SpringContext.bean(IUpgradeService.class);
             UpgradeTaskVo task = upgradeService.getUpgradeTask();
@@ -155,6 +176,7 @@ public class PipeNameUtils {
                 upgradeService.setUpgradeTaskCache(task);
             }
         } else if (command.startsWith("restorebackupfail,")) {
+            matched = true;
             String msg = command.replaceAll("restorebackupfail,", "");
             PipeNameUtils.noticeBootCommand(applicationName, "");
             // 升级错误恢复
@@ -174,6 +196,7 @@ public class PipeNameUtils {
                 backupService.setBackupRestoreTaskCache(restoreTask);
             }
         } else if (command.startsWith("restorebackupsuccess,")) {
+            matched = true;
             PipeNameUtils.noticeBootCommand(applicationName, "");
             // 升级错误恢复
             IUpgradeService upgradeService = SpringContext.bean(IUpgradeService.class);
@@ -190,9 +213,22 @@ public class PipeNameUtils {
                 backupService.setBackupRestoreTaskCache(restoreTask);
             }
         } else {
+            if (!matched) {
+                log.warn(">>> 未匹配任何分支！command长度:" + command.length());
+            }
             addonResult.setResult(0);
         }
+        log.warn("checkBootCommand 返回：" + addonResult);
         return addonResult;
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        if (bytes == null || bytes.length == 0) return "";
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b & 0xff));
+        }
+        return sb.toString().trim();
     }
 
     public static class AddonResult {

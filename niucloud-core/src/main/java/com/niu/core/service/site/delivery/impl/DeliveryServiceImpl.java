@@ -13,7 +13,8 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Resource;
 
-import java.util.List;import java.util.Map;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -48,7 +49,9 @@ public class DeliveryServiceImpl implements IDeliveryService {
 
     @Override
     public Map<String, String> getDeliveryType() {
-        return OrderDeliveryEnum.getType();
+        // 对齐 PHP DeliveryService::getDeliveryType
+        Map<String, String> deliveryTypeList = OrderDeliveryEnum.getType();
+        return coreDeliveryConfigService.getDeliveryTypeBySiteId(deliveryTypeList, RequestUtils.siteId());
     }
 
     @Override

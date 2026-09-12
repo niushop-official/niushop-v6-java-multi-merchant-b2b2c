@@ -5,12 +5,12 @@ import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.job.AbstractJobProvider;
 import com.niu.core.common.component.job.IJobProvider;
 import com.niu.core.common.component.job.annotation.JobProvider;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.enums.goods.GoodsStatusEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.enums.goods.GoodsStatusEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsStatusService;
-import com.niu.mall.service.core.goods.param.GoodsStatusEditParam;
+import com.niu.core.service.core.goods.param.GoodsStatusEditParam;
 import org.quartz.JobExecutionContext;
 
 import java.util.ArrayList;

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
+
 import java.io.Serializable;
 
 /**
@@ -14,13 +15,14 @@ public class GoodsService implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value="service_id", type= IdType.AUTO)
-    private Integer serviceId; // 
+    @TableId(value = "service_id", type = IdType.AUTO)
+    private Integer serviceId; //
     private Integer siteId; // 站点id
     private String serviceName; // 服务名称
     private String image; // 图片
     @TableField(value = "`desc`")
     private String desc; // 描述
+    private String addon; //插件
     private Long createTime; // 创建时间
     private Long updateTime; // 更新时间
 

@@ -7,13 +7,13 @@ import com.niu.core.common.component.job.AbstractJobProvider;
 import com.niu.core.common.component.job.IJobProvider;
 import com.niu.core.common.component.job.annotation.JobProvider;
 import com.niu.mall.entity.fullactive.MallFullGift;
-import com.niu.mall.entity.fullactive.MallFullReduction;
+import com.niu.core.entity.fullactive.MallFullReduction;
 import com.niu.mall.enums.fullactive.FullGiftStatusEnum;
-import com.niu.mall.enums.fullactive.FullReductionStatusEnum;
+import com.niu.core.enums.fullactive.FullReductionStatusEnum;
 import com.niu.mall.mapper.fullactive.FullGiftMapper;
-import com.niu.mall.mapper.fullactive.FullReductionMapper;
+import com.niu.core.mapper.fullactive.FullReductionMapper;
 import com.niu.mall.service.site.marketing.ISiteFullGiftService;
-import com.niu.mall.service.site.marketing.ISiteFullReductionService;
+import com.niu.core.service.site.marketing.ISiteFullReductionService;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
 

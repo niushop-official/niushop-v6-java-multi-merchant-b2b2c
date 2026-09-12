@@ -1,9 +1,9 @@
 package com.niu.core.event.pay;
 
-import cn.hutool.json.JSONObject;
 import com.niu.core.common.component.context.event.Event;
 import com.niu.core.common.component.context.event.EventResult;
 import com.niu.core.common.component.context.listener.CallbackListener;
+import com.niu.core.service.api.pay.vo.PayTradeInfoVo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,8 +23,7 @@ public abstract class PayTradeInfoDefiner extends CallbackListener<PayTradeInfoD
     @EqualsAndHashCode(callSuper = true)
     @Data
     public static class PayTradeInfoEventResult extends EventResult {
-        private JSONObject jsonObject;
+        private PayTradeInfoVo tradeInfo;
     }
 
 }
-

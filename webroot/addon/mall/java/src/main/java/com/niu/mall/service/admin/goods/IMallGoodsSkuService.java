@@ -1,7 +1,7 @@
 package com.niu.mall.service.admin.goods;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoodsSku;
 import com.niu.mall.service.admin.goods.param.MallGoodsSkuSearchParam;
 import com.niu.mall.service.api.goods.vo.MallGoodsSkuVo;
 

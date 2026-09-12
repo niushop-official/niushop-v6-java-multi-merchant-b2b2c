@@ -73,6 +73,11 @@ public class MallGoodsRankListVo implements Serializable {
      */
     private Integer status;
 
+    /**
+     * 是否显示到搜索页（0不显示 1显示）
+     */
+    private Integer isShowSearch;
+
     private String rankTypeName;
     private String goodsSourceName;
     private String ruleTypeName;

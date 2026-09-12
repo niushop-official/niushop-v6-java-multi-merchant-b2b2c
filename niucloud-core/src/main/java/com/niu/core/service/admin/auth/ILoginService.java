@@ -2,6 +2,7 @@ package com.niu.core.service.admin.auth;
 
 import cn.hutool.json.JSONObject;
 import com.niu.core.common.domain.Result;
+import com.niu.core.service.admin.auth.param.AdminForgetPasswordParam;
 import com.niu.core.service.admin.auth.param.SendMobileParam;
 import com.niu.core.service.admin.auth.param.UserLoginParam;
 import com.niu.core.service.admin.auth.param.UserMobileLoginParam;
@@ -30,6 +31,12 @@ public interface ILoginService {
      * @return
      */
     JSONObject sendMobileCode(SendMobileParam param);
+
+    /**
+     * 忘记密码重置
+     * @param param 手机号、新密码、短信验证码
+     */
+    void resetPassword(AdminForgetPasswordParam param);
 
     /**
      * 用戶登出

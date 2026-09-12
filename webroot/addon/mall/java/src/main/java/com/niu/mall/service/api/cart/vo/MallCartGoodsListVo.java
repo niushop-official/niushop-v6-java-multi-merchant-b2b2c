@@ -5,55 +5,74 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.core.sys.ICoreUploadService;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
- * ShopCart列表视图
+ * 购物车商品列表视图（对齐 PHP CartService::getGoodsList）
  */
 @Data
 public class MallCartGoodsListVo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long id;  // 购物车表ID
-    private Integer siteId;  // 站点id
-    private Integer memberId;  // 会员ID
-    private Integer goodsId;  // 商品ID
-    private Integer skuId;  // sku id
-    private Integer num;  // 商品数量
-    private Integer marketType;  // 活动类型
-    private Integer marketTypeId;  // 活动id
-    private Integer status;  // 购物车商品状态
-    private String invalidRemark;  // 失效原因
+    private Long id;
+    private Integer siteId;
+    private Integer memberId;
+    private Integer goodsId;
+    private Integer skuId;
+    private Integer num;
+    private Integer marketType;
+    private Integer marketTypeId;
+    private Integer status;
+    private String invalidRemark = "";
+    /** 对齐 PHP：顶层 sku_spec_format */
+    private String skuSpecFormat = "";
     private Goods goods;
     @JsonProperty("goodsSku")
     private GoodsSku goodsSku;
-    private List<GoodsSpec> goodsSpec;
+    @JsonProperty("skuList")
+    private List<GoodsSku> skuList = new ArrayList<>();
+    @JsonProperty("goodsSpec")
+    private List<GoodsSpec> goodsSpec = new ArrayList<>();
     private SiteInfo site;
+    private List<String> promotionList = new ArrayList<>();
 
     @Data
     public static class Goods {
-        private Integer goodsId; // 商品id
-        private String goodsName; // 商品名称
-        private String goodsType; // 商品类型
-        private String subTitle; // 副标题
+        private Integer goodsId;
+        private String goodsName;
+        private String goodsType;
+        private String subTitle;
         private Integer siteId;
-        private String goodsCover; // 商品封面
+        private String goodsCover;
         private String goodsCoverThumbBig;
         private String goodsCoverThumbSmall;
         private String goodsCoverThumbMid;
         private Integer status;
-        private String unit; // 单位
-        private Integer stock; // 商品库存（总和）
-        private Integer saleNum; // 销量
-        private Integer isDiscount; // 是否参与限时折扣
+        private String unit;
+        private Integer stock;
+        private Integer saleNum;
+        private Integer isDiscount;
         private String memberDiscount;
-        private Long deleteTime; // 创建时间
-        private Integer hasBuy; //已购买数量
+        private String vipCardDiscount;
+        private Long deleteTime;
+        private Integer hasBuy;
+        private Integer isLimit;
+        private Integer limitType;
+        private Integer maxBuy;
+        private Integer minBuy;
+        private Integer formId;
+
+        public String getGoodsTypeName() {
+            return GoodsTypeEnum.getNameByType(this.goodsType);
+        }
 
         private ICoreUploadService coreUploadService() {
             return SpringContext.bean(ICoreUploadService.class);
@@ -61,7 +80,7 @@ public class MallCartGoodsListVo implements Serializable {
 
         public String getGoodsCoverThumbSmall() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getGoodsCover(), UploadThumbTypeEnum.SMALL.getType()).getDataMap().get(UploadThumbTypeEnum.SMALL.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getGoodsCover();
             }
             return imageStr;
@@ -69,7 +88,7 @@ public class MallCartGoodsListVo implements Serializable {
 
         public String getGoodsCoverThumbMid() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getGoodsCover(), UploadThumbTypeEnum.MID.getType()).getDataMap().get(UploadThumbTypeEnum.MID.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getGoodsCover();
             }
             return imageStr;
@@ -77,7 +96,7 @@ public class MallCartGoodsListVo implements Serializable {
 
         public String getGoodsCoverThumbBig() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getGoodsCover(), UploadThumbTypeEnum.BIG.getType()).getDataMap().get(UploadThumbTypeEnum.BIG.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getGoodsCover();
             }
             return imageStr;
@@ -86,28 +105,35 @@ public class MallCartGoodsListVo implements Serializable {
 
     @Data
     public static class GoodsSku {
-        private Integer skuId; // 商品sku_id
-        private Integer siteId; // 站点id
-        private String skuName; // 商品sku名称
-        private String skuImage; // sku主图
+        private Integer skuId;
+        private Integer siteId;
+        private String skuName;
+        private String skuImage;
         private String skuImageThumbBig;
         private String skuImageThumbSmall;
         private String skuImageThumbMid;
-        private String skuNo; // 商品sku编码
-        private Integer goodsId; // 商品id
-        private String skuSpecFormat; // sku规格格式
-        private BigDecimal price; // sku单价
-        private BigDecimal marketPrice; // 划线价
-        private BigDecimal salePrice; // 实际卖价（有活动显示活动价，默认原价）
-        private BigDecimal costPrice; // sku成本价
-        private Integer stock; // 商品sku库存
-        private BigDecimal weight; // 重量（单位kg）
-        private BigDecimal volume; // 体积（单位立方米）
-        private Integer saleNum; // 销量
-        private Integer isDefault; // 是否默认
-        private BigDecimal memberPrice;
+        private String skuNo;
+        private Integer goodsId;
+        private String skuSpecFormat;
+        private BigDecimal price;
+        private BigDecimal marketPrice;
+        private BigDecimal salePrice;
+        private BigDecimal costPrice;
+        private Integer stock;
+        private BigDecimal weight;
+        private BigDecimal volume;
+        private Integer saleNum;
+        private Integer isDefault;
+        private Integer isSell;
+        private String memberPrice;
+        private String memberDiscount;
+        private String vipCardDiscount;
+        private String svipPrice;
+        private String svipDiscount;
         private BigDecimal showPrice;
         private String showType;
+        /** 对齐 PHP goodsSku.market_list */
+        private List<Map<String, Object>> marketList = new ArrayList<>();
 
         private ICoreUploadService coreUploadService() {
             return SpringContext.bean(ICoreUploadService.class);
@@ -115,7 +141,7 @@ public class MallCartGoodsListVo implements Serializable {
 
         public String getSkuImageThumbSmall() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getSkuImage(), UploadThumbTypeEnum.SMALL.getType()).getDataMap().get(UploadThumbTypeEnum.SMALL.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getSkuImage();
             }
             return imageStr;
@@ -123,15 +149,15 @@ public class MallCartGoodsListVo implements Serializable {
 
         public String getSkuImageThumbMid() {
             String imageStr = coreUploadService().thumb(this.siteId, this.getSkuImage(), UploadThumbTypeEnum.MID.getType()).getDataMap().get(UploadThumbTypeEnum.MID.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getSkuImage();
             }
             return imageStr;
         }
 
         public String getSkuImageThumbBig() {
-             String imageStr = coreUploadService().thumb(this.siteId, this.getSkuImage(), UploadThumbTypeEnum.BIG.getType()).getDataMap().get(UploadThumbTypeEnum.BIG.getType());
-            if(ObjectUtil.isEmpty(imageStr)){
+            String imageStr = coreUploadService().thumb(this.siteId, this.getSkuImage(), UploadThumbTypeEnum.BIG.getType()).getDataMap().get(UploadThumbTypeEnum.BIG.getType());
+            if (ObjectUtil.isEmpty(imageStr)) {
                 return this.getSkuImage();
             }
             return imageStr;
@@ -140,10 +166,10 @@ public class MallCartGoodsListVo implements Serializable {
 
     @Data
     public static class GoodsSpec {
-        private Integer specId;  // 规格id
-        private Integer goodsId;  // 关联商品id
-        private String specName;  // 规格项名称
-        private String specValues;  // 规格值名称，多个逗号隔开
+        private Integer specId;
+        private Integer goodsId;
+        private String specName;
+        private String specValues;
     }
 
     @Data

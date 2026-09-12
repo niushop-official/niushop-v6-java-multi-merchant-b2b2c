@@ -20,9 +20,9 @@
                         <el-radio :label="false">{{ t('隐藏') }}</el-radio>
                     </el-radio-group>
                 </el-form-item>
-                <el-form-item :label="t('显示数量')">
+                <!-- <el-form-item :label="t('显示数量')">
                     <el-slider class="goods-list-slider" show-input v-model="diyStore.editComponent.recommend.num" :min="1" :max="6" size="small" />
-                </el-form-item>
+                </el-form-item> -->
             </el-form>
         </div>
     </div>

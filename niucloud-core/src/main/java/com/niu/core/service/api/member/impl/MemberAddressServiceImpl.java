@@ -1,5 +1,6 @@
 package com.niu.core.service.api.member.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.niu.core.common.exception.BaseException;
@@ -12,6 +13,7 @@ import com.niu.core.service.api.member.param.*;
 import com.niu.core.service.api.member.vo.MemberAddressGetInfoVo;
 import com.niu.core.service.api.member.vo.MemberAddressListInfoVo;
 import com.niu.core.service.api.sys.ISysAreaService;
+import com.niu.core.service.core.sys.ICoreAreaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.Resource;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -31,6 +39,8 @@ public class MemberAddressServiceImpl implements IMemberAddressService {
 
     @Resource
     private ISysAreaService sysAreaService;
+    @Resource
+    private ICoreAreaService coreAreaService;
 
     @Transactional(rollbackFor = {Exception.class, RuntimeException.class})
     @Override
@@ -57,7 +67,7 @@ public class MemberAddressServiceImpl implements IMemberAddressService {
         if (result <= 0) {
             throw new BaseException("添加会员收货地址失败.");
         }
-        return result;
+        return newMemberAddress.getId();
     }
 
     /**
@@ -155,7 +165,7 @@ public class MemberAddressServiceImpl implements IMemberAddressService {
     private MemberAddress getMemberAddress(Integer siteId, Integer memberId, Integer id) {
         QueryWrapper<MemberAddress> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id,member_id,name,mobile,address,address_name,full_address,is_default,lng,lat,province_id,city_id,district_id");
-        queryWrapper.eq("site_id", siteId);
+        //queryWrapper.eq("site_id", siteId);
         queryWrapper.eq("member_id", memberId);
         queryWrapper.eq("id", id);
         queryWrapper.orderByDesc(Arrays.asList("is_default", "id"));
@@ -173,12 +183,40 @@ public class MemberAddressServiceImpl implements IMemberAddressService {
     @Override
     public List<MemberAddressListInfoVo> getList(MemberAddressGetListParam param) {
         QueryWrapper<MemberAddress> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("id,member_id,name,mobile,address,address_name,full_address,is_default,lng,lat");
+        queryWrapper.select("id,member_id,name,mobile,province_id,city_id,district_id,address,address_name,full_address,lng,lat,is_default,type");
         queryWrapper.eq("site_id", param.siteId());
         queryWrapper.eq("member_id", param.memberId());
+        if(ObjectUtil.isNotEmpty(param.getType())){
+            queryWrapper.eq("type", param.getType());
+        }
         queryWrapper.orderByDesc(Arrays.asList("is_default", "id"));
         List<MemberAddress> memberAddressList = memberAddressMapper.selectList(queryWrapper);
+        if (memberAddressList == null || memberAddressList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         List<MemberAddressListInfoVo> memberAddressListInfoVo = CollectUtils.convert(memberAddressList, MemberAddressListInfoVo.class);
+        if (memberAddressListInfoVo.isEmpty()) {
+            return memberAddressListInfoVo;
+        }
+
+        // Avoid three area lookups per address, which can make the checkout page repeatedly block.
+        Set<Integer> areaIds = new HashSet<>();
+        for (MemberAddressListInfoVo address : memberAddressListInfoVo) {
+            if (address.getProvinceId() != null && address.getProvinceId() > 0) areaIds.add(address.getProvinceId());
+            if (address.getCityId() != null && address.getCityId() > 0) areaIds.add(address.getCityId());
+            if (address.getDistrictId() != null && address.getDistrictId() > 0) areaIds.add(address.getDistrictId());
+        }
+        Map<Integer, String> areaNameMap = new HashMap<>();
+        if (!areaIds.isEmpty()) {
+            areaNameMap = sysAreaService.getAreaListByIds(areaIds).stream()
+                    .collect(Collectors.toMap(SysArea::getId, SysArea::getName, (left, right) -> left));
+        }
+        for (MemberAddressListInfoVo address : memberAddressListInfoVo) {
+            address.setProvinceName(areaNameMap.getOrDefault(address.getProvinceId(), ""));
+            address.setCityName(areaNameMap.getOrDefault(address.getCityId(), ""));
+            address.setDistrictName(areaNameMap.getOrDefault(address.getDistrictId(), ""));
+        }
         return memberAddressListInfoVo;
     }
 

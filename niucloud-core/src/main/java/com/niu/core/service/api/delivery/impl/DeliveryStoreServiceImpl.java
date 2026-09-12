@@ -30,6 +30,8 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -64,19 +66,24 @@ public class DeliveryStoreServiceImpl implements IDeliveryStoreService {
             }
         }
         List<DeliveryStore> deliveryStores = deliveryStoreMapper.selectList(queryWrapper);
-        if(!deliveryStores.isEmpty() && !positeion.isEmpty() && positeion.containsKey("latitude") && positeion.containsKey("longitude")){
-            for (DeliveryStore item : deliveryStores){
-                DeliveryStoreListVo vo = new DeliveryStoreListVo();
-                BeanUtils.copyProperties(item,vo);
+        boolean hasPosition = !positeion.isEmpty()
+                && StringUtils.isNotEmpty(positeion.getStr("latitude"))
+                && StringUtils.isNotEmpty(positeion.getStr("longitude"));
+        for (DeliveryStore item : deliveryStores) {
+            DeliveryStoreListVo vo = new DeliveryStoreListVo();
+            BeanUtils.copyProperties(item, vo);
+            if (hasPosition) {
                 Double distance = DistanceCalculateUtils.calculateDistance(
                         Double.parseDouble(positeion.getStr("latitude")),
                         Double.parseDouble(positeion.getStr("longitude")),
                         Double.parseDouble(item.getLatitude()),
                         Double.parseDouble(item.getLongitude())
                 );
-                vo.setDistance( distance);
-                resultList.add( vo);
+                vo.setDistance(BigDecimal.valueOf(distance).divide(BigDecimal.valueOf(1000), 3, RoundingMode.HALF_UP).doubleValue());
             }
+            resultList.add(vo);
+        }
+        if (hasPosition) {
             resultList = resultList.stream().sorted(Comparator.comparing(DeliveryStoreListVo::getDistance)).toList();
         }
 

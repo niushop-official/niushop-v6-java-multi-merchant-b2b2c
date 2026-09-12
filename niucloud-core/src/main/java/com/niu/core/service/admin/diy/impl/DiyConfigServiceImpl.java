@@ -1,7 +1,6 @@
 package com.niu.core.service.admin.diy.impl;
 
 import com.niu.core.common.utils.RequestUtils;
-import com.niu.core.entity.diy.BottomConfigValue;
 import com.niu.core.service.admin.diy.IDiyConfigService;
 import com.niu.core.service.admin.diy.param.SetBottomConfigParam;
 import com.niu.core.service.core.addon.ICoreAddonService;
@@ -9,9 +8,9 @@ import com.niu.core.service.core.diy.ICoreDiyConfigService;
 import com.niu.core.service.core.diy.param.StartUpPageConfigParam;
 import com.niu.core.service.core.diy.vo.BottomConfigVo;
 import com.niu.core.service.core.diy.vo.StartUpPageConfigVo;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +44,7 @@ public class DiyConfigServiceImpl implements IDiyConfigService {
                     .filter(item -> !"app".equals(item.getKey()))
                     .collect(Collectors.toList());
         }
-        
+
         return list;
     }
 
@@ -56,7 +55,17 @@ public class DiyConfigServiceImpl implements IDiyConfigService {
 
     @Override
     public void setBottomConfig(SetBottomConfigParam param) {
-        coreDiyConfigService.setBottomConfig(RequestUtils.siteId(), param.getValue(),param.getKey());
+        coreDiyConfigService.setBottomConfig(RequestUtils.siteId(), param.getValue(), param.getKey());
+    }
+
+    @Override
+    public void setStartUpPageConfig(StartUpPageConfigParam param) {
+        coreDiyConfigService.setStartUpPageConfig(RequestUtils.siteId(), param, param.getType());
+    }
+
+    @Override
+    public StartUpPageConfigVo getStartUpPageConfig(String name) {
+        return coreDiyConfigService.getStartUpPageConfig(RequestUtils.siteId(), name);
     }
 
 }

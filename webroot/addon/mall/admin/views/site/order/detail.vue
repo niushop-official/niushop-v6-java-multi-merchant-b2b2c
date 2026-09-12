@@ -116,10 +116,10 @@
 				<h3 class="panel-title">{{ t('settlementInfo') }}</h3>
 				<div class="px-[30px] mb-[20px] multiple-layout">
 					<el-form-item :label="t('shopMoney')">
-						<div class="input-width">{{ formData.shop_money }}</div>
+						<div class="input-width">{{ formData.shop_money  ?? '--' }}</div>
 					</el-form-item>
 					<el-form-item :label="t('mallMoney')">
-						<div class="input-width">{{ formData.mall_money }}</div>
+						<div class="input-width">{{ formData.mall_money  }}</div>
 					</el-form-item>
 					<el-form-item :label="t('shopRefundMoney')">
 						<div class="input-width">{{ formData.shop_refund_money }}</div>
@@ -336,7 +336,7 @@
 import { ref, defineAsyncComponent } from 'vue'
 import { t } from '@/lang'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { getOrderDetail, orderClose, orderFinish } from '@/addon/mall/api/site/order'
+import { getOrderDetail, orderClose, orderFinish } from '@/app/lang/zh-cn/api/site/order'
 import { printTicket } from '@/app/api/printer'
 import DeliveryAction from '@/addon/mall/views/site/order/components/delivery-action.vue'
 import OrderNotes from '@/addon/mall/views/site/order/components/order-notes.vue'
@@ -496,7 +496,7 @@ const printTicketEvent = () => {
     repeat.value = true
 
     printTicket({
-        type: 'shopGoodsOrder', // 小票模板类型
+        type: 'mallGoodsOrder', // 小票模板类型
         trigger: 'manual', // 触发时机：手动触发
         // 业务参数，根据自身业务传值
         business: {

@@ -36,6 +36,7 @@ public class AgreementServiceImpl implements IAgreementService {
             agreementInfoVo.setTitle("");
             agreementInfoVo.setContent("");
         }
+        agreementInfoVo.setAgreementKeyName(AgreementEnum.getTypeName(param.getKey()));
         
         return agreementInfoVo;
     }

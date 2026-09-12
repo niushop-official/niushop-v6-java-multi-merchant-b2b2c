@@ -61,25 +61,29 @@ public class CoreOrderWeappDeliveryServiceImpl implements ICoreOrderWeappDeliver
     public String orderShippingUploadShippingInfo(Integer orderId,Integer siteId) {
         MallOrder mallOrder = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>().eq("order_id",orderId).eq("site_id", siteId));
         //订单不存在
-        if (ObjectUtil.isEmpty(mallOrder)){
-            return "订单不存在";
+        if (ObjectUtil.isEmpty(mallOrder)) {
+            return "";
         }
 
         try {
             Pay pay = payMapper.selectOne(new QueryWrapper<Pay>().eq("out_trade_no", mallOrder.getOutTradeNo()));
-            if (pay == null) return "支付信息不存在";
-            List<String> payType = List.of(TransferTypeEnum.WECHATPAY.getKey(),"huifu_wechatpay");
-            if (!payType.contains(pay.getType())) return "订单未使用微信支付";
+            if (pay == null) {
+                return "";
+            }
+            List<String> payType = List.of(TransferTypeEnum.WECHATPAY.getKey(), "huifu_wechatpay");
+            if (!payType.contains(pay.getType())) {
+                return "订单未使用微信支付";
+            }
 
-            // 物流信息列表
+            // 物流信息列表（对齐 PHP：直接查包裹，快递公司可选关联）
             List<MallOrderDelivery> packageList = mallOrderDeliveryMapper.selectJoinList(MallOrderDelivery.class, new MPJQueryWrapper<MallOrderDelivery>()
-                    .setAlias("d").innerJoin("?_delivery_company c ON d.express_company_id = c.company_id".replace("?_", GlobalConfig.tablePrefix))
-                    .select("express_number,id,express_company_id,c.company_name AS name")
-                    .eq("order_id", mallOrder.getOrderId())
+                    .setAlias("d").leftJoin("?_delivery_company c ON d.express_company_id = c.company_id".replace("?_", GlobalConfig.tablePrefix))
+                    .select("d.express_number,d.id,d.express_company_id,c.company_name AS name,c.express_no AS expressNo")
+                    .eq("d.order_id", mallOrder.getOrderId())
             );
-            log.info("物流信息列表  {}",packageList);
-            if(packageList.isEmpty()){
-                return "没有物流信息";
+            log.info("物流信息列表  {}", packageList);
+            if (packageList.isEmpty()) {
+                return "";
             }
 
             //获取物流模式

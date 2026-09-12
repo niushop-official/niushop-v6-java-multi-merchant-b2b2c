@@ -6,6 +6,7 @@ import com.niu.mall.service.core.refund.param.ActiveRefundParam;
 import com.niu.mall.service.site.refund.param.AuditApplyParam;
 import com.niu.mall.service.site.refund.param.AuditRefundGoodsParam;
 import com.niu.mall.service.site.refund.param.RefundSearchParam;
+import com.niu.mall.service.site.refund.vo.RefundDataVo;
 import com.niu.mall.service.site.refund.vo.RefundDetailVo;
 import com.niu.mall.service.site.refund.vo.RefundListVo;
 
@@ -46,4 +47,11 @@ public interface IRefundActionService {
      * @param param
      */
     void shopActiveRefund(ActiveRefundParam param);
+
+    /**
+     * 获取订单项可退款金额
+     *
+     * @param orderGoodsIds
+     */
+    RefundDataVo getOrderRefundMoney(Integer[] orderGoodsIds);
 }

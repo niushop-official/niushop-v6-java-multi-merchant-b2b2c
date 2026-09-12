@@ -51,7 +51,7 @@
                             <div class="flex items-center">
                                 <span class="w-[42px] text-[13px] text-[#999] mr-[30px]">利润率</span>
                                 <div class="flex items-center">
-                                    <span class="text-[22px] text-[var(--price-color)] leading-[30px] price-font">{{ detail.profit_rate }}%</span>
+                                    <span class="text-[22px] text-[var(--price-color)] leading-[30px] price-font">{{ handleProfitRate(detail.profit_rate) }}</span>
                                     <span class="price-icon bg-[var(--price-color)] text-[13px] text-[#fff] h-[24px] leading-[24px] flex-center px-[10px] ml-[10px] rounded-r-[4px] rounded-bl-[4px]">可赚 <span class="price-font">{{ detail.earn_price }}</span>元</span>
                                 </div>
                             </div>
@@ -143,7 +143,7 @@ import { reactive, ref } from 'vue'
 import { img } from '@/utils/common'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { getGoodsDetail } from '@/addon/mall/api/site/select_goods'
+import { getGoodsDetail } from '@/app/lang/zh-cn/api/site/select_goods.js'
 import goodsAddPopup from './components/goods-add-popup.vue'
 
 const route = useRoute()
@@ -208,6 +208,14 @@ const toDoods = () => {
         })
         window.open(url.href)
     }
+}
+
+const handleProfitRate = (profitRate: string) => {
+  if (profitRate.indexOf('～') == -1) {
+    return parseFloat(profitRate) * 100 + '%'
+  } else {
+    return (parseFloat(profitRate.split('～')[0]) * 100) + '% ～ ' + (parseFloat(profitRate.split('～')[1])) * 100 + '%';
+  }
 }
 </script>
 

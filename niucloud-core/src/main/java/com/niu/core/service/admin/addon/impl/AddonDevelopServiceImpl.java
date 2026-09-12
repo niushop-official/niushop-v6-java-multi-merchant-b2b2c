@@ -18,6 +18,7 @@ import com.niu.core.service.admin.addon.vo.AddonDevelopListVo;
 import com.niu.core.service.admin.addon.vo.LocalAddonInfoVo;
 import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.addon.vo.InstallAddonListVo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.*;
 import org.springframework.beans.BeanUtils;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 /**
  * 插件开发实现类
  */
+@Slf4j
 @Service
 public class AddonDevelopServiceImpl implements IAddonDevelopService {
 
@@ -63,13 +65,19 @@ public class AddonDevelopServiceImpl implements IAddonDevelopService {
 
             for (File file : localAddons) {
                 if (new File(file, "info.json").exists()) {
-                    JSONObject info = JSONUtil.parseObj(JsonLoadUtils.loadJsonString(new File(file, "info.json")));
-                    String addon = info.getStr("key");
-                    AddonDevelopListVo addonDevelopListVo = JSONUtil.toBean(info, AddonDevelopListVo.class);
-                    if (installAddonList.get(addon) != null) addonDevelopListVo.setInstallInfo(installAddonList.get(addon));
-                    addonDevelopListVo.setIcon(ImageUtils.imageToBase64(file + "/resource/icon.png"));
-                    addonDevelopListVo.setCover(ImageUtils.imageToBase64(file + "/resource/cover.png"));
-                    list.add(addonDevelopListVo);
+                    try {
+                        JSONObject info = JSONUtil.parseObj(JsonLoadUtils.loadJsonString(new File(file, "info.json")));
+                        String addon = info.getStr("key");
+                        AddonDevelopListVo addonDevelopListVo = JSONUtil.toBean(info, AddonDevelopListVo.class);
+                        if (installAddonList.get(addon) != null) addonDevelopListVo.setInstallInfo(installAddonList.get(addon));
+                        addonDevelopListVo.setIcon(ImageUtils.imageToBase64(file + "/resource/icon.png"));
+                        addonDevelopListVo.setCover(ImageUtils.imageToBase64(file + "/resource/cover.png"));
+                        list.add(addonDevelopListVo);
+                    } catch (Exception e) {
+                        // 单个插件 info.json 为空或格式错误时跳过，不阻断整个列表
+                        log.error("扫描插件异常", e);
+                        log.error("插件 info.json 解析失败，已跳过: {}/info.json", file.getAbsolutePath());
+                    }
                 }
             }
             //已安装但是文件没有的

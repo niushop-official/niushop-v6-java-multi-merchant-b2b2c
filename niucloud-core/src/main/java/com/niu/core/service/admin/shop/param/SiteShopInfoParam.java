@@ -83,6 +83,12 @@ public class SiteShopInfoParam implements Serializable {
     @NotNull(message = "categoryId参数缺失")
     private Integer categoryId;
 
+    /** 子分类id */
+    private Integer childCategoryId;
+
+    /** 商圈id */
+    private Integer circleId;
+
     /**
      * 手机号码
      */

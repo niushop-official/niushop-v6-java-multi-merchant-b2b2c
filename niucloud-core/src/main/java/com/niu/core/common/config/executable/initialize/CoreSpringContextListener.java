@@ -3,9 +3,10 @@ package com.niu.core.common.config.executable.initialize;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import cn.hutool.log.Log;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.cache.Cached;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.file.FileTools;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.context.WebAppEnvs;
@@ -14,14 +15,17 @@ import com.niu.core.common.utils.file.PipeNameUtils;
 import com.niu.core.common.utils.json.JsonLoadUtils;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.site.Site;
+import com.niu.core.event.addon.InstallAddonAfterEvent;
 import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.admin.install.IInstallDataService;
 import com.niu.core.service.admin.install.IInstallSystemService;
 import com.niu.core.service.core.addon.AddonInstallJavaTools;
 import com.niu.core.service.core.addon.AddonInstallTools;
 import com.niu.core.service.core.addon.ICoreAddonService;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.app.tools.SQLScriptRunnerTools;
 import com.niu.core.service.core.schedule.ICoreScheduleService;
+import com.niu.core.service.core.shop.ICoreShopSiteGroupService;
 import com.niu.core.service.core.sys.ICoreMenuService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -32,7 +36,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +44,10 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -185,7 +191,14 @@ public class CoreSpringContextListener implements ApplicationListener<ContextRef
      * @return
      */
     private boolean isInit() {
-        Site site = siteMapper.selectById(0);
+        //修改查询方案
+        LambdaQueryWrapper<Site> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Site::getSiteId,0);
+        wrapper.select(Site::getSiteId,Site::getIsinit);
+        Site site = siteMapper.selectOne(wrapper);
+        if (Objects.isNull(site)) {
+            throw new CommonException("请在数据库配置一条id为0的默认站点");
+        }
         if(site.getIsinit() == 0)
         {
             return true;
@@ -215,43 +228,38 @@ public class CoreSpringContextListener implements ApplicationListener<ContextRef
                         .filter(file -> file.isDirectory())
                         .collect(Collectors.toList());
 
-                System.out.println("localAddons");
-                System.out.println(localAddons);
-
-                AddonInstallTools addonInstallTools = SpringContext.bean(AddonInstallTools.class);
-                ICoreMenuService coreMenuService = SpringContext.bean(ICoreMenuService.class);
-                ICoreScheduleService coreScheduleService = SpringContext.bean(ICoreScheduleService.class);
-                ICoreAddonService coreAddonService = SpringContext.bean(ICoreAddonService.class);
-
+                log.info("localAddons:{}", localAddons);
+                List<JSONObject> addons = new ArrayList<>();
                 for (File file : localAddons) {
-                    log.info("安装插件" + new File(file, "info.json").getAbsolutePath());
+
                     if (new File(file, "info.json").exists()) {
                         JSONObject info = JSONUtil.parseObj(JsonLoadUtils.loadJsonString(new File(file, "info.json")));
+
                         String addon = info.getStr("key");
-                        // 合并文件
-                        addonInstallTools.installDir(addon);
-                        // 合并依赖
-                        addonInstallTools.installDepend(addon);
-                        // 合并uniapp文件
-                        addonInstallTools.installUniapp(addon);
-                        // 安装菜单
-                        coreMenuService.installAddonMenu(addon);
-                        // 安装数据库
-                        File installSql = new File(file, "sql/install.sql");
-                        if (installSql.exists()) {
-                            String sqlContent = FileUtils.readFileToString(installSql, "UTF-8");
-                            sqlContent = sqlContent.replace("{{prefix}}", GlobalConfig.tablePrefix);
-                            SQLScriptRunnerTools.execScript(sqlContent);
+                        String type = info.getStr("type");
+                        if ("app".equals(type)) {
+                            log.info("安装插件app: {}", new File(file, "info.json").getAbsolutePath());
+                            install(file, addon, info);
+                        } else {
+                            JSONObject addonObject = new JSONObject();
+                            addonObject.set("key", addon);
+                            addonObject.set("file", file);
+                            addonObject.set("info", info);
+                            addons.add(addonObject);
                         }
-                        coreScheduleService.installAddonSchedule(addon);
-
-                        Addon model = JSONUtil.toBean(info, Addon.class);
-                        model.setIcon("addon/" + model.getKey() + "/icon.png");
-                        coreAddonService.set(model);
-
-                        AddonInstallJavaTools.addAddonJson(addon);
                     }
                 }
+
+                for (JSONObject addonObject : addons) {
+                    File file = (File)addonObject.get("file");
+                    String key = addonObject.getStr("key");
+                    JSONObject info = addonObject.getJSONObject("info");
+                    log.info("安装插件{}: {}", info.getStr("type"), file.getAbsolutePath());
+                    install(file, key, info);
+                }
+                ICoreShopSiteGroupService coreShopSiteGroupService =
+                        SpringContext.bean(ICoreShopSiteGroupService.class);
+                coreShopSiteGroupService.updateSysGroup();
                 //重启项目
                 PipeNameUtils.noticeBootCommand(GlobalConfig.applicationName, "restart");
             } catch (Exception e) {
@@ -260,6 +268,40 @@ public class CoreSpringContextListener implements ApplicationListener<ContextRef
                 throw new RuntimeException(e.getMessage());
             }
         }, delaySeconds, TimeUnit.SECONDS);
+    }
+
+    private void install(File file, String addon, JSONObject info) throws IOException {
+        AddonInstallTools addonInstallTools = SpringContext.bean(AddonInstallTools.class);
+        ICoreMenuService coreMenuService = SpringContext.bean(ICoreMenuService.class);
+        ICoreScheduleService coreScheduleService = SpringContext.bean(ICoreScheduleService.class);
+        ICoreAddonService coreAddonService = SpringContext.bean(ICoreAddonService.class);
+        // 合并文件
+        addonInstallTools.installDir(addon);
+        // 合并依赖
+        addonInstallTools.installDepend(addon);
+        // 合并uniapp文件
+        addonInstallTools.installUniapp(addon);
+        // 安装菜单
+        coreMenuService.installAddonMenu(addon);
+        // 安装数据库
+        File installSql = new File(file, "sql/install.sql");
+        if (installSql.exists()) {
+            String sqlContent = FileUtils.readFileToString(installSql, "UTF-8");
+            sqlContent = sqlContent.replace("{{prefix}}", GlobalConfig.tablePrefix);
+            SQLScriptRunnerTools.execScript(sqlContent);
+        }
+        coreScheduleService.installAddonSchedule(addon);
+
+        Addon model = JSONUtil.toBean(info, Addon.class);
+        model.setIcon("addon/" + model.getKey() + "/icon.png");
+        coreAddonService.set(model);
+
+        AddonInstallJavaTools.addAddonJson(addon);
+
+        InstallAddonAfterEvent installEvent = new InstallAddonAfterEvent(addon);
+        installEvent.addAppSign("core");
+        installEvent.setName("InstallAddonAfterEvent");
+        EventAndSubscribeOfPublisher.publishAll(installEvent);
     }
 
     /**

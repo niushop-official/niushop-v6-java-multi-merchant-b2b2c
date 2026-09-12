@@ -5,53 +5,12 @@ import request from '@/utils/request'
 /***************************************************** 店铺管理 ****************************************************/
 
 /**
- * 获取店铺分页列表
- * @param params
- * @returns
- */
-export function getShopPageList(params: Record<string, any>) {
-    return request.get(`shop/admin/shop`, { params })
-}
-/**
  * 获取店铺列表
  * @param params
  * @returns
  */
 export function getShopSelect(params: Record<string, any>) {
-    return request.get(`shop/admin/shop/select`, { params })
-}
-/**
- * 获取店铺列表
- * @param params
- * @returns
- */
-export function getShopList(params: Record<string, any>) {
-    return request.get(`shop/admin/shop/list`, { params })
-}
-
-/**
- * 获取店铺详情
- * @param site_id
- */
-export function getShopInfo(site_id: number) {
-    return request.get(`shop/admin/shop/${site_id}`);
-}
-
-/**
- * 添加店铺
- * @param params
- * @returns
- */
-export function addShop(params: Record<string, any>) {
-    return request.post('shop/admin/shop', params, { showSuccessMessage: true })
-}
-
-/**
- * 更新店铺
- * @param params
- */
-export function editShop(params: Record<string, any>) {
-    return request.put(`shop/admin/shop/${params.site_id}`, params, { showSuccessMessage: true })
+    return request.get(`mall/admin/shop/select`, { params })
 }
 
 /**
@@ -167,61 +126,7 @@ export function deleteShopGroup(group_id: number) {
  * @returns
  */
 export function getShopGroupAll(params: Record<string, any> = {}) {
-    return request.get(`shop/admin/shop_group/all`)
-}
-
-
-/***************************************************** 店铺分类管理 ****************************************************/
-
-/**
- * 获取店铺分类列表
- * @param params
- * @returns
- */
-export function getShopCategoryList(params: Record<string, any>) {
-    return request.get(`shop/admin/shop_category`, { params })
-}
-
-/**
- * 获取店铺分类详情
- * @param category_id
- */
-export function getShopCategoryInfo(category_id: number) {
-    return request.get(`shop/admin/shop_category/${category_id}`)
-}
-
-/**
- * 添加店铺分类
- * @param params
- * @returns
- */
-export function addShopCategory(params: Record<string, any>) {
-    return request.post('shop/admin/shop_category', params, { showSuccessMessage: true })
-}
-
-/**
- * 更新店铺分类
- * @param params
- */
-export function editShopCategory(params: Record<string, any>) {
-    return request.put(`shop/admin/shop_category/${params.category_id}`, params, { showSuccessMessage: true })
-}
-
-/**
- * 删除店铺分类
- * @param category_id
- */
-export function deleteShopCategory(category_id: number) {
-    return request.delete(`shop/admin/shop_category/${category_id}`, { showSuccessMessage: true });
-}
-
-/**
- * 获取全部店铺分类
- * @param params
- * @returns
- */
-export function getShopCategoryAll() {
-    return request.get(`shop/admin/shop_category/all`)
+    return request.get(`shop/admin/shop_group/all`, { params })
 }
 
 /***************************************************** 店铺申请管理 ****************************************************/
@@ -265,6 +170,7 @@ export function deleteShopApply(apply_id: number) {
 export function getApplyStatusList() {
     return request.get(`shop/admin/shop_apply/statuslist`)
 }
+
 
 /***************************************************** 店铺提现 ****************************************************/
 /**
@@ -428,22 +334,6 @@ export function getAccountType() {
 
 export function getAccountSettle() {
     return request.get(`shop/admin/spear_user/settle`);
-}
-
-/**
- * 获取表单配置
- * @returns
- */
-export function getConfig() {
-    return request.get('shop/admin/shop/apply_config')
-}
-
-/**
- * 编辑表单配置
- * @returns
- */
-export function setConfig(param: any) {
-    return request.post('shop/admin/shop/apply_config', param, { showSuccessMessage: true })
 }
 
 /**

@@ -226,7 +226,7 @@
 import { ref, reactive, computed } from 'vue'
 import { t } from '@/lang'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { orderRefundDetail, auditRefund, refundDelivery } from '@/addon/mall/api/site/order'
+import { orderRefundDetail, auditRefund, refundDelivery } from '@/app/lang/zh-cn/api/site/order'
 import { getOrderRefundAddress } from '@/app/api/delivery_site'
 import { useRoute, useRouter } from 'vue-router'
 import { img } from '@/utils/common'

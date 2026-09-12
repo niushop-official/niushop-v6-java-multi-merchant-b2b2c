@@ -12,5 +12,8 @@ public class MemberSignSearchParam implements Serializable {
 
     private String keywords;
 
+    /** Filter records for a single member, matching the PHP member_id query. */
+    private Integer memberId;
+
     private String[] createTime;
 }

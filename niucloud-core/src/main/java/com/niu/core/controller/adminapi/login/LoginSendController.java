@@ -22,7 +22,11 @@ public class LoginSendController {
     ILoginService loginService;
 
     @PostMapping("/mobile/{type}/{appType}")
-    public Result sendMobileCode(@Validated @RequestBody SendMobileParam userLoginParam){
+    public Result sendMobileCode(@PathVariable("type") String type,
+                                 @PathVariable("appType") String appType,
+                                 @Validated @RequestBody SendMobileParam userLoginParam) {
+        userLoginParam.setType(type);
+        userLoginParam.setAppType(appType);
         return Result.success(loginService.sendMobileCode(userLoginParam));
     }
 }

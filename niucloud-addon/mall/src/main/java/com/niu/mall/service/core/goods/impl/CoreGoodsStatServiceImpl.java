@@ -8,11 +8,11 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.entity.stat.SysStat;
 import com.niu.core.service.core.sys.vo.SysStatVo;
-import com.niu.mall.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsStat;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderRefund;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.goods.MallGoodsStatMapper;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsStatService;
@@ -46,7 +46,11 @@ public class CoreGoodsStatServiceImpl implements ICoreGoodsStatService {
         queryWrapper.eq("date", DateUtils.currInitDate())
                 .eq("date_time", DateUtils.StringToTimestamp(new DateTime().toString("yyyy-MM-dd")))
                 .eq("site_id", param.getSiteId())
-                .eq("goods_id", param.getGoodsId());
+                .eq("goods_id", param.getGoodsId())
+                // 按时间戳倒序，最新在前
+                .orderByDesc("date_time")
+                // 只取第一条
+                .last("limit 1");
 
         MallGoodsStat stat = mallGoodsStatMapper.selectOne(queryWrapper);
         if (ObjectUtil.isEmpty(stat)) {
@@ -96,7 +100,7 @@ public class CoreGoodsStatServiceImpl implements ICoreGoodsStatService {
         long endTime = DateUtils.StringToTimestamp(endDate);
         QueryWrapper<MallGoodsStat> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("site_id", siteId);
-        
+
         if(ObjectUtil.isNotEmpty(startDate) && ObjectUtil.isNotEmpty(endDate))
         {
             queryWrapper.ge("date_time", startTime);
@@ -171,17 +175,17 @@ public class CoreGoodsStatServiceImpl implements ICoreGoodsStatService {
             param.setRefundMoney(refund.getMoney());
             addStat(param);
 
-            // 更新支付件数
-            UpdateWrapper<MallGoods> updateWrapper1 = new UpdateWrapper<>();
-            updateWrapper1.eq("goods_id", goods.getGoodsId())
-                    .setSql("refund_num = refund_num + " + goods.getNum());
-            mallGoodsMapper.update(new MallGoods(), updateWrapper1);
-
-            // 更新支付金额
-            UpdateWrapper<MallGoods> updateWrapper2 = new UpdateWrapper<>();
-            updateWrapper2.eq("goods_id", goods.getGoodsId())
-                    .setSql("refund_money = refund_money + " + refund.getMoney());
-            mallGoodsMapper.update(new MallGoods(), updateWrapper2);
+            // 更新支付件数 // 更新退款件数
+//            UpdateWrapper<MallGoods> updateWrapper1 = new UpdateWrapper<>();
+//            updateWrapper1.eq("goods_id", goods.getGoodsId())
+//                    .setSql("refund_num = refund_num + " + goods.getNum());
+//            mallGoodsMapper.update(new MallGoods(), updateWrapper1);
+//
+//            // 更新支付金额 // 更新退款金额
+//            UpdateWrapper<MallGoods> updateWrapper2 = new UpdateWrapper<>();
+//            updateWrapper2.eq("goods_id", goods.getGoodsId())
+//                    .setSql("refund_money = refund_money + " + refund.getMoney());
+//            mallGoodsMapper.update(new MallGoods(), updateWrapper2);
         }
     }
 

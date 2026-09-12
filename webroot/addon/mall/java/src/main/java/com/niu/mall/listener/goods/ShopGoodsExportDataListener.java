@@ -11,21 +11,24 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.goods.GoodsBrand;
+import com.niu.core.entity.goods.GoodsLabel;
 import com.niu.core.entity.goods.GoodsService;
 import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteCategory;
 import com.niu.core.event.sys.ExportDataEventDefiner;
 import com.niu.core.mapper.goods.GoodsBrandMapper;
+import com.niu.core.mapper.goods.GoodsLabelMapper;
 import com.niu.core.mapper.goods.GoodsServiceMapper;
 import com.niu.core.mapper.site.SiteCategoryMapper;
 import com.niu.core.mapper.site.SiteMapper;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.goods.MallGoodsLabel;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoodsSku;
 import com.niu.mall.enums.goods.*;
-import com.niu.mall.mapper.goods.MallGoodsLabelMapper;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsAuditStatusEnum;
+import com.niu.core.enums.goods.GoodsStatusEnum;
+import com.niu.core.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +51,7 @@ public class ShopGoodsExportDataListener extends ExportDataEventDefiner {
     @Autowired
     private SiteCategoryMapper siteCategoryMapper;
     @Autowired
-    private MallGoodsLabelMapper goodsLabelMapper;
+    private GoodsLabelMapper goodsLabelMapper;
     @Autowired
     private GoodsServiceMapper goodsServiceMapper;
 
@@ -64,7 +67,8 @@ public class ShopGoodsExportDataListener extends ExportDataEventDefiner {
 
         // 1. 构建商品查询条件
         LambdaQueryWrapper<MallGoods> goodsWrapper = new LambdaQueryWrapper<>();
-        goodsWrapper.eq(MallGoods::getSiteId, siteId);
+        goodsWrapper.eq(MallGoods::getSiteId, siteId)
+                .eq(MallGoods::getDeleteTime, 0);
         if (where != null) {
             String goodsName = where.getStr("goods_name");
             if (StrUtil.isNotBlank(goodsName)) {
@@ -222,10 +226,10 @@ public class ShopGoodsExportDataListener extends ExportDataEventDefiner {
                 }
             }
         }
-        Map<Integer, MallGoodsLabel> labelMap = new HashMap<>();
+        Map<Integer, GoodsLabel> labelMap = new HashMap<>();
         if (CollUtil.isNotEmpty(labelIds)) {
             labelMap = goodsLabelMapper.selectByIds(labelIds).stream()
-                    .collect(Collectors.toMap(MallGoodsLabel::getLabelId, l -> l));
+                    .collect(Collectors.toMap(GoodsLabel::getLabelId, l -> l));
         }
         // 服务
         Set<Integer> serviceIdsSet = new HashSet<>();

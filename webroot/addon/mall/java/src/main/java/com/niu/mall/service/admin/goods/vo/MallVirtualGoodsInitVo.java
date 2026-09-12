@@ -56,6 +56,7 @@ public class MallVirtualGoodsInitVo implements Serializable {
         private Integer virtualVerifyType; // 虚拟商品核销有效期类型，0：不限，1：购买后几日有效，2：指定过期日期
         private Integer virtualIndate; // 虚拟到期时间
         private String memberDiscount;  // 会员等级折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
+        private String vipCardDiscount;  // 付费会员卡折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
         private Object posterId;  // 海报id
         private List<SkuInfo> skuList;
         private String specType = "single";

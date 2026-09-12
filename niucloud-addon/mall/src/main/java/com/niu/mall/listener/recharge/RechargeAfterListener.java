@@ -4,7 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.niu.core.common.annotation.EventListen;
 import com.niu.core.common.component.context.listener.AbstractListener;
 import com.niu.core.event.common.CommonEvent;
-import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
+import com.niu.core.service.core.marketing.ICoreCouponMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

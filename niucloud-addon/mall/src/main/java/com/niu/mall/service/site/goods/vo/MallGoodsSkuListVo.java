@@ -1,7 +1,9 @@
 package com.niu.mall.service.site.goods.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.common.utils.CommonUtils;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -32,9 +34,14 @@ public class MallGoodsSkuListVo implements Serializable {
     private Integer saleNum;  // 销量
     private Integer isDefault;  // 是否默认
     private String memberPrice;  // 会员价，json格式，指定会员价，数据结构为：{"level_1":"10.00","level_2":"10.00"}
+    @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+    private String svipPrice;  // json格式
+    @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+    private String svipDiscount;  // json格式
     private GoodsInfo goods;
+
     @Data
-    public static class GoodsInfo{
+    public static class GoodsInfo {
         private Integer goodsId;  // 商品id
         private Integer siteId;  // 站点id
         private String goodsName;  // 商品名称
@@ -71,6 +78,8 @@ public class MallGoodsSkuListVo implements Serializable {
         private String attrFormat;  // 商品参数内容，json格式
         private Integer isDiscount;  // 是否参与限时折扣
         private String memberDiscount;  // 会员等级折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
+        @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
+        private String vipCardDiscount;  // 付费会员价，json格式，指定会员价
         private Integer posterId;  // 海报id
         private Integer formId;
         private Integer isGift;
@@ -81,6 +90,7 @@ public class MallGoodsSkuListVo implements Serializable {
         private String goodsImageThumbSample;
         private String goodsImageThumbMid;
         private String goodsImageThumbBig;
+
         private String getGoodsTypeName() {
             return GoodsTypeEnum.getNameByType(this.goodsType);
         }

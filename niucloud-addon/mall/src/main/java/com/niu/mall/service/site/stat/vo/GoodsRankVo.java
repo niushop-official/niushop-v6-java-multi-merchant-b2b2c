@@ -17,6 +17,9 @@ public class GoodsRankVo {
         private Integer goodsId;//商品ID
 
         private String goodsName;//商品名称
+
+        /** 商品封面小图（对齐 PHP goods_cover_thumb_small） */
+        private String goodsCoverThumbSmall;
     }
 
     private String goodsCover;//商品图片

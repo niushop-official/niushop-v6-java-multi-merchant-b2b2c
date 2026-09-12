@@ -12,6 +12,7 @@ import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.service.admin.site.vo.SiteAdminVo;
+import com.niu.core.service.admin.site.vo.SiteCategoryListVo;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
@@ -56,6 +57,17 @@ public class SiteShopInfoVo implements Serializable {
 
     private String categoryName;
 
+    /** 子分类id */
+    private Integer childCategoryId;
+
+    /** 子分类名称 */
+    private String childCategoryName;
+
+    /** 商圈id */
+    private Integer circleId;
+
+    /** 服务费率 */
+    private BigDecimal serviceRate;
 
     /** 佣金比率 */
     private BigDecimal commissionRate;
@@ -83,6 +95,12 @@ public class SiteShopInfoVo implements Serializable {
 
     /** 累计结算 */
     private BigDecimal moneyGet;
+
+    /** 可提现余额 */
+    private BigDecimal withdrawalMoney;
+
+    /** 子分类列表 */
+    private List<SiteCategoryListVo> childCategoryList;
 
     /** 保证金 */
     private BigDecimal shopDeposit;
@@ -212,6 +230,15 @@ public class SiteShopInfoVo implements Serializable {
 
         /** 商家分类id */
         private Integer categoryId;
+
+        /** 子分类id */
+        private Integer childCategoryId;
+
+        /** 商圈id */
+        private Integer circleId;
+
+        /** 服务费率 */
+        private BigDecimal serviceRate;
 
         /** 佣金比率 */
         private BigDecimal commissionRate;

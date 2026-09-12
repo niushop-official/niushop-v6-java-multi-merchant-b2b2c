@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
+import java.util.Map;
 
 /**
  * 小票打印机控制器
@@ -42,6 +43,14 @@ public class SysPrinterController {
     }
 
     /**
+     * 获取当前站点可用打印机，必须在 /{id} 前声明，避免 usable 被解析为主键。
+     */
+    @GetMapping("/usable")
+    public Result<?> usable() {
+        return Result.success(sysPrinterService.getUsableList());
+    }
+
+    /**
      * 小票打印机详情
      *
      * @param id 主键ID
@@ -61,7 +70,7 @@ public class SysPrinterController {
     @PostMapping
     public Result<?> add(@Validated @RequestBody SysPrinterParam addParam) {
         Integer id = sysPrinterService.add(addParam);
-        return Result.success("ADD_SUCCESS", id);
+        return Result.success("ADD_SUCCESS", Map.of("id", id));
     }
 
     /**
@@ -112,7 +121,8 @@ public class SysPrinterController {
 
     @PutMapping("/refreshtoken/{id}")
     public Result<?> refreshToken(@PathVariable("id") Integer id) {
-        return Result.success(sysPrinterService.refreshToken(id));
+        sysPrinterService.refreshToken(id);
+        return Result.success();
     }
 
     @PutMapping("/testprint/{id}")

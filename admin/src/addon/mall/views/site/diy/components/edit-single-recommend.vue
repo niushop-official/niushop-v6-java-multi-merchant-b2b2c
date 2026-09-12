@@ -248,8 +248,7 @@ const addImageAd = () => {
 diyStore.editComponent.verify = (index: number) => {
     const res = { code: true, message: '' }
     if (diyStore.value[index].source == 'custom') {
-        const goodsIds = diyStore.value[index].goods_ids
-        if (!Array.isArray(goodsIds) || goodsIds.length == 0) {
+        if (diyStore.value[index].goods_ids.length == 0) {
             res.code = false
             res.message = t('goodsPlaceholder')
         }
@@ -273,9 +272,6 @@ const categoryTable = reactive({
     data: []
 })
 onMounted(() => {
-    if (!Array.isArray(diyStore.editComponent.goods_ids)) {
-        diyStore.editComponent.goods_ids = []
-    }
     loadCategoryList()
 })
 
@@ -287,7 +283,9 @@ let currCategoryData: any = null
 const loadCategoryList = () => {
     categoryTable.loading = true
 
-    getCategoryTree().then(res => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then(res => {
         categoryTable.loading = false
         categoryTable.data = res.data
     }).catch(() => {

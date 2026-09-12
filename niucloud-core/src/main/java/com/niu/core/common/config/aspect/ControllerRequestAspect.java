@@ -11,6 +11,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -93,7 +94,7 @@ public class ControllerRequestAspect {
                     }
                 }
             });
-            
+
             Map<String, Map<Integer, String>> indexedArrays = new HashMap<>();
             parameterSet.stream().forEach(key -> {
                 if (key.matches(".*\\[\\d+\\]$")) {
@@ -109,7 +110,7 @@ public class ControllerRequestAspect {
                     }
                 }
             });
-            
+
             indexedArrays.forEach((baseKey, indexMap) -> {
                 String camelKey = StringUtils.toCamelCase(baseKey);
                 String[] array = new String[indexMap.size()];
@@ -141,12 +142,12 @@ public class ControllerRequestAspect {
                 }
             }
         }
-        
+
         // 如果已经从preprocessingMap设置，不再处理下划线命名的方式（避免覆盖）
         if (isSetFromPreprocessing && field.getType().equals(String[].class)) {
             return;
         }
-        
+
         if (filedName.matches(".*[A-Z].*") && !"serialVersionUID".equals(filedName)) {
             String underFiledName = StringUtils.toUnderScoreCase(filedName);
             Map<String, String[]> parameterMap = RequestUtils.handler().getParameterMap();
@@ -196,12 +197,25 @@ public class ControllerRequestAspect {
                     } catch (Exception e) {
                         // ignore
                     }
+                } else if (field.getType().equals(BigDecimal.class)) {
+                    try {
+                        String valueStr = valueObjects[0];
+                        if (valueStr != null && !valueStr.trim().isEmpty()) {
+                            ReflectCallMethod.setInvokeByFieldName(target, filedName, new BigDecimal(valueStr.trim()));
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
                 } else if (field.getType().equals(String[].class)) {
                     ReflectCallMethod.setInvokeByFieldName(target, filedName, (Object) valueObjects);
                 } else if (field.getType().equals(Date.class)) {
                     // 时间暂时不处理
                 } else if (field.getType().equals(LocalDateTime.class)) {
                     // 时间暂时不处理（JDK.18以上）
+                } else if (field.getType().equals(Collection.class)) {
+                    ReflectCallMethod.setInvokeByFieldName(target, filedName, (Object) valueObjects);
+                } else {
+                    ReflectCallMethod.setInvokeByFieldName(target, filedName, (Object) valueObjects[0]);
                 }
             }
         }

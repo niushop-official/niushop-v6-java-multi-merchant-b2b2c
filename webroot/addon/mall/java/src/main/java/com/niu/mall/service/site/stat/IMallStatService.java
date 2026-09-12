@@ -82,4 +82,9 @@ public interface IMallStatService {
      * @return
      */
     List<GoodsRankVo> getGoodsRank(Long startTime, Long endTime);
+
+    /**
+     * 获取商品排行榜（支持排序，对齐 PHP StatService::getRank）
+     */
+    List<GoodsRankVo> getGoodsRank(Long startTime, Long endTime, String order, String sort);
 }

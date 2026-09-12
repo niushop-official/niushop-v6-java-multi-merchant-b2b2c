@@ -4,7 +4,6 @@ import cn.hutool.json.JSONObject;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
-import com.niu.core.common.enums.HttpEnum;
 import com.niu.core.service.admin.diy_form.IDiyFormConfigService;
 import com.niu.core.service.admin.diy_form.IDiyFormRecordsService;
 import com.niu.core.service.admin.diy_form.IDiyFormService;
@@ -151,9 +150,9 @@ public class DiyFormController {
      * @return Result<Integer>
      */
     @PostMapping("/form/copy")
-    public Result<Integer> copy(@RequestBody DiyFormCopyParam diyFormCopyParam) {
+    public Result<Map<String, Integer>> copy(@RequestBody DiyFormCopyParam diyFormCopyParam) {
         Integer id = diyFormService.copy(diyFormCopyParam.getFormId());
-        return Result.success(HttpEnum.SUCCESS.getCode(), HttpEnum.SUCCESS.getMsg(), id);
+        return Result.success(Map.of("id", id));
     }
 
     /**

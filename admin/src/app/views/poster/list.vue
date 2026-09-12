@@ -8,13 +8,13 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="posterTableData.searchParam" ref="searchFormDiyPosterRef">
+                <el-form :inline="true" label-width="70px" :model="posterTableData.searchParam" ref="searchFormDiyPosterRef" class="page-form">
                     <el-form-item :label="t('posterName')" prop="name">
-                        <el-input v-model="posterTableData.searchParam.name" :placeholder="t('posterNamePlaceholder')" />
+                        <el-input v-model="posterTableData.searchParam.name" :placeholder="t('posterNamePlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('posterType')" prop="type">
-                        <el-select v-model="posterTableData.searchParam.type" :placeholder="t('posterTypePlaceholder')">
-                            <el-option :label="t('all')" value="" />
+                        <el-select v-model="posterTableData.searchParam.type" :placeholder="t('posterTypePlaceholder')" clearable  class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="item in posterType" :label="item.name" :value="item.type" :key="item.type"/>
                         </el-select>
                     </el-form-item>
@@ -35,8 +35,7 @@
                 <el-table-column prop="type_name" :label="t('posterType')" min-width="80" />
                 <el-table-column :label="t('status')" min-width="80">
                     <template #default="{ row }">
-                        <el-tag type="success" v-if="row.status == 1" @click="modifyPosterStatusFn(row.id, 0)" class="cursor-pointer">{{ t('启用') }}</el-tag>
-                        <el-tag type="info" v-else @click="modifyPosterStatusFn(row.id, 1)" class="cursor-pointer">{{ t('未启用') }}</el-tag>
+                        <el-switch v-model="row.status" :active-value="1" :inactive-value="0" inline-prompt active-text="开启" inactive-text="关闭" @change="(value) => modifyPosterStatusFn(row, value)" />
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('isDefault')" min-width="80">
@@ -211,14 +210,17 @@ const editEvent = (data: any) => {
 const isRepeat = ref(false)
 
 // 修改海报启用状态
-const modifyPosterStatusFn = (id:any,status:any)=> {
+const modifyPosterStatusFn = (row: any, status: any) => {
     if (isRepeat.value) return
     isRepeat.value = true
 
     modifyPosterStatus({
-        id, status
+        id: row.id, status
     }).then((res) => {
         loadPosterPageList()
+        isRepeat.value = false
+    }).catch(() => {
+        row.status = status == 1 ? 0 : 1
         isRepeat.value = false
     })
 }

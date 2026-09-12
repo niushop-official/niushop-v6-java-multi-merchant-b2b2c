@@ -57,4 +57,5 @@ public class LocalDeliveryVo {
     @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
     private String deliveryTime;
     
+    private BigDecimal freeGoodsMoney;
 }

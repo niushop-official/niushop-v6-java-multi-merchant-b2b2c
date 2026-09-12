@@ -61,7 +61,7 @@ import { t } from '@/lang'
 import { ref, reactive, computed, nextTick } from 'vue'
 import { cloneDeep } from 'lodash-es'
 import { ElMessage, FormInstance } from 'element-plus'
-import { getSelectRankPageList } from '@/addon/mall/api/admin/marketing'
+import { getSelectRankPageList } from '@/app/lang/zh-cn/api/admin/marketing'
 
 const prop = defineProps({
     modelValue: {

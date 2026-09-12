@@ -16,6 +16,7 @@
       "bgColor": "背景颜色",
       "borderColor": "边框颜色",
       "colorTips": "若未设置颜色，则为默认色",
+      "brandTypeName": "品牌类型",
       "siteName": "店铺名称",
       "move": "转入平台",
       "brandMoveTips":"确定要将该品牌转入平台吗？"

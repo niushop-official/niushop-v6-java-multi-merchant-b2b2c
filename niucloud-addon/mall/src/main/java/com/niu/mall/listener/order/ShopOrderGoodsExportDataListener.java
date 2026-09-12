@@ -23,7 +23,7 @@ import com.niu.core.service.admin.member.IMemberService;
 import com.niu.core.service.admin.member.vo.MemberInfoVo;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.OrderDeliveryStatusEnum;
 import com.niu.mall.enums.order.OrderDeliveryTypeEnum;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
@@ -78,7 +78,7 @@ public class ShopOrderGoodsExportDataListener extends ExportDataEventDefiner {
             }
 
             Object order_from = where.get("order_from");
-            if (ObjectUtil.isNotEmpty(order_from)) {
+            if (ObjectUtil.isNotEmpty(order_from) && !"all".equals(order_from.toString())) {
                 queryWrapper.eq("t.order_from", order_from);
             }
 
@@ -92,7 +92,7 @@ public class ShopOrderGoodsExportDataListener extends ExportDataEventDefiner {
             }
 
             Object pay_type = where.get("pay_type");
-            if (ObjectUtil.isNotEmpty(pay_type)) {
+            if (ObjectUtil.isNotEmpty(pay_type) && !"all".equals(pay_type.toString())) {
                 queryWrapper.eq("p.type", pay_type);
             }
         }

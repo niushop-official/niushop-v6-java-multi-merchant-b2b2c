@@ -17,6 +17,10 @@ public interface ICoreConfigService {
      */
     CoreSysConfigVo getConfig(Integer siteId, String key);
 
+    Integer resolveIsAutoAccept(Integer siteId);
+
+    boolean isAutoAccept(Integer siteId);
+
     /**
      * 获取系统配置项 返回values
      *

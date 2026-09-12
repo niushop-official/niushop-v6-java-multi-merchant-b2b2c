@@ -7,9 +7,9 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="evaluateTable.searchParam" ref="searchFormRef">
+                <el-form label-width="70px" :inline="true" :model="evaluateTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('goodsName')" prop="goods_name">
-                        <el-input v-model.trim="evaluateTable.searchParam.goods_name" :placeholder="t('goodsNamePlaceholder')" class="input-width" maxlength="60" />
+                        <el-input v-model.trim="evaluateTable.searchParam.goods_name" :placeholder="t('goodsNamePlaceholder')" class="search-input" maxlength="60" clearable />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadEvaluateList()">{{ t('search') }}</el-button>
@@ -122,8 +122,8 @@
 <script lang="ts" setup>
 import { reactive, ref, computed } from 'vue'
 import { t } from '@/lang'
-import { getEvaluateList, deleteEvaluate, adoptEvaluate, refuseEvaluate, replyEvaluate, toppingEvaluate, cancelToppingEvaluate } from '@/addon/mall/api/site/goods'
-import { getConfig } from '@/addon/mall/api/admin/order'
+import { getEvaluateList, deleteEvaluate, adoptEvaluate, refuseEvaluate, replyEvaluate, toppingEvaluate, cancelToppingEvaluate } from '@/app/lang/zh-cn/api/site/goods'
+import { getConfig } from '@/app/lang/zh-cn/api/admin/order'
 import EvaluateAdd from '@/addon/mall/views/site/goods/components/evaluate-add.vue'
 import { img } from '@/utils/common'
 import { ElMessageBox, FormInstance } from 'element-plus'

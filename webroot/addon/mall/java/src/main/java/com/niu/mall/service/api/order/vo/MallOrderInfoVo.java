@@ -54,6 +54,9 @@ public class MallOrderInfoVo implements Serializable {
     private BigDecimal discountMoney;  // 优惠金额
     private BigDecimal orderMoney;  // 订单金额
     private BigDecimal payMoney;  // 支付金额
+    private BigDecimal refundMoney;  // 累计退款金额
+    /** 可开票金额 = order_money - refund_money，对齐 PHP */
+    private BigDecimal invoiceMoney;
     private Integer invoiceId;  // 发票id，0表示不开发票
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long createTime;
@@ -123,6 +126,15 @@ public class MallOrderInfoVo implements Serializable {
     private String extendField1; //扩展字段1
     @JsonProperty("extend_field_2")
     private String extendField2; //扩展字段2
+    @JsonProperty("extend_data")
+    private String extendData; //扩展数据（JSON格式，包含pintuan_id等）
+
+    public JSONObject getExtendData() {
+        if (StringUtils.isEmpty(this.extendData)) {
+            return null;
+        }
+        return JSONUtil.parseObj(this.extendData);
+    }
 
     //26-04-23 新增
     private String subDeliveryType;
@@ -176,7 +188,8 @@ public class MallOrderInfoVo implements Serializable {
         private String goodsType; // 商品类型
         private String deliveryStatus; // 配送状态
         private Integer verifyCount; // 已核销次数
-        private Integer verifyExpireTime; // 过期时间 0 为永久
+        @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+        private Long verifyExpireTime; // 过期时间 0 为永久
         private Integer isVerify; // 是否需要核销
         private BigDecimal discountMoney;
         private String extend;
@@ -234,6 +247,7 @@ public class MallOrderInfoVo implements Serializable {
         private Integer groupId; // id
         private Integer status; // 状态
         private Integer isBundlePay; // 是否只能捆绑支付
+        private List<MallOrderInfoVo> mallOrders; // 订单组下的其他订单
     }
 
     @Data

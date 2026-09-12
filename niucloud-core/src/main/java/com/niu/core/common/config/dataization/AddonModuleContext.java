@@ -237,7 +237,10 @@ public final class AddonModuleContext {
                     if (inputStream == null) {
                         log.error("开发环境下无法读取文件：" + devClassPath);
                     } else {
-                        properties.load(inputStream);
+                        // （用系统默认编码读取，会乱码）
+                        // properties.load(inputStream);
+                        // 用 UTF-8 编码读取
+                        properties.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                         readResult = true;
                     }
                 } catch (Exception e) {
@@ -263,7 +266,10 @@ public final class AddonModuleContext {
                         if (inputStream == null) {
                             log.error("开发环境下无法读取文件：" + devClassPath);
                         } else {
-                            properties.load(inputStream);
+                            // （用系统默认编码读取，会乱码）
+                            // properties.load(inputStream);
+                            // 用 UTF-8 编码读取
+                            properties.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -289,7 +295,10 @@ public final class AddonModuleContext {
                     if (inputStream == null) {
                         log.error("当前环境<ResourceLoader>无法读取文件：" + runtimeClassPath);
                     } else {
-                        properties.load(inputStream);
+                        // （用系统默认编码读取，会乱码）
+                        // properties.load(inputStream);
+                        //  UTF-8 编码读取
+                        properties.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                         readResult = true;
                     }
                 } catch (Exception e) {

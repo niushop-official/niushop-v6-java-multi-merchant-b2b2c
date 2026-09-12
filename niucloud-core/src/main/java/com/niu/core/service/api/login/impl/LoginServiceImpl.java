@@ -6,7 +6,9 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import com.anji.captcha.model.vo.CaptchaVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.component.context.event.EventPublisher;
@@ -28,6 +30,7 @@ import com.niu.core.service.api.login.param.*;
 import com.niu.core.service.api.login.vo.LoginVo;
 import com.niu.core.service.api.login.vo.MobileCodeCacheVo;
 import com.niu.core.service.api.login.vo.SendMobileCodeVo;
+import com.niu.core.service.core.captcha.ICoreCaptchaImgService;
 import com.niu.core.service.core.member.ICoreMemberConfigService;
 import com.niu.core.service.core.notice.ICoreNoticeService;
 import jakarta.annotation.Resource;
@@ -52,6 +55,9 @@ public class LoginServiceImpl implements ILoginService {
 
     @Resource
     ICoreNoticeService coreNoticeService;
+
+    @Resource
+    ICoreCaptchaImgService coreCaptchaImgService;
 
     @Resource
     private Cached cached;
@@ -90,7 +96,9 @@ public class LoginServiceImpl implements ILoginService {
         if (config.getIsBindMobile() != 1 && config.getIsMobile() != 1) {
             throw new CommonException("手机号登录注册未开启");
         }
-        Member member = memberMapper.selectOne(new QueryWrapper<Member>().eq("mobile", param.getMobile()));
+        Member member = memberMapper.selectOne(new QueryWrapper<Member>()
+                .eq("site_id", RequestUtils.siteId())
+                .eq("mobile", param.getMobile()));
         if (ObjectUtil.isEmpty(member)) {
             //开启强制绑定手机号，登录会自动注册并绑定手机号
             if (config.getIsBindMobile() == 1) {
@@ -176,6 +184,16 @@ public class LoginServiceImpl implements ILoginService {
      * @param param
      */
     public SendMobileCodeVo sendMobileCode(SendMobileCodeParam param) {
+        // 验证图形验证码
+        CaptchaVO captchaVO = new CaptchaVO();
+        captchaVO.setCaptchaVerification(param.getCaptchaCode());
+        coreCaptchaImgService.verification(captchaVO);
+
+        // 校验手机号
+        if (StrUtil.isEmpty(param.getMobile())) {
+            throw new AuthException("手机号必须填写");
+        }
+        // 校验短信场景 type
         if (!SmsConst.SCENE_TYPE.contains(param.getType())) {
             throw new AuthException("无效的短信验证码");
         }

@@ -56,18 +56,18 @@ public class Balancepay extends BasePay {
      */
     public Object pay(PayParam param) {
         Pay pay = param.getPay();
-        Integer siteId = param.getSiteId();
+        Integer statSiteId = pay.getSiteId() != null ? pay.getSiteId() : 0;
         String mainType = pay.getMainType();
         BigDecimal money = pay.getMoney();
         String outTradeNo = pay.getOutTradeNo();
         
         switch (mainType) {
             case "member":
-                // 扣除账户余额
+                // 扣除账户余额（会员流水 site_id 对齐 PHP：不传 site，写入 defaultSiteId=0）
                 String memo = MemberAccountChangeTypeEnum.getType(AccountTypeEnum.BALANCE.getType())
                     .getByPath("order.name", String.class);
                 coreMemberAccountService().addLog(
-                    siteId, 
+                    null,
                     pay.getMainId(), 
                     AccountTypeEnum.BALANCE.getType(), 
                     money.negate().doubleValue(), 
@@ -78,7 +78,7 @@ public class Balancepay extends BasePay {
                 
                 // 充值消费金额统计
                 SysDataAddParam statParam = new SysDataAddParam();
-                statParam.setSiteId(siteId);
+                statParam.setSiteId(statSiteId);
                 statParam.setRechargePayMoney(money);
                 coreSysStatService().addStat(statParam);
                 break;
@@ -90,7 +90,7 @@ public class Balancepay extends BasePay {
 
         // 支付成功回调
         PayNotifyParam notifyParam = new PayNotifyParam();
-        notifyParam.setSiteId(siteId);
+        notifyParam.setSiteId(statSiteId);
         notifyParam.setOutTradeNo(outTradeNo);
         notifyParam.setType("balancepay");
         notifyParam.setPayStatus(OnliepayStatusEnum.SUCCESS);
@@ -154,19 +154,19 @@ public class Balancepay extends BasePay {
         String outTradeNo = param.getOutTradeNo();
         BigDecimal money = param.getMoney();
         String refundNo = param.getRefundNo();
-        Integer siteId = param.getSiteId();
         
         Pay pay = corePayService().findPayInfoByOutTradeNo(outTradeNo);
         String mainType = pay.getMainType();
         Integer mainId = pay.getMainId();
+        Integer statSiteId = pay.getSiteId() != null ? pay.getSiteId() : 0;
 
         switch (mainType) {
             case "member":
-                // 返还余额
+                // 返还余额（会员流水 site_id 对齐 PHP：不传 site，写入 defaultSiteId=0）
                 String memo = MemberAccountChangeTypeEnum.getType(AccountTypeEnum.BALANCE.getType())
                     .getByPath("order_refund.name", String.class);
                 coreMemberAccountService().addLog(
-                    siteId, 
+                    null,
                     mainId, 
                     AccountTypeEnum.BALANCE.getType(), 
                     money.doubleValue(), 
@@ -177,13 +177,14 @@ public class Balancepay extends BasePay {
                 
                 // 充值消费金额统计（退款为负数）
                 SysDataAddParam statParam = new SysDataAddParam();
-                statParam.setSiteId(siteId);
+                statParam.setSiteId(statSiteId);
                 statParam.setRechargePayMoney(money.negate());
                 coreSysStatService().addStat(statParam);
                 
                 // 退款成功回调
                 RefundNotifyParam notifyParam = new RefundNotifyParam();
                 BeanUtil.copyProperties(param, notifyParam);
+                notifyParam.setSiteId(statSiteId);
                 notifyParam.setType("balance");
                 notifyParam.setRefundStatus(RefundTransferStatusEnum.SUCCESS);
                 coreRefundService().refundNotify(notifyParam);

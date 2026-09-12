@@ -21,6 +21,11 @@ export function getRankComponentsGoodsList(params: Record<string, any>) {
 }
 
 
+// 获取排行榜配置
+export function getRankSearch() {
+    return request.get(`mall/rank/search`)
+}
+
 
 
  

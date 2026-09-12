@@ -4,7 +4,6 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
-import com.niu.core.service.admin.member.param.MemberImportAddParam;
 import com.niu.mall.service.site.goods.IMallGoodsImportService;
 import com.niu.mall.service.site.goods.param.MallGoodsImportParam;
 import com.niu.mall.service.site.goods.vo.MallGoodsImportRowVo;
@@ -12,6 +11,9 @@ import com.niu.mall.service.site.goods.vo.MallGoodsImportVo;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("adminapi/mall/site/goods/import")
@@ -22,16 +24,24 @@ public class GoodsImportController {
 
     @GetMapping("/page")
     @SaCheckLogin
-    public Result<PageResult<MallGoodsImportVo>> getMemberImportPage(@Validated PageParam pageParam) {
-        PageResult<MallGoodsImportVo> result = importService.getPage(pageParam);
-        return Result.success(result);
+    public Result<PageResult<MallGoodsImportVo>> page(@Validated PageParam pageParam) {
+        return Result.success(importService.getPage(pageParam));
     }
 
-    @PostMapping("/detail/{id}")
+    @PutMapping("/detail/{recordId}")
     @SaCheckLogin
-    public Result<PageResult<MallGoodsImportRowVo>> detail(@Validated @PathVariable("id") MallGoodsImportParam param, @Validated PageParam pageParam) {
-        PageResult<MallGoodsImportRowVo> result = importService.getDetail(param.getRecordId(), pageParam, null);
-        return Result.success(result);
+    public Result<PageResult<MallGoodsImportRowVo>> detail(@PathVariable("recordId") Integer recordId,
+                                                           @Validated PageParam pageParam,
+                                                           @RequestParam(value = "status", required = false) String status,
+                                                           @RequestParam(value = "search_text", required = false) String searchText) {
+        Map<String, Object> params = new HashMap<>();
+        if (status != null) {
+            params.put("status", status);
+        }
+        if (searchText != null) {
+            params.put("search_text", searchText);
+        }
+        return Result.success(importService.getDetail(recordId, pageParam, params));
     }
 
     @PostMapping("/add")
@@ -43,8 +53,7 @@ public class GoodsImportController {
     @PostMapping("/exec")
     @SaCheckLogin
     public Result<?> exec(@Validated @RequestBody MallGoodsImportParam param) {
-        importService.execute(param.getRecordId());
-        return Result.success();
+        return Result.success(importService.execute(param.getRecordId()));
     }
 
     @GetMapping("/goodsTypeAll")
@@ -55,8 +64,7 @@ public class GoodsImportController {
 
     @GetMapping("/demo")
     @SaCheckLogin
-    public Result<?> demo(@Validated @RequestBody MemberImportAddParam addParam) {
-//        memberImportService.memberImport(addParam.getData());
-        return Result.success();
+    public Result<?> demo() {
+        return Result.success(importService.demo());
     }
 }

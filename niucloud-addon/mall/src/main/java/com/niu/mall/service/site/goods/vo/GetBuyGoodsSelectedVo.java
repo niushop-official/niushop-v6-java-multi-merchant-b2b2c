@@ -1,7 +1,7 @@
 package com.niu.mall.service.site.goods.vo;
 
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoodsSku;
 import com.niu.mall.service.admin.goods.vo.MallManjianRuleContentVo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -158,6 +158,21 @@ public interface ISysMenuService {
     JSONArray getAllMenuList(String appType, Integer status);
 
     /**
+     * 通过端口获取菜单key
+     */
+    List<String> getAllMenuKeysByAppType(String appType, Integer status);
+
+    /**
+     * 通过系统和插件获取菜单key
+     */
+    List<String> getMenuKeysBySystem(String appType, List<String> addons);
+
+    /**
+     * 查询站点可单独显示的菜单
+     */
+    List<SysMenu> getShowMenuListByMenuKeys(List<String> menuKeys);
+
+    /**
      * 查询菜单
      *
      * @param menuKey

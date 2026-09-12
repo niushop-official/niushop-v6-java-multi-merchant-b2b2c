@@ -21,18 +21,25 @@ public class ShopPosterDataListener extends GetPosterDataEventDefiner {
         String type = event.getType();
         String mode = (String) event.getParam().getOrDefault("mode", "");
 
-        if (!"preview".equals(mode)) return null;
-
         if ("shop_goods".equals(type)) {
             Integer skuId = toInt(event.getParam().getOrDefault("sku_id", 0));
 
             Map<String, Object> data = new HashMap<>();
-            data.put("nickname", "会员昵称");
-            data.put("headimg", "static/resource/images/default_headimg.jpg");
-            data.put("goods_name", "商品名称");
-            data.put("goods_price", "￥369.00");
-            data.put("goods_market_price", "￥3690.00");
-            data.put("goods_img", "addon/mall/goods_template.png");
+            if ("preview".equals(mode)) {
+                data.put("nickname", "会员昵称");
+                data.put("headimg", "static/resource/images/default_headimg.jpg");
+                data.put("goods_name", "商品名称");
+                data.put("goods_price", "￥369.00");
+                data.put("goods_market_price", "￥3690.00");
+                data.put("goods_img", "addon/mall/goods_template.png");
+            } else {
+                data.put("nickname", "会员昵称");
+                data.put("headimg", "static/resource/images/default_headimg.jpg");
+                data.put("goods_name", "商品名称");
+                data.put("goods_price", "￥369.00");
+                data.put("goods_market_price", "￥3690.00");
+                data.put("goods_img", "addon/mall/goods_template.png");
+            }
 
             Map<String, Object> urlData = new HashMap<>();
             urlData.put("sku_id", skuId);
@@ -55,11 +62,19 @@ public class ShopPosterDataListener extends GetPosterDataEventDefiner {
             Integer skuId = toInt(event.getParam().getOrDefault("sku_id", 0));
 
             Map<String, Object> data = new HashMap<>();
-            data.put("nickname", "会员昵称");
-            data.put("headimg", "static/resource/images/default_headimg.jpg");
-            data.put("goods_name", "商品名称");
-            data.put("goods_price", "积分1000+￥369.00");
-            data.put("goods_img", "addon/mall/goods_template.png");
+            if ("preview".equals(mode)) {
+                data.put("nickname", "会员昵称");
+                data.put("headimg", "static/resource/images/default_headimg.jpg");
+                data.put("goods_name", "商品名称");
+                data.put("goods_price", "积分1000+￥369.00");
+                data.put("goods_img", "addon/mall/goods_template.png");
+            } else {
+                data.put("nickname", "会员昵称");
+                data.put("headimg", "static/resource/images/default_headimg.jpg");
+                data.put("goods_name", "商品名称");
+                data.put("goods_price", "积分1000+￥369.00");
+                data.put("goods_img", "addon/mall/goods_template.png");
+            }
 
             Map<String, Object> urlData = new HashMap<>();
             urlData.put("sku_id", skuId);

@@ -263,7 +263,48 @@
 				"sort": 10009,
 				"value": {
 					"style": "style-1",
-					"styleName": "风格1"
+					"styleName": "风格1",
+					"headerText": "开通会员卡可享更多权益",
+					"list": [
+						{
+							"name": "购卡返利",
+							"icon": "/static/resource/images/diy/member/gkfl.png",
+							"type": "buy_card_reward"
+						},
+						{
+							"name": "生日特权",
+							"icon": "/static/resource/images/diy/member/srtq.png",
+							"type": "birthday_reward"
+						},
+						{
+							"name": "阶段返利",
+							"icon": "/static/resource/images/diy/member/jdfl.png",
+							"type": "stage_reward"
+						},
+						{
+							"name": "周期返利",
+							"icon": "",
+							"type": "cycle_reward"
+						},
+						{
+							"name": "商城专属商品",
+							"icon": "/static/resource/images/diy/member/zssp.png",
+							"type": "mall_buy_goods_discount"
+						},
+						{
+							"name": "前置仓专属商品",
+							"icon": "/static/resource/images/diy/member/zssp.png",
+							"type": "front_warehouse_buy_goods_discount"
+						},
+						{
+							"name": "O2O专属商品",
+							"icon": "/static/resource/images/diy/member/zssp.png",
+							"type": "o2o_buy_goods_discount"
+						}
+					],
+					"headerStartBgColor": "#00A105",
+					"headerEndBgColor": "#07C00E",
+					"buttonTextColor": "#5DB075"
 				},
 				"template": {
 					"textColor": "#303133",
@@ -276,7 +317,7 @@
 					"componentEndBgColor": "",
 					"componentGradientAngle": "to bottom",
 					"topRounded": 12,
-					"bottomRounded": 0,
+					"bottomRounded": 12,
 					"elementBgColor": "",
 					"topElementRounded": 0,
 					"bottomElementRounded": 0,
@@ -338,7 +379,7 @@
 						"value": "style-1"
 					},
 					"text": "超值爆款",
-					"textImg": "static\/resource\/images\/diy\/active_cube\/active_cube_text1.png",
+					"textImg": "static/resource/images/diy/active_cube/active_cube_text1.png",
 					"textLink": {
 						"name": ""
 					},
@@ -382,7 +423,7 @@
 							"link": {
 								"name": ""
 							},
-							"imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods1.png"
+							"imageUrl": "static/resource/images/diy/active_cube/active_cube_goods1.png"
 						},
 						{
 							"title": {
@@ -407,7 +448,7 @@
 							"link": {
 								"name": ""
 							},
-							"imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods2.png"
+							"imageUrl": "static/resource/images/diy/active_cube/active_cube_goods2.png"
 						},
 						{
 							"title": {
@@ -432,7 +473,7 @@
 							"link": {
 								"name": ""
 							},
-							"imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods3.png"
+							"imageUrl": "static/resource/images/diy/active_cube/active_cube_goods3.png"
 						},
 						{
 							"title": {
@@ -457,7 +498,7 @@
 							"link": {
 								"name": ""
 							},
-							"imageUrl": "static\/resource\/images\/diy\/active_cube\/active_cube_goods4.png"
+							"imageUrl": "static/resource/images/diy/active_cube/active_cube_goods4.png"
 						}
 					],
 					"template": {
@@ -635,7 +676,7 @@
 				"value": {
 					"moduleOne": {
 						"head": {
-							"textImg": "static\/resource\/images\/diy\/picture_show\/picture_show_head_text3.png",
+							"textImg": "static/resource/images/diy/picture_show/picture_show_head_text3.png",
 							"subText": "最高补1200元",
 							"subTextColor": "#666666"
 						},
@@ -650,7 +691,7 @@
 								"link": {
 									"name": ""
 								},
-								"imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_05.png"
+								"imageUrl": "static/resource/images/diy/picture_show/picture_05.png"
 							},
 							{
 								"btnTitle": {
@@ -662,7 +703,7 @@
 								"link": {
 									"name": ""
 								},
-								"imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_06.png"
+								"imageUrl": "static/resource/images/diy/picture_show/picture_06.png"
 							}
 						],
 						"listFrame": {
@@ -672,7 +713,7 @@
 					},
 					"moduleTwo": {
 						"head": {
-							"textImg": "static\/resource\/images\/diy\/picture_show\/picture_show_head_text4.png",
+							"textImg": "static/resource/images/diy/picture_show/picture_show_head_text4.png",
 							"subText": "每日上新",
 							"subTextColor": "#666666"
 						},
@@ -687,7 +728,7 @@
 								"link": {
 									"name": ""
 								},
-								"imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_07.png"
+								"imageUrl": "static/resource/images/diy/picture_show/picture_07.png"
 							},
 							{
 								"btnTitle": {
@@ -699,7 +740,7 @@
 								"link": {
 									"name": ""
 								},
-								"imageUrl": "static\/resource\/images\/diy\/picture_show\/picture_08.png"
+								"imageUrl": "static/resource/images/diy/picture_show/picture_08.png"
 							}
 						],
 						"listFrame": {
@@ -730,6 +771,123 @@
 					"margin": {
 						"top": 0,
 						"bottom": 0,
+						"both": 10
+					}
+				}
+			},
+			"CashBuy": {
+				"title": "买单",
+				"icon": "nc-iconfont nc-icon-maidan",
+				"path": "edit-cash-buy",
+				"support_page": [],
+				"uses": 0,
+				"sort": 10014,
+				"value": {
+					"tabGroup": true,
+					"tabName": "buy",
+					"style": "style-1",
+					"styleName": "风格一"
+				},
+				"template": {
+					"textColor": "#303133",
+					"pageStartBgColor": "",
+					"pageEndBgColor": "",
+					"pageGradientAngle": "to bottom",
+					"componentBgUrl": "",
+					"componentBgAlpha": 2,
+					"componentStartBgColor": "#ffffff",
+					"componentEndBgColor": "",
+					"componentGradientAngle": "to bottom",
+					"topRounded": 17,
+					"bottomRounded": 17,
+					"elementBgColor": "",
+					"topElementRounded": 0,
+					"bottomElementRounded": 0,
+					"margin": {
+						"top": 0,
+						"bottom": 10,
+						"both": 10
+					}
+				}
+			},
+			"GoodsCoupon": {
+				"title": "优惠券",
+				"icon": "iconfont iconyouhuiquan1",
+				"path": "edit-goods-coupon",
+				"support_page": [],
+				"uses": 0,
+				"sort": 10015,
+				"value": {
+					"style": "style-1",
+					"styleName": "风格一",
+					"addon": "mall",
+					"source": "all",
+					"num": 6,
+					"couponIds": [],
+					"btnText": "立即领取",
+					"couponTitle": "先领券 再购物",
+					"couponSubTitle": "领券下单 享购物优惠",
+					"couponBgUrl": "/addon/mall/diy/goods_coupon/style3_bg.jpg",
+					"titleColor": "#ffffff",
+					"subTitleColor": "#ffffff",
+					"btnTextColor": "#FF4142",
+					"btnBgColor": "#ffffff",
+					"titleAlign": "center",
+					"couponItem": {
+						"bgColor": "#ffffff",
+						"itemMoneyColor": [
+							"#00179C",
+							"#684700",
+							"#005627",
+							"#C40000",
+							"#004E5E",
+							"#61036D"
+						],
+						"itemTextColor": [
+							"#00179C",
+							"#684700",
+							"#005627",
+							"#C40000",
+							"#004E5E",
+							"#61036D"
+						],
+						"itemBgColor": [
+							"#0E1647",
+							"#352504",
+							"#082B18",
+							"#661414",
+							"#0C3740",
+							"#430E4B"
+						],
+						"bgUrl": "/static/resource/images/diy/goods_coupon/style5_bg.png",
+						"textColor": "#ffffff",
+						"subTextColor": "#303133",
+						"moneyColor": "#ffffff",
+						"moneyBgStartColor": "#FD5F2F",
+						"moneyBgEndColor": "#F6370F",
+						"btnColor": "#333333",
+						"borderColor": "#333333",
+						"aroundRadius": 12
+					}
+				},
+				"template": {
+					"textColor": "#303133",
+					"pageStartBgColor": "",
+					"pageEndBgColor": "",
+					"pageGradientAngle": "to bottom",
+					"componentBgUrl": "",
+					"componentBgAlpha": 2,
+					"componentStartBgColor": "",
+					"componentEndBgColor": "",
+					"componentGradientAngle": "to bottom",
+					"topRounded": 0,
+					"bottomRounded": 0,
+					"elementBgColor": "",
+					"topElementRounded": 0,
+					"bottomElementRounded": 0,
+					"margin": {
+						"top": 10,
+						"bottom": 10,
 						"both": 10
 					}
 				}

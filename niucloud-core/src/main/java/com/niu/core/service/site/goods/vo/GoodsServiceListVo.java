@@ -3,6 +3,7 @@ package com.niu.core.service.site.goods.vo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * ShopGoodsService列表视图
@@ -19,5 +20,7 @@ public class GoodsServiceListVo implements Serializable {
     private String desc;  // 描述
     private String createTime; // 创建时间
     private String updateTime; // 更新时间
+    private List<String> addon; // 插件
+    private List<String> addonName; // 插件名称
 
 }

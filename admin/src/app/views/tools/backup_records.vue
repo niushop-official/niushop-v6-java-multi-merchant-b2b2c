@@ -11,9 +11,9 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="tableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="90px" :model="tableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('content')" prop="content">
-                        <el-input v-model.trim="tableData.searchParam.content" :placeholder="t('contentPlaceholder')" />
+                        <el-input v-model.trim="tableData.searchParam.content" :placeholder="t('contentPlaceholder')" class="search-input" clearable />
                     </el-form-item>
 
                     <el-form-item>

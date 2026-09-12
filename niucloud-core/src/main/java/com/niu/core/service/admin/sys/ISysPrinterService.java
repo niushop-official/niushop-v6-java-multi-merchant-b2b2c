@@ -31,6 +31,11 @@ public interface ISysPrinterService {
     List<SysPrinterListVo> getList(SysPrinterSearchParam param);
 
     /**
+     * 获取当前站点启用中的打印机，供业务模块配置打印机时选择。
+     */
+    List<SysPrinterListVo> getUsableList();
+
+    /**
      * 小票打印机详情
      *
      * @param id 主键ID

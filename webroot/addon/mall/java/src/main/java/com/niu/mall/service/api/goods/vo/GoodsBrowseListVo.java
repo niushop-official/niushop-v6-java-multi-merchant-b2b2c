@@ -46,6 +46,9 @@ public class GoodsBrowseListVo implements Serializable {
     private String memberPrice;
 
     private String memberDiscount;
+    private String vipCardDiscount;
+    private String svipDiscount;
+    private String svipPrice;
 
     private BigDecimal showPrice;
 

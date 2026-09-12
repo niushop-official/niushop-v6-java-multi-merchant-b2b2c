@@ -6,14 +6,14 @@
 			<!-- #endif -->
 			<view class="px-[var(--sidebar-m)] py-[14rpx] flex items-center">
 				<template v-if="isShow">
-					<view @click.stop="locationVal.reposition()" v-if="systemStore.diyAddressInfo"  class="mr-[30rpx]">
+					<view @click.stop="goToChooseLocation" v-if="systemStore.diyAddressInfo"  class="mr-[30rpx]">
 						<view class="flex items-baseline font-500">
 							<text class="text-[24rpx] mr-[2rpx]">{{ systemStore.diyAddressInfo.city }}</text>
 							<text class="iconfont iconxiaV6xx !text-[24rpx]"></text>
 						</view>
 						<view class="text-[18rpx] mt-[10rpx] truncate max-w-[160rpx]" v-if="systemStore.diyAddressInfo.community">{{ systemStore.diyAddressInfo.community }}</view>
 					</view>
-					<view @click.stop="locationVal.reposition()" class="text-[24rpx] mr-[30rpx] truncate max-w-[160rpx]" v-else>{{ systemStore.defaultPositionAddress }}</view>
+					<view @click.stop="goToChooseLocation" class="text-[24rpx] mr-[30rpx] truncate max-w-[160rpx]" v-else>{{ systemStore.defaultPositionAddress }}</view>
 				</template>
 				<view class="search-input bg-[#fff]">
 					<text class="nc-iconfont nc-icon-sousuo-duanV6xx1 btn" @click="searchNameFn()"></text>
@@ -42,7 +42,7 @@
 					<view class="text-[28rpx] px-[30rpx] mt-[40rpx]">店铺分类</view>
 					<view class="flex flex-wrap pl-[30rpx] pt-[30rpx]">
 						<text @click="loadCategory(item.category_id)" v-for="(item, index) in categoryList" :key="index" :class="{ 'label-select': currCategory.indexOf(item.category_id) != -1 }" class="truncate text-[#333] px-[10rpx] border-[2rpx] border-solid border-transparent w-[184rpx] h-[56rpx] flex items-center justify-center mr-[30rpx] mb-[30rpx] box-border bg-[var(--temp-bg)] rounded-[50rpx] text-[24rpx]">
-							{{ item.category_name }}
+							{{ item.name }}
 						</text>
 					</view>
 					<view class="text-[28rpx] px-[30rpx] mt-[40rpx]">配送方式</view>
@@ -126,7 +126,8 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { img, redirect, pxToRpx, isWeixinBrowser, distance } from '@/utils/common'
-import { getShopWebList, getShopCategory } from '@/addon/mall/api/shop';
+import { getShopWebList } from '@/addon/mall/api/shop';
+import { getSiteCategoryAll } from '@/app/api/site'
 import { getDeliveryType, getDeliveryConfig } from '@/app/api/basic'
 import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue';
 import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.vue';
@@ -220,7 +221,7 @@ const  getDeliveryConfigFn = () => {
 }
 
 const  getShopCategoryFn = () => { 
-	getShopCategory().then((res: any) => {
+	getSiteCategoryAll({addon: 'mall'}).then((res: any) => {
 		categoryList.value = res.data;
 	})
 }
@@ -232,18 +233,16 @@ const getDeliveryTypeFn = () => {
 // 加载列表数据
 const getShopListFn = (mescroll: any) => {
 	loading.value = false;
-	const position = systemStore.diyAddressInfo
 	let data: object = {
 		page: mescroll.num,
 		limit: mescroll.size,
 		keyword: shopName.value,
-		position,
+		position: systemStore.diyAddressInfo,
 		region: region.value,
 		order: searchType.value === 'all' ? '' : searchType.value,
 		category_id: currCategory.value,
 		delivery_type: currDelivery.value,
-		is_self: is_self.value,
-		is_only_area: (position?.province_id && position?.city_id) ? 1 : 0
+		is_self: is_self.value
 	};
 	getShopWebList(data).then((res: any) => {
 		let newArr = (res.data.data as Array<Object>);
@@ -334,11 +333,20 @@ const confirm = () => {
 }
 //店铺详情
 const shopClick = (site_id:number) =>{
-	redirect({url: '/addon/mall/pages/index', param: {site_id}})
+	redirect({url: '/addon/mall/pages/site/index', param: {site_id}})
 }
 // 跳转商品详情
 const toGoodsDetail = (goods_id: number) => {
 	redirect({url: '/addon/mall/pages/goods/detail', param: {goods_id}})
+}
+
+// 跳转到选择地址页面
+const goToChooseLocation = () => {
+	const pages = getCurrentPages()
+	const currentPage = pages[pages.length - 1]
+	const currentRoute = '/' + (currentPage ? currentPage.route : '')
+	const backurl = encodeURIComponent(currentRoute)
+	redirect({url: '/app/pages/location/choose_location', param: {backurl}})
 }
 
 // #ifdef H5

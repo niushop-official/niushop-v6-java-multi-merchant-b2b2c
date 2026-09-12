@@ -26,7 +26,7 @@
                 <el-form-item :label="t('goodsSelectPopupGoodsName')" prop="keyword" class="form-item-wrap">
                     <el-input v-model="goodsTable.searchParam.keyword" :placeholder="t('goodsSelectPopupGoodsNamePlaceholder')" maxlength="60" />
                 </el-form-item>
-                <el-form-item :label="t('goodsSelectPopupGoodsCategory')" prop="goods_category" class="form-item-wrap">
+                <el-form-item :label="t('goodsSelectPopupGoodsCategory')" prop="goods_mall_category" class="form-item-wrap">
                     <el-cascader v-model="goodsTable.searchParam.goods_mall_category"
                         :options="goodsCategoryOptions" :placeholder="t('goodsSelectPopupGoodsCategoryPlaceholder')"
                         clearable :props="{ value: 'value', label: 'label', emitPath:false }" />
@@ -149,7 +149,7 @@ import { ref, reactive, computed, nextTick } from 'vue'
 import { cloneDeep } from 'lodash-es'
 import { img, deepClone } from '@/utils/common'
 import { ElMessage } from 'element-plus'
-import { getGoodsSelectPageList, getGoodsSkuNoPageList, getGoodsType } from '@/addon/mall/api/site/goods'
+import { getGoodsSelectPageList, getGoodsSkuNoPageList, getGoodsType } from '@/app/lang/zh-cn/api/site/goods'
   import { getCategoryTree } from '@/app/api/basic_admin'
 
 const prop = defineProps({
@@ -263,7 +263,9 @@ const goodsType: any = reactive([])
 // 初始化数据
 const initData = () => {
 // 查询商品分类树结构
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []

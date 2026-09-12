@@ -17,7 +17,7 @@
             <view class="flex flex-col items-center w-[20%] flex-shrink-0" @click="toList(1)">
                 <view class="relative w-[44rpx] h-[44rpx]">
                     <image class="w-[44rpx] h-[44rpx]" :src="img('addon/mall/diy/member/order1.png')" />
-                    <view v-if="orderInfo.wait_pay" :class="['absolute left-[35rpx] top-[-10rpx] rounded-[28rpx] h-[28rpx] min-w-[28rpx] text-center leading-[30rpx] bg-[#FF4646] text-[#fff] text-[20rpx] font-500 box-border', orderInfo.wait_pay > 9 ? 'px-[10rpx]' : '']">{{ orderInfo.wait_pay > 99 ? "99+" : orderInfo.wait_pay }}</view>
+                    <view v-if="orderInfo.wait_pay" :class="['absolute order-item text-center font-500 box-border', orderInfo.wait_pay > 9 ? 'px10' : '']">{{ orderInfo.wait_pay > 99 ? "99+" : orderInfo.wait_pay }}</view>
                 </view>
                 <view class="mt-[20rpx] leading-[1]" :style="{ fontSize: diyComponent.item.fontSize * 2 + 'rpx', color: diyComponent.item.color, fontWeight: diyComponent.item.fontWeight }">待付款</view>
             </view>
@@ -25,7 +25,7 @@
                 <view class="relative w-[44rpx] h-[44rpx]">
                     <image class="w-[44rpx] h-[44rpx]" :src="img('addon/mall/diy/member/order2.png')" />
                     <view v-if="orderInfo.wait_shipping"
-                          :class="['absolute left-[35rpx] top-[-10rpx] rounded-[28rpx] h-[28rpx] min-w-[28rpx] text-center leading-[30rpx] bg-[#FF4646] text-[#fff] text-[20rpx] font-500 box-border', orderInfo.wait_shipping > 9 ? 'px-[10rpx]' : '']">
+                          :class="['absolute order-item text-center font-500 box-border', orderInfo.wait_shipping > 9 ? 'px10' : '']">
                         {{ orderInfo.wait_shipping > 99 ? "99+" : orderInfo.wait_shipping }}
                     </view>
                 </view>
@@ -34,7 +34,7 @@
             <view class="flex flex-col items-center w-[20%] flex-shrink-0" @click="toList(3)">
                 <view class="relative w-[44rpx] h-[44rpx]">
                     <image class="w-[44rpx] h-[44rpx]" :src="img('addon/mall/diy/member/order3.png')" />
-                    <view v-if="orderInfo.wait_take" :class="['absolute left-[35rpx] top-[-10rpx] rounded-[28rpx] h-[28rpx] min-w-[28rpx] text-center leading-[30rpx] bg-[#FF4646] text-[#fff] text-[20rpx] font-500 box-border', orderInfo.wait_take > 9 ? 'px-[10rpx]' : '']">{{ orderInfo.wait_take > 99 ? "99+" : orderInfo.wait_take }}</view>
+                    <view v-if="orderInfo.wait_take" :class="['absolute order-item text-center font-500 box-border', orderInfo.wait_take > 9 ? 'px10' : '']">{{ orderInfo.wait_take > 99 ? "99+" : orderInfo.wait_take }}</view>
                 </view>
                 <view class="mt-[20rpx] leading-[1]" :style="{ fontSize: diyComponent.item.fontSize * 2 + 'rpx', color: diyComponent.item.color, fontWeight: diyComponent.item.fontWeight }">待收货</view>
             </view>
@@ -42,7 +42,7 @@
                 <view class="relative w-[44rpx] h-[44rpx]">
                     <image class="w-[44rpx] h-[44rpx]" :src="img('addon/mall/diy/member/order4.png')" />
                     <view v-if="orderInfo.evaluate"
-                          :class="['absolute left-[35rpx] top-[-10rpx] rounded-[28rpx] h-[28rpx] min-w-[28rpx] text-center leading-[30rpx] bg-[#FF4646] text-[#fff] text-[20rpx] font-500 box-border', orderInfo.evaluate > 9 ? 'px-[10rpx]' : '']">
+                          :class="['absolute order-item text-center font-500 box-border', orderInfo.evaluate > 9 ? 'px10' : '']">
                         {{ orderInfo.evaluate > 99 ? "99+" : orderInfo.evaluate }}
                     </view>
                 </view>
@@ -51,7 +51,7 @@
             <view class="flex flex-col items-center w-[20%] flex-shrink-0" @click="redirect({ url: '/addon/mall/pages/refund/list'})">
                 <view class="relative w-[44rpx] h-[44rpx]">
                     <image class="w-[44rpx] h-[44rpx]" :src="img('addon/mall/diy/member/order5.png')" />
-                    <view v-if="orderInfo.refund" :class="['absolute left-[35rpx] top-[-10rpx] rounded-[28rpx] h-[28rpx] min-w-[28rpx] text-center leading-[30rpx] bg-[#FF4646] text-[#fff] text-[20rpx] font-500 box-border', orderInfo.refund > 9 ? 'px-[10rpx]' : '']">{{ orderInfo.refund > 99 ? "99+" : orderInfo.refund }}</view>
+                    <view v-if="orderInfo.refund" :class="['absolute order-item text-center font-500 box-border', orderInfo.refund > 9 ? 'px10' : '']">{{ orderInfo.refund > 99 ? "99+" : orderInfo.refund }}</view>
                 </view>
                 <view class="mt-[20rpx] leading-[1]" :style="{ fontSize: diyComponent.item.fontSize * 2 + 'rpx', color: diyComponent.item.color, fontWeight: diyComponent.item.fontWeight }">售后/退款</view>
             </view>
@@ -120,5 +120,19 @@ const toList = (status: any) => {
 }
 </script>
 
-<style>
+<style lang="scss" scoped>
+.order-item {
+    left: 35rpx;
+    top: -10rpx;
+    border-radius: 28rpx;
+    height: 28rpx;
+    min-width: 28rpx;
+    line-height: 30rpx;
+    background-color: #FF4646;
+    color: #fff;
+    font-size: 20rpx;
+    &.px10 {
+        padding: 0 10rpx;
+    }
+}
 </style>

@@ -12,9 +12,9 @@
                         <el-option label="是否直营" value="is_self" />
                     </el-select>
 				</el-form-item>
-                <el-form-item label="店铺分类" v-if="diyStore.editComponent.source == 'category_id'">
-					<el-select v-model="diyStore.editComponent.category_id" title="店铺分类" clearable>
-                        <el-option :label="item.category_name" :value="item.category_id" v-for="(item,index) in categoryList" :key="index" />
+                <el-form-item label="所属行业" v-if="diyStore.editComponent.source == 'category_id'">
+					<el-select v-model="diyStore.editComponent.category_id" title="所属行业" clearable>
+                        <el-option :label="item.name" :value="item.category_id" v-for="(item,index) in categoryList" :key="index" />
                     </el-select>
 				</el-form-item>
                 <el-form-item label="是否直营" v-if="diyStore.editComponent.source == 'is_self'">
@@ -105,7 +105,7 @@
 import { t } from '@/lang'
 import useDiyStore from '@/stores/modules/diy'
 import { ref } from 'vue'
-import { getShopCategoryAll } from '@/app/api/shop_admin'
+import { getSiteCategoryAll } from '@/app/api/site_category'
 
 const diyStore:any = useDiyStore()
 diyStore.editComponent.ignore = ['componentBgUrl'] // 忽略公共属性
@@ -113,7 +113,7 @@ diyStore.editComponent.ignore = ['componentBgUrl'] // 忽略公共属性
 const categoryList = ref<any>([])
 
 const getShopCategoryAllFn = () => {
-    getShopCategoryAll().then(res => {
+    getSiteCategoryAll({addon: 'mall'}).then(res => {
         categoryList.value = res.data
     })
 }

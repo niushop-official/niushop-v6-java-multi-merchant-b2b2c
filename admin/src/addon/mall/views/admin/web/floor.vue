@@ -53,7 +53,7 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { getFloorList, deleteFloor } from '@/addon/mall/api/admin/web'
+import { getFloorList, deleteFloor } from '@/app/lang/zh-cn/api/admin/web'
 import { ElMessageBox } from 'element-plus'
 import Edit from '@/addon/mall/views/admin/web/components/edit-floor.vue'
 import { useRoute } from 'vue-router'

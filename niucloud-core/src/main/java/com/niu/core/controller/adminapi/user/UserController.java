@@ -16,6 +16,7 @@ import com.niu.core.service.admin.sys.vo.SysUserCreateSiteLimitVo;
 import com.niu.core.service.admin.sys.vo.SysUserDetailVo;
 import com.niu.core.service.admin.sys.vo.SysUserInfoVo;
 import com.niu.core.service.admin.sys.vo.SysUserListVo;
+import com.niu.core.service.core.user.ICoreUserService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +33,9 @@ public class UserController {
 
     @Resource
     ISysUserService sysUserService;
+
+    @Resource
+    ICoreUserService coreUserService;
 
     /**
      * 后台管理员列表
@@ -89,7 +93,16 @@ public class UserController {
      */
     @GetMapping("/isexist")
     public Result<Object> checkUserIsExist(@Validated String username){
-        return Result.success(sysUserService.checkUserName(username));
+        return Result.success(coreUserService.checkUsername(username));
+    }
+
+    /**
+     * 用户重置密码
+     */
+    @PutMapping("/user/resetpwd/{uid}")
+    public Result<Object> resetPassword(@PathVariable("uid") Integer uid, @RequestBody UserResetPasswordParam param) {
+        sysUserService.resetPassword(uid, param.getPassword());
+        return Result.success();
     }
 
     /**

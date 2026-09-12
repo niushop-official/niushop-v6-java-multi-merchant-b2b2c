@@ -15,6 +15,8 @@ public class PaySearchParam implements Serializable {
 
     private Integer mainId;
 
+    private Integer memberId;
+
     private String outTradeNo;
 
     private String tradeType;

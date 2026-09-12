@@ -8,9 +8,9 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="codeTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="90px" :model="codeTableData.searchParam" ref="searchFormRef" class="page-form">
                      <el-form-item :label="t('addonName')" prop="addon_name">
-                        <el-select v-model="codeTableData.searchParam.addon_name" placeholder="全部" filterable remote clearable :remote-method="loadGenerateTableList">
+                        <el-select v-model="codeTableData.searchParam.addon_name" placeholder="全部" filterable remote clearable :remote-method="loadGenerateTableList" class="search-input">
                             <el-option label="全部" value="" />
                             <el-option label="系统" value="2" />
                             <el-option :label="item.title" :value="item.key" v-for="item in addonList" :key="item.key" />
@@ -18,7 +18,7 @@
                     </el-form-item>
 
                     <el-form-item :label="t('tableName')" prop="table_name">
-                        <el-input v-model.trim="codeTableData.searchParam.table_name" :placeholder="t('tableNamePlaceholder')" />
+                        <el-input v-model.trim="codeTableData.searchParam.table_name" :placeholder="t('tableNamePlaceholder')"  class="search-input" clearable />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadGenerateTableList()">{{ t('search') }}</el-button>

@@ -33,7 +33,7 @@
 import { ref, computed } from 'vue'
 import { t } from '@/lang'
 import { FormInstance } from 'element-plus'
-import { addBatchOrderDelivery } from '@/addon/mall/api/site/order'
+import { addBatchOrderDelivery } from '@/app/lang/zh-cn/api/site/order'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()

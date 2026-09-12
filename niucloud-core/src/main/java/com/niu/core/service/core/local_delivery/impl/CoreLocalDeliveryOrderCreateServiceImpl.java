@@ -2,6 +2,7 @@ package com.niu.core.service.core.local_delivery.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
@@ -11,7 +12,6 @@ import com.niu.core.common.loader.local_delivery.param.AddShopDeliveryOrderParam
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrder;
 import com.niu.core.entity.delivery.DeliveryStore;
-import com.niu.core.entity.site.SiteAddress;
 import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
 import com.niu.core.enums.local_delivery.*;
 import com.niu.core.enums.order.OrderDeliveryEnum;
@@ -28,7 +28,6 @@ import com.niu.core.service.core.shop_delivery.vo.ShopDeliveryOrderCreateVo;
 import jakarta.annotation.Resource;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,13 +76,16 @@ public class CoreLocalDeliveryOrderCreateServiceImpl implements ICoreLocalDelive
         save.setTradeId(orderData.getOrderId());
         save.setTradeNo(param.getTradeNo());
         save.setTradeType(param.getTradeType());
+        save.setDeliveryMoney(orderData.getDeliveryMoney());
         save.setDeliveryEnd(orderData.getTakerFullAddress());
         save.setDeliveryEndProvinceId(orderData.getTakerProvinceId());
         save.setDeliveryEndCityId(orderData.getTakerCityId());
         save.setDeliveryEndDistrictId(orderData.getTakerDistrictId());
         save.setDeliveryEndLng(orderData.getTakerLongitude());
         save.setDeliveryEndLat(orderData.getTakerLatitude());
-        save.setBody(orderData.getBody());
+        String body = resolveBody(param);
+        save.setBody(body);
+        orderData.setBody(body);
 
         Integer orderId = createOrder(save);
         if(orderId != null){
@@ -109,7 +111,7 @@ public class CoreLocalDeliveryOrderCreateServiceImpl implements ICoreLocalDelive
                 addShopDeliveryOrderParam.setOrderGoodsData(orderGoodsData);
                 addShopDeliveryOrderParam.setDeliveryNo(localDeliveryNo);
                 addShopDeliveryOrderParam.setRemark(param.getRemark());
-                addShopDeliveryOrderParam.setBody(param.getBody());
+                addShopDeliveryOrderParam.setBody(body);
                 addShopDeliveryOrderParam.setCreateParam(BeanUtil.beanToMap(param));
                 addShopDeliveryOrderParam.setNotifyUrl(coreLocalDeliveryService.buildNotifyUrl(siteId.toString(), deliveryService, localDeliveryNo, null));
                 addShopDeliveryOrderParam.setTradeNo(param.getTradeNo());
@@ -123,10 +125,14 @@ public class CoreLocalDeliveryOrderCreateServiceImpl implements ICoreLocalDelive
                 DeliveryLocalDeliveryOrder update = new DeliveryLocalDeliveryOrder();
                 update.setId(orderId);
                 update.setOutDeliveryNo(responseData.getOutDeliveryNo());
-                update.setDeliveryMoney(responseData.getDeliveryMoney());
+                update.setDeliveryMoney(resolveDeliveryMoney(deliveryService, orderData, responseData));
                 update.setDeliveryDistance(responseData.getDeliveryDistance());
                 update.setRiderName(responseData.getRiderName());
                 update.setRiderMobile(responseData.getRiderMobile());
+                // 商家配送：createOrder 内 notify 会切到配送中；此处同步写入，确保详情/地图读到 status=4
+                if (DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryService)) {
+                    update.setStatus(LocalDeliveryStatusEnum.IN_DELIVERY.getStatus().toString());
+                }
                 deliveryLocalDeliveryOrderMapper.updateById(update);
             }catch (Exception e){
                 throw new CommonException(e.getMessage());
@@ -184,7 +190,7 @@ public class CoreLocalDeliveryOrderCreateServiceImpl implements ICoreLocalDelive
         order.setDeliveryService(vo.getDeliveryService());
         order.setDeliveryNo(vo.getDeliveryNo());
         order.setOutDeliveryNo("");
-        order.setDeliveryMoney(BigDecimal.ZERO);
+        order.setDeliveryMoney(vo.getDeliveryMoney() == null ? BigDecimal.ZERO : vo.getDeliveryMoney());
         order.setDeliveryDistance(BigDecimal.ZERO);
         order.setStatus(vo.getStatus().toString());
         order.setOutStatus("");
@@ -230,24 +236,70 @@ public class CoreLocalDeliveryOrderCreateServiceImpl implements ICoreLocalDelive
         return order.getId();
     }
 
+    /**
+     * Merchant delivery has no external quotation. Keep the delivery fee charged by
+     * the order when its driver response does not carry a positive amount.
+     */
+    private BigDecimal resolveDeliveryMoney(String deliveryService,
+                                            LocalDeliveryOrderCreateParam.OrderDataInfo orderData,
+                                            ShopDeliveryOrderCreateVo responseData) {
+        BigDecimal responseMoney = responseData == null ? null : responseData.getDeliveryMoney();
+        if (DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryService)
+                && (responseMoney == null || responseMoney.compareTo(BigDecimal.ZERO) <= 0)
+                && orderData != null
+                && orderData.getDeliveryMoney() != null) {
+            return orderData.getDeliveryMoney();
+        }
+        return responseMoney == null ? BigDecimal.ZERO : responseMoney;
+    }
+
     private Map<String, Object> checkDeliveryService(Integer siteId, Integer storeId, String deliveryService){
         Map<String, Object> config = new HashMap<>();
         DeliveryStore store = deliveryStoreMapper.selectOne(new QueryWrapper<DeliveryStore>()
                 .eq("site_id", siteId).eq("store_id", storeId).last("limit 1"));
         if (ObjectUtil.isEmpty(store)) throw new CommonException("提货点不存在");
-        if(!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryService)){
+        if (!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(deliveryService)) {
             String deliveryServiceName = LocalDeliveryTypeEnum.getName(deliveryService);
-            config = coreLocalDeliveryService.getConfig(deliveryService,siteId);
+            config = coreLocalDeliveryService.getConfig(deliveryService, siteId);
 
-            if(store.getSupportDelivery().contains(deliveryService) && store.getSupportDelivery().contains("open_status")){
-                String openStatus = JSONUtil.parseObj(store.getSupportDelivery()).getJSONObject(deliveryService).getStr("open_status");
-                if(!LocalDeliveryOpenEnum.OPEN_PASS.getStatus().toString().equals(openStatus)){
-                    throw new CommonException("门店未开通"+deliveryServiceName);
-                }
+            JSONObject supportDelivery = StringUtils.isNotEmpty(store.getSupportDelivery())
+                    ? JSONUtil.parseObj(store.getSupportDelivery())
+                    : new JSONObject();
+            JSONObject serviceConfig = supportDelivery.getJSONObject(deliveryService);
+            if (serviceConfig == null
+                    || !LocalDeliveryOpenEnum.OPEN_PASS.getStatus().equals(serviceConfig.getInt("open_status"))) {
+                throw new CommonException("配送门店未开通" + deliveryServiceName);
             }
-
+            Object isUse = config.get("is_use");
+            if (isUse != null && !Integer.valueOf(1).equals(isUse)) {
+                throw new CommonException(deliveryServiceName + "未启用");
+            }
         }
         config.put("shop_no", store.getStoreNo());
         return config;
+    }
+
+    /**
+     * 配送商品信息：优先 param.body，其次 orderData.body，最后由发货商品拼接（对齐 PHP sku_name+goods_name）
+     */
+    private String resolveBody(LocalDeliveryOrderCreateParam param) {
+        if (StringUtils.isNotEmpty(param.getBody())) {
+            return param.getBody();
+        }
+        if (param.getOrderData() != null && StringUtils.isNotEmpty(param.getOrderData().getBody())) {
+            return param.getOrderData().getBody();
+        }
+        if (ObjectUtil.isEmpty(param.getOrderGoodsData())) {
+            return "";
+        }
+        StringBuilder body = new StringBuilder();
+        for (LocalDeliveryOrderCreateParam.OrderGoodsInfo goods : param.getOrderGoodsData()) {
+            if (goods == null) {
+                continue;
+            }
+            body.append(ObjectUtil.defaultIfNull(goods.getSkuName(), ""))
+                    .append(ObjectUtil.defaultIfNull(goods.getGoodsName(), ""));
+        }
+        return body.toString();
     }
 }

@@ -16,12 +16,12 @@
                     </div>
                 </el-form-item>
                 <!-- 活动标题： -->
-                <el-form-item :label="t('title')" prop="active_desc">
+                <!-- <el-form-item :label="t('title')" prop="active_desc">
                     <div>
                         <el-input v-model="formData.active_desc" clearable :placeholder="t('titlePlaceholder')" class="input-width" :maxlength="20" />
                         <p class=" text-[14px] text-[#999]">{{ t('titleTip') }}</p>
                     </div>
-                </el-form-item>
+                </el-form-item> -->
                 <!-- 活动时间 -->
                 <el-form-item :label="t('activityTime')" prop="discount_time">
                     <div class="w-[180px]">
@@ -214,7 +214,7 @@
 import { ref, computed, reactive, nextTick } from 'vue'
 import { t } from '@/lang'
 import { useRoute, useRouter } from 'vue-router'
-import { addActiveDiscount } from '@/addon/mall/api/site/marketing'
+import { addActiveDiscount } from '@/app/lang/zh-cn/api/site/marketing'
 import { FormInstance, ElMessage } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { deepClone, img } from '@/utils/common'
@@ -256,10 +256,6 @@ const formRules = computed(() => {
     return {
         active_name: [
             {required: true, message: t('namePlaceholder'), trigger: 'blur'},
-            { validator: noSpaceValidator, trigger: 'blur' }
-        ],
-        active_desc: [
-            {required: true, message: t('titlePlaceholder'), trigger: 'blur'},
             { validator: noSpaceValidator, trigger: 'blur' }
         ],
         goods_list: [

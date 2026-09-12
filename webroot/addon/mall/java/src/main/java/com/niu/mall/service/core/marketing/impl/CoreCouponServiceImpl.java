@@ -1,9 +1,9 @@
 package com.niu.mall.service.core.marketing.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.niu.mall.entity.coupon.MallCoupon;
-import com.niu.mall.enums.coupon.CouponStatusEnum;
-import com.niu.mall.mapper.coupon.MallCouponMapper;
+import com.niu.core.entity.coupon.MallCoupon;
+import com.niu.core.enums.coupon.CouponStatusEnum;
+import com.niu.core.mapper.coupon.MallCouponMapper;
 import com.niu.mall.service.core.marketing.ICoreCouponService;
 import org.springframework.stereotype.Service;
 

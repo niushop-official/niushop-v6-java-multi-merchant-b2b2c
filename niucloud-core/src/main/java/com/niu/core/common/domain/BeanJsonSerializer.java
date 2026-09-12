@@ -164,6 +164,39 @@ public final class BeanJsonSerializer {
     }
 
     /**
+     * Serializes label-id storage as an array. Legacy empty or malformed values must not become
+     * an object because member-label editors always iterate the response.
+     */
+    public static class StringToJsonArraySerializer extends JsonSerializer<String> {
+
+        @Override
+        public void serialize(String value, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            if (StrUtil.isBlank(value)) {
+                jsonGenerator.writeObject(Collections.emptyList());
+                return;
+            }
+            String json = value.trim();
+            try {
+                if (json.startsWith("[")) {
+                    jsonGenerator.writeObject(JSONUtil.parseArray(json));
+                    return;
+                }
+            } catch (Exception ignored) {
+                // Fall through to the legacy comma-separated format below.
+            }
+            if (json.startsWith("{")) {
+                jsonGenerator.writeObject(Collections.emptyList());
+                return;
+            }
+            List<String> values = Arrays.stream(json.split(","))
+                    .map(String::trim)
+                    .filter(StrUtil::isNotBlank)
+                    .toList();
+            jsonGenerator.writeObject(values);
+        }
+    }
+
+    /**
      * BigDecimal，显示为带2个小数（字符串格式，如"10.00"）
      */
     public static class BigDecimalFormatSerializer extends JsonSerializer<BigDecimal> {

@@ -1,7 +1,7 @@
 package com.niu.mall.service.api.goods.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoodsSku;
 import lombok.Data;
 
 @Data
@@ -13,6 +13,7 @@ public class MallGoodsRankGoodsListInfo {
     private String unit;
     private Integer saleNum;
     private String memberDiscount;
+    private String vipCardDiscount;
     private Integer statSaleNum;
     private Integer statCollectNum;
     private Integer statEvaluateNum;

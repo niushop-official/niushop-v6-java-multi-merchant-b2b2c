@@ -27,6 +27,9 @@ const useSystemStore = defineStore('system', {
             siteAddons: [],
             currRoute: '',
             mapConfig: {
+                map_type: 'tencent',
+                key:'', // 腾讯地图key
+                tianditu_map_web_key: '', // 天地图key
                 is_open: 1,
                 valid_time: 0
             },

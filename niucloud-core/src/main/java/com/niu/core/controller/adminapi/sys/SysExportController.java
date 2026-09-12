@@ -1,9 +1,11 @@
 package com.niu.core.controller.adminapi.sys;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.hutool.core.convert.Convert;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.enums.sys.ExportEnum;
 import com.niu.core.service.admin.sys.ISysExportService;
 import com.niu.core.service.admin.sys.param.SysExportSearchParam;
@@ -105,12 +107,18 @@ public class SysExportController {
 
     /**
      * 重新执行导出
+     * 前端 axios 全局 Content-Type 为 application/json，以 JSON body {"id": x} 传参，
+     * 故从请求体读取 id（对齐 PHP sys.Export/againExportData）
      *
-     * @param id 导出任务ID
+     * @param body 请求体，包含 id
      * @return Result<Object>
      */
     @PostMapping("/again_export")
-    public Result<Object> againExportData(@Validated @RequestParam("id") Integer id) {
+    public Result<Object> againExportData(@RequestBody Map<String, Object> body) {
+        Integer id = Convert.toInt(body != null ? body.get("id") : null, null);
+        if (id == null) {
+            throw new CommonException("缺少id参数");
+        }
         sysExportService.againExportData(id);
         return Result.success();
     }

@@ -31,15 +31,20 @@
 					<el-table-column :label="t('image')" min-width="120">
 						<template #default="{ row }">
 							<div class="h-[50px]" v-if="row.image">
-                                <el-image class="w-[50px] h-[50px]" :src="img(row.image)" fit="cover">
-                                    <template #error>
-                                        <el-icon size="50"><icon-picture /></el-icon>
-                                    </template>
-                                </el-image>
+                            <el-image class="w-[50px] h-[50px]" :src="img(row.image)" fit="cover">
+                                <template #error>
+                                    <el-icon size="50"><icon-picture /></el-icon>
+                                </template>
+                            </el-image>
 							</div>
 						</template>
 					</el-table-column>
                     <el-table-column prop="desc" :label="t('desc')" min-width="120" />
+                    <el-table-column :label="t('plugins')" min-width="120">
+                        <template #default="{ row }">
+                            <el-tag v-for="(item, index) in row.addon_name" :key="index" size="small" class="mr-2">{{ item }}</el-tag>
+                        </template>
+                    </el-table-column>
                     <el-table-column :label="t('operation')" fixed="right" align="right" min-width="120">
                        <template #default="{ row }">
                            <el-button type="primary" link @click="editEvent(row)">{{ t('edit') }}</el-button>

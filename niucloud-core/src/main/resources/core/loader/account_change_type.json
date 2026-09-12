@@ -39,10 +39,19 @@
       "name": "订单退款积分返还",
       "inc": 1,
       "dec": 0
+    },
+    "vip_card_benefits": {
+      "name": "付费会员权益",
+      "inc": 1,
+      "dec": 0
+    },
+    "newcomer_gift": {
+      "name": "新人礼",
+      "inc": 1,
+      "dec": 0
     }
   },
   "balance": {
-
     "adjust": {
       "name": "调整",
       "inc": 1,
@@ -60,8 +69,8 @@
     },
     "order_refund": {
       "name": "订单退款",
-      "inc": 0,
-      "dec": 1
+      "inc": 1,
+      "dec": 0
     },
     "recharge_refund": {
       "name": "充值退款",
@@ -80,6 +89,16 @@
     },
     "continue_sign_award": {
       "name": "连签奖励",
+      "inc": 1,
+      "dec": 0
+    },
+    "vip_card_benefits": {
+      "name": "付费会员权益",
+      "inc": 1,
+      "dec": 0
+    },
+    "newcomer_gift": {
+      "name": "新人礼",
       "inc": 1,
       "dec": 0
     }

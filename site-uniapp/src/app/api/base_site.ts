@@ -31,5 +31,16 @@ export function getServeList(params: Record<string, any>) {
  * 切换营业状态
  */
 export function updateBusinessStatus(params: Record<string, any>) {
-    return request.put(`shop/site/shop/business_status`, params, { showSuccessMessage: true })
+    return request.put(`site/business_status`, params, { showSuccessMessage: true })
+}
+
+
+/**
+ * 获取保障说明列表
+ * @param params
+ * @returns
+ */
+export function getGuaranteeList(params: Record<string, any>) {
+    // 使用新的接口获取与 O2O 相关的商品服务
+    return request.get('basic/site/goods/service/addon/o2o')
 }

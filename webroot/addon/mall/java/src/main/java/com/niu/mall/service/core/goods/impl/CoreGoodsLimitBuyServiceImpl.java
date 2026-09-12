@@ -78,25 +78,34 @@ public class CoreGoodsLimitBuyServiceImpl implements ICoreGoodsLimitBuyService {
     }
 
     public Map<String, OrderCreateDataVo.LimitBuy> getGoodsLimit(OrderCreateDataVo vo) {
-        if (vo.getLimitBuy() != null && !vo.getLimitBuy().isEmpty()) {
+        if (vo.getLimitBuy() == null) {
+            vo.setLimitBuy(new HashMap<>());
+        }
+        if (!vo.getLimitBuy().isEmpty()) {
             return vo.getLimitBuy();
         }
-        Map<String, OrderCreateDataVo.LimitBuy> limitList = new HashMap<>();
         for (OrderCreateDataVo.Sku value : vo.getGoodsData().values()) {
-            Integer num = value.getNum();
-            Integer skuId = value.getSkuId();
-            if (vo.getLimitBuy() != null && ObjectUtil.isNotEmpty(vo.getLimitBuy().get(value.getGoodsId().toString()))) {
-                OrderCreateDataVo.LimitBuy limitBuy = ObjectUtil.isNotEmpty(vo.getLimitBuy().get("goods_" + value.getGoodsId().toString())) ? vo.getLimitBuy().get(value.getGoodsId().toString()) : new OrderCreateDataVo.LimitBuy();
-                Integer goodsNum = ObjectUtil.isNotEmpty(limitBuy.getNum()) ? limitBuy.getNum() + num : num;
-                limitBuy.setNum(goodsNum);
-                List<Integer> skuIds = ObjectUtil.isNotEmpty(limitBuy.getSkuIds()) ? new ArrayList<>(limitBuy.getSkuIds()) : new ArrayList<>();
-                skuIds.add(skuId);
-                skuIds = skuIds.stream().distinct().toList();
+            Integer goodsId = value.getGoodsId();
+            String goodsKey = String.valueOf(goodsId);
+            String mergeKey = "goods_" + goodsId;
+            int num = ObjectUtil.defaultIfNull(value.getNum(), 0);
+            int skuId = value.getSkuId();
+
+            if (vo.getLimitBuy().containsKey(goodsKey) || vo.getLimitBuy().containsKey(mergeKey)) {
+                OrderCreateDataVo.LimitBuy limitBuy = vo.getLimitBuy().get(mergeKey);
+                if (limitBuy == null) {
+                    limitBuy = vo.getLimitBuy().remove(goodsKey);
+                }
+                limitBuy.setNum(ObjectUtil.defaultIfNull(limitBuy.getNum(), 0) + num);
+                List<Integer> skuIds = new ArrayList<>(ObjectUtil.defaultIfNull(limitBuy.getSkuIds(), new ArrayList<>()));
+                if (!skuIds.contains(skuId)) {
+                    skuIds.add(skuId);
+                }
                 limitBuy.setSkuIds(skuIds);
-                vo.getLimitBuy().put("goods_" + value.getGoodsId().toString(), limitBuy);
+                vo.getLimitBuy().put(mergeKey, limitBuy);
             } else {
                 OrderCreateDataVo.LimitBuy limitBuy = new OrderCreateDataVo.LimitBuy();
-                limitBuy.setGoodsId(value.getGoodsId());
+                limitBuy.setGoodsId(goodsId);
                 limitBuy.setSiteId(value.getSiteId());
                 limitBuy.setGoodsName(value.getGoods().getGoodsName());
                 limitBuy.setStock(value.getStock());
@@ -105,8 +114,8 @@ public class CoreGoodsLimitBuyServiceImpl implements ICoreGoodsLimitBuyService {
                 limitBuy.setLimitType(value.getGoods().getLimitType());
                 limitBuy.setMaxBuy(value.getMaxBuy());
                 limitBuy.setMinBuy(value.getMinBuy());
-                limitBuy.setSkuIds(List.of(skuId));
-                vo.getLimitBuy().put(value.getGoodsId().toString(), limitBuy);
+                limitBuy.setSkuIds(new ArrayList<>(List.of(skuId)));
+                vo.getLimitBuy().put(goodsKey, limitBuy);
             }
         }
         return vo.getLimitBuy();

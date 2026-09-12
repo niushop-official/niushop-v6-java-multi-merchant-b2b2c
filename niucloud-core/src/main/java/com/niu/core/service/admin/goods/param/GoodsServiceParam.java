@@ -1,11 +1,15 @@
 package com.niu.core.service.admin.goods.param;
+
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+
 import java.io.Serializable;
-import jakarta.validation.constraints.*;
+import java.util.List;
 
 /**
  * 商品服务参数
-*/
+ */
 @Data
 public class GoodsServiceParam implements Serializable {
 
@@ -20,5 +24,5 @@ public class GoodsServiceParam implements Serializable {
 
     @NotNull(message = "desc参数缺失")
     private String desc;
-
+    private List<String> addon; //插件
 }

@@ -85,6 +85,7 @@ public class DeliveryPackageServiceImpl implements IDeliveryPackageService {
             
                 info.setCreateTime(createTime);
             }
+            info.setDeliveryTime(createTime);
 
             try {
                 Class<?> eventClass = Class.forName("com.niu.points_mall.event.delivery_package.GetTradeItemByPackageEvent");

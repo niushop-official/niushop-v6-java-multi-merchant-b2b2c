@@ -30,7 +30,13 @@ public class CoreFetchServiceImpl implements ICoreFetchService {
         // 根据配置初始化
         IUploadProvider uploadProvider = UploadProviderFactory.createAndInit(defaultValue, configObject);
 
-        String ext = ObjectUtil.defaultIfEmpty(url.split("\\.")[1], "jpg");
+        // 获取图片扩展名，取URL最后一个"."后面的部分
+        String[] urlParts = url.split("\\.");
+        String ext = urlParts.length > 1 ? urlParts[urlParts.length - 1].toLowerCase() : "jpg";
+        // 校验扩展名是否为有效的图片格式，无效则默认使用jpg
+        if (!ext.matches("^(jpg|jpeg|png|gif|bmp|webp)$")) {
+            ext = "jpg";
+        }
 
         FetchModel fetchModel = new FetchModel();
         fetchModel.setUrl(url);

@@ -67,7 +67,7 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
         MPJQueryWrapper<MemberAccountLog> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("mal").innerJoin("?_member m ON mal.member_id = m.member_id".replace("?_", GlobalConfig.tablePrefix));
         queryWrapper.select("mal.*,m.member_no,m.username,m.nickname,m.mobile,m.headimg");
-        queryWrapper.eq("mal.site_id", siteId);
+        //  queryWrapper.eq("mal.site_id", siteId);
         queryWrapper.eq("mal.account_type", searchParam.getAccountType());
         queryWrapper.orderByDesc("mal.id");
 
@@ -82,7 +82,7 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
 
         if (ObjectUtil.defaultIfNull(searchParam.getMemberId(), 0) > 0)
             queryWrapper.eq("mal.member_id", searchParam.getMemberId());
-        if (ObjectUtil.isNotEmpty(searchParam.getFromType()))
+        if (ObjectUtil.isNotEmpty(searchParam.getFromType()) && !"all".equals(searchParam.getFromType()))
             queryWrapper.eq("mal.from_type", searchParam.getFromType());
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime()))
             QueryMapperUtils.buildByTime(queryWrapper, "mal.create_time", searchParam.getCreateTime());

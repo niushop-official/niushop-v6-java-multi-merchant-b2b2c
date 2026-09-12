@@ -45,7 +45,7 @@ import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { img, redirect } from '@/utils/common';
 import { useLogin } from '@/hooks/useLogin';
 import useMemberStore from '@/stores/member'
-import { getMallCouponList, getCoupon } from '@/addon/mall/api/coupon'
+import { getMallCouponList, getCoupon } from '@/app/api/marketing'
 import shopHead from '@/addon/mall/pages/home/components/shop-head/shop-head.vue'
 import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue';
 import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.vue';
@@ -118,7 +118,7 @@ const getShopCouponListFn = (mescroll: any) => {
 
 const collecting = (coupon_id: any, index: number) => {
     if (!userInfo.value) {
-        useLogin().setLoginBack({ url: '/addon/mall/pages/index', param: { site_id: siteId.value } })
+        useLogin().setLoginBack({ url: '/addon/mall/pages/site/index', param: { site_id: siteId.value } })
         return false
     }
     getCoupon({ coupon_id, number: 1, type:'receive' }).then((res: any) => {

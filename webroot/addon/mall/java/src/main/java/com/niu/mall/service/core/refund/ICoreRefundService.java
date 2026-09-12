@@ -51,4 +51,11 @@ public interface ICoreRefundService {
      * 获取订单项可退金额（不含运费，已扣减积分抵扣等平台优惠）
      */
     BigDecimal getItemRefundableMoney(Integer orderGoodsId);
+
+    /**
+     * 获取订单最大可退金额（与 PHP CoreRefundService.getOrderRefundMoney 一致）
+     *
+     * @param orderGoodsIds
+     */
+    OrderRefundMoneyVo getOrderRefundMoney(Integer[] orderGoodsIds);
 }

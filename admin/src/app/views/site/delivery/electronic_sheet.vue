@@ -15,19 +15,21 @@
             </el-tabs>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="tableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="110px" :model="tableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('templateName')" prop="template_name">
-                        <el-input v-model.trim="tableData.searchParam.template_name" :placeholder="t('templateNamePlaceholder')" maxlength="30" />
+                        <el-input v-model.trim="tableData.searchParam.template_name" :placeholder="t('templateNamePlaceholder')" maxlength="30" clearable  class="search-input" />
                     </el-form-item>
 
                     <el-form-item :label="t('expressCompany')" prop="express_company_id">
-                        <el-select v-model="tableData.searchParam.express_company_id" :placeholder="t('expressCompanyPlaceholder')" clearable>
+                        <el-select v-model="tableData.searchParam.express_company_id" :placeholder="t('expressCompanyPlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="item in companyList" :key="item.company_id" :label="item.company_name" :value="item.company_id" />
                         </el-select>
                     </el-form-item>
 
                     <el-form-item :label="t('supportTradeName')" prop="support_trade">
-                        <el-select v-model="tableData.searchParam.support_trade" :placeholder="t('supportTradeNamePlaceholder')" clearable>
+                        <el-select v-model="tableData.searchParam.support_trade" :placeholder="t('supportTradeNamePlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item, index) in tradeList" :key="index" :label="item" :value="index" />
                         </el-select>
                     </el-form-item>

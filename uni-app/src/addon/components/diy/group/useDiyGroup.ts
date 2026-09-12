@@ -33,6 +33,8 @@ export function useDiyGroup(params: any = {}) {
         if (component.position && positionFixed.value.indexOf(component.position) != -1) {
             //  找出置顶组件，设置禁止拖动
             obj['ignore-draggable-element'] = true;
+        } else if (component.componentName == 'O2oStoreTab' && (component.tabGroup === true)) {
+            obj['ignore-draggable-element'] = true;
         } else {
             obj['draggable-element'] = true;
         }
@@ -76,6 +78,13 @@ export function useDiyGroup(params: any = {}) {
                     animation: 200,
                     // 结束拖拽
                     onEnd: event => {
+                        const tabIndex = diyStore.value.findIndex(
+                            (item: any) => item?.componentName === 'O2oStoreTab' && (item?.tabGroup === true)
+                        )
+                        if (tabIndex >= 0 && (event.oldIndex === tabIndex || event.newIndex === tabIndex)) {
+                            sortable.sort(range(diyStore.value.length).map((value: any) => value.toString()));
+                            return;
+                        }
                         let temp = diyStore.value[event.oldIndex!];
                         diyStore.value.splice(event.oldIndex!, 1);
                         diyStore.value.splice(event.newIndex!, 0, temp);

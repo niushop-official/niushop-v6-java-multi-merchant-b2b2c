@@ -50,15 +50,15 @@
 				</el-row>
 			</el-card>
 			<el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-				<el-form :inline="true" :model="settlementOrderTable.searchParam" ref="searchFormRef">
+				<el-form label-width="70px" :inline="true" :model="settlementOrderTable.searchParam" ref="searchFormRef" class="page-form">
 					<el-form-item :label="t('orderInfo')" prop='keyword'>
-						<el-input class="input-item ml-3" v-model="settlementOrderTable.searchParam.keyword" :placeholder="t('keywordPlaceholder')" />
+						<el-input class="search-input" v-model="settlementOrderTable.searchParam.keyword" :placeholder="t('keywordPlaceholder')" clearable />
 					</el-form-item>
 					<el-form-item :label="t('createTime')" prop="create_time">
-						<el-date-picker v-model="settlementOrderTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+						<el-date-picker v-model="settlementOrderTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
 					</el-form-item>
 					<el-form-item :label="t('payTime')" prop="pay_time">
-						<el-date-picker v-model="settlementOrderTable.searchParam.pay_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+						<el-date-picker v-model="settlementOrderTable.searchParam.pay_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
 					</el-form-item>
 					<el-form-item>
 						<el-button type="primary" @click="loadSettlementOrderList()">{{ t('search') }}</el-button>
@@ -124,7 +124,7 @@
 import { reactive, ref, watch } from 'vue'
 import { t } from '@/lang'
 import { img } from '@/utils/common'
-import { getSettlementOrderList, getSettlementInfo } from '@/addon/mall/api/admin/order'
+import { getSettlementOrderList, getSettlementInfo } from '@/app/lang/zh-cn/api/admin/order'
 import type { FormInstance } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 

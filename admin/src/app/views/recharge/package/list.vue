@@ -9,13 +9,13 @@
 
             <!-- 搜索 -->
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="tableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="tableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('packageName')" prop="package_name">
-                        <el-input v-model.trim="tableData.searchParam.package_name" :placeholder="t('packageNamePlaceholder')" />
+                        <el-input v-model.trim="tableData.searchParam.package_name" :placeholder="t('packageNamePlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-form-item :label="t('createTime')" prop="create_time">
-                            <el-date-picker v-model="tableData.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+                            <el-date-picker v-model="tableData.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
                         </el-form-item>
                         <el-button type="primary" @click="loadRechargePackageList()">{{ t("search") }}</el-button>
                         <el-button @click="resetForm(searchFormRef)">{{ t("reset") }}</el-button>
@@ -64,7 +64,7 @@
                     </el-table-column>
                     <el-table-column prop="status" :label="t('status')" min-width="130">
                         <template #default="{ row }">
-                            <el-tag class="cursor-pointer" :type="row.status != 0 ? 'success' : 'danger'" @click="showClick(row)">{{ row.status != 0 ? '开启' : '关闭 ' }}</el-tag>
+                            <el-switch v-model="row.status" :active-value="1" :inactive-value="0" inline-prompt active-text="开启" inactive-text="关闭" @change="(value) => showClick(row, value)" />
                         </template>
                     </el-table-column>
                     <el-table-column prop="create_time" :label="t('createTime')" min-width="150">
@@ -159,13 +159,13 @@ const detailEvent = (id: number) => {
     packageDetailDialog.value.showDialog = true
 }
 
-const showClick = (row: any) => {
-    row.status = row.status === 1 ? 0 : 1
-    const obj = {
+const showClick = (row: any, value: number) => {
+    editRechargeStatus({
         package_id: row.package_id,
-        status: row.status
-    }
-    editRechargeStatus(obj)
+        status: value
+    }).catch(() => {
+        row.status = value == 1 ? 0 : 1
+    })
 }
 
 // 正则表达式

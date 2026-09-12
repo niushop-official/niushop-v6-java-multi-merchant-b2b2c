@@ -2,7 +2,7 @@ package com.niu.mall.service.api.order;
 
 import com.niu.core.service.core.delivery.param.LatlngParam;
 import com.niu.core.service.core.delivery.vo.StoreListVo;
-import com.niu.mall.service.core.marketing.vo.MallMemberCouponListVo;
+import com.niu.core.service.core.marketing.vo.MallMemberCouponListVo;
 import com.niu.mall.service.core.order.param.MallOrderCalculateParam;
 import com.niu.mall.service.core.order.param.MallOrderCreateParam;
 import com.niu.mall.service.core.order.param.OrderCalculateParam;
@@ -41,4 +41,9 @@ public interface IOrderCreateService {
      * @return
      */
     List<MallMemberCouponListVo> getPlatformCoupon(Map<String, Object> request);
+
+    /**
+     * 查询平台优惠券
+     */
+    List<MallMemberCouponListVo> getPlatformCoupon(MallOrderCalculateParam param);
 }

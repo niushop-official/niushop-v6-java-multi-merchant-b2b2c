@@ -44,7 +44,7 @@ public class NoticeLogController {
      * @return Result<SysNoticeLogInfoVo>
      */
     @GetMapping("/{id}")
-    public Result<SysNoticeLogInfoVo> info(@Validated @RequestParam("id") Integer id) {
+    public Result<SysNoticeLogInfoVo> info(@Validated @PathVariable("id") Integer id) {
         SysNoticeLogInfoVo info = sysNoticeLogService.info(id);
         return Result.success(info);
     }

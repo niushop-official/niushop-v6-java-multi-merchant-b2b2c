@@ -37,26 +37,28 @@
 										<CloseBold />
 									</el-icon>
 								</span>
-							</template>
-						</el-table-column>
-					</el-table>
-				</div>
-			</div>
 
-			<div class="bg-[#fff] pb-[20px] mb-3">
-				<p class="py-[20px] text-sm">{{ t('process') }}</p>
-				<div class="text-[14px]">
-					<el-table :data="systemService.process" size="large">
-						<el-table-column prop="name" :label="t('name')" align="left" min-width="200" />
-						<el-table-column prop="need" :label="t('demand')" align="left" min-width="140" />
-						<el-table-column :label="t('status')" align="left" min-width="140">
-							<template #default="{ row }">
-								<span v-if="row.status"><el-icon color="green"><Select /></el-icon></span>
-								<span v-else>
-									<el-icon color="red">
-										<CloseBold />
-									</el-icon>
-								</span>
+<!--                            </template>-->
+<!--                        </el-table-column>-->
+<!--                    </el-table>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <div class="bg-[#fff] pb-[20px] mb-3">-->
+<!--                <p class="py-[20px] text-sm">{{ t('process') }}</p>-->
+<!--                <div class="text-[14px]">-->
+<!--                    <el-table :data="systemService.process" size="large">-->
+<!--                        <el-table-column prop="name" :label="t('name')" align="left" min-width="200" />-->
+<!--                        <el-table-column prop="need" :label="t('demand')" align="left" min-width="140" />-->
+<!--                        <el-table-column :label="t('status')" align="left" min-width="140">-->
+<!--                            <template #default="{ row }">-->
+<!--                                <span v-if="row.status"><el-icon color="green"><Select /></el-icon></span>-->
+<!--                                <span v-else>-->
+<!--									<el-icon color="red">-->
+<!--										<CloseBold />-->
+<!--									</el-icon>-->
+<!--								</span>-->
+<!--                                -->
 							</template>
 						</el-table-column>
 					</el-table>

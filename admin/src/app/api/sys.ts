@@ -569,13 +569,6 @@ export function clearCronLog(params: Record<string, any>) {
     return request.put(`sys/schedule/log/clear`, params, { showSuccessMessage: true })
 }
 
-/**
- * 重置计划任务
- * @returns
- */
-export function resetCron() {
-    return request.post(`sys/schedule/reset`, { showSuccessMessage: true })
-}
 
 /***************************************************** 协议管理 ****************************************************/
 
@@ -694,8 +687,8 @@ export function setMap(params: Record<string, any>) {
 /**
  * 获取地图配置
  */
-export function getMap() {
-    return request.get(`sys/config/map`)
+export function getMap(params: Record<string, any>) {
+    return request.get(`sys/config/map`, { params })
 }
 
 /***************************************************** 首页 ****************************************************/
@@ -938,6 +931,21 @@ export function setFabNavs(params: Record<string, any>) {
  */
 export function getExportColumns(app_type: string) {
     return request.get(`sys/export/column/${app_type}`)
+}
+
+
+/**
+ * 获取支付类型
+ */
+export function getOrderPayType() {
+    return request.get(`sys/pay_type`)
+}
+
+/**
+ * 获取订单来源
+ */
+export function getOrderFrom() {
+    return request.get(`sys/order_from`)
 }
 
 /**

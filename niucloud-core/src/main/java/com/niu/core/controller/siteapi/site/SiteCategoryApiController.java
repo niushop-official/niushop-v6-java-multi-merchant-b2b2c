@@ -1,10 +1,9 @@
 package com.niu.core.controller.siteapi.site;
 
 import com.niu.core.common.domain.Result;
-import com.niu.core.entity.site.SiteCategory;
-import com.niu.core.service.admin.site.SiteCategoryService;
 import com.niu.core.service.admin.site.vo.SiteCategoryInfoVo;
 import com.niu.core.service.admin.site.vo.SiteCategoryListVo;
+import com.niu.core.service.core.site.ICoreSiteCategoryService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +17,7 @@ import java.util.List;
 public class SiteCategoryApiController {
 
     @Resource
-    private SiteCategoryService siteCategoryService;
+    private ICoreSiteCategoryService siteCategoryService;
 
     /**
      * 获取行业类目树（移动端接口）
@@ -42,8 +41,16 @@ public class SiteCategoryApiController {
      * @return Result<SiteCategoryInfoVo>
      */
     @GetMapping("/info/{categoryId}")
-    public Result<SiteCategoryInfoVo> info(@PathVariable Integer categoryId) {
+    public Result<SiteCategoryInfoVo> info(@PathVariable("categoryId") Integer categoryId) {
         SiteCategoryInfoVo siteCategory = siteCategoryService.info(categoryId);
         return Result.success(siteCategory);
+    }
+
+    /**
+     * 兼容 PHP GET category/:id
+     */
+    @GetMapping("/{categoryId}")
+    public Result<SiteCategoryInfoVo> infoAlias(@PathVariable("categoryId") Integer categoryId) {
+        return info(categoryId);
     }
 }

@@ -155,6 +155,13 @@ export function getDiyTemplatePages(params: Record<string, any>) {
 }
 
 /**
+ * 获取自定义店铺首页模板列表
+ */
+export function getSiteIndexTemplateList() {
+    return request.get(`diy/site_index/template`)
+}
+
+/**
  * 获取自定义路由列表
  * @param params
  * @returns
@@ -318,4 +325,13 @@ export function deleteTheme(id: number) {
  */
 export function setDiyTheme(params: Record<string, any>) {
     return request.post(`diy/theme`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 获取店铺二维码列表
+ * @param params
+ * @returns
+ */
+export function getSiteQrcodeList() {
+    return request.get(`site/qrcode/list`)
 }

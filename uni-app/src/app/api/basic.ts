@@ -69,3 +69,10 @@ export function getDeliveryStoreList(params: Record<string, any>) {
 export function getTrackOfLocal(params: Record<string, any>) {
     return request.get('basic/delivery/track_of_local', params)
 }
+
+/**
+ * 获取骑手实时位置
+ */
+export function getRiderLocation(params: Record<string, any>) {
+    return request.get('basic/delivery/rider_location', params)
+}

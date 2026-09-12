@@ -85,6 +85,12 @@ public class LocalUploadProvider extends AbstractUploadProvider implements IUplo
             File file = new File(this.rootUploadDir + thumbModel.getFilePath());
             if (file.exists()) {
                 String filename = file.getName();
+                // 校验文件扩展名是否为支持的图片格式
+                String ext = filename.contains(".") ? filename.substring(filename.lastIndexOf(".")).toLowerCase() : "";
+                if (!ext.matches("\\.(jpg|jpeg|png|gif|bmp|webp)")) {
+                    log.warn("不支持的图片格式: {}", filename);
+                    return thumbModelResult;
+                }
                 for (UploadThumbTypeEnum item : UploadThumbTypeEnum.values()) {
                     if (thumbModel.getType().equals("all") || thumbModel.getType().equals(item.getType())) {
                         String thumbName = thumbModel.getFilePath().replace(filename, item.getWidth() + "x" + item.getHeight() + "_" + filename);
@@ -95,10 +101,13 @@ public class LocalUploadProvider extends AbstractUploadProvider implements IUplo
                         thumbModelResult.addDataMap(item.getType(), thumbName);
                     }
                 }
+            } else {
+                log.warn("缩略图生成失败，文件不存在: {}", this.rootUploadDir + thumbModel.getFilePath());
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new UploadException(e.getMessage());
+            log.error("缩略图生成异常, filePath: {}, error: {}", thumbModel.getFilePath(), e.getMessage());
+            // 不抛异常，返回空结果，避免影响业务流程
         }
         return thumbModelResult;
     }

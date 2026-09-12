@@ -8,17 +8,22 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.AdminException;
-import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.entity.shop.SiteShop;
-import com.niu.core.entity.shop.SiteShopCategory;
-import com.niu.core.mapper.shop.SiteShopCategoryMapper;
+import com.niu.core.entity.shop.SiteO2o;
+import com.niu.core.entity.shop.SiteSupply;
+import com.niu.core.entity.site.SiteApply;
+import com.niu.core.entity.site.SiteCategory;
+import com.niu.core.mapper.shop.SiteO2oMapper;
 import com.niu.core.mapper.shop.SiteShopMapper;
+import com.niu.core.mapper.shop.SiteSupplyMapper;
+import com.niu.core.mapper.site.SiteApplyMapper;
+import com.niu.core.mapper.site.SiteCategoryMapper;
 import com.niu.core.service.admin.shop.ISiteShopCategoryService;
 import com.niu.core.service.admin.shop.param.SiteShopCategoryParam;
 import com.niu.core.service.admin.shop.param.SiteShopCategorySearchParam;
 import com.niu.core.service.admin.shop.vo.SiteShopCategoryInfoVo;
 import com.niu.core.service.admin.shop.vo.SiteShopCategoryListVo;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -29,123 +34,132 @@ import java.util.List;
 
 
 /**
- * 站点分类实现
+ * 站点分类实现（兼容层，底层已迁移至 site_category）
  */
 @Service
 public class SiteShopCategoryServiceImpl implements ISiteShopCategoryService {
-        
+
     @Resource
-    SiteShopCategoryMapper siteShopCategoryMapper;
+    SiteCategoryMapper siteCategoryMapper;
 
     @Resource
     SiteShopMapper siteShopMapper;
 
+    @Resource
+    SiteSupplyMapper siteSupplyMapper;
+
+    @Resource
+    SiteO2oMapper siteO2oMapper;
+
+    @Resource
+    SiteApplyMapper siteApplyMapper;
+
+    private SiteShopCategoryListVo toListVo(SiteCategory category) {
+        SiteShopCategoryListVo vo = new SiteShopCategoryListVo();
+        vo.setCategoryId(category.getCategoryId());
+        vo.setCategoryName(category.getName());
+        vo.setCommissionRate(category.getServiceRate());
+        vo.setSort(category.getSort());
+        vo.setCreateTime(category.getCreateTime());
+        return vo;
+    }
+
+    private SiteShopCategoryInfoVo toInfoVo(SiteCategory category) {
+        SiteShopCategoryInfoVo vo = new SiteShopCategoryInfoVo();
+        vo.setCategoryId(category.getCategoryId());
+        vo.setCategoryName(category.getName());
+        vo.setCommissionRate(category.getServiceRate());
+        vo.setSort(category.getSort());
+        vo.setCreateTime(category.getCreateTime());
+        vo.setUpdateTime(category.getUpdateTime());
+        return vo;
+    }
+
+    private QueryWrapper<SiteCategory> buildQueryWrapper(SiteShopCategorySearchParam searchParam) {
+        QueryWrapper<SiteCategory> queryWrapper = new QueryWrapper<>();
+        if (searchParam != null && ObjectUtil.isNotEmpty(searchParam.getCategoryName())) {
+            queryWrapper.eq("name", searchParam.getCategoryName());
+        }
+        queryWrapper.orderByAsc("sort");
+        return queryWrapper;
+    }
 
     @Override
     public PageResult<SiteShopCategoryListVo> page(PageParam pageParam, SiteShopCategorySearchParam searchParam) {
-        Integer page  = pageParam.getPage();
-        Integer limit =pageParam.getLimit();
-
-        QueryWrapper<SiteShopCategory> queryWrapper = new QueryWrapper<>();
-
-        if (ObjectUtil.isNotEmpty(searchParam.getCategoryName())) {
-        queryWrapper.eq("category_name", searchParam.getCategoryName());
-        }
-
-        queryWrapper.orderByAsc("sort");
-
-        IPage<SiteShopCategory> iPage = siteShopCategoryMapper.selectPage(new Page<>(page, limit), queryWrapper);
+        Integer page = pageParam.getPage();
+        Integer limit = pageParam.getLimit();
+        IPage<SiteCategory> iPage = siteCategoryMapper.selectPage(new Page<>(page, limit), buildQueryWrapper(searchParam));
         List<SiteShopCategoryListVo> list = new LinkedList<>();
-        for (SiteShopCategory item : iPage.getRecords()) {
-            SiteShopCategoryListVo vo = new SiteShopCategoryListVo();
-            BeanUtils.copyProperties(item, vo);
-            list.add(vo);
+        for (SiteCategory item : iPage.getRecords()) {
+            list.add(toListVo(item));
         }
         return PageResult.build(page, limit, iPage.getTotal()).setData(list);
     }
 
     @Override
     public List<SiteShopCategoryListVo> list(SiteShopCategorySearchParam searchParam) {
-        QueryWrapper<SiteShopCategory> queryWrapper = new QueryWrapper<>();
-
-        if (ObjectUtil.isNotEmpty(searchParam.getCategoryName())) {
-            queryWrapper.eq("category_name", searchParam.getCategoryName());
-        }
-
-        queryWrapper.orderByAsc("sort");
-
-        List<SiteShopCategory> list = siteShopCategoryMapper.selectList(queryWrapper);
         List<SiteShopCategoryListVo> listVo = new LinkedList<>();
-        for (SiteShopCategory item : list) {
-            SiteShopCategoryListVo vo = new SiteShopCategoryListVo();
-            BeanUtils.copyProperties(item, vo);
-            listVo.add(vo);
+        for (SiteCategory item : siteCategoryMapper.selectList(buildQueryWrapper(searchParam))) {
+            listVo.add(toListVo(item));
         }
         return listVo;
     }
 
     @Override
     public List<SiteShopCategoryListVo> all() {
-
-        List<SiteShopCategory> list = siteShopCategoryMapper.selectList(new QueryWrapper<SiteShopCategory>().orderByAsc("sort"));
         List<SiteShopCategoryListVo> listVo = new LinkedList<>();
-        for (SiteShopCategory item : list) {
-            SiteShopCategoryListVo vo = new SiteShopCategoryListVo();
-            BeanUtils.copyProperties(item, vo);
-            listVo.add(vo);
+        for (SiteCategory item : siteCategoryMapper.selectList(new QueryWrapper<SiteCategory>().orderByAsc("sort"))) {
+            listVo.add(toListVo(item));
         }
         return listVo;
     }
 
     @Override
     public SiteShopCategoryInfoVo info(Integer id) {
-        SiteShopCategory model = siteShopCategoryMapper.selectOne(
-        new QueryWrapper<SiteShopCategory>()
-        .eq("category_id", id));
-
-
+        SiteCategory model = siteCategoryMapper.selectOne(new QueryWrapper<SiteCategory>().eq("category_id", id));
         Assert.notNull(model, "站点分类不存在");
-
-        SiteShopCategoryInfoVo vo = new SiteShopCategoryInfoVo();
-        BeanUtils.copyProperties(model, vo);
-        return vo;
+        return toInfoVo(model);
     }
 
     @Override
     public void add(SiteShopCategoryParam addParam) {
-
-        SiteShopCategory model = new SiteShopCategory();
-
-        model.setCategoryName(addParam.getCategoryName());
-        model.setCommissionRate(addParam.getCommissionRate());
-        model.setImage(addParam.getImage());
+        SiteCategory model = new SiteCategory();
+        model.setName(addParam.getCategoryName());
+        model.setServiceRate(addParam.getCommissionRate());
         model.setSort(addParam.getSort());
-
-
-        siteShopCategoryMapper.insert(model);
+        model.setLevel(1);
+        model.setPid(0);
+        model.setStatus(1);
+        model.setAddon("mall");
+        model.setCreateTime(DateUtils.currTime());
+        model.setUpdateTime(DateUtils.currTime());
+        siteCategoryMapper.insert(model);
     }
 
     @Override
     public void edit(Integer id, SiteShopCategoryParam editParam) {
-
-        SiteShopCategory model = siteShopCategoryMapper.selectOne(
-                new QueryWrapper<SiteShopCategory>()
-                        .eq("category_id", id));
-
+        SiteCategory model = siteCategoryMapper.selectOne(new QueryWrapper<SiteCategory>().eq("category_id", id));
         Assert.notNull(model, "站点分类不存在");
-        model.setCategoryName(editParam.getCategoryName());
-        model.setCommissionRate(editParam.getCommissionRate());
-        model.setImage(editParam.getImage());
+        model.setName(editParam.getCategoryName());
+        model.setServiceRate(editParam.getCommissionRate());
         model.setSort(editParam.getSort());
-        siteShopMapper.update(null, new UpdateWrapper<SiteShop>().eq("category_id", id).set("commission_rate", editParam.getCommissionRate()));
-        siteShopCategoryMapper.updateById(model);
+        model.setUpdateTime(DateUtils.currTime());
+        siteShopMapper.update(null, new UpdateWrapper<SiteShop>().eq("category_id", id).set("service_rate", editParam.getCommissionRate()));
+        siteSupplyMapper.update(null, new UpdateWrapper<SiteSupply>().eq("category_id", id).set("service_rate", editParam.getCommissionRate()));
+        siteO2oMapper.update(null, new UpdateWrapper<SiteO2o>().eq("category_id", id).set("service_rate", editParam.getCommissionRate()));
+        siteCategoryMapper.updateById(model);
     }
 
     @Override
     public void del(Integer id) {
-        Long count = siteShopMapper.selectCount(new QueryWrapper<SiteShop>().eq("category_id", id));
-        if(count > 0) throw new AdminException("分类正在使用中，不能删除!");
-        siteShopCategoryMapper.delete(new QueryWrapper<SiteShopCategory>().eq("category_id", id));
+        Long shopCount = siteShopMapper.selectCount(new QueryWrapper<SiteShop>().eq("category_id", id));
+        Long supplyCount = siteSupplyMapper.selectCount(new QueryWrapper<SiteSupply>().eq("category_id", id));
+        Long o2oCount = siteO2oMapper.selectCount(new QueryWrapper<SiteO2o>().eq("category_id", id));
+        Long applyCount = siteApplyMapper.selectCount(new QueryWrapper<SiteApply>().eq("category_id", id));
+        if (shopCount > 0 || supplyCount > 0 || o2oCount > 0 || applyCount > 0) {
+            throw new AdminException("分类正在使用中，不能删除!");
+        }
+        siteCategoryMapper.delete(new QueryWrapper<SiteCategory>().eq("category_id", id));
     }
 
 }

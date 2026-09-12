@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Accessors(chain = true)
@@ -28,6 +29,9 @@ public class PageResult<E> {
     @Schema(required = true, description = "记录结果")
     // 记录结果
     private List<E> data;
+
+    @Schema(description = "附加字段")
+    private Map<String, Object> extra;
 
     public PageResult() {
 
@@ -191,4 +195,7 @@ public class PageResult<E> {
         return pageList;
     }
 
+     public static <E> PageResult<E> empty(){
+        return new PageResult<>(1, 10, 0, List.of());
+    }
 }

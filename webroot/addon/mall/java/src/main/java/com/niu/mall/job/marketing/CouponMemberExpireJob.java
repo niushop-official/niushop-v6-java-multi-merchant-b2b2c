@@ -5,10 +5,10 @@ import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.job.AbstractJobProvider;
 import com.niu.core.common.component.job.IJobProvider;
 import com.niu.core.common.component.job.annotation.JobProvider;
-import com.niu.mall.entity.coupon.MallCouponMember;
-import com.niu.mall.enums.coupon.CouponMemberStatusEnum;
-import com.niu.mall.mapper.coupon.MallCouponMemberMapper;
-import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
+import com.niu.core.entity.coupon.MallCouponMember;
+import com.niu.core.enums.coupon.CouponMemberStatusEnum;
+import com.niu.core.mapper.coupon.MallCouponMemberMapper;
+import com.niu.core.service.core.marketing.ICoreCouponMemberService;
 import org.quartz.JobExecutionContext;
 
 import java.util.List;

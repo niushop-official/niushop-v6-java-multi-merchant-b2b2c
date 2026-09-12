@@ -307,7 +307,7 @@
 <script lang="ts" setup>
 import { ref, defineAsyncComponent } from 'vue'
 import { t } from '@/lang'
-import { getOrderDetail } from '@/addon/mall/api/admin/order'
+import { getOrderDetail } from '@/app/lang/zh-cn/api/admin/order'
 import { useRoute, useRouter } from 'vue-router'
 import { img } from '@/utils/common'
 import { getFormRecordsInfo } from '@/app/api/diy_form_admin'

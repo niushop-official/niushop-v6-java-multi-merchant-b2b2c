@@ -6,7 +6,9 @@ import com.niu.mall.service.admin.goods.param.MallGoodsRankSearchParam;
 import com.niu.mall.service.api.goods.param.GoodsRankComponentParam;
 import com.niu.mall.service.api.goods.param.MallGoodsRankGoodsPageParam;
 import com.niu.mall.service.api.goods.vo.GoodsRankComponentVo;
+import com.niu.mall.service.api.goods.vo.GoodsRankResultVo;
 import com.niu.mall.service.api.goods.vo.MallGoodsRankGoodsPageVo;
+import com.niu.mall.service.api.goods.vo.MallGoodsRankSearchListVo;
 import com.niu.mall.service.core.goods.vo.ShopGoodsRankConfigVo;
 
 import java.util.List;
@@ -19,4 +21,8 @@ public interface IGoodsRankService {
     MallGoodsRankGoodsPageVo getGoodsPage(PageParam pageParam, MallGoodsRankGoodsPageParam param);
 
     GoodsRankComponentVo getRankComponents(PageParam pageParam, GoodsRankComponentParam param);
+
+    List<MallGoodsRankSearchListVo> getRankListOfSearch();
+
+    GoodsRankResultVo getGoodsRank(Integer goodsId);
 }

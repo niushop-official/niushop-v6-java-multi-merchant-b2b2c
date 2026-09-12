@@ -36,7 +36,7 @@
                 <el-form-item :label="t('carouselSearchSubTitle')" v-if="diyStore.editComponent.search.style == 'style-2'">
                     <el-input v-model.trim="diyStore.editComponent.search.subTitle.text" :placeholder="t('carouselSearchSubTitlePlaceholder')" clearable maxlength="10" show-word-limit />
                 </el-form-item>
-                <el-form-item :label="t('logo')">
+                <el-form-item :label="t('logo')" v-if="diyStore.editComponent.search.style != 'style-3' && diyStore.editComponent.search.style != 'style-4'">
                     <upload-image v-model="diyStore.editComponent.search.logo" :limit="1" />
                     <div class="text-sm text-gray-400 mb-[10px]">{{ t('carouselSearchLogoTips') }}</div>
                 </el-form-item>
@@ -199,7 +199,7 @@
 
     <!-- 样式 -->
     <div class="style-wrap" v-show="diyStore.editTab == 'style'">
-        <div class="edit-attr-item-wrap" v-if="diyStore.editComponent.search.style == 'style-2'">
+        <div class="edit-attr-item-wrap" v-if="diyStore.editComponent.search.style == 'style-2' || diyStore.editComponent.search.style == 'style-3' || diyStore.editComponent.search.style == 'style-4'">
             <h3 class="mb-[10px]">{{ t('carouselSearchPositionStyle') }}</h3>
             <el-form label-width="100px" class="px-[10px]">
                 <el-form-item :label="t('carouselSearchTextColor')">
@@ -231,10 +231,10 @@
                 <el-form-item :label="t('carouselSearchBgColor')">
                     <el-color-picker v-model="diyStore.editComponent.search.bgColor" show-alpha :predefine="diyStore.predefineColors" />
                 </el-form-item>
-                <el-form-item :label="t('carouselSearchBtnColor')">
+                <el-form-item :label="t('carouselSearchBtnColor')" v-if="diyStore.editComponent.search.style != 'style-3'">
                     <el-color-picker v-model="diyStore.editComponent.search.btnColor" show-alpha :predefine="diyStore.predefineColors" />
                 </el-form-item>
-                <el-form-item :label="t('carouselSearchBtnBgColor')">
+                <el-form-item :label="t('carouselSearchBtnBgColor')" v-if="diyStore.editComponent.search.style != 'style-3'">
                     <el-color-picker v-model="diyStore.editComponent.search.btnBgColor" show-alpha :predefine="diyStore.predefineColors" />
                 </el-form-item>
             </el-form>
@@ -396,6 +396,16 @@ const searchStyleList = reactive([
         url: 'static/resource/images/diy/carousel_search/style_2.png',
         title: '风格2',
         value: 'style-2'
+    },
+    {
+        url: 'static/resource/images/diy/carousel_search/style_3.png',
+        title: '风格3',
+        value: 'style-3'
+    },
+    {
+        url: 'static/resource/images/diy/carousel_search/style_4.png',
+        title: '风格4',
+        value: 'style-4'
     }
 ])
 

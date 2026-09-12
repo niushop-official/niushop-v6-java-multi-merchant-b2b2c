@@ -124,6 +124,13 @@ export function getAddressByLatlng(params: Record<string, any>) {
 }
 
 /**
+ * 通过ip查询经纬度
+ */
+export function getLatlngByIp() {
+    return request.get(`area/latlng_by_ip`)
+}
+
+/**
  * 获取手机端首页列表
  */
 export function getWapIndexList(data: AnyObject) {
@@ -193,4 +200,18 @@ export function getCopyRight() {
  */
 export function getFabNav() {
     return request.get('fab/navs')
+}
+
+/**
+ * 获取已安装插件
+ */
+export function getAddons() {
+    return request.get(`addon/cache`)
+}
+
+/**
+ * 获取附近前置仓
+ */
+export function getNearest(params: Record<string, any>) {
+    return request.get(`site/front_warehouse/nearest`,params)
 }

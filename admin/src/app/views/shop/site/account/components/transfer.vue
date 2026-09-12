@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="showDialog" :title="t('transfer')" width="500px" class="diy-dialog-wrap" :destroy-on-close="true">
+    <el-dialog v-model="showDialog" :title="t('transfer')" width="550px" class="diy-dialog-wrap" :destroy-on-close="true">
         <el-form :model="formData" label-width="120px" ref="formRef" :rules="formRules" class="page-form"
             v-loading="loading">
             <el-form-item :label="t('price')" prop="apply_money">
@@ -11,41 +11,16 @@
                     <div class="text-[12px] leading-[14px] text-[#999] mt-[5px]">{{ t('applyMoneyTips') }}</div>
                 </div>
             </el-form-item>
-            <div v-if="formData.bank_type == 1">
-                <el-form-item :label="t('bankCardName')">
-                    <div class="input-width"> {{ formData.bank_account_name }} </div>
-                </el-form-item>
-                <el-form-item :label="t('bankCardNumber')">
-                    <div class="input-width"> {{ formData.bank_account_no }} </div>
-                </el-form-item>
-                <el-form-item :label="t('bankName')">
-                    <div class="input-width"> {{ formData.bank_name }} </div>
-                </el-form-item>
-                <el-form-item :label="t('bankAddress')">
-                    <div class="input-width"> {{ formData.bank_address }} </div>
-                </el-form-item>
-            </div>
-            <div v-else-if="formData.bank_type == 2">
-                <el-form-item :label="t('alipayName')">
-                    <div class="input-width"> {{ formData.alipay_name }} </div>
-                </el-form-item>
-                <el-form-item :label="t('alipayAccount')">
-                    <div class="input-width"> {{ formData.alipay_account_no }} </div>
-                </el-form-item>
-            </div>
-            <div v-else-if="formData.bank_type == 3">
-                <el-form-item :label="t('wechatName')">
-                    <div class="input-width"> {{ formData.wechat_name }} </div>
-                </el-form-item>
-                <el-form-item :label="t('wechatAccount')">
-                    <div class="input-width"> {{ formData.wechat_account_no }} </div>
-                </el-form-item>
-            </div>
-            <div v-else-if="formData.bank_type == 4">
-                <el-form-item :label="t('wechatpay')">
-                    <div class="input-width"> 微信零钱 </div>
-                </el-form-item>
-            </div>
+            <el-form-item :label="t('settAccount')" prop="account_id">
+                <div class="flex items-center">
+                    <el-select v-model="formData.account_id" clearable :placeholder="t('settAccountPlaceholder')" class="input-width">
+                        <el-option v-for="(item, index) in settAccountList" :key="item.id" :label="`${item.name}(${item.type_name})`" :value="item.id" />
+                    </el-select>
+                    <div class="ml-[10px]">
+                        <span class="cursor-pointer text-primary" @click="toAdd">{{ t('toAdd') }}</span>
+                    </div>
+                </div>
+            </el-form-item>
         </el-form>
 
         <template #footer>
@@ -62,7 +37,10 @@ import { ref, reactive, computed } from 'vue'
 import { t } from '@/lang'
 import { FormInstance, ElMessage } from 'element-plus'
 import { getCashApply } from '@/app/api/shop_site'
+import { getSettAccountList } from '@/app/api/site'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const showDialog = ref(false)
 const loading = ref(false)
 
@@ -70,13 +48,26 @@ const loading = ref(false)
  * 表单数据
  */
 const initialFormData = {
-    apply_money: '',
-    bank_account_no: ''
-
+    account_id: '',
+    apply_money: ''
 }
 const formData: Record<string, any> = reactive({ ...initialFormData })
-
 const formRef = ref<FormInstance>()
+
+// 账户数据
+const settAccountList = ref([])
+
+// 加载账户列表
+const loadAccounts = () => {
+    getSettAccountList().then(res => {
+        loading.value = false
+        settAccountList.value = res.data
+    }).catch(() => {
+        loading.value = false
+    })
+}
+loadAccounts()
+
 // 正则表达式
 const regExp = {
     required: /[\S]+/,
@@ -104,6 +95,13 @@ const formRules = computed(() => {
                         callback()
                     }
                 }
+            }
+        ],
+        account_id: [
+            {
+                trigger: 'change',
+                required: true,
+                message: t('settAccountPlaceholder')
             }
         ]
     }
@@ -139,8 +137,15 @@ const confirm = async (formEl: FormInstance | undefined) => {
     })
 }
 
-// 获取字典数据
+// 去添加
+const toAdd = () => {
+    const url = router.resolve({
+        path: '/site/sett_account/list'
+    })
+    window.open(url.href)
+}
 
+// 获取字典数据
 const setFormData = async (row: any = null) => {
     Object.assign(formData, row)
 }

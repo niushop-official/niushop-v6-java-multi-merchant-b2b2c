@@ -1,30 +1,33 @@
 package com.niu.core.service.api.sys.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.cache.Cached;
 import com.niu.core.common.exception.BaseException;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.CollectUtils;
+import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.object.ObjectGroupUtils;
 import com.niu.core.entity.sys.SysArea;
 import com.niu.core.mapper.sys.SysAreaMapper;
-import com.niu.core.service.admin.sys.vo.SysAreaResolveVo;
 import com.niu.core.service.api.sys.ISysAreaService;
-import com.niu.core.service.admin.sys.vo.SysMapVo;
 import com.niu.core.service.api.sys.param.SysAreaAddressByLatlngParam;
-import com.niu.core.service.api.sys.tools.TencentGeocoder;
 import com.niu.core.service.api.sys.vo.SysAreaLevelVo;
 import com.niu.core.service.api.sys.vo.SysAreaListVo;
-import com.niu.core.service.core.sys.ICoreSysConfigService;
+import com.niu.core.service.core.map.ICoreMapService;
+import com.niu.core.service.core.map.IMapService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -41,11 +44,18 @@ public class SysAreaServiceImpl implements ISysAreaService {
     @Autowired
     private SysAreaMapper sysAreaMapper;
 
-    @Autowired
-    private ICoreSysConfigService coreSysConfigService;
-
     @Resource
-    private com.niu.core.service.admin.sys.ISysAreaService adminSysAreaService;
+    private ICoreMapService coreMapService;
+
+    @Override
+    public List<SysArea> getAreaListByIds(Collection<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return sysAreaMapper.selectList(new LambdaQueryWrapper<SysArea>()
+                .in(SysArea::getId, ids)
+                .select(SysArea::getId, SysArea::getName));
+    }
 
     @Override
     public SysArea getAreaById(Integer id) {
@@ -201,75 +211,140 @@ public class SysAreaServiceImpl implements ISysAreaService {
 
     @Override
     public JSONObject getAddressByLatlng(SysAreaAddressByLatlngParam param) {
-        SysMapVo sysMapVo = coreSysConfigService.getMap(param.siteId());
-        String key = sysMapVo.getKey();
-        String addressJsonString = TencentGeocoder.getAddress(key, param.getLatlng(), param.getGetPoi());
-        JSONObject jsonObjectResult = TencentGeocoder.formatData(addressJsonString);
-        String adcode = jsonObjectResult.getStr("adcode");
-        if (StringUtils.isNotBlank(adcode)) {
-            try {
-                JSONObject areaByCode = getAreaByAreaCode(Integer.parseInt(adcode));
-                JSONObject province = areaByCode.getJSONObject("province");
-                JSONObject city = areaByCode.getJSONObject("city");
-                JSONObject district = areaByCode.getJSONObject("district");
-                if (province != null) {
-                    jsonObjectResult.putOpt("province_id", province.getInt("id"));
-                }
-                if (city != null) {
-                    jsonObjectResult.putOpt("city_id", city.getInt("id"));
-                }
-                if (district != null) {
-                    jsonObjectResult.putOpt("district_id", district.getInt("id"));
-                }
-                return jsonObjectResult;
-            } catch (NumberFormatException ignored) {
+        Integer siteId = RequestUtils.defaultSiteId();
+        IMapService driver = coreMapService.getDriver(siteId);
+        JSONObject locationResult = driver.locationToDetail(siteId, param.getLatlng());
+
+        Integer status = locationResult.getInt("status");
+        if (status == null || status != 0) {
+            String message = locationResult.getStr("message", "地图服务请求失败");
+            throw new CommonException("请检查地图配置：" + message);
+        }
+
+        JSONObject result = locationResult.getJSONObject("result");
+        JSONObject addressComponent = result.getJSONObject("address_component");
+        JSONObject addressReference = result.getJSONObject("address_reference");
+        if (addressReference == null) {
+            addressReference = new JSONObject();
+        }
+
+        String community = "";
+        JSONObject landmarkL2 = addressReference.getJSONObject("landmark_l2");
+        JSONObject landmarkL1 = addressReference.getJSONObject("landmark_l1");
+        JSONObject town = addressReference.getJSONObject("town");
+        if (landmarkL2 != null && StrUtil.isNotBlank(landmarkL2.getStr("title"))) {
+            community = landmarkL2.getStr("title");
+        } else if (landmarkL1 != null && StrUtil.isNotBlank(landmarkL1.getStr("title"))) {
+            community = landmarkL1.getStr("title");
+        } else if (town != null && StrUtil.isNotBlank(town.getStr("title"))) {
+            community = town.getStr("title");
+        }
+
+        String provinceName = addressComponent.getStr("province", "");
+        String cityName = addressComponent.getStr("city", "");
+        String districtName = addressComponent.getStr("district", "");
+
+        String provinceMatch = provinceName.replace("省", "").replace("市", "");
+        String cityMatch = cityName;
+        String districtMatch = districtName;
+
+        int provinceId = 0;
+        int cityId = 0;
+        int districtId = 0;
+
+        if (StrUtil.isNotBlank(provinceMatch)) {
+            List<SysArea> provinces = sysAreaMapper.selectList(
+                    new LambdaQueryWrapper<SysArea>()
+                            .like(SysArea::getName, provinceMatch)
+                            .eq(SysArea::getLevel, 1)
+                            .last("limit 1")
+            );
+            if (!provinces.isEmpty()) {
+                SysArea province = provinces.get(0);
+                provinceId = province.getId();
+                provinceName = province.getName();
             }
         }
 
-        String province = jsonObjectResult.getStr("province");
-        String city = jsonObjectResult.getStr("city");
-        String district = jsonObjectResult.getStr("district");
-        SysAreaResolveVo resolved = adminSysAreaService.resolveAreaByName(province, city, district);
-        if (resolved != null) {
-            jsonObjectResult.putOpt("province_id", resolved.getProvinceId());
-            jsonObjectResult.putOpt("city_id", resolved.getCityId());
-            jsonObjectResult.putOpt("district_id", resolved.getDistrictId());
-        } else {
-            jsonObjectResult.putOpt("province_id", this.queryCodeByNameAndLevel(province, 1));
-            jsonObjectResult.putOpt("city_id", this.queryCodeByNameAndLevel(city, 2));
-            jsonObjectResult.putOpt("district_id", this.queryCodeByNameAndLevel(district, 3));
+        if (provinceId > 0 && StrUtil.isNotBlank(cityMatch)) {
+            List<SysArea> cities = sysAreaMapper.selectList(
+                    new LambdaQueryWrapper<SysArea>()
+                            .like(SysArea::getName, cityMatch)
+                            .eq(SysArea::getLevel, 2)
+                            .eq(SysArea::getPid, provinceId)
+                            .last("limit 1")
+            );
+            if (!cities.isEmpty()) {
+                SysArea city = cities.get(0);
+                cityId = city.getId();
+                cityName = city.getName();
+            }
         }
-        return jsonObjectResult;
+
+        if (cityId > 0 && provinceId > 0 && StrUtil.isNotBlank(districtMatch)) {
+            List<SysArea> districts = sysAreaMapper.selectList(
+                    new LambdaQueryWrapper<SysArea>()
+                            .like(SysArea::getName, districtMatch)
+                            .eq(SysArea::getLevel, 3)
+                            .eq(SysArea::getPid, cityId)
+                            .last("limit 1")
+            );
+            if (!districts.isEmpty()) {
+                SysArea district = districts.get(0);
+                districtId = district.getId();
+                districtName = district.getName();
+            }
+        }
+
+        JSONObject data = new JSONObject();
+        data.putOpt("province_id", provinceId);
+        data.putOpt("province", provinceName);
+        data.putOpt("city_id", cityId);
+        data.putOpt("city", cityName);
+        data.putOpt("district_id", districtId);
+        data.putOpt("district", districtName);
+        data.putOpt("community", community);
+        data.putOpt("full_address", result.getStr("address", ""));
+        data.putOpt("formatted_addresses", result.getJSONObject("formatted_addresses"));
+        return data;
     }
 
     /**
-     * @param areaName
-     * @param level
-     * @return
+     * 通过客户端 IP 获取经纬度（对齐 PHP AreaService::getLatlngByIp）
+     * 定位失败时的降级方案
+     *
+     * @return 经纬度对象，包含 lat、lng 字段
      */
-    private Integer queryCodeByNameAndLevel(String areaName, int level) {
-        if (StringUtils.isBlank(areaName)) {
-            return null;
+    @Override
+    public JSONObject getLatlngByIp() {
+        Integer siteId = RequestUtils.defaultSiteId();
+        String ip = RequestUtils.ip();
+
+        IMapService driver = coreMapService.getDriver(siteId);
+        JSONObject res = driver.ipToDetail(siteId, ip);
+
+        if (res == null || res.isEmpty()) {
+            throw new CommonException("获取IP定位失败");
         }
-        QueryWrapper<SysArea> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("id");
-        queryWrapper.eq("name", areaName);
-        queryWrapper.eq("level", level);
-        queryWrapper.last("limit 1");
-        SysArea sysArea = this.sysAreaMapper.selectOne(queryWrapper);
-        if (sysArea != null) {
-            return sysArea.getId();
+
+        Integer status = res.getInt("status");
+        if (status == null || status != 0) {
+            String message = res.getStr("message", "地图服务请求失败");
+            throw new CommonException("请检查地图配置：" + message);
         }
-        queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("id");
-        queryWrapper.like("name", areaName);
-        queryWrapper.eq("level", level);
-        queryWrapper.last("limit 1");
-        sysArea = this.sysAreaMapper.selectOne(queryWrapper);
-        if (sysArea != null) {
-            return sysArea.getId();
+
+        JSONObject result = res.getJSONObject("result");
+        JSONObject location = result != null ? result.getJSONObject("location") : null;
+
+        JSONObject data = new JSONObject();
+        if (location != null) {
+            data.set("lat", location.getStr("lat", ""));
+            data.set("lng", location.getStr("lng", ""));
+        } else {
+            data.set("lat", "");
+            data.set("lng", "");
         }
-        return null;
+        return data;
     }
 
 }

@@ -3,7 +3,7 @@ package com.niu.mall.service.site.goods.vo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.mall.enums.goods.GoodsImportStatusEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import lombok.Data;
 
 @Data

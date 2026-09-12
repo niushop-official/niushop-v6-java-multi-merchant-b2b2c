@@ -5,7 +5,6 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.enums.delivery.DeliveryTypeEnum;
-import io.swagger.models.auth.In;
 import jodd.util.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

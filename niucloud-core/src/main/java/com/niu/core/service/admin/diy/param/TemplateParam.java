@@ -24,4 +24,6 @@ public class TemplateParam implements Serializable {
     private String appType = "";
 
     private String addon = "";
+
+    private String page = "";
 }

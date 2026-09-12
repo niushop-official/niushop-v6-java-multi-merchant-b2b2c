@@ -80,7 +80,7 @@ public class ShopOrderExportDataListener extends ExportDataEventDefiner {
             }
 
             Object order_from = where.get("order_from");
-            if (ObjectUtil.isNotEmpty(order_from)) {
+            if (ObjectUtil.isNotEmpty(order_from) && !"all".equals(order_from.toString())) {
                 queryWrapper.eq("t.order_from", order_from);
             }
 
@@ -99,14 +99,14 @@ public class ShopOrderExportDataListener extends ExportDataEventDefiner {
                 QueryMapperUtils.buildByTime(queryWrapper, "p.pay_time", StringUtils.jsonArrayToStringArray(pay_time));
             }
             Object pay_type = where.get("pay_type");
-            if (ObjectUtil.isNotEmpty(pay_type)) {
+            if (ObjectUtil.isNotEmpty(pay_type) && !"all".equals(pay_type.toString())) {
                 queryWrapper.eq("p.type", pay_type);
             }
 
             Object delivery_type = where.get("delivery_type");
-            if (ObjectUtil.isNotEmpty(delivery_type)) queryWrapper.eq("t.delivery_type", delivery_type.toString());
+            if (ObjectUtil.isNotEmpty(delivery_type) && !"all".equals(delivery_type.toString())) queryWrapper.eq("t.delivery_type", delivery_type.toString());
             Object goods_source = where.get("goods_source");
-            if (ObjectUtil.isNotEmpty(goods_source)) {
+            if (ObjectUtil.isNotEmpty(goods_source) && !"all".equals(goods_source.toString())) {
                 if (goods_source.toString().equals("self_goods") || goods_source.toString().equals("0")) {
                     queryWrapper.eq("t.supply_order_id", 0);
                 } else {

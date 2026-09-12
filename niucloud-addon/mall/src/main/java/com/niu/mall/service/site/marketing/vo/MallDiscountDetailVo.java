@@ -1,7 +1,7 @@
 package com.niu.mall.service.site.marketing.vo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
-import com.niu.mall.entity.active.MallActiveGoods;
+import com.niu.core.entity.active.MallActiveGoods;
 import com.niu.mall.enums.active.ActiveGoodsTypeEnum;
 import com.niu.mall.enums.active.ActiveStatusEnum;
 import com.niu.mall.enums.active.ActiveTypeEnum;

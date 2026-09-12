@@ -29,11 +29,12 @@ public class CoreGoodsRankServiceImpl implements ICoreGoodsRankService {
         ShopGoodsRankConfigVo vo = JSONUtil.toBean(config.getValue(), ShopGoodsRankConfigVo.class);
         vo = Optional.ofNullable(vo).orElseGet(ShopGoodsRankConfigVo::new);
 
-        vo.setRankImages(Optional.ofNullable(vo.getRankImages()).orElse("addon/shop/rank/rank_images.jpg"));
+        vo.setRankImages(Optional.ofNullable(vo.getRankImages()).orElse("addon/mall/rank/rank_images.jpg"));
         vo.setNoColor(Optional.ofNullable(vo.getNoColor()).orElse("#FFFCF5"));
         vo.setSelectColor(Optional.ofNullable(vo.getSelectColor()).orElse("#FF4142"));
         vo.setSelectBgColorStart(Optional.ofNullable(vo.getSelectBgColorStart()).orElse("#FFFFFF"));
         vo.setSelectBgColorEnd(Optional.ofNullable(vo.getSelectBgColorEnd()).orElse("#FFEBD7"));
+        vo.setSearchStyleType(Optional.ofNullable(vo.getSearchStyleType()).orElse(1));
         return vo;
     }
 }

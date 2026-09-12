@@ -1,23 +1,29 @@
 package com.niu.core.controller.adminapi.goods;
 
 import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONObject;
+import com.niu.core.common.annotation.AdminLog;
 import com.niu.core.common.domain.Result;
+import com.niu.core.enums.trade.TradeTypeDict;
 import com.niu.core.service.admin.goods.IGoodsCategoryService;
 import com.niu.core.service.admin.goods.param.EditGoodsCategorySortParam;
 import com.niu.core.service.admin.goods.param.GoodsCategoryParam;
 import com.niu.core.service.admin.goods.param.GoodsCategorySearchParam;
 import com.niu.core.service.admin.goods.vo.GoodsCategoryInfoVo;
 import com.niu.core.service.admin.goods.vo.GoodsCategoryListVo;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import jakarta.annotation.Resource;
+
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品分类控制器
+ * 对齐 PHP goods.admin.Category
  */
-
+@Tag(name = "平台端商品分类")
 @RestController
 @RequestMapping("adminapi/basic/admin/goods")
 public class CategoryController {
@@ -27,31 +33,19 @@ public class CategoryController {
 
     /**
      * 商品分类树列表
-     *
-     * @return Result<List<ShopGoodsCategoryListVo>>
+     * 对齐 PHP: GET admin/goods/tree
      */
+    @Operation(summary = "获取分类树")
     @GetMapping("/tree")
-    public Result<JSONArray> tree() {
-        return Result.success(categoryService.tree());
-    }
-
-    /**
-     * 商品分类树列表
-     *
-     * @return Result<List<ShopGoodsCategoryListVo>>
-     */
-    @GetMapping("/components")
-    public Result<JSONArray> components() {
-        GoodsCategorySearchParam param = new GoodsCategorySearchParam();
-        param.setIsShow(10);
-        return Result.success(categoryService.tree(param));
+    public Result<JSONArray> tree(@Validated GoodsCategorySearchParam searchParam) {
+        return Result.success(categoryService.tree(searchParam));
     }
 
     /**
      * 商品分类列表
-     *
-     * @return Result<List<ShopGoodsCategoryListVo>>
+     * 对齐 PHP: GET admin/goods/category
      */
+    @Operation(summary = "查询分类列表")
     @GetMapping("/category")
     public Result<List<GoodsCategoryListVo>> list(@Validated GoodsCategorySearchParam searchParam) {
         List<GoodsCategoryListVo> list = categoryService.list(searchParam);
@@ -59,11 +53,30 @@ public class CategoryController {
     }
 
     /**
-     * 商品分类详情
-     *
-     * @param id 主键ID
-     * @return Result<ShopGoodsCategoryInfoVo>
+     * 获取商品分类树结构供弹框调用
+     * 对齐 PHP: GET admin/goods/category/components
      */
+    @Operation(summary = "获取组件分类树")
+    @GetMapping("/category/components")
+    public Result<JSONArray> components(@Validated GoodsCategorySearchParam searchParam) {
+        return Result.success(categoryService.components(searchParam));
+    }
+
+    /**
+     * 获取商品分类业务类型
+     * 对齐 PHP: GET admin/goods/category/trade_type
+     * 须放在 /category/{id} 之前
+     */
+    @Operation(summary = "获取分类业务类型")
+    @GetMapping("/category/trade_type")
+    public Result<Map<String, String>> getTradeType() {
+        return Result.success(TradeTypeDict.getTradeType("goods_category"));
+    }
+
+    /**
+     * 商品分类详情
+     */
+    @Operation(summary = "获取分类详情")
     @GetMapping("/category/{id}")
     public Result<GoodsCategoryInfoVo> info(@PathVariable("id") Integer id) {
         GoodsCategoryInfoVo info = categoryService.info(id);
@@ -72,10 +85,8 @@ public class CategoryController {
 
     /**
      * 商品分类添加
-     *
-     * @param addParam 添加参数
-     * @return AjaxResult<Object>
      */
+    @Operation(summary = "新增分类")
     @PostMapping("/category")
     public Result<Object> add(@Validated @RequestBody GoodsCategoryParam addParam) {
         categoryService.add(addParam);
@@ -84,10 +95,8 @@ public class CategoryController {
 
     /**
      * 商品分类编辑
-     *
-     * @param editParam 编辑参数
-     * @return Result<Object>
      */
+    @Operation(summary = "编辑分类")
     @PutMapping("/category/{id}")
     public Result<Object> edit(@PathVariable("id") Integer id, @Validated @RequestBody GoodsCategoryParam editParam) {
         categoryService.edit(id, editParam);
@@ -95,23 +104,29 @@ public class CategoryController {
     }
 
     /**
-     * 编辑商品分类
-     *
-     * @param editParam 编辑参数
-     * @return Result<Object>
+     * 拖拽编辑商品分类（对齐 PHP POST category/update）
      */
-    @PutMapping("/category/update")
+    @Operation(summary = "更新分类排序")
+    @PostMapping("/category/update")
     public Result<Object> update(@Validated @RequestBody EditGoodsCategorySortParam editParam) {
         categoryService.editGoodsCategorySort(editParam);
         return Result.success();
     }
 
     /**
-     * 商品分类删除
-     *
-     * @param id 参数
-     * @return Result<Object>
+     * 兼容旧 PUT 路径
      */
+    @Operation(summary = "更新分类排序")
+    @PutMapping("/category/update")
+    public Result<Object> updateByPut(@Validated @RequestBody EditGoodsCategorySortParam editParam) {
+        categoryService.editGoodsCategorySort(editParam);
+        return Result.success();
+    }
+
+    /**
+     * 商品分类删除
+     */
+    @Operation(summary = "删除分类")
     @DeleteMapping("/category/{id}")
     public Result<Object> del(@PathVariable("id") Integer id) {
         categoryService.del(id);

@@ -173,8 +173,8 @@ public class CoreExportServiceImpl implements ICoreExportService {
         exportDynamic.setFilePath(filePath);
         List<ExportHeads> headsList = new ArrayList<>(CollectionUtil.size(headColumn));
         List<String> keyList = new ArrayList<>(CollectionUtil.size(headColumn));
-        for (Object headObj : headColumn) {
-            JSONObject itemObject = (JSONObject) headObj;
+        List<JSONObject> headColumnList = headColumn.toList(JSONObject.class);
+        for (JSONObject itemObject : headColumnList) {
             String itemKey = itemObject.keySet().stream().iterator().next();
             JSONObject itemValue = itemObject.getJSONObject(itemKey);
             String titleHead = itemValue.getStr("name");

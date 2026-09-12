@@ -3,36 +3,27 @@ package com.niu.core.service.admin.site.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
-import com.niu.core.common.component.context.cache.Cached;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
-import com.niu.core.common.exception.AdminException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.config.GlobalConfig;
-import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.sys.SysRole;
-import com.niu.core.entity.sys.SysUser;
 import com.niu.core.entity.sys.SysUserRole;
 import com.niu.core.enums.member.StatusEnum;
-import com.niu.core.enums.sys.AppTypeEnum;
 import com.niu.core.mapper.sys.SysRoleMapper;
-import com.niu.core.mapper.sys.SysUserMapper;
 import com.niu.core.mapper.sys.SysUserRoleMapper;
-import com.niu.core.service.admin.auth.ILoginService;
 import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.site.ISiteUserService;
 import com.niu.core.service.admin.site.param.SiteUserParam;
 import com.niu.core.service.admin.site.param.SiteUserSearchParam;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.admin.site.vo.SiteUserVo;
-import com.niu.core.service.admin.sys.ISysUserRoleService;
-import com.niu.core.service.admin.sys.ISysUserService;
-import com.niu.core.service.admin.sys.param.SysUserParam;
-import com.niu.core.service.admin.sys.param.SysUserRoleParam;
+import com.niu.core.service.core.user.ICoreUserService;
+import com.niu.core.service.core.user.param.CoreUserEditParam;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,17 +38,9 @@ public class SiteUserServiceImpl implements ISiteUserService {
     @Resource
     SysRoleMapper sysRoleMapper;
     @Resource
-    ISysUserService sysUserService;
-    @Resource
-    ISysUserRoleService sysUserRoleService;
-    @Resource
-    SysUserMapper sysUserMapper;
+    ICoreUserService coreUserService;
     @Resource
     ISiteService siteService;
-    @Resource
-    ILoginService loginService;
-    @Resource
-    private Cached cached;
     /**
      * 用户管理员列表
      *
@@ -71,7 +54,7 @@ public class SiteUserServiceImpl implements ISiteUserService {
         Integer limit =pageParam.getLimit();
 
         MPJQueryWrapper<SysUserRole> userRoleMPJQueryWrapper = new MPJQueryWrapper<>();
-        userRoleMPJQueryWrapper.select("nsur.id, nsur.is_admin, nsu.status, nsur.site_id, nsur.role_ids, nsu.uid, nsu.username, nsu.head_img, nsu.real_name, nsu.last_ip, nsu.last_time, nsu.create_time, nsu.login_count")
+        userRoleMPJQueryWrapper.select("nsur.id, nsur.is_admin, nsu.status, nsur.site_id, nsur.role_ids, nsu.uid, nsu.username, nsu.head_img, nsu.real_name, nsu.last_ip, nsu.last_time, nsu.create_time, nsu.login_count, nsu.mobile")
                 .setAlias("nsur")
                 .leftJoin("?_sys_user nsu ON nsur.uid = nsu.uid".replace("?_", GlobalConfig.tablePrefix));
         if(ObjectUtil.isNotNull(searchParam.getUsername()) && ObjectUtil.isNotEmpty(searchParam.getUsername())){
@@ -110,7 +93,7 @@ public class SiteUserServiceImpl implements ISiteUserService {
     @Transactional
     @Override
     public void add(SiteUserParam siteUserParam) {
-        sysUserService.addSiteUser(siteUserParam, RequestUtils.siteId());
+        coreUserService.addSiteUser(siteUserParam, RequestUtils.siteId());
     }
 
     /**
@@ -121,14 +104,17 @@ public class SiteUserServiceImpl implements ISiteUserService {
      */
     @Override
     public SiteUserVo getInfo(Integer uid) {
-        MPJQueryWrapper<SysUserRole> userRoleMPJQueryWrapper = new MPJQueryWrapper<>();
-        userRoleMPJQueryWrapper.select("nsur.id, nsur.is_admin, nsur.status,nsur.site_id, nsur.role_ids, nsu.uid, nsu.username, nsu.head_img, nsu.real_name, nsu.last_ip, nsu.last_time, nsu.create_time, nsu.login_count")
-                .setAlias("nsur")
-                .leftJoin("?_sys_user nsu ON nsur.uid = nsu.uid".replace("?_", GlobalConfig.tablePrefix));
-        userRoleMPJQueryWrapper.eq("nsur.site_id", RequestUtils.siteId());
-        userRoleMPJQueryWrapper.eq("nsu.uid", uid);
-
-        SiteUserVo siteUserVo = sysUserRoleMapper.selectJoinOne(SiteUserVo.class, userRoleMPJQueryWrapper);
+        SiteUserVo siteUserVo = selectSiteUserVo(uid, RequestUtils.siteId());
+        // 超级管理员仅在平台站点(site_id=0)有角色，访问具体站点时需回退查询
+        if (siteUserVo == null && uid.equals(RequestUtils.uid())) {
+            siteUserVo = selectSiteUserVo(uid, RequestUtils.defaultSiteId());
+            if (siteUserVo != null) {
+                siteUserVo.setSiteId(RequestUtils.siteId());
+            }
+        }
+        if (siteUserVo == null) {
+            throw new CommonException("USER_NOT_EXIST");
+        }
         QueryWrapper<SysUserRole> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("uid",siteUserVo.getUid());
         queryWrapper.ne("site_id",0);
@@ -139,8 +125,10 @@ public class SiteUserServiceImpl implements ISiteUserService {
                 SiteUserVo.Roles roles = new SiteUserVo.Roles();
                 SiteInfoVo siteInfoVo = siteService.info(sysUserRole.getSiteId());
                 roles.setAppType(siteInfoVo.getAppType());
+                roles.setApp(siteInfoVo.getApp());
+                roles.setCreateTime(sysUserRole.getCreateTime());
                 roles.setExpireTime(siteInfoVo.getExpireTime());
-                roles.setIsAdmin(siteUserVo.getIsAdmin());
+                roles.setIsAdmin(sysUserRole.getIsAdmin());
                 roles.setSiteId(siteInfoVo.getSiteId());
                 roles.setSiteName(siteInfoVo.getSiteName());
                 roles.setSiteStatusName(siteInfoVo.getStatusName());
@@ -154,6 +142,16 @@ public class SiteUserServiceImpl implements ISiteUserService {
         return siteUserVo;
     }
 
+    private SiteUserVo selectSiteUserVo(Integer uid, Integer siteId) {
+        MPJQueryWrapper<SysUserRole> userRoleMPJQueryWrapper = new MPJQueryWrapper<>();
+        userRoleMPJQueryWrapper.select("nsur.id, nsur.is_admin, nsur.status,nsur.site_id, nsur.role_ids, nsu.uid, nsu.username, nsu.head_img, nsu.real_name, nsu.last_ip, nsu.last_time, nsu.create_time, nsu.login_count")
+                .setAlias("nsur")
+                .leftJoin("?_sys_user nsu ON nsur.uid = nsu.uid".replace("?_", GlobalConfig.tablePrefix));
+        userRoleMPJQueryWrapper.eq("nsur.site_id", siteId);
+        userRoleMPJQueryWrapper.eq("nsur.uid", uid);
+        return sysUserRoleMapper.selectJoinOne(SiteUserVo.class, userRoleMPJQueryWrapper);
+    }
+
     /**
      * 编辑用户信息
      *
@@ -163,35 +161,25 @@ public class SiteUserServiceImpl implements ISiteUserService {
     @Transactional
     @Override
     public void edit(Integer uid, SiteUserParam siteUserParam) {
-        try{
-            QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("uid", uid).select("uid");
-            SysUser sysUser = sysUserMapper.selectOne(queryWrapper);
-            if (ObjectUtil.isNull(sysUser)) {
-                throw new AdminException("用户信息不存在");
-            }
+        coreUserService.editSiteUser(uid, siteUserParam, RequestUtils.siteId());
+    }
 
-            SysUserParam sysUserParam=new SysUserParam();
-            sysUserParam.setHeadImg(siteUserParam.getHeadImg());
-            if(ObjectUtil.isNotEmpty(siteUserParam.getPassword())){
-                sysUserParam.setPassword(siteUserParam.getPassword());
-            }
-            sysUserParam.setUsername(siteUserParam.getUsername());
-            sysUserParam.setStatus(siteUserParam.getStatus());
-            sysUserParam.setRealName(siteUserParam.getRealName());
-            sysUserParam.setMobile(siteUserParam.getMobile());
-            sysUserService.edit(uid, sysUserParam);
-            //创建用户站点管理权限
-            List<String> roleIds=siteUserParam.getRoleIds();
-            SysUserRoleParam sysUserRoleParam=new SysUserRoleParam();
-            sysUserRoleParam.setSiteId(RequestUtils.siteId());
-            sysUserRoleParam.setRoleIds(JSONUtil.toJsonStr(roleIds));
-            sysUserRoleParam.setUid(uid);
-            sysUserRoleParam.setStatus(siteUserParam.getStatus());
-            sysUserRoleService.edit(sysUserRoleParam);
-        }catch (Exception e){
-            throw new AdminException(e.getMessage());
+    /**
+     * 修改字段
+     * @param uid
+     * @param field
+     * @param value
+     */
+    @Override
+    public void modify(Integer uid, String field, String value) {
+        CoreUserEditParam editParam = new CoreUserEditParam();
+        switch (field) {
+            case "password" -> editParam.setPassword(value);
+            case "real_name" -> editParam.setRealName(value);
+            case "head_img" -> editParam.setHeadImg(value);
+            default -> throw new CommonException("INVALID_FIELD");
         }
+        coreUserService.edit(uid, editParam);
     }
 
     /**
@@ -201,14 +189,7 @@ public class SiteUserServiceImpl implements ISiteUserService {
      */
     @Override
     public void lock(Integer uid) {
-        //修改用户权限
-        UpdateWrapper<SysUserRole> queryWrapper = new UpdateWrapper<SysUserRole>();
-        queryWrapper.eq("uid", uid).eq("site_id", RequestUtils.siteId())
-                .set("status", StatusEnum.OFF.getStatus());
-        sysUserRoleMapper.update(queryWrapper);
-        loginService.clearToken(uid, AppTypeEnum.SITE.getName(), null);
-        cached.remove("user_role_list_" + uid);
-        cached.remove("user_role_" + uid+"_"+RequestUtils.siteId());
+        coreUserService.statusChange(uid, StatusEnum.OFF.getStatus(), RequestUtils.siteId());
     }
 
     /**
@@ -218,13 +199,6 @@ public class SiteUserServiceImpl implements ISiteUserService {
      */
     @Override
     public void unlock(Integer uid) {
-        //修改用户权限
-        UpdateWrapper<SysUserRole> queryWrapper = new UpdateWrapper<SysUserRole>();
-        queryWrapper.eq("uid", uid).eq("site_id", RequestUtils.siteId())
-                .set("status", StatusEnum.ON.getStatus());
-        sysUserRoleMapper.selectList(queryWrapper);
-        loginService.clearToken(uid, AppTypeEnum.SITE.getName(), null);
-        cached.remove("user_role_list_" + uid);
-        cached.remove("user_role_" + uid+"_"+RequestUtils.siteId());
+        coreUserService.statusChange(uid, StatusEnum.ON.getStatus(), RequestUtils.siteId());
     }
 }

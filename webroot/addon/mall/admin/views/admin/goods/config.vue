@@ -31,7 +31,7 @@
 <script lang="ts" setup>
 import { ref, reactive } from 'vue'
 import { t } from '@/lang'
-import { getConfig, setConfig } from '@/addon/mall/api/admin/goods'
+import { getConfig, setConfig } from '@/app/lang/zh-cn/api/admin/goods'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()

@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.mall.enums.order.OrderLogEnum;
 import com.niu.mall.service.api.order.IOrderCreateService;
-import com.niu.mall.service.core.marketing.vo.MallMemberCouponListVo;
+import com.niu.core.service.core.marketing.vo.MallMemberCouponListVo;
 import com.niu.mall.service.core.order.ICoreMallOrderCreateService;
 import com.niu.mall.service.core.order.param.MallOrderCalculateParam;
 import com.niu.mall.service.core.order.param.MallOrderCreateParam;
@@ -60,6 +60,14 @@ public class OrderCreateServiceImpl implements IOrderCreateService {
     @Override
     public List<MallMemberCouponListVo> getPlatformCoupon(Map<String, Object> request) {
         MallOrderCalculateParam param = parseCalculateParam(request);
+        return getPlatformCoupon(param);
+    }
+
+    @Override
+    public List<MallMemberCouponListVo> getPlatformCoupon(MallOrderCalculateParam param) {
+        if (param == null) {
+            param = new MallOrderCalculateParam();
+        }
         param.setMemberId(RequestUtils.memberId());
         param.setOrderFrom(RequestUtils.channel());
         return coreOrderCreateService.getPlatformCoupon(param);

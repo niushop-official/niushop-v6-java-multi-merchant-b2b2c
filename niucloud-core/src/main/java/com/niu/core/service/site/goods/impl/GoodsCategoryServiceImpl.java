@@ -2,7 +2,6 @@ package com.niu.core.service.site.goods.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
@@ -10,7 +9,9 @@ import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.TreeUtils;
 import com.niu.core.common.utils.json.JacksonUtils;
 import com.niu.core.entity.goods.GoodsCategory;
+import com.niu.core.entity.site.Site;
 import com.niu.core.mapper.goods.GoodsCategoryMapper;
+import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.site.goods.IGoodsCategoryService;
 import com.niu.core.service.site.goods.param.EditGoodsCategorySortParam;
 import com.niu.core.service.site.goods.param.GoodsCategoryParam;
@@ -21,9 +22,9 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -37,6 +38,9 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
     @Resource
     GoodsCategoryMapper goodsCategoryMapper;
 
+    @Resource
+    SiteMapper siteMapper;
+
 
     /**
      * 商品分类列表
@@ -49,6 +53,7 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
         if (ObjectUtil.isNotEmpty(searchParam.getCategoryName()))
             queryWrapper.like("category_name", searchParam.getCategoryName());
         if (ObjectUtil.isNotEmpty(searchParam.getLevel())) queryWrapper.eq("level", searchParam.getLevel());
+        if (ObjectUtil.isNotEmpty(searchParam.getAddon())) queryWrapper.eq("addon", searchParam.getAddon());
         queryWrapper.orderByDesc(Arrays.asList("sort", "category_id"));
 
         List<GoodsCategory> records = goodsCategoryMapper.selectList(queryWrapper);
@@ -63,62 +68,39 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
 
     /**
      * 获取商品分类树
-     *
-     * @return
+     * 对齐 PHP: CategoryService::getTree()
      */
+    @Override
     public JSONArray tree() {
-        List<GoodsCategory> list = goodsCategoryMapper.selectList(new QueryWrapper<GoodsCategory>().eq("site_id", RequestUtils.siteId()));
-        if (list == null) return null;
-
-        JSONArray jsonArray = JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(list));
-        return removeNodesByIsShow(TreeUtils.listToTree(jsonArray, "category_id", "pid", "child_list"));
-    }
-
-    /**
-     * 移除 JSONArray 中所有 is_show != 1 的节点及其子节点
-     *
-     * @param array 原始 JSONArray
-     * @return 过滤后的 JSONArray（直接修改原数组并返回）
-     */
-    public static JSONArray removeNodesByIsShow(JSONArray array) {
-        if (array == null || array.isEmpty()) {
-            return array;
-        }
-
-        Iterator<Object> iterator = array.iterator();
-        while (iterator.hasNext()) {
-            Object obj = iterator.next();
-            if (!(obj instanceof JSONObject)) {
-                continue;
-            }
-            JSONObject node = (JSONObject) obj;
-            // 判断当前节点是否需要移除
-            Integer isShow = node.getInt("is_show");
-            if (isShow != null && isShow != 1) {
-                iterator.remove(); // 移除当前节点
-                continue;
-            }
-            // 递归处理子节点
-            JSONArray childList = node.getJSONArray("child_list");
-            if (childList != null && !childList.isEmpty()) {
-                removeNodesByIsShow(childList);
-                // 如果子节点列表过滤后为空，可决定是否保留（此处保留空数组）
-            }
-        }
-        return array;
+        return tree(new GoodsCategorySearchParam());
     }
 
     /**
      * 获取商品分类树
-     *
-     * @return
+     * 对齐 PHP: CategoryService::getTree() / getTreeComponents()
+     * tree：仅 site_id + 可选 addon，不过滤 is_show
+     * components：额外传入 is_show=1
      */
+    @Override
     public JSONArray tree(GoodsCategorySearchParam searchParam) {
-        QueryWrapper queryWrapper = new QueryWrapper<GoodsCategory>().eq("site_id", RequestUtils.siteId());
-        if (ObjectUtil.isNotNull(searchParam.getIsShow())) queryWrapper.eq("is_show", searchParam.getIsShow());
+        if (searchParam == null) {
+            searchParam = new GoodsCategorySearchParam();
+        }
+        QueryWrapper<GoodsCategory> queryWrapper = new QueryWrapper<GoodsCategory>()
+                .select("category_id", "category_name", "image", "level", "pid", "category_full_name", "is_show", "sort")
+                .eq("site_id", RequestUtils.siteId());
+        if (ObjectUtil.isNotNull(searchParam.getIsShow())) {
+            queryWrapper.eq("is_show", searchParam.getIsShow());
+        }
+        //平台类目查询
+        if (ObjectUtil.isNotEmpty(searchParam.getAddon())) {
+            queryWrapper.eq("addon", searchParam.getAddon());
+        }
+        queryWrapper.orderByDesc("sort").orderByDesc("create_time");
         List<GoodsCategory> list = goodsCategoryMapper.selectList(queryWrapper);
-        if (list == null) return null;
-
+        if (list == null) {
+            return null;
+        }
         JSONArray jsonArray = JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(list));
         return TreeUtils.listToTree(jsonArray, "category_id", "pid", "child_list");
     }
@@ -170,6 +152,7 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
         GoodsCategory model = new GoodsCategory();
         BeanUtils.copyProperties(addParam, model);
         model.setSiteId(RequestUtils.siteId());
+        model.setAddon(resolveAddon(addParam.getAddon()));
         model.setCreateTime(System.currentTimeMillis() / 1000);
         if (addParam.getPid() > 0) {
             GoodsCategory parentCategory = goodsCategoryMapper.selectOne(new QueryWrapper<GoodsCategory>()
@@ -217,6 +200,7 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
 
         BeanUtils.copyProperties(editParam, model);
         model.setSiteId(RequestUtils.siteId());
+        model.setAddon(resolveAddon(editParam.getAddon()));
         model.setUpdateTime(System.currentTimeMillis() / 1000);
 
         if (editParam.getPid() > 0) {
@@ -262,6 +246,25 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
         if (count > 0) throw new CommonException("当前分类下存在商品，不可删除");*/
 
         goodsCategoryMapper.delete(new QueryWrapper<GoodsCategory>().eq("category_id", id).or().eq("pid", id));
+    }
+
+    /**
+     * 有 addon 参数则直接使用；否则取商户站点 app 中的支持类型（首个）
+     */
+    private String resolveAddon(String addon) {
+        if (StringUtils.hasText(addon)) {
+            return addon;
+        }
+        Site site = siteMapper.selectById(RequestUtils.siteId());
+        if (site == null || !StringUtils.hasText(site.getApp())) {
+            return "";
+        }
+        try {
+            JSONArray appArray = JSONUtil.parseArray(site.getApp());
+            return appArray.isEmpty() ? "" : appArray.getStr(0);
+        } catch (Exception ignored) {
+            return "";
+        }
     }
 
 }

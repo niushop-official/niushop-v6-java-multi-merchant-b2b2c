@@ -57,6 +57,9 @@ public class DeliveryPackageInfoVo implements Serializable {
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long createTime;
 
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long deliveryTime;
+
     /**
      * 快递公司ID（用于内部处理）
      */

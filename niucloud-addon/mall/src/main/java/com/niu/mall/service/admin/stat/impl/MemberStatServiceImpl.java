@@ -431,8 +431,9 @@ public class MemberStatServiceImpl implements IMemberStatService {
     public Map<String, BigDecimal> getNewPaidMemberCount(List<Long> timeRange, boolean group) {
         // 1. 查询支付成功的会员ID（关联会员表，过滤未删除）
         LambdaQueryWrapper<Pay> payWrapper = new LambdaQueryWrapper<>();
-        payWrapper.eq(Pay::getStatus, PayStatusEnum.STATUS_FINISH.getCode())
-                .inSql(Pay::getMainId, "SELECT member_id FROM ?_member WHERE is_del = 0".replace("?_", GlobalConfig.tablePrefix)) // 确保会员存在且未删除
+        payWrapper.select(Pay::getMainId)
+                .eq(Pay::getStatus, PayStatusEnum.STATUS_FINISH.getCode())
+                .inSql(Pay::getMainId, "SELECT member_id FROM ?_member WHERE is_del = 0".replace("?_", GlobalConfig.tablePrefix))
                 .groupBy(Pay::getMainId);
         List<Integer> memberIds = payMapper.selectList(payWrapper).stream()
                 .map(Pay::getMainId)

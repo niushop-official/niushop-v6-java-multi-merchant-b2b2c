@@ -84,7 +84,7 @@ public class SeparServiceImpl implements ISeparService {
     public List<SeparDetailVo> detail(Integer id) {
         List<SeparAccountDetail> records = separAccountDetailMapper.selectList(
         new QueryWrapper<SeparAccountDetail>()
-        .eq("separ_id", id));
+        .eq("separ_id", id).eq("separ_id", id));
 
         List<SeparDetailVo> list = new LinkedList<>();
         for (SeparAccountDetail item : records) {

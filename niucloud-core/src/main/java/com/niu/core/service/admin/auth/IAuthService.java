@@ -3,8 +3,7 @@ package com.niu.core.service.admin.auth;
 import cn.hutool.json.JSONArray;
 import com.niu.core.service.admin.auth.param.EditAuthUserParam;
 import com.niu.core.service.admin.auth.param.EditManagerPwdParam;
-import com.niu.core.service.admin.auth.vo.AuthUserInfoVo;
-
+import com.niu.core.service.admin.site.vo.SiteUserVo;
 import com.niu.core.service.admin.sys.vo.SysUserRoleInfoVo;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -73,9 +72,13 @@ public interface IAuthService {
 
     /**
      * 获取授权用户信息
-     * @return
      */
-    AuthUserInfoVo getAuthUserInfo();
+    SiteUserVo getAuthUserInfo();
+
+    /**
+     * 修改登录用户单个字段
+     */
+    void modifyAuth(String field, String value);
 
     /**
      * 更新用户

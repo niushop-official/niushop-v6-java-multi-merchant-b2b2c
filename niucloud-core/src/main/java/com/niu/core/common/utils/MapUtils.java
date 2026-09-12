@@ -37,8 +37,9 @@ public class MapUtils {
     public static void main(String[] args) {
 
         JSONObject requestBody= new JSONObject();
-        requestBody.set("shopId",12);
-        requestBody.set("secondLevelCategoryName","数码");
+        requestBody.set("shopId",8);
+        requestBody.set("onlyOngoingActivity",false);
+        //requestBody.set("secondLevelCategoryName","文");
         String bodyJson = toSortedJson(requestBody); // 验签前先做递归排序规范化
         long timestamp = System.currentTimeMillis();
         String signStr = APP_ID + "\n" + timestamp + "\n" + bodyJson;

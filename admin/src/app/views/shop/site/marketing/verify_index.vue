@@ -73,12 +73,12 @@
                                     </div>
                                     <div class="flex flex-col">
                                         <p class="multi-hidden text-[14px]">{{ row.name }}</p>
-                                        <div class="text-primary">{{ row.un_use_msg }}</div>
+                                        <div class="text-[#FF4142]">{{ row.un_use_msg }}</div>
                                     </div>
                                 </div>
                             </template>
                         </el-table-column>
-                        <el-table-column prop="num" :label="t('数量')" min-width="80" align="right" />
+                        <el-table-column prop="verify_num" :label="t('数量')" min-width="80" align="right" />
                     </el-table>
                 </div>
             </div>

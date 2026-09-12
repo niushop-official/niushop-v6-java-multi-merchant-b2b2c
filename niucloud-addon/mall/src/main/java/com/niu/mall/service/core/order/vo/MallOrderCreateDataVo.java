@@ -1,5 +1,6 @@
 package com.niu.mall.service.core.order.vo;
 
+import cn.hutool.json.JSONObject;
 import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
 import com.niu.mall.service.core.order.param.OrderHelperParam;
 import lombok.Data;
@@ -78,6 +79,7 @@ public class MallOrderCreateDataVo implements Serializable {
         protected BigDecimal fullReductionMoney = new BigDecimal(0);
         protected List<Integer> fullGiftSkuIds = new ArrayList<>();
         protected List<Map<String, Object>> giftGoodsList = new ArrayList<>();
+        protected JSONObject extendData;
     }
 
     @Data

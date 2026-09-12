@@ -42,7 +42,14 @@ public class SysMenuController {
      */
     @GetMapping("/menu/{appType}")
     public Result<JSONArray> list(@Validated @PathVariable("appType") String appType) {
-        return Result.success(sysMenuService.getAllMenuList(appType, 100));
+        Integer currentSiteId = RequestUtils.siteId();
+        try {
+            // 菜单管理页始终读取平台菜单定义，避免受后台当前选中店铺影响
+            RequestUtils.setSiteId(RequestUtils.defaultSiteId());
+            return Result.success(sysMenuService.getAllMenuList(appType, 100));
+        } finally {
+            RequestUtils.setSiteId(currentSiteId);
+        }
     }
 
     /**

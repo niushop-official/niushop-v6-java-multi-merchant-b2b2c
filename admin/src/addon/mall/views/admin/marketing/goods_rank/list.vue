@@ -8,9 +8,9 @@
 
             <!-- 搜索 -->
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="tableData.searchParam" ref="searchFormRef">
+                <el-form label-width="70px" :inline="true" :model="tableData.searchParam" ref="searchFormRef" class="page-form">
                 <el-form-item :label="t('rankName')" prop="rankName">
-                    <el-input v-model.trim="tableData.searchParam.name" :placeholder="t('rankNamePlaceholder')" />
+                    <el-input v-model.trim="tableData.searchParam.name" :placeholder="t('rankNamePlaceholder')" class="search-input" clearable />
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="loadRankList()">{{ t("search") }}</el-button>
@@ -37,7 +37,7 @@
                     <el-table-column prop="rank_type_name" :label="t('rankType')" min-width="130" />
                     <el-table-column prop="status" :label="t('isShow')" width="130">
                         <template #default="{ row }">
-                            <el-tag class="cursor-pointer" :type="row.status != 0 ? 'success' : 'danger'" @click="showClick(row)">{{ row.status != 0 ? '开启' : '关闭' }}</el-tag>
+                            <el-switch v-model="row.status" :active-value="1" :inactive-value="0" inline-prompt active-text="开启" inactive-text="关闭" @change="(value) => showClick(row, value)" />
                         </template>
                     </el-table-column>
                     <el-table-column prop="sort" min-width="120" :show-overflow-tooltip="true" sortable="custom">
@@ -80,7 +80,7 @@
 import { ref, reactive } from 'vue'
 import { t } from '@/lang'
 import { useRoute, useRouter } from 'vue-router'
-import { getRankPageList, deleteGoodRank, batchDelete, modifyGoodsRankSort, editRankStatus } from '@/addon/mall/api/admin/marketing'
+import { getRankPageList, deleteGoodRank, batchDelete, modifyGoodsRankSort, editRankStatus } from '@/app/lang/zh-cn/api/admin/marketing'
 import { FormInstance, ElMessage, ElMessageBox } from 'element-plus'
 import { debounce, setTablePageStorage, getTablePageStorage } from '@/utils/common'
 
@@ -141,13 +141,13 @@ const editEvent = (data: any) => {
     router.push('/mall/marketing/goods_rank/edit?rank_id=' + data.rank_id)
 }
 
-const showClick = (row: any) => {
-    row.status = row.status === 1 ? 0 : 1
-    const obj = {
+const showClick = (row: any, value: number) => {
+    editRankStatus({
         rank_id: row.rank_id,
-        status: row.status
-    }
-    editRankStatus(obj)
+        status: value
+    }).catch(() => {
+        row.status = value == 1 ? 0 : 1
+    })
 }
 
 // 删除

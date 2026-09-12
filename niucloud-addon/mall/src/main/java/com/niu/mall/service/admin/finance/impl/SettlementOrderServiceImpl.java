@@ -75,7 +75,7 @@ public class SettlementOrderServiceImpl implements SettlementOrderService {
         // 店铺待结总金额
         Object shopWaitSettlementMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(shop_money)")
+                        .select("IFNULL(SUM(shop_money),0)")
                         .notIn("status", OrderStatusEnum.WAIT_PAY.getStatus(), OrderStatusEnum.FINISH.getStatus(), OrderStatusEnum.CLOSE.getStatus())
         ).stream().findFirst().orElse(null);
         BigDecimal shopWaitSettlementMoney = toBigDecimal(shopWaitSettlementMoneyObj);
@@ -83,7 +83,7 @@ public class SettlementOrderServiceImpl implements SettlementOrderService {
         // 平台待结算金额
         Object mallWaitSettlementMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(mall_money)")
+                        .select("IFNULL(SUM(mall_money),0)")
                         .notIn("status", OrderStatusEnum.WAIT_PAY.getStatus(), OrderStatusEnum.FINISH.getStatus(), OrderStatusEnum.CLOSE.getStatus())
         ).stream().findFirst().orElse(null);
         BigDecimal mallWaitSettlementMoney = toBigDecimal(mallWaitSettlementMoneyObj);
@@ -91,28 +91,28 @@ public class SettlementOrderServiceImpl implements SettlementOrderService {
         // 已结算金额
         Object shopMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(shop_money)")
+                        .select("IFNULL(SUM(shop_money),0)")
                         .eq("status", OrderStatusEnum.FINISH.getStatus())
         ).stream().findFirst().orElse(null);
         BigDecimal shopMoney = toBigDecimal(shopMoneyObj);
 
         Object shopRefundMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(shop_refund_money)")
+                        .select("IFNULL(SUM(shop_refund_money),0)")
                         .eq("status", OrderStatusEnum.FINISH.getStatus())
         ).stream().findFirst().orElse(null);
         BigDecimal shopRefundMoney = toBigDecimal(shopRefundMoneyObj);
 
         Object mallCouponMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(mall_coupon_money)")
+                        .select("IFNULL(SUM(mall_coupon_money),0)")
                         .eq("status", OrderStatusEnum.FINISH.getStatus())
         ).stream().findFirst().orElse(null);
         BigDecimal mallCouponMoney = toBigDecimal(mallCouponMoneyObj);
 
         Object mallRefundCouponMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(mall_refund_coupon_money)")
+                        .select("IFNULL(SUM(mall_refund_coupon_money),0)")
                         .eq("status", OrderStatusEnum.FINISH.getStatus())
         ).stream().findFirst().orElse(null);
         BigDecimal mallRefundCouponMoney = toBigDecimal(mallRefundCouponMoneyObj);
@@ -120,7 +120,7 @@ public class SettlementOrderServiceImpl implements SettlementOrderService {
         // 平台已结算总金额
         Object mallSettlementMoneyObj = mallOrderMapper.selectObjs(
                 new MPJQueryWrapper<MallOrder>()
-                        .select("SUM(mall_money)")
+                        .select("IFNULL(SUM(mall_money),0)")
                         .eq("status", OrderStatusEnum.FINISH.getStatus())
         ).stream().findFirst().orElse(null);
         BigDecimal mallSettlementMoney = toBigDecimal(mallSettlementMoneyObj);

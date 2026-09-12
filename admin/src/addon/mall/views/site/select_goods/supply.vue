@@ -10,7 +10,7 @@
                 <div class="flex flex-col justify-between">
                    <div class="flex items-center leading-[22px] mb-[16px]">
                         <span class="text-[18px] max-w-[300px] truncate oppoSans-M">{{ shopInfo.site_name }}</span>
-                        <span class="text-[12px] text-[var(--price-color)] ml-[6px]" v-if="shopInfo.shop && shopInfo.shop.supply_follow_num">{{ shopInfo.shop.supply_follow_num }}家店铺合作</span>
+                        <span class="text-[12px] text-[var(--price-color)] ml-[6px]" v-if="shopInfo.supply_follow_num">{{ shopInfo.supply_follow_num }}家店铺合作</span>
                    </div>
                     <div class="text-[14px] text-[#333] mb-[30px] multi-hidden max-w-[900px] leading-[16px]" v-if="shopInfo.desc">{{ shopInfo.desc }}</div>
                     <div class="flex items-center" v-if="shopInfo.service_list && shopInfo.service_list.length">
@@ -91,7 +91,7 @@ import { t } from '@/lang'
 import { img, moneyFormat } from '@/utils/common'
 import { cloneDeep } from 'lodash-es'
 import { useRouter, useRoute } from 'vue-router'
-import { getShopInfo, getGoodsList } from '@/addon/mall/api/site/select_goods'
+import { getSupplyDetail, getGoodsList } from '@/app/lang/zh-cn/api/site/select_goods.js'
 import goodsAddPopup from './components/goods-add-popup.vue'
 import supplyBatchPopup from './components/supply-batch-popup.vue'
 import { ElMessage } from 'element-plus'
@@ -102,7 +102,7 @@ const siteId: any = route.query.site_id
 const shopInfo = ref<any>({})
 
 const getShopInfoFn = () => {
-    getShopInfo(siteId).then((res: any) => {
+    getSupplyDetail(siteId).then((res: any) => {
         shopInfo.value = res.data
     })
 }

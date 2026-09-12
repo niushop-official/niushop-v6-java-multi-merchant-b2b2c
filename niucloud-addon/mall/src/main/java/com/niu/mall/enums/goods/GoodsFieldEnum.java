@@ -29,11 +29,18 @@ public enum GoodsFieldEnum {
             "max_buy",
             "min_buy",
             "attr_ids",
-            "shop_attr_ids"
+            "shop_attr_ids",
+            "virtual_auto_delivery",
+            "virtual_receive_type",
+            "virtual_verify_type",
+            "virtual_indate",
+            "virtual_verify_mobile",
+            "form_id"
     }),
     DISABLE_EDIT_AREA(new String[]{
             "goods_spec_format" //商品规格项
     }),
+    /** 供货商开启同步时可覆盖的字段 */
     ENABLE_SYNC_FIELD(new String[]{
             "goods_name",
             "sub_title",

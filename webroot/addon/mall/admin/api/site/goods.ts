@@ -209,6 +209,16 @@ export function editGoodsListMemberPrice(params: Record<string, any>) {
     return request.put(`mall/site/goods/sku/member_price`, params, { showSuccessMessage: true })
 }
 
+
+/**
+ * 编辑商品SKU规格付费会员价格
+ * @param params
+ * @returns
+ */
+export function editGoodsListVipcardPrice(params: Record<string, any>) {
+    return request.put(`mall/site/goods/sku/vip_card_price`, params, { showSuccessMessage: true })
+}
+
 /**
  * 获取商品类型
  * @returns
@@ -231,14 +241,6 @@ export function getGoodsStatus() {
  */
 export function getGoodsStatusType() {
     return request.get(`mall/site/goods/status_type`);
-}
-/**
- * 获取商品标签列表
- * @param params
- * @returns
- */
-export function getLabelList(params: Record<string, any>) {
-    return request.get(`mall/site/goods/label/list`, { params })
 }
 
 /**

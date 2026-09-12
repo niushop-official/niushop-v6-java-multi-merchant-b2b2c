@@ -3,35 +3,34 @@
     <div class="flex items-center h-full px-[10px] w-full box-border">
         <div class="left-panel h-full flex items-center w-[226px]">
             <el-header class="logo-wrap flex items-center justify-center ">
-                <div class="logo flex items-center m-auto " v-if="!systemStore.menuIsCollapse">
+                <div class="logo flex items-center m-auto " >
                     <el-image style="width: 30px; height: 30px" class="rounded-[6px]" :src="img(logoUrl ? logoUrl : '' )" fit="contain">
                         <template #error>
                             <div class="flex justify-center items-center w-full h-[30px] rounded-[6px]"><img class="max-w-[30px]" src="@/app/assets/images/icon-addon.png" alt=""  object-fit="contain"></div>
                         </template>
                     </el-image>
                 </div>
-                <div class="logo flex items-center justify-center" v-else>
-                    <i class="text-3xl iconfont iconyunkongjian"></i>
-                </div>
                 <!-- 店铺名称 -->
-                <div class="ml-[10px] text-[#fff] max-w-[150px] using-hidden">{{siteInfo.site_name}}</div>
+                <div class="ml-[10px] text-[#fff] max-w-[150px] using-hidden">{{ siteInfo.site_name }}</div>
             </el-header>
         </div>
         <div class="flex items-center gap-[8px] h-[var(--layout-header-height)] text-[var(--layout-header-text-color)]">
+            <!-- 侧边栏收缩/展开 -->
+            <div class="flex items-center cursor-pointer px-[8px] text-[var(--layout-header-text-color)]" @click="toggleMenuCollapse">
+                <icon :name="systemStore.menuIsCollapse ? 'element Expand' : 'element Fold'" class="text-[16px]" />
+            </div>
             <template v-for="(item, index) in oneMenuData" :key="index">
                 <div v-if="item.meta.show" class="flex items-center cursor-pointer"
                     @click="handleTabClick(item.name)">
-                    <span class="px-[14px] truncate text-[14px] text-[#d7dee8] h-[32px] leading-[32px] rounded-[4px] hover:bg-[var(--layout-header-text-hover)]"
-                        :class="{ '!text-[#fff] font-bold': oneMenuActive === item.original_name }">
-                        {{item.meta.short_title || item.meta.title }}</span>
+                    <span class="px-[14px] truncate text-[14px] text-[#d7dee8] h-[32px] leading-[32px] rounded-[4px] hover:bg-[var(--layout-header-text-hover)]" :class="{ '!text-[#fff] font-bold': oneMenuActive === item.original_name }">{{item.meta.short_title || item.meta.title }}</span>
                 </div>
             </template>
         </div>
         <div class="ml-auto right-panel h-full flex items-center justify-end">
             <!-- 店铺套餐 -->
             <div class="mx-[10px] text-[14px] bg-[#E6F1FE] rounded-[8px] px-[6px] py-[8px] leading-[1] flex items-center cursor-pointer" v-if="appType == 'site'" @click="changeBusinessStatus()">
-                <span class="nc-iconfont nc-icon-dianpu text-[#2878FF] text-[15px] mr-[5px]"></span>
-                <span class="text-[#2878FF]" v-if="siteInfo.business_status">营业中</span>
+                <span class="nc-iconfont nc-icon-qiehuan text-[#2878FF] text-[15px] mr-[5px]"></span>
+                <span class="text-[#2878FF]" v-if="siteInfo.business_state">营业中</span>
                 <span class="text-[#2878FF]" v-else>暂停营业</span>
             </div>
             <!-- 商家手机管理端 -->
@@ -87,7 +86,7 @@ import useAppStore from '@/stores/modules/app'
 import useUserStore from '@/stores/modules/user'
 import { useRoute, useRouter } from 'vue-router'
 import { findFirstValidRoute } from '@/router/routers'
-import { updateBusinessStatus } from '@/app/api/shop_site'
+import { updateBusinessStatus } from '@/app/api/site'
 import { t } from '@/lang'
 import { img, copy } from '@/utils/common'
 import storage from '@/utils/storage'
@@ -190,7 +189,7 @@ const loadQrcode = () => {
 loadQrcode()
 const changeBusinessStatus = () => {
     const data = {
-        business_status: siteInfo.value.business_status ? 0 : 1
+        business_status: siteInfo.value.business_state ? 0 : 1
     }
     updateBusinessStatus(data).then((res: any) => {
         useUserStore().getSiteInfo()
@@ -198,10 +197,25 @@ const changeBusinessStatus = () => {
     })
 }
 
-// 返回上一页
-// const backFn = () => {
-//     router.go(-1)
-// }
+watch(screenWidth, () => {
+    if (screenWidth.value < 992) {
+        if (!systemStore.menuIsCollapse) systemStore.toggleMenuCollapse(true)
+    } else {
+        if (systemStore.menuIsCollapse) systemStore.toggleMenuCollapse(false)
+    }
+})
+
+// 菜单栏展开折叠
+const toggleMenuCollapse = () => {
+    systemStore.$patch((state) => {
+        if (screenWidth.value < 768) {
+            state.menuDrawer = true
+            state.menuIsCollapse = false
+        } else {
+            systemStore.toggleMenuCollapse(!systemStore.menuIsCollapse)
+        }
+    })
+}
 </script>
 <style>
 :root,

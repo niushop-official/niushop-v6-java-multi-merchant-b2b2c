@@ -6,5 +6,7 @@
       ["充值时间","{time}","time1"],
       ["充值金额","{price}","amount3"]
     ]
-  }
+  },
+  "vip_card_open_success": {},
+  "vip_card_buy_expire_remind": {}
 }

@@ -25,6 +25,7 @@ import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderRefund;
+import com.niu.mall.common.MallCircleFilter;
 import com.niu.mall.entity.order.MallOrderRefundLog;
 import com.niu.mall.enums.order.*;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
@@ -106,6 +107,9 @@ public class RefundActionServiceImpl implements IRefundActionService {
         if (ObjectUtil.isNotEmpty(searchParam.getStatus())) queryWrapper.eq("status", searchParam.getStatus());
         if (ObjectUtil.isNotEmpty(searchParam.getOrderRefundNo())) queryWrapper.like("order_refund_no", searchParam.getOrderRefundNo());
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) QueryMapperUtils.buildByTime(queryWrapper, "create_time", searchParam.getCreateTime());
+        if (!MallCircleFilter.applyCircleIdFilter(queryWrapper)) {
+            return PageResult.build(page, limit, 0L);
+        }
         queryWrapper.orderByDesc("create_time");
 
         IPage<MallOrderRefund> iPage = mallOrderRefundMapper.selectPage(new Page<>(page, limit), queryWrapper);
@@ -148,9 +152,11 @@ public class RefundActionServiceImpl implements IRefundActionService {
      */
     @Override
     public RefundDetailVo detail(Integer refundId) {
-        MallOrderRefund refund = mallOrderRefundMapper.selectOne(new QueryWrapper<MallOrderRefund>()
-                .eq("refund_id", refundId)
-        );
+        QueryWrapper<MallOrderRefund> refundWrapper = new QueryWrapper<MallOrderRefund>().eq("refund_id", refundId);
+        if (!MallCircleFilter.applyCircleIdFilter(refundWrapper)) {
+            throw new CommonException("退款已失效");
+        }
+        MallOrderRefund refund = mallOrderRefundMapper.selectOne(refundWrapper);
         if (refund == null) throw new CommonException("退款已失效");
 
         RefundDetailVo vo = new RefundDetailVo();
@@ -203,78 +209,13 @@ public class RefundActionServiceImpl implements IRefundActionService {
                 .eq("order_refund_no", param.getOrderRefundNo())
         );
         if (refund == null) throw new CommonException("退款已失效");
-        if (!refund.getStatus().equals(OrderRefundStatusEnum.BUYER_APPLY_WAIT_STORE.getStatus().toString())) {
-            throw new CommonException("退款已失效(只有申请中的退款才可以审核)");
-        }
 
-        MallOrderRefund model = new MallOrderRefund();
-        model.setRefundId(refund.getRefundId());
-
-        // 操作日志
-        AddRefundLogParam logParam = new AddRefundLogParam();
-        logParam.setOrderRefundNo(refund.getOrderRefundNo());
-        logParam.setMainType(OrderLogMainTypeEnum.STORE.getType());
-        logParam.setMainId(RequestUtils.uid());
-
-        String messageKey = "";
-
-        // 同意退款
-        MallOrderGoods orderGoods = mallOrderGoodsMapper.selectOne(new QueryWrapper<MallOrderGoods>()
-                .select("goods_money,discount_money")
-                .eq("order_goods_id", refund.getOrderGoodsId()));
-        if (orderGoods == null) throw new CommonException("订单已失效");
-
-        MallOrder order = mallOrderMapper.selectOne(new QueryWrapper<MallOrder>()
-                .select("order_no,delivery_money")
-                .eq("order_id", refund.getOrderId()));
-        if (order == null) throw new CommonException("订单已失效");
-
-        if (param.getIsAgree().equals(1)) {
-            BigDecimal maxRefundMoney = coreRefundService.getItemRefundableMoney(refund.getOrderGoodsId());
-            if (refund.getIsRefundDelivery().equals(1)) maxRefundMoney = maxRefundMoney.add(order.getDeliveryMoney());
-
-            if (param.getMoney().compareTo(maxRefundMoney) == 1) throw new CommonException("退款金额不能大于可退款总额");
-
-            model.setMoney(param.getMoney());
-            // 如果是退款退货
-            if (refund.getRefundType().equals(OrderRefundTypeEnum.RETURN_AND_REFUND_GOODS.getType().toString())) {
-                model.setStatus(OrderRefundStatusEnum.STORE_AGREE_REFUND_GOODS_APPLY_WAIT_BUYER.getStatus().toString());
-                SiteAddress address = shopAddressMapper.selectOne(new QueryWrapper<SiteAddress>()
-                        .eq("site_id", RequestUtils.siteId())
-                        .eq("id", param.getRefundAddressId())
-                );
-                if (address == null) throw new CommonException("请选择退货地址");
-                model.setRefundAddress(JSONUtil.parseObj(address).toString());
-            } else {
-                model.setStatus(OrderRefundStatusEnum.STORE_AGREE_REFUND_WAIT_TRANSFER.getStatus().toString());
-            }
-
-            logParam.setType(OrderRefundActionTypeEnum.AGREE_AUDIT_APPLY_ACTION.getType());
-
-            messageKey = "mall_refund_agree";
-        } else {
-            // 拒绝退款
-            model.setShopReason(param.getShopReason());
-            model.setStatus(OrderRefundStatusEnum.STORE_REFUSE_REFUND_GOODS_APPLY_WAIT_BUYER.getStatus().toString());
-            logParam.setType(OrderRefundActionTypeEnum.REFUSE_AUDIT_APPLY_ACTION.getType());
-
-            messageKey = "mall_refund_refuse";
-        }
-
-        mallOrderRefundMapper.updateById(model);
-
-        logParam.setStatus(Integer.valueOf(model.getStatus()));
-        coreRefundService.addLog(logParam);
-
-        if (model.getStatus().equals(OrderRefundStatusEnum.STORE_AGREE_REFUND_WAIT_TRANSFER.getStatus().toString())) {
-            refund = mallOrderRefundMapper.selectById(refund.getRefundId());
-            coreRefundService.toTransfer(refund);
-        }
-
-        // 发送消息
-        Map<String, Object> noticeParam = new HashMap<String, Object>();
-        noticeParam.put("mallRefundId", refund.getRefundId());
-        NoticeUtils.send(refund.getSiteId(), messageKey, noticeParam);
+        com.niu.mall.service.site.refund.param.AuditApplyParam coreParam = new com.niu.mall.service.site.refund.param.AuditApplyParam();
+        BeanUtil.copyProperties(param, coreParam);
+        coreParam.setMainId(RequestUtils.uid());
+        coreParam.setMainType(OrderLogMainTypeEnum.STORE.getType());
+        coreParam.setSiteId(refund.getSiteId());
+        coreRefundActionService.auditApply(coreParam);
     }
 
     /**
@@ -288,38 +229,13 @@ public class RefundActionServiceImpl implements IRefundActionService {
                 .eq("order_refund_no", param.getOrderRefundNo())
         );
         if (refund == null) throw new CommonException("退款已失效");
-        if (!refund.getStatus().equals(OrderRefundStatusEnum.BUYER_REFUND_GOODS_WAIT_STORE.getStatus().toString())) {
-            throw new CommonException("退款已失效(只有待确认收货的的退款才可以审核)");
-        }
 
-        MallOrderRefund model = new MallOrderRefund();
-        model.setRefundId(refund.getRefundId());
-
-        // 操作日志
-        AddRefundLogParam logParam = new AddRefundLogParam();
-        logParam.setOrderRefundNo(refund.getOrderRefundNo());
-        logParam.setMainType(OrderLogMainTypeEnum.STORE.getType());
-        logParam.setMainId(RequestUtils.uid());
-
-        if (param.getIsAgree().equals(1)) {
-            model.setStatus(OrderRefundStatusEnum.STORE_AGREE_REFUND_WAIT_TRANSFER.getStatus().toString());
-            logParam.setType(OrderRefundActionTypeEnum.AGREE_AUDIT_REFUND_GOODS_ACTION.getType());
-        } else {
-            // 拒绝退货
-            model.setShopReason(param.getShopReason());
-            model.setStatus(OrderRefundStatusEnum.STORE_REFUSE_TAKE_REFUND_GOODS_WAIT_BUYER.getStatus().toString());
-            logParam.setType(OrderRefundActionTypeEnum.REFUSE_AUDIT_REFUND_GOODS_ACTION.getType());
-        }
-
-        mallOrderRefundMapper.updateById(model);
-
-        logParam.setStatus(Integer.valueOf(model.getStatus()));
-        coreRefundService.addLog(logParam);
-
-        if (model.getStatus().equals(OrderRefundStatusEnum.STORE_AGREE_REFUND_WAIT_TRANSFER.getStatus().toString())) {
-            refund = mallOrderRefundMapper.selectById(refund.getRefundId());
-            coreRefundService.toTransfer(refund);
-        }
+        com.niu.mall.service.site.refund.param.AuditRefundGoodsParam coreParam = new com.niu.mall.service.site.refund.param.AuditRefundGoodsParam();
+        BeanUtil.copyProperties(param, coreParam);
+        coreParam.setMainId(RequestUtils.uid());
+        coreParam.setMainType(OrderLogMainTypeEnum.STORE.getType());
+        coreParam.setSiteId(refund.getSiteId());
+        coreRefundActionService.auditRefundGoods(coreParam);
     }
 
     /**

@@ -8,12 +8,12 @@ import com.niu.core.service.core.addon.vo.InstallAddonListVo;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.shop.ICoreShopStatService;
 import com.niu.core.service.core.shop.param.ShopStatParam;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.enums.goods.GoodsAuditStatusEnum;
-import com.niu.mall.enums.goods.GoodsStatusEnum;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.enums.goods.GoodsAuditStatusEnum;
+import com.niu.core.enums.goods.GoodsStatusEnum;
 import com.niu.mall.event.goods.AfterMallGoodsStatusEditEvent;
 import com.niu.mall.event.goods.AfterPickGoodsEvent;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -46,7 +46,8 @@ public class AfterMallGoodsStatusEditListener extends AbstractListener {
             QueryWrapper<MallGoods> countWrapper = new QueryWrapper<>();
             countWrapper.eq("site_id", siteId)
                     .eq("status", GoodsStatusEnum.ONLINE.getStatus())
-                    .eq("audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
+                    .eq("audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus())
+                    .eq("delete_time", 0);
             Long mallUpNum = mallGoodsMapper.selectCount(countWrapper);
             ShopStatParam shopStatParam = new ShopStatParam();
             shopStatParam.setSiteId(siteId);

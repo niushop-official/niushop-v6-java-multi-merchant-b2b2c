@@ -1,0 +1,51 @@
+{
+  "app": [],
+  "tool": [],
+  "promotion": [
+    {
+      "title": "店铺优惠券",
+      "desc": "店铺优惠券",
+      "icon": "addon/mall/icon.png",
+      "key": "coupon",
+      "url": "/mall/marketing/coupon/list",
+      "group_key": "tool",
+      "addon_key": "mall"
+    },
+    {
+      "title": "积分抵扣",
+      "desc": "积分抵扣",
+      "icon": "addon/mall/icon.png",
+      "key": "point_deduct",
+      "url": "/marketing/point_deduct/config",
+      "group_key": "tool",
+      "addon_key": "mall"
+    },
+    {
+      "title": "限时折扣",
+      "desc": "限时折扣",
+      "icon": "addon/mall/icon.png",
+      "key": "discount",
+      "url": "/mall/marketing/discount/list",
+      "group_key": "activity",
+      "addon_key": "mall"
+    },
+    {
+      "title": "满减活动",
+      "desc": "满减活动",
+      "icon": "addon/mall/icon.png",
+      "key": "full_reduction",
+      "url": "/mall/marketing/full_reduction/list",
+      "group_key": "activity",
+      "addon_key": "mall"
+    },
+    {
+      "title": "满赠活动",
+      "desc": "满赠活动",
+      "icon": "addon/mall/icon.png",
+      "key": "full_gift",
+      "url": "/mall/marketing/full_reward/list",
+      "group_key": "activity",
+      "addon_key": "mall"
+    }
+  ]
+}

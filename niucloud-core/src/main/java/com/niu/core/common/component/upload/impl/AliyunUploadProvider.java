@@ -44,8 +44,7 @@ public class AliyunUploadProvider extends AbstractUploadProvider implements IUpl
         this.secretKey = configObject.getStr("secret_key");
         this.endpoint = configObject.getStr("endpoint");
         super.domain = configObject.getStr("domain");
-        this.region = this.endpoint.split("\\.", -1)[0].replace("https://oss-", "").replace("http://oss-", "");
-
+        this.region = this.endpoint.split("\\.", -1)[0].replace("https://oss-", "").replace("http://oss-", "").replace("oss-", "");
     }
 
     @Override

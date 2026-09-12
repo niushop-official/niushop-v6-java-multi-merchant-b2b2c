@@ -167,6 +167,8 @@ public class MemberCenterVo {
      */
     private BigDecimal moneyGet;
 
+    private Integer isNewcomerGift;
+
     /**
      * 微信用户openid
      */

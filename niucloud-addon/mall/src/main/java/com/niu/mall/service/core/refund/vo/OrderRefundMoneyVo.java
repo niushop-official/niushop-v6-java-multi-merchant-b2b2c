@@ -1,5 +1,6 @@
 package com.niu.mall.service.core.refund.vo;
 
+import com.niu.mall.entity.order.MallOrder;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -12,7 +13,7 @@ public class OrderRefundMoneyVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private BigDecimal refundMoney;
-
+    private MallOrder orderData;
     private List<MallOrderGoods> orderGoodsList;
 
     @Data

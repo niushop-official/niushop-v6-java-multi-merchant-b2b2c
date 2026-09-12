@@ -66,14 +66,14 @@
                                 <el-radio :label="1">开启</el-radio>
                                 <el-radio :label="0">关闭</el-radio>
                             </el-radio-group>
-                            <p class="text-[12px] text-[#a9a9a9] leading-normal  mt-[5px]">关闭后订单完成后将即时结算</p>
+                            <p class="text-[12px] text-[#a9a9a9] leading-normal  mt-[5px]">关闭后订单完成后将即时结算；订单开始结算后将自动取消订单退款业务</p>
                             <div v-if="formData.is_delay_spear == 1">
                                 <p class="!text-sm mt-[5px]">
                                     <span>订单收货完成后</span>
                                     <el-input v-model="formData.delay_days" class="!w-[120px] mx-[10px]" onkeyup="this.value = this.value.replace(/[^\d]/g,'');" clearable />
                                     <span>天,自动结算</span>
                                 </p>
-                                <p class="text-[12px] text-[#a9a9a9] leading-normal  mt-[5px]">时间必须在1-15天之间，订单开始结算后将自动取消订单退款业务</p>
+                                <p class="text-[12px] text-[#a9a9a9] leading-normal  mt-[5px]">时间必须在1-15天之间</p>
                             </div>
                         </div>
                     </el-form-item>
@@ -134,7 +134,7 @@
 <script lang="ts" setup>
 import { ref, reactive } from 'vue'
 import { t } from '@/lang'
-import { getConfig, setConfig } from '@/addon/mall/api/admin/order'
+import { getConfig, setConfig } from '@/app/lang/zh-cn/api/admin/order'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()

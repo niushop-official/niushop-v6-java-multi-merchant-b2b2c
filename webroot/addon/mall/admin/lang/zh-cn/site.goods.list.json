@@ -34,7 +34,7 @@
   "batchSetting": "批量设置",
   "batchEmptySelectedGoodsTips": "请选择要操作的商品",
 
-  "goodsInfo": "商品（点击商品名称或图片预览）",
+  "goodsInfo": "商品",
   "stock": "库存",
   "status": "状态",
   "auditStatus": "审核状态",

@@ -150,7 +150,7 @@ import { ref, reactive, computed, nextTick } from 'vue'
 import { t } from '@/lang'
 import { img } from '@/utils/common'
 import { FormInstance, ElMessage } from 'element-plus'
-import { getOrderDeliveryType, orderDelivery, getSelectOrderGoodsWeight, getDeliveryFee } from '@/addon/mall/api/site/order'
+import { getOrderDeliveryType, orderDelivery, getSelectOrderGoodsWeight, getDeliveryFee } from '@/app/lang/zh-cn/api/site/order'
 import { getIsTradeManaged } from '@/app/api/weapp'
 import { cloneDeep } from 'lodash-es'
 import { getElectronicSheetConfig, getElectronicSheetList, printElectronicSheet, getCompanyList, getShopDeliverList, getInUseLocalDeliveryList, getDeliveryStoreListAll } from '@/app/api/delivery_site'
@@ -386,7 +386,10 @@ const goodsWeightPass = (rule: any, value: any, callback: any) => {
 }
 
 const selectable = (row:any, index:number) => {
-    if ((row.status == 2 || row.delivery_status != 'wait_delivery' || row.status == 3) && (showType.value == 'add' || !showType.value)) {
+    if (row.status == 2 || row.status == 3) {
+        return false
+    }
+    if (row.delivery_status != 'wait_delivery' && (showType.value == 'add' || !showType.value)) {
         return false
     }
     if (row.orderDelivery && row.orderDelivery.delivery_service == 'dada' && (row.orderDelivery.local_delivery_status == '-2' || row.orderDelivery.local_delivery_status == '-1' || row.orderDelivery.local_delivery_status == '8')) {

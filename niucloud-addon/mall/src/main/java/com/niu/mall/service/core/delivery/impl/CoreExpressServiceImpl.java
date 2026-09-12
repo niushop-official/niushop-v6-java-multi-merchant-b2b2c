@@ -26,7 +26,9 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,72 +85,106 @@ public class CoreExpressServiceImpl implements ICoreExpressService {
 
     }
 
-    private BigDecimal feeCalculate(Map<Integer, List<OrderCreateDataVo.Sku>> dataList,OrderCreateDataVo vo,BigDecimal deliveryMoney) {
+    private BigDecimal feeCalculate(Map<Integer, List<OrderCreateDataVo.Sku>> dataList, OrderCreateDataVo vo, BigDecimal deliveryMoney) {
         MemberAddress address = (MemberAddress) vo.getDelivery().getTakeAddress();
-        for(Integer deliveryTemplateId : dataList.keySet()){
+        for (Integer deliveryTemplateId : dataList.keySet()) {
             Integer supplyId = dataList.get(deliveryTemplateId).get(0).getSupplyId();
-            DeliveryShippingTemplateItem template = deliveryShippingTemplateItemMapper.selectOne(new QueryWrapper<DeliveryShippingTemplateItem>()
-                    .eq("template_id",deliveryTemplateId).eq("city_id", address.getCityId()));
-            DeliveryShippingTemplateItem nationwide = null;
-            SiteInfoVo siteInfoVo = null;
-            if(ObjectUtil.isNotEmpty(supplyId) && supplyId > 0){
-                //todo 配送计算需要重新优化
-                //查询可用的供货商发货模板
-                QueryWrapper<DeliveryShippingTemplate> query = new QueryWrapper<>();
-                query.eq("site_id", supplyId);
-                query.like("support_trade", "supply");
-                query.select("template_id");
-                List<Integer> templateIds = deliveryShippingTemplateMapper.selectList(query).stream().map(DeliveryShippingTemplate::getTemplateId).filter(ObjectUtil::isNotEmpty).distinct().toList();
-                if(!templateIds.isEmpty()){
-                    nationwide = deliveryShippingTemplateItemMapper.selectOne(new QueryWrapper<DeliveryShippingTemplateItem>().eq("template_id", deliveryTemplateId)
-                            .eq("city_id", 0).eq("site_id", supplyId).in("template_id", templateIds).last("limit 1"));
-                }
-                siteInfoVo = coreSiteService.getSiteCache(supplyId);
-            }else{
-                nationwide = deliveryShippingTemplateItemMapper.selectOne(new QueryWrapper<DeliveryShippingTemplateItem>().eq("template_id", deliveryTemplateId)
-                        .eq("city_id", 0).eq("site_id", vo.getSiteId()).last("limit 1"));
-                siteInfoVo = coreSiteService.getSiteCache(vo.getSiteId());
+            Integer siteId = ObjectUtil.isNotEmpty(supplyId) && supplyId > 0 ? supplyId : vo.getSiteId();
+
+            // 取出该运费模板下的全部区域项（含全国默认 city_id=0），再根据收货地址区域精确匹配
+            List<DeliveryShippingTemplateItem> allItems = deliveryShippingTemplateItemMapper.selectList(
+                    new QueryWrapper<DeliveryShippingTemplateItem>().eq("template_id", deliveryTemplateId).eq("site_id", siteId));
+            // 不配送/包邮的总开关在主模板（ns_delivery_shipping_template），区域明细在子表 item
+            DeliveryShippingTemplate mainTemplate = deliveryShippingTemplateMapper.selectOne(
+                    new QueryWrapper<DeliveryShippingTemplate>().eq("template_id", deliveryTemplateId).eq("site_id", siteId));
+
+            SiteInfoVo siteInfoVo = coreSiteService.getSiteCache(siteId);
+            String siteName = siteInfoVo == null ? "" : siteInfoVo.getSiteName();
+            if (allItems.isEmpty()) {
+                vo.getError().add("\"" + siteName + "\"" + "未配置可用的运费模板");
+                return deliveryMoney;
             }
 
-            String siteName = siteInfoVo == null ? "" : siteInfoVo.getSiteName();
-            if (ObjectUtil.isEmpty(template)) {
-                template = nationwide;
-                if(ObjectUtil.isEmpty(nationwide)){
-                    vo.getError().add("\""+siteName+"\""+"未配置可用的运费模板");
+            // 不配送地区校验：主模板 no_delivery=1 且 收货地址的省/市/区落入子表 no_delivery_area_ids
+            boolean noDeliverySwitch = ObjectUtil.isNotEmpty(mainTemplate) && ObjectUtil.isNotEmpty(mainTemplate.getNoDelivery()) && mainTemplate.getNoDelivery() > 0;
+            if (noDeliverySwitch) {
+                boolean inNoDeliveryArea = false;
+                boolean hasNoDeliveryArea = false;
+                for (DeliveryShippingTemplateItem item : allItems) {
+                    if (StringUtils.isNotEmpty(item.getNoDeliveryAreaIds())) {
+                        hasNoDeliveryArea = true;
+                        if (isAddressInAreaIds(address, item.getNoDeliveryAreaIds())) {
+                            inNoDeliveryArea = true;
+                            break;
+                        }
+                    }
+                }
+                // 开关开启但未配置具体区域时，视为整模板不配送
+                if (inNoDeliveryArea || !hasNoDeliveryArea) {
+                    for (OrderCreateDataVo.Sku sku : dataList.get(deliveryTemplateId)) {
+                        vo.getGoodsData().get(sku.getSkuId()).setNotSupportDelivery(1);
+                    }
+                    vo.getError().add("所选的收货地址不支持配送");
                     return deliveryMoney;
                 }
-            }else {
+            }
+
+            // 选取适用于该收货地址的计费项：优先按 fee_area_ids 命中，其次按 city_id 相等，否则全国默认
+            DeliveryShippingTemplateItem template = null;
+            DeliveryShippingTemplateItem nationwide = null;
+            for (DeliveryShippingTemplateItem item : allItems) {
+                if (ObjectUtil.isEmpty(item.getCityId())) {
+                    continue;
+                }
+                if (item.getCityId() == 0) {
+                    if (nationwide == null) {
+                        nationwide = item;
+                    }
+                    continue;
+                }
+                if (template == null && (isAddressInAreaIds(address, item.getFeeAreaIds()) || item.getCityId().equals(address.getCityId()))) {
+                    template = item;
+                }
+            }
+            if (template == null) {
+                template = nationwide;
+            }
+            if (template == null) {
+                vo.getError().add("\"" + siteName + "\"" + "未配置可用的运费模板");
+                return deliveryMoney;
+            }
+            if (nationwide != null) {
                 if (template.getSnum().compareTo(0) == 0) template.setSnum(nationwide.getSnum());
                 if (template.getSprice().compareTo(BigDecimal.ZERO) == 0) template.setSprice(nationwide.getSprice());
                 if (template.getXprice().compareTo(BigDecimal.ZERO) == 0) template.setXprice(nationwide.getXprice());
                 if (template.getXnum().compareTo(0) == 0) template.setXnum(nationwide.getXnum());
             }
 
-            //按运费模板计算总量和总金额
+            // 按运费模板计算总量和总金额
             BigDecimal total = BigDecimal.ZERO;
             BigDecimal totalGoodsMoney = BigDecimal.ZERO;
-            for (OrderCreateDataVo.Sku item : dataList.get(deliveryTemplateId)){
+            for (OrderCreateDataVo.Sku item : dataList.get(deliveryTemplateId)) {
                 Map<String, BigDecimal> map = totalCalculate(template, item, total, totalGoodsMoney);
-                if(ObjectUtil.isNotEmpty(map.get("total"))){
+                if (ObjectUtil.isNotEmpty(map.get("total"))) {
                     total = map.get("total");
                 }
-                if(ObjectUtil.isNotEmpty(map.get("totalGoodsMoney"))){
+                if (ObjectUtil.isNotEmpty(map.get("totalGoodsMoney"))) {
                     totalGoodsMoney = map.get("totalGoodsMoney");
                 }
             }
 
-            for (OrderCreateDataVo.Sku item : dataList.get(deliveryTemplateId)){
-                // 判断收货地址是否不配送
-                if (ObjectUtil.isNotEmpty(template.getNoDelivery()) && template.getNoDelivery() > 0 && StringUtils.isNotEmpty(template.getNoDeliveryAreaIds())){
-                    vo.getGoodsData().get(item.getSkuId()).setNotSupportDelivery(1);
-                    vo.getError().add("所选的收货地址不支持配送");
-                    return deliveryMoney;
-                }
-                // 判断收货地址是否包邮
-                if (ObjectUtil.isNotEmpty(template.getIsFreeShipping()) && template.getIsFreeShipping() > 0 && StringUtils.isNotEmpty(template.getFreeShippingAreaIds()) &&
-                        (total.compareTo(new BigDecimal(template.getFreeShippingNum())) >= 0 || totalGoodsMoney.compareTo(template.getFreeShippingPrice()) >= 0)) {
-                    vo.getGoodsData().get(item.getSkuId()).setIsFreeShipping(1);
-                    return deliveryMoney;
+            // 包邮校验：总开关在主模板 is_free_shipping=1，且 收货地址命中子表 free_shipping_area_ids 并满足门槛
+            boolean freeShippingSwitch = ObjectUtil.isNotEmpty(mainTemplate) && ObjectUtil.isNotEmpty(mainTemplate.getIsFreeShipping()) && mainTemplate.getIsFreeShipping() > 0;
+            if (freeShippingSwitch) {
+                for (DeliveryShippingTemplateItem item : allItems) {
+                    if (StringUtils.isNotEmpty(item.getFreeShippingAreaIds())
+                            && isAddressInAreaIds(address, item.getFreeShippingAreaIds())
+                            && (total.compareTo(new BigDecimal(item.getFreeShippingNum())) >= 0 || totalGoodsMoney.compareTo(item.getFreeShippingPrice()) >= 0)) {
+                        for (OrderCreateDataVo.Sku sku : dataList.get(deliveryTemplateId)) {
+                            vo.getGoodsData().get(sku.getSkuId()).setIsFreeShipping(1);
+                        }
+                        return deliveryMoney;
+                    }
                 }
             }
 
@@ -160,12 +196,40 @@ public class CoreExpressServiceImpl implements ICoreExpressService {
             }
             deliveryMoney = deliveryMoney.add(itemDeliveryMoney);
 
-            for(OrderCreateDataVo.Sku item : dataList.get(deliveryTemplateId)){
-                BigDecimal deliveryMoneyThis = itemDeliveryMoney.divide(new BigDecimal(dataList.get(deliveryTemplateId).size()),2, RoundingMode.HALF_UP);
+            for (OrderCreateDataVo.Sku item : dataList.get(deliveryTemplateId)) {
+                BigDecimal deliveryMoneyThis = itemDeliveryMoney.divide(new BigDecimal(dataList.get(deliveryTemplateId).size()), 2, RoundingMode.HALF_UP);
                 vo.getGoodsData().get(item.getSkuId()).setDeliveryMoney(deliveryMoneyThis);
             }
         }
         return deliveryMoney;
+    }
+
+    /**
+     * 判断收货地址的省/市/区是否落入配置的区域 id 集（逗号分隔）
+     */
+    private boolean isAddressInAreaIds(MemberAddress address, String areaIds) {
+        if (StringUtils.isEmpty(areaIds)) {
+            return false;
+        }
+        Set<Integer> addrAreas = new HashSet<>();
+        if (ObjectUtil.isNotEmpty(address.getProvinceId())) addrAreas.add(address.getProvinceId());
+        if (ObjectUtil.isNotEmpty(address.getCityId())) addrAreas.add(address.getCityId());
+        if (ObjectUtil.isNotEmpty(address.getDistrictId())) addrAreas.add(address.getDistrictId());
+        if (addrAreas.isEmpty()) {
+            return false;
+        }
+        for (String id : areaIds.split(",")) {
+            if (StringUtils.isEmpty(id)) {
+                continue;
+            }
+            try {
+                if (addrAreas.contains(Integer.parseInt(id.trim()))) {
+                    return true;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return false;
     }
 
     public Map<String,BigDecimal> totalCalculate(DeliveryShippingTemplateItem template,OrderCreateDataVo.Sku goods,BigDecimal total,BigDecimal totalGoodsMoney){

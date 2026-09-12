@@ -1,20 +1,22 @@
 package com.niu.core.entity.shop;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
-* 店铺会员表实体
-*/
+ * 店铺会员表实体
+ */
 @Data
 public class SiteShopMember implements Serializable {
 
-private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+
+    /** 所属插件（mall/o2o 等） */
+    private String addon;
 
     /** 累计消费金额 */
     private BigDecimal comsumMoney;

@@ -81,8 +81,8 @@
                                     <span class="text-primary text-[12px]">{{ row.goods_type_name }}</span>
                                 </div>
                             </div>
-                            <div class="w-[18%]">￥{{ row.site.site_name }}</div>
-                            <div class="w-[18%]">{{row.goodsSku.price}}</div>
+                            <div class="w-[18%]">{{ row.site.site_name }}</div>
+                            <div class="w-[18%]">￥{{row.goodsSku.price}}</div>
                             <div class="w-[18%]">{{row.stock}}</div>
                         </div>
 
@@ -109,8 +109,8 @@
                                         <span class="text-primary text-[12px]">{{ row.goods_type_name }}</span>
                                     </div>
                                 </div>
-                                <div class="w-[18%] flex">￥{{ item.site.site_name }}</div>
-                                <div class="w-[18%] flex">{{ item.goodsSku.price }}</div>
+                                <div class="w-[18%] flex">{{ item.site.site_name }}</div>
+                                <div class="w-[18%] flex">￥{{ item.goodsSku.price }}</div>
                                 <div class="w-[18%] flex">{{ item.stock }}</div>
                             </div>
                         </div>
@@ -153,13 +153,13 @@ import { cloneDeep } from 'lodash-es'
 import { img,deepClone } from '@/utils/common'
 import { ElMessage } from 'element-plus'
 import { getCategoryTree } from  '@/app/api/basic_admin'
-import { getGoodsSelectPageList, getGoodsSkuNoPageList,  getGoodsType } from '@/addon/mall/api/admin/goods'
-import { getShopList } from '@/app/api/shop_admin'
+import { getGoodsSelectPageList, getGoodsSkuNoPageList, getGoodsType } from '@/app/lang/zh-cn/api/admin/goods'
+import { getShopList } from '@/app/lang/zh-cn/api/admin/site_shop'
 
 const prop = defineProps({
     modelValue: {
-        type: [String, Array],
-        default: () => []
+        type: String,
+        default: ''
     },
     max: {
         type: Number,
@@ -246,7 +246,9 @@ const shopList: any = reactive([])
 // 初始化数据
 const initData = () => {
     // 查询商品分类树结构
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []
@@ -571,9 +573,6 @@ const resetForm = (formEl: FormInstance | undefined) => {
 }
 
 const show = () => {
-    if (!Array.isArray(goodsIds.value)) {
-        goodsIds.value = []
-    }
     for (let k in selectGoods) {
         delete selectGoods[k];
     }

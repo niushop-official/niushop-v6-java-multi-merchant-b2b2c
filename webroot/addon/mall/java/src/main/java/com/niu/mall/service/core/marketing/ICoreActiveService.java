@@ -2,7 +2,7 @@ package com.niu.mall.service.core.marketing;
 
 
 import com.niu.mall.entity.active.MallActive;
-import com.niu.mall.entity.active.MallActiveGoods;
+import com.niu.core.entity.active.MallActiveGoods;
 
 import java.util.List;
 

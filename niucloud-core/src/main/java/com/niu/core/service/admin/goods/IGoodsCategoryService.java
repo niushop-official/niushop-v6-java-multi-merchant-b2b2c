@@ -36,6 +36,12 @@ public interface IGoodsCategoryService {
     JSONArray tree(GoodsCategorySearchParam searchParam);
 
     /**
+     * 获取商品分类树结构供弹框调用（仅显示）
+     * 对齐 PHP CategoryService::getTreeComponents
+     */
+    JSONArray components(GoodsCategorySearchParam searchParam);
+
+    /**
      * 商品分类详情
      *
      * @param id 主键ID

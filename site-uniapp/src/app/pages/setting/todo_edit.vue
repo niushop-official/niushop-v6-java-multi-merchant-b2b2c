@@ -3,7 +3,7 @@
         <view class="bg-[#fff] py-[var(--pad-top-m)] px-[var(--pad-sidebar-m)] border-box mb-[20rpx]">
             <view class="flex items-center mb-[40rpx]">
                 <text class="text-[30rpx] font-500 mr-[20rpx]">已添加</text>
-                <text class="text-[24rpx] text-[#999]">最多可添加4项</text>
+                <text class="text-[24rpx] text-[#999]">最多可添加{{todoAll.length}}项</text>
             </view>
             <dragsort-list ref="dragSortRef" v-model:list.sync="todoList" :cols="4" :padding="8"  :itemHeight="74" :isAWait="isAWait">
                 <template #default="{ item, index }">
@@ -93,8 +93,9 @@ const delStat = (data: any, index: any) => {
     }
 }
 const addTodo = (data: any) => {
-    if(todoList.value.length >= 4){
-        uni.showToast({ title: '最多添加4项', icon: 'none' })
+    const len = todoAll.value.length
+    if(todoList.value.length >= len){
+        uni.showToast({ title: `最多添加${len}项`, icon: 'none' })
         return false
     }
     todoList.value.push(data)

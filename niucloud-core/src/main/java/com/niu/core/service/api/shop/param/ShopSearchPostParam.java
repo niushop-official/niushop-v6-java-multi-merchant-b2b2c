@@ -24,6 +24,7 @@ public class ShopSearchPostParam {
     private Integer isLocalDelivery;
     private Integer isLocation;
     private Object deliveryType;
+    private Integer circleId;
 
     private PositionInfo position;
     private RegionInfo region;

@@ -1,6 +1,7 @@
 package com.niu.mall.entity.order;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import java.io.Serializable;
@@ -23,6 +24,7 @@ public class MallOrderBatchDelivery implements Serializable {
     private Integer successNum; // 成功发货单数
     private Integer failNum; // 失败发货单数
     private String data; // 导入文件的路径
+    @TableField("`output`")
     private String output; // 对外输出记录
     private String failOutput; // 失败记录
     private String failRemark; // 失败原因

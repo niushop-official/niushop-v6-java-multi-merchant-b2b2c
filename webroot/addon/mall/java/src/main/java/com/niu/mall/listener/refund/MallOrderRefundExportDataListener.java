@@ -6,6 +6,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.utils.RequestUtils;
@@ -16,6 +17,7 @@ import com.niu.core.event.sys.ExportDataEventDefiner;
 import com.niu.core.service.admin.delivery.IDeliveryCompanyService;
 import com.niu.core.service.admin.member.IMemberService;
 import com.niu.core.service.admin.member.vo.MemberInfoVo;
+import com.niu.mall.common.MallCircleFilter;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderRefund;
 import com.niu.mall.enums.order.OrderRefundStatusEnum;
@@ -71,6 +73,9 @@ public class MallOrderRefundExportDataListener extends ExportDataEventDefiner {
             if ((where.get("create_time") instanceof JSONArray createTimes) && ObjectUtil.isNotEmpty(createTimes)) {
                 QueryMapperUtils.buildByTime(queryWrapper, "create_time", StringUtils.jsonArrayToStringArray(createTimes));
             }
+        }
+        if (!MallCircleFilter.applyCircleIdFilter(queryWrapper)) {
+            return new ExportDataEventResult();
         }
         PageParam pageParam = event.getPageParam();
         List<MallOrderRefund> list = new ArrayList<>();

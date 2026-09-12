@@ -25,8 +25,8 @@
                         </el-checkbox-group>
                     </el-form-item>
                     <!-- 商品类目 -->
-                     <el-form-item v-if="activeMenu === 'plat_category'" prop="mall_goods_category" :label="t('goodsMallCategory')">
-                        <el-cascader v-model="formData.mall_goods_category" :options="goodsMallCategoryOptions"
+                    <el-form-item v-if="activeMenu === 'plat_category'" prop="goods_mall_category" :label="t('goodsMallCategory')">
+                        <el-cascader v-model="formData.goods_mall_category" :options="goodsMallCategoryOptions"
                             :placeholder="t('mallGoodsCategoryPlaceholder')" :props="goodsMallCategoryProps" clearable
                             filterable  />
                     </el-form-item>
@@ -147,10 +147,10 @@ import { t } from '@/lang'
 import { ElMessage, FormInstance } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { filterNumber } from '@/utils/common'
-import { getBrandList, getServeList, getCategoryTree } from '@/app/api/basic_site'
+import { getBrandList, getServeList, getCategoryTree, getLabelList } from '@/app/api/basic_site'
 import { getShopDeliveryList, getShippingTemplateList } from '@/app/api/delivery_site'
 import { getCategoryTree as getMallCategoryTree } from '@/app/api/basic_admin'
-import { getLabelList, getGoodsBatchSetDict, goodsBatchSet } from '@/addon/mall/api/site/goods'
+import { getGoodsBatchSetDict, goodsBatchSet } from '@/app/lang/zh-cn/api/site/goods'
 import { getPosterList } from '@/app/api/poster'
 import { getDiyFormList } from '@/app/api/diy_form_site'
 
@@ -170,7 +170,7 @@ const initialFormData = {
     form_id: '',
     brand_id: '',
     goods_category: [],
-    mall_goods_category: [],
+    goods_mall_category: [],
     virtual_sale_num: 0,
     delivery_template_id: '',
     delivery_money: 0,
@@ -216,7 +216,7 @@ const formRules = reactive({
     goods_category: [
         { required: true, message: t('goodsCategoryPlaceholderTwo'), trigger: 'blur' }
     ],
-    mall_goods_category: [
+    goods_mall_category: [
         { required: true, message: t('mallGoodsCategoryPlaceholder'), trigger: 'blur' }
     ],
     delivery_money: [
@@ -296,21 +296,15 @@ const confirm = async (formEl: FormInstance | undefined) => {
             })
 
             formData.goods_category = goodsCategory
-            const mallGoodsCategory: any = []
-            formData.mall_goods_category.forEach((item: any) => {
-                if (typeof item == 'object') {
-                    item.forEach((second: any) => {
-                        if (mallGoodsCategory.indexOf(second) == -1) {
-                            mallGoodsCategory.push(second)
-                        }
-                    })
-                } else {
-                    if (mallGoodsCategory.indexOf(item) == -1) {
-                        mallGoodsCategory.push(item)
-                    }
+            // 处理商品类目，支持数组和单个值两种情况
+            if (formData.goods_mall_category) {
+                if (Array.isArray(formData.goods_mall_category)) {
+                    // 如果是数组，取最后一级分类id
+                    formData.goods_mall_category = formData.goods_mall_category[formData.goods_mall_category.length - 1]
                 }
-            })
-            formData.mall_goods_category = mallGoodsCategory
+            } else {
+                formData.goods_mall_category = ''
+            }
             const data = {
                 is_all: is_all.value,
                 where: where.value,
@@ -423,13 +417,13 @@ refreshGoodsService()
 
 // 平台商品分类
 const goodsMallCategoryOptions = reactive([])
-const goodsMallCategoryProps = {
-    multiple: true
-}
+const goodsMallCategoryProps = { value: 'value', label: 'label', emitPath: false }
 
 // 刷新平台商品分类
 const refreshMallGoodsCategory = () => {
-    getMallCategoryTree().then((res: any) => {
+    getMallCategoryTree({
+        addon: 'mall'
+    }).then((res: any) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []
@@ -488,7 +482,9 @@ const toGoodsCategoryEvent = () => {
 
 // 刷新商品分类
 const refreshGoodsCategory = (bool = false) => {
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []

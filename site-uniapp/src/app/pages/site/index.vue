@@ -10,8 +10,8 @@
                 <view class="flex-1 ml-[16rpx] flex flex-col justify-between box-border box-border">
                     <view class="text-[28rpx] text-[#333]">{{ siteInfo.site_name }}</view>
                     <view class="flex">
-                        <text class="flex-center text-[20rpx] bg-primary text-[#fff] px-[8rpx] h-[34rpx] rounded-[6rpx]" v-if="siteInfo.business_status">营业中</text>
-                        <text class="flex-center text-[20rpx] bg-[#9098A3] text-[#fff] px-[8rpx] h-[34rpx] rounded-[6rpx]" v-else>已打烊</text>
+                        <text class="flex-center text-[20rpx] bg-primary text-[#fff] px-[8rpx] h-[34rpx] rounded-[6rpx]" v-if="siteInfo.business_state == 1">{{ siteInfo.business_state_name }}</text>
+                        <text class="flex-center text-[20rpx] bg-[#9098A3] text-[#fff] px-[8rpx] h-[34rpx] rounded-[6rpx]" v-else>{{ siteInfo.business_state_name }}</text>
                     </view>
                 </view>
                 <view class="self-center">

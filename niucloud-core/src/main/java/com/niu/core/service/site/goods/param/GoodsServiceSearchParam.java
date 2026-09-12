@@ -12,4 +12,7 @@ public class GoodsServiceSearchParam implements Serializable {
 
     private String serviceName;
 
+    /** 插件标识，用于筛选适用该插件的商品服务 */
+    private String addon;
+
 }

@@ -154,6 +154,78 @@
             </div>
         </el-main>
 
+        <!-- circle端登录（复制站点端样式） -->
+        <el-main class="login-main  bg-[#fff] w-full login-site-main items-center h-screen justify-evenly !p-0" v-else-if="!imgLoading && loginType == 'circle'">
+            <div class="flex overflow-hidden h-screen w-full relative">
+                <div class="w-[130px] h-[40px] overflow-hidden absolute top-[20px] left-[20px]" v-if="webSite.icon">
+                    <el-image class="w-full h-full" :src="img(webSite.icon)" fit="contain">
+                        <template #error>
+                            <div class="flex justify-center items-center w-full h-full">
+                                <img class="max-w-[130px]" src="@/app/assets/images/logo.png" alt="" object-fit="contain" />
+                            </div>
+                        </template>
+                    </el-image>
+                </div>
+                <img v-if="loginConfig.site_bg" class="hidden h-[100%] lg:block" :src="img(loginConfig.circle_bg)" />
+                <img v-else class="hidden h-[100%] lg:block" src="@/app/assets/images/circle_login_bg.jpg" />
+                <div class="w-[100%] flex flex-col absolute right-0 top-0 h-screen lg:w-[60%]">
+                    <div class="flex justify-center items-center flex-1 h-0">
+                        <div class="site-login-item w-[45%]">
+                            <div class="w-[90%] mx-auto">
+                                <div class="flex items-center mb-[30px]">
+                                    <span class="text-[30px] font-500 mr-[10px]">欢迎登录</span>
+                                    <span class="text-[20px] text-[#666] font-500">商圈后台管理系统</span>
+                                </div>
+                                <div class="w-full min-h-[460px]">
+                                    <div class="relative overflow-hidden max-w-[460px] min-h-[460px] bg-[#fff] login-box-wrap">
+                                        <div class="p-[30px] top-0 left-0 w-full h-full transition-transform duration-300 ease-linear transform">
+                                            <div class="flex items-center mb-[60px]">
+                                            </div>
+                                            <el-form :model="form" ref="formRef" :rules="formRules" class="form-two">
+                                                <el-form-item prop="username" class="h-[60px] bg-[#F9FAFB] rounded-[6px]">
+                                                    <el-input v-model.trim="form.username" :placeholder="t('userPlaceholder')" autocomplete="off" :input-style="{boxShadow: 'none'}" @keyup.enter="handleLogin(formRef)" class="h-[60px]">
+                                                        <template #prefix>
+                                                            <img class="max-w-[24px]" src="@/app/assets/images/login/username.png" alt="" object-fit="contain" />
+                                                        </template>
+                                                    </el-input>
+                                                </el-form-item>
+
+                                                <el-form-item prop="password" class="mt-[38px] h-[60px] bg-[#F9FAFB] rounded-[6px]">
+                                                    <el-input v-model.trim="form.password" :placeholder="t('passwordPlaceholder')" type="password" autocomplete="new-password" @keyup.enter="handleLogin(formRef)" :show-password="true" class="h-[60px]">
+                                                        <template #prefix>
+                                                            <img class="max-w-[24px]" src="@/app/assets/images/login/password.png" alt="" object-fit="contain" />
+                                                        </template>
+                                                    </el-input>
+                                                </el-form-item>
+
+                                                <el-form-item>
+                                                    <el-button type="primary" class="mt-[38px] !h-[50px]  w-full" @click="handleLogin(formRef)" :loading="loading">{{ loading ? t('logging') : t('login') }}</el-button>
+                                                </el-form-item>
+                                            </el-form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-center mt-[20px] pb-[20px] text-sm text-[#666]" v-if="copyright">
+                        <a :href="copyright.gov_url" v-if="copyright.gov_record" class="flex" target="_blank">
+                            <img src="@/app/assets/images/gov_icon.png" alt="" class="h-[20px] mr-1">
+                            <span class="mr-3">公安备案号:{{ copyright.gov_record }}</span>
+                        </a>
+                        <a href="https://beian.miit.gov.cn/" target="_blank" v-if="copyright.icp">
+                            <span class="mr-3">备案号:{{ copyright.icp }}</span>
+                        </a>
+                        <a :href="copyright.copyright_link" target="_blank">
+                            <span class="mr-3" v-if="copyright.company_name">{{ copyright.company_name }}</span>
+                            <span class="mr-3" v-if="copyright.copyright_desc">©{{ copyright.copyright_desc }}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </el-main>
+
         <div class="flex items-center justify-center mt-[20px] pb-[20px] text-sm text-[#666]" v-if="copyright  && loginType == 'admin'">
             <a :href="copyright.gov_url" v-if="copyright.gov_record" class="flex" target="_blank">
                 <img src="@/app/assets/images/gov_icon.png" alt="" class="h-[20px] mr-1">
@@ -169,7 +241,7 @@
         </div>
 
         <!-- 验证组件 -->
-        <verify @success="success"  :captchaType="loginType == 'admin' ? loginConfig.captcha_type : loginConfig.site_captcha_type" :imgSize="{ width: '330px', height: '155px' }" ref="verifyRef" v-if="loginConfig"></verify>
+        <verify @success="success" :captchaType="loginType == 'admin' ? loginConfig.captcha_type : (loginType == 'circle' ? loginConfig.circle_captcha_type : loginConfig.site_captcha_type)" :imgSize="{ width: '330px', height: '155px' }" ref="verifyRef" v-if="loginConfig"></verify>
         <!-- <el-footer></el-footer> -->
     </el-container>
 </template>
@@ -186,7 +258,7 @@ import useUserStore from '@/stores/modules/user'
 import { setWindowTitle, img, getAppType } from '@/utils/common'
 import { getWebCopyright } from '@/app/api/sys'
 import useSystemStore from '@/stores/modules/system'
-import { ADMIN_ROUTE, SITE_ROUTE } from '@/router/routers'
+import { ADMIN_ROUTE, SITE_ROUTE, CIRCLE_ROUTE } from '@/router/routers'
 
 const loading = ref(false)
 const imgLoading = ref(false)
@@ -216,6 +288,9 @@ const loginType = ref(getAppType())
 watch(() => webSite.value, () => {
     if (loginType.value == 'site') {
         setWindowTitle(webSite.value.site_name + '-' + t('siteLogin'))
+    } else if (loginType.value == 'circle') {
+        //todo 商圈
+        setWindowTitle('商圈-' + t('siteLogin'))
     } else {
         setWindowTitle(webSite.value.site_name + '-' + t('adminLogin'))
     }
@@ -229,7 +304,7 @@ const success = (params: any) => {
     }
     if (type.value == 'mobile') {
         form.captcha_code = params.captchaVerification
-        form.captcha_type = loginType.value == 'admin' ? loginConfig.value.captcha_type : loginConfig.value.site_captcha_type
+        form.captcha_type = loginType.value == 'admin' ? loginConfig.value.captcha_type : (loginType.value == 'circle' ? loginConfig.value.circle_captcha_type : loginConfig.value.site_captcha_type)
         smsCodeRef.value?.handleConfirm(form)
     }
 }
@@ -289,7 +364,7 @@ const handleLogin = async (formEl: FormInstance | undefined) => {
     if (loading.value || !formEl) return
     await formEl.validate((valid, fields) => {
         if (valid) {
-            if ((parseInt(loginConfig.value.is_captcha) && loginType.value == 'admin') || (parseInt(loginConfig.value.is_site_captcha) && loginType.value == 'site' && type.value == 'username')) {
+            if ((parseInt(loginConfig.value.is_captcha) && loginType.value == 'admin') || (parseInt(loginConfig.value.is_site_captcha) && loginType.value == 'site' && type.value == 'username') || (parseInt(loginConfig.value.is_circle_captcha) && loginType.value == 'circle')) {
                 verifyRef.value.show()
             } else {
                 loginFn()
@@ -309,6 +384,20 @@ const loginFn = (data = {}) => {
                 router.push(redirect)
             } else {
                 router.push({ name: loginType.value == 'admin' ? ADMIN_ROUTE.children[0].name : SITE_ROUTE.children[0].name })
+            }
+        }).catch(() => {
+            loading.value = false
+        })
+    } else if (loginType.value == 'circle') {//todo 商圈
+        // circle 端登录
+        userStore.login({ username: form.username, password: form.password, captcha_type: loginConfig.value.circle_captcha_type, ...data }, loginType.value).then(res => {
+            storage.set({ key: 'app_type', data: loginType.value })
+            console.log(CIRCLE_ROUTE);
+            const { query: { redirect } } = route
+            if (typeof redirect === 'string') {
+                router.push(redirect)
+            } else {
+                router.push({ name: CIRCLE_ROUTE.children[0].name })
             }
         }).catch(() => {
             loading.value = false
@@ -363,6 +452,7 @@ const selectSite = (site: any) => {
 const logoutFn = () => {
     userStore.logout()
 }
+
 </script>
 
 <style lang="scss" scoped>

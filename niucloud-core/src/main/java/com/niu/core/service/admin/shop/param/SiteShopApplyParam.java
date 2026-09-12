@@ -53,5 +53,15 @@ public class SiteShopApplyParam implements Serializable {
     /** 用户姓名 */
     private String userName;
 
+    /** 子级行业id */
+    private Integer childCategoryId;
 
+    /** 商圈id */
+    private Integer circleId;
+
+    /** 所属应用 */
+    private String addon;
+
+    /** 申请方式 */
+    private String applyType;
 }

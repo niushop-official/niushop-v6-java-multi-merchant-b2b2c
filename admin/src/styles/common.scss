@@ -82,6 +82,12 @@ src: url('./font/OPPOSans-R.ttf') format('truetype');
     .input-small-width {
         width: 120px;
     }
+    .search-input {
+        width: 280px !important;
+    }
+    --el-date-editor-datetimerange-width {
+        width: 280px !important;
+    }
 }
 
 .el-form {

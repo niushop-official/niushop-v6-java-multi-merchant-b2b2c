@@ -20,10 +20,10 @@ import com.niu.core.service.admin.stat.ISiteStatService;
 import com.niu.core.service.admin.stat.vo.StartChartVo;
 import com.niu.core.service.core.sys.ICoreSysStatService;
 import com.niu.core.service.core.sys.vo.SysStatVo;
-import com.niu.mall.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoods;
 import com.niu.mall.entity.order.MallOrder;
-import com.niu.mall.enums.goods.GoodsStatusEnum;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.enums.goods.GoodsStatusEnum;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsStatService;
 import com.niu.mall.service.core.goods.vo.MallGoodsStatVo;
@@ -75,6 +75,7 @@ public class CoreStatServiceImpl implements ICoreStatService {
             BeanUtil.copyProperties(data, stat);
             stat.setSiteId(siteId);
             stat.setDate(DateUtil.today());
+            stat.setMonth(DateUtil.format(new DateTime(stat.getDate()), "yyyy-MM"));
             stat.setDateTime(new DateTime(stat.getDate()).getTime() / 1000);
             sysStatMapper.insert(stat);
         } else {

@@ -6,10 +6,12 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
-import cn.hutool.json.*;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONException;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.github.pagehelper.util.StringUtil;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.exception.AdminException;
@@ -33,7 +35,6 @@ import com.niu.core.service.api.login.param.SendMobileCodeParam;
 import com.niu.core.service.core.notice.ICoreNoticeService;
 import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.core.sys.ICoreConfigService;
-import com.qiniu.sms.model.TemplateInfo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
@@ -43,14 +44,17 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Log4j2
 @Service
 public class NuiSmsServiceImpl implements INuiSmsService {
+    private static final Pattern TEMPLATE_VARIABLE_PATTERN = Pattern.compile("\\{(.*?)}");
+
     private final String NIUYUN = "niuyun";
 
     private final String SEND_CODE_URL = "niusms/send";
@@ -323,6 +327,7 @@ public class NuiSmsServiceImpl implements INuiSmsService {
                     }
                 }
             }
+            filterVariableBySmsContent(noticeInfoVo);
 
             notice.add(noticeInfoVo);
         }
@@ -399,6 +404,33 @@ public class NuiSmsServiceImpl implements INuiSmsService {
         return result;
     }
 
+    private void filterVariableBySmsContent(TemplateListVo noticeInfoVo) {
+        if (noticeInfoVo == null || ObjectUtil.isEmpty(noticeInfoVo.getVariable()) || ObjectUtil.isEmpty(noticeInfoVo.getSms())) {
+            return;
+        }
+        String smsContent = noticeInfoVo.getSms().getStr("content");
+        if (StringUtils.isEmpty(smsContent)) {
+            return;
+        }
+
+        Set<String> placeholders = new HashSet<>();
+        Matcher matcher = TEMPLATE_VARIABLE_PATTERN.matcher(smsContent);
+        while (matcher.find()) {
+            placeholders.add(matcher.group(1));
+        }
+        if (placeholders.isEmpty()) {
+            return;
+        }
+
+        JSONObject filteredVariable = new JSONObject();
+        for (String key : noticeInfoVo.getVariable().keySet()) {
+            if (placeholders.contains(key)) {
+                filteredVariable.set(key, noticeInfoVo.getVariable().get(key));
+            }
+        }
+        noticeInfoVo.setVariable(filteredVariable);
+    }
+
     @Override
     public NiuSmsTemplate checkTemplateAudit(String templateKey, String templateId) {
         JSONObject config = getConfig(true);
@@ -435,10 +467,14 @@ public class NuiSmsServiceImpl implements INuiSmsService {
             throw new AdminException("当前模版未配置短信内容");
         }
         JSONObject variable = ObjectUtil.isNotEmpty(templateInfo.getVariable()) ? templateInfo.getVariable() : new JSONObject();
-        if(ObjectUtil.isNotEmpty(niuSmsTemplate) && !paramsJSON.equals( variable)){
+        List<String> paramsJsonKeys = new ArrayList<>(paramsJSON.keySet());
+        Collections.sort(paramsJsonKeys);
+        List<String> variableKeys = new ArrayList<>(variable.keySet());
+        Collections.sort(variableKeys);
+        if(ObjectUtil.isNotEmpty(niuSmsTemplate) && !paramsJsonKeys.equals(variableKeys)){
             throw new AdminException("短信模版参数不一致需修改/重新报备");
         }
-        if(ObjectUtil.isEmpty(niuSmsTemplate) || (niuSmsTemplate != null && !TemplateStatusEnum.TEMPLATE_AUDIT_STATUS_PASS.getCode().toString().equals(niuSmsTemplate.getStatus()))){
+        if(ObjectUtil.isEmpty(niuSmsTemplate) || (niuSmsTemplate != null && !TemplateStatusEnum.TEMPLATE_AUDIT_STATUS_PASS.getCode().toString().equals(niuSmsTemplate.getAuditStatus()))){
             throw new AdminException("短信模版ID错误或审核未通过");
         }
 
@@ -752,7 +788,6 @@ public class NuiSmsServiceImpl implements INuiSmsService {
     public Map<String, Object> templateSync(String username, String smsType) {
         List<TemplateListVo> templateList = getTemplateList(smsType, username);
         Map<String, List<Object>> repeatNameMap = new HashMap<>();
-        int isRepeat = 0;
 
         // 检查重复名称
         for (TemplateListVo item : templateList) {
@@ -760,19 +795,10 @@ public class NuiSmsServiceImpl implements INuiSmsService {
             String addon = item.getAddon();
 
             repeatNameMap.computeIfAbsent(name, k -> new ArrayList<>()).add(addon);
-
-            if (repeatNameMap.get(name).size() > 1) {
-                isRepeat = 1;
-            }
         }
 
-        if (isRepeat == 1) {
-            // 移除不重复的条目
-            repeatNameMap.entrySet().removeIf(entry -> entry.getValue().size() == 1);
-            return Map.of("repeat_list", repeatNameMap);
-        } else {
-            repeatNameMap = new HashMap<>();
-        }
+        // 仅返回重名模板提示，不再因为重名整批中断同步
+        repeatNameMap.entrySet().removeIf(entry -> entry.getValue().size() == 1);
 
         // 执行同步操作
         execSync(smsType, username, templateList, 1);
@@ -804,13 +830,18 @@ public class NuiSmsServiceImpl implements INuiSmsService {
             throw new AdminException("审核通过的模版不允许修改");
         }
 
+        // 模板类型与变量类型校验（对齐前端提示，避免直接打到助通返回英文错误）
+        validateTemplateParams(param.getTemplateType(), templateInfo, param.getParamsJson());
+
         JSONObject config = getConfig(false);
         String templateCreateUrl = String.format(TEMPLATE_ADD_URL, username);
         Map<String, Object> templateCreateBody = new HashMap<>();
         templateCreateBody.put("temName", templateInfo.getName());
         templateCreateBody.put("temType", param.getTemplateType());
         templateCreateBody.put("temContent", templateInfo.getSms().get("content"));
-        templateCreateBody.put("paramJson", param.getParamsJson());
+        // 与 PHP 一致：paramJson 传对象（无变量时为空对象）
+        JSONObject paramsJson = param.getParamsJson() == null ? new JSONObject() : param.getParamsJson();
+        templateCreateBody.put("paramJson", paramsJson);
         templateCreateBody.put("extend", Map.of("template_key", templateKey));
         templateCreateBody.put("signature", config.getStr("signature"));
         templateCreateBody.put("temId", param.getTemplateId());
@@ -821,8 +852,9 @@ public class NuiSmsServiceImpl implements INuiSmsService {
             result = jsonObject.getJSONObject("data");
             JacksonUtils.removeNull(result); // 删除null值，防止序列化报错
         } catch (Exception e) {
-            log.error("创建模版失败异常信息:{}，", e.getMessage());
-            throw new AdminException("创建模版失败:"+e.getMessage());
+            log.error("创建模版失败异常信息:{}", e.getMessage());
+            // 对齐 PHP formatData：直接抛出上游 msg，不做「创建模版失败:」二次包装；并对助通常见错误做中文提示
+            throw new AdminException(resolveTemplateCreateErrorMsg(e.getMessage()));
         }
 
         // 获取模板ID，如果不存在则设为0
@@ -914,7 +946,12 @@ public class NuiSmsServiceImpl implements INuiSmsService {
 
 
     private void execSync(String smsType, String username, List<TemplateListVo> templateList, Integer page) {
-        Map<String, TemplateListVo> nameTemplateMap = templateList.stream().collect(Collectors.toMap(TemplateListVo::getName, i -> i));
+        Map<String, TemplateListVo> keyTemplateMap = templateList.stream()
+                .collect(Collectors.toMap(TemplateListVo::getKey, item -> item, (first, second) -> first));
+        Map<String, List<TemplateListVo>> nameTemplateMap = templateList.stream()
+                .collect(Collectors.groupingBy(TemplateListVo::getName));
+        Map<String, TemplateListVo> phpNameTemplateMap = templateList.stream()
+                .collect(Collectors.toMap(TemplateListVo::getName, item -> item, (first, second) -> second));
         Integer siteId = RequestUtils.siteId();
         String templateListUrl = String.format(TEMPLATE_LIST_URL, username);
         Map<String, Object> templateListUrlParam = new HashMap<>();
@@ -933,19 +970,28 @@ public class NuiSmsServiceImpl implements INuiSmsService {
             String temId = String.valueOf(template.get("temId"));
             String temName = String.valueOf(template.get("temName"));
 
-            // 检查模板是否在项目中配置
-            if (!nameTemplateMap.containsKey(temName)) {
+            if (!phpNameTemplateMap.containsKey(temName)) {
                 continue;
             }
+            if (ObjectUtil.isEmpty(template.get("extend"))) {
+                template.put("extend", Collections.singletonMap("template_key", phpNameTemplateMap.get(temName).getKey()));
+            }
 
-            // 获取template_key
-            String templateKey;
-            if (template.containsKey("extend") && ObjectUtil.isNotEmpty(template.get("extend")) && !"null".equals(String.valueOf(template.get("extend")))) {
-                Map<String, Object> extend = (Map<String, Object>) template.get("extend");
-                templateKey = String.valueOf(extend.getOrDefault("template_key", ""));
-            } else {
-                TemplateListVo templateListVo = nameTemplateMap.get(temName);
-                templateKey = templateListVo.getKey();
+            // 优先使用 extend.template_key 精准回写，避免重名模板按名称误匹配
+            String templateKey = resolveTemplateKeyFromExtend(template.get("extend"));
+            if (StringUtils.isNotEmpty(templateKey) && !keyTemplateMap.containsKey(templateKey)) {
+                templateKey = "";
+            }
+            if (StringUtils.isEmpty(templateKey)) {
+                List<TemplateListVo> templateListVos = nameTemplateMap.get(temName);
+                if (CollectionUtils.isEmpty(templateListVos)) {
+                    continue;
+                }
+                // 名称兜底仅在唯一模板时启用；若本地重名则跳过，避免写错模板
+                if (templateListVos.size() != 1) {
+                    continue;
+                }
+                templateKey = templateListVos.get(0).getKey();
             }
 
             // 查询数据库
@@ -988,6 +1034,29 @@ public class NuiSmsServiceImpl implements INuiSmsService {
         }
     }
 
+    private String resolveTemplateKeyFromExtend(Object extendData) {
+        if (ObjectUtil.isEmpty(extendData)) {
+            return "";
+        }
+        if (extendData instanceof Map<?, ?> extendMap) {
+            Object templateKey = extendMap.get("template_key");
+            return templateKey == null ? "" : String.valueOf(templateKey);
+        }
+        if (extendData instanceof CharSequence extendText) {
+            String extendStr = extendText.toString().trim();
+            if (StringUtils.isEmpty(extendStr) || "null".equalsIgnoreCase(extendStr)) {
+                return "";
+            }
+            try {
+                Object templateKey = JSONUtil.parseObj(extendStr).get("template_key");
+                return templateKey == null ? "" : String.valueOf(templateKey);
+            } catch (Exception ignored) {
+                return "";
+            }
+        }
+        return "";
+    }
+
     private List<Object> delSign(String username, SignDeleteParam param) {
         long time = DateUtil.currentSeconds();
         Map<String, Object> body = new HashMap<>();
@@ -1008,6 +1077,59 @@ public class NuiSmsServiceImpl implements INuiSmsService {
         return config.getJSONObject(NIUYUN);
     }
 
+    /**
+     * 校验模板类型与变量类型是否匹配（对齐前端文案）
+     * 验证码：仅支持验证码类型变量
+     * 行业通知：不支持验证码类型变量
+     * 营销推广：不支持变量
+     */
+    private void validateTemplateParams(String templateType, TemplateListVo templateInfo, JSONObject paramsJson) {
+        int typeCode;
+        try {
+            typeCode = Integer.parseInt(String.valueOf(templateType));
+        } catch (Exception e) {
+            throw new AdminException("请选择正确的模版类型");
+        }
+
+        JSONObject variables = templateInfo.getVariable() == null ? new JSONObject() : templateInfo.getVariable();
+        boolean hasVariable = !variables.isEmpty();
+        JSONObject safeParams = paramsJson == null ? new JSONObject() : paramsJson;
+
+        if (TemplateTypeEnum.SEM.getCode().equals(typeCode) && hasVariable) {
+            throw new AdminException("营销推广类型不支持变量");
+        }
+        if (hasVariable) {
+            for (String key : variables.keySet()) {
+                String paramType = safeParams.getStr(key, "");
+                if (StringUtils.isEmpty(paramType)) {
+                    throw new AdminException("请为每个变量选择类型");
+                }
+                if (TemplateTypeEnum.VERIFY_CODE.getCode().equals(typeCode)
+                        && !TemplateParamsTypeEnum.VALID_CODE.getType().equals(paramType)) {
+                    throw new AdminException("验证码类型模版仅支持验证码类型变量");
+                }
+                if (TemplateTypeEnum.INDUSTRY_NOTICE.getCode().equals(typeCode)
+                        && TemplateParamsTypeEnum.VALID_CODE.getType().equals(paramType)) {
+                    throw new AdminException("行业通知类型不支持验证码类型变量");
+                }
+            }
+        }
+    }
+
+    /**
+     * 助通/牛云创建模版错误文案处理（对齐 PHP 透传，并补充中文可读提示）
+     */
+    private String resolveTemplateCreateErrorMsg(String message) {
+        if (StringUtils.isEmpty(message)) {
+            return "创建模版失败";
+        }
+        // 去掉历史错误的二次包装前缀
+        String msg = message.startsWith("创建模版失败:") ? message.substring("创建模版失败:".length()) : message;
+        if (msg.contains("ZT-4003041") || msg.toLowerCase(Locale.ROOT).contains("param variables error")) {
+            return "模版变量参数错误：请确认模版类型与变量类型匹配（验证码仅支持验证码变量；行业通知不支持验证码变量；营销推广不支持变量）";
+        }
+        return msg;
+    }
 
     public void setConfig(RegisterAccountParam param) {
         JSONObject config = getConfig(true);

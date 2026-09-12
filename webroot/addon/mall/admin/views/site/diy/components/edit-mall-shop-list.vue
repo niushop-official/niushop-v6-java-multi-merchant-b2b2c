@@ -161,7 +161,7 @@ import { t } from '@/lang'
 import { img } from '@/utils/common'
 import useDiyStore from '@/stores/modules/diy'
 import { ref, reactive } from 'vue'
-import shopSelectPopup from '@/app/views/web/components/shop-select-popup.vue'
+import shopSelectPopup from '@/addon/mall/views/admin/site_shop/components/shop-select-popup.vue'
 
 const diyStore:any = useDiyStore()
 diyStore.editComponent.ignore = ['componentBgUrl'] // 忽略公共属性

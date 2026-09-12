@@ -23,6 +23,8 @@ import com.niu.mall.service.core.order.vo.OrderConfigVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 
@@ -103,7 +105,18 @@ public class CoreOrderCloseServiceImpl implements ICoreOrderCloseService {
             event.setOrder(order);
             EventAndSubscribeOfPublisher.publishAll(event);
         }
-        coreOrderEventService.orderCloseAfter(order, param);
+        MallOrder closedOrder = order;
+        OrderCloseParam closeAfterParam = param;
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    coreOrderEventService.orderCloseAfter(closedOrder, closeAfterParam);
+                }
+            });
+        } else {
+            coreOrderEventService.orderCloseAfter(closedOrder, closeAfterParam);
+        }
     }
 
     /**

@@ -172,6 +172,13 @@ public interface IMallGoodsService {
      */
     void editGoodsListMemberPrice(EditGoodsListMemberPriceParam param);
 
+    /**
+     * 编辑商品规格列表付费会员价
+     *
+     * @param param
+     */
+    void editGoodsListVipCardPrice(EditGoodsListVipCardPriceParam param);
+
     PageResult<GetBuyGoodsSelectVo> getBuyGoodsSelect(PageParam pageParam, BuyGoodsSelectParam param);
 
     GetBuySkuSelectVo getBuySkuSelect(BuySkuSelectParam param);
@@ -211,4 +218,11 @@ public interface IMallGoodsService {
     void editLabel(EditGoodsLabelParam param);
 
     List<Map<String, Object>> getSource();
+
+    /**
+     * 站点关闭后批量下架商品
+     *
+     * @param siteId 站点ID
+     */
+    void offlineBySiteId(Integer siteId);
 }

@@ -6,7 +6,7 @@ import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.core.sys.ICoreUploadService;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -37,6 +37,7 @@ public class MallGoodsListVo implements Serializable {
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long createTime; // 创建时间
     private String memberDiscount;
+    private String vipCardDiscount;
     private Integer virtualVerifyType;
     private Integer isDiscount;
     @JsonProperty("goodsSku")
@@ -80,9 +81,12 @@ public class MallGoodsListVo implements Serializable {
         private Integer saleNum; // 销量
         private Integer isDefault;
         private BigDecimal memberPrice;
+        private String svipPrice;
+        private String svipDiscount;
         private String showType;
         private BigDecimal showPrice;
         private String memberDiscount;
+        private String vipCardDiscount;
     }
 
     public String getGoodsTypeName() {
@@ -119,5 +123,7 @@ public class MallGoodsListVo implements Serializable {
     public static class SiteInfo {
         private Integer siteId;
         private String siteName;
+        private String frontEndLogo;
+        private Double distance;
     }
 }

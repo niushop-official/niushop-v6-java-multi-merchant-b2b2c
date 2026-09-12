@@ -17,6 +17,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { redirect } from '@/utils/common';
+import { onLoad } from '@dcloudio/uni-app';
+
+onLoad((option: any) => {
+    code.value = option.code || ''
+})
+
 const code = ref<string>('')
 
 const  verifyFn = () => {

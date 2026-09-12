@@ -5,21 +5,22 @@ import cn.hutool.json.JSONObject;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
-import com.niu.mall.service.api.marketing.ICouponService;
-import com.niu.mall.service.api.marketing.param.MallCouponReceiveParam;
-import com.niu.mall.service.api.marketing.param.MallCouponSearchParam;
-import com.niu.mall.service.api.marketing.vo.MallCouponInfoVo;
-import com.niu.mall.service.api.marketing.vo.MallCouponListVo;
+import com.niu.core.service.api.marketing.ICouponService;
+import com.niu.core.service.api.marketing.param.MallCouponComponentsParam;
+import com.niu.core.service.api.marketing.param.MallCouponMemberSearchParam;
+import com.niu.core.service.api.marketing.param.MallCouponReceiveParam;
+import com.niu.core.service.api.marketing.param.MallCouponSearchParam;
+import com.niu.core.service.api.marketing.vo.MallCouponInfoVo;
+import com.niu.core.service.api.marketing.vo.MallCouponListVo;
+import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.annotation.Resource;
 import java.util.List;
 
 /**
- * 优惠券控制器
+ * 优惠券控制器（兼容 api/mall，web 端仍使用）
  */
-
 @RestController
 @RequestMapping("api/mall")
 public class CouponController {
@@ -37,8 +38,24 @@ public class CouponController {
     @GetMapping("/coupon")
     public Result<PageResult<MallCouponListVo>> list(@Validated PageParam pageParam,
                                                      @Validated MallCouponSearchParam searchParam) {
-        PageResult<MallCouponListVo> list = couponService.getPage(pageParam, searchParam);
-        return Result.success(list);
+        return Result.success(couponService.getPage(pageParam, searchParam));
+    }
+
+    @GetMapping("/coupon/components")
+    public Result<List<MallCouponListVo>> components(@Validated MallCouponComponentsParam param,
+                                                     @RequestParam(name = "coupon_ids", defaultValue = "") String couponIds,
+                                                     @RequestParam(name = "num", defaultValue = "4") Integer num,
+                                                     @RequestParam(name = "site_id", defaultValue = "") String siteId) {
+        if (param.getCouponIds() == null || param.getCouponIds().isEmpty()) {
+            param.setCouponIds(couponIds);
+        }
+        if (param.getNum() == null || param.getNum() == 0) {
+            param.setNum(num);
+        }
+        if (param.getSiteId() == null || param.getSiteId().isEmpty()) {
+            param.setSiteId(siteId);
+        }
+        return Result.success(couponService.getCouponComponents(param));
     }
 
     /**
@@ -49,8 +66,7 @@ public class CouponController {
      */
     @GetMapping("/coupon/{id}")
     public Result<MallCouponInfoVo> info(@Validated @PathVariable("id") Integer id) {
-        MallCouponInfoVo info = couponService.getDetail(id);
-        return Result.success(info);
+        return Result.success(couponService.getDetail(id));
     }
 
     /**
@@ -75,8 +91,15 @@ public class CouponController {
      */
     @SaCheckLogin
     @GetMapping("/member/coupon")
-    public Result<Object> memberCouponList(@Validated PageParam pageParam, @RequestParam(name = "status") Integer status, @RequestParam(name = "type",required = false) String type) {
-        return Result.success(couponService.getMemberPage(pageParam, status ,type  ));
+    public Result<?> memberCouponList(@Validated PageParam pageParam,
+                                      @RequestParam(name = "status", required = false) Integer status,
+                                      @RequestParam(name = "type", required = false) String type,
+                                      @RequestParam(name = "trade_type", required = false) String tradeType) {
+        MallCouponMemberSearchParam searchParam = new MallCouponMemberSearchParam();
+        searchParam.setStatus(status);
+        searchParam.setType(type);
+        searchParam.setTradeType(tradeType);
+        return Result.success(couponService.getMemberPage(pageParam, searchParam));
     }
 
     /**
@@ -97,44 +120,48 @@ public class CouponController {
      */
     @SaCheckLogin
     @GetMapping("/member/coupon/count")
-    public Result<Long> memberCouponCount(@RequestParam(name = "status") Integer status) {
-        return Result.success(couponService.getMemberCount(status));
+    public Result<Long> memberCouponCount(@RequestParam(name = "status", required = false) Integer status,
+                                          @RequestParam(name = "trade_type", required = false) String tradeType) {
+        MallCouponMemberSearchParam searchParam = new MallCouponMemberSearchParam();
+        searchParam.setStatus(status);
+        searchParam.setTradeType(tradeType);
+        return Result.success(couponService.getMemberCount(searchParam));
     }
 
-    /**
-     * 获取优惠券列表组件调用
-     *
-     * @param couponIds
-     * @param num
-     * @return
-     */
-    @GetMapping("/coupon/components")
-    public Result<List<MallCouponListVo>> components(@RequestParam(name = "coupon_ids", defaultValue = "") String couponIds, @RequestParam(name = "num", defaultValue = "4") Integer num, @RequestParam(name = "site_id", defaultValue = "") String siteId) {
-        return Result.success(couponService.getCouponComponents(siteId, couponIds, num));
-    }
-
-    /**
-     * 获取优惠券列表组件调用
-     *
-     * @param couponIds
-     * @param num
-     * @return
-     */
-    @GetMapping("/coupon/components_of_mall")
-    public Result<List<MallCouponListVo>> componentsOfMall(@RequestParam(name = "coupon_ids", defaultValue = "") String couponIds, @RequestParam(name = "num", defaultValue = "4") Integer num) {
-        return Result.success(couponService.getPlatformCouponComponents(couponIds, num));
-    }
-    /**
-     * 优惠券二维码
-     *
-     * @param id
-     * @return
-     */
-    @GetMapping("/coupon/qrcode/{id}")
-    public Result<Object> qrcode(@PathVariable("id") Integer id) {
-        Object obj = couponService.getQrcode(id);
-        return Result.success(obj);
-    }
+//    /**
+//     * 获取优惠券列表组件调用
+//     *
+//     * @param couponIds
+//     * @param num
+//     * @return
+//     */
+//    @GetMapping("/coupon/components")
+//    public Result<List<MallCouponListVo>> components(@RequestParam(name = "coupon_ids", defaultValue = "") String couponIds, @RequestParam(name = "num", defaultValue = "4") Integer num, @RequestParam(name = "site_id", defaultValue = "") String siteId) {
+//        return Result.success(couponService.getCouponComponents(siteId, couponIds, num));
+//    }
+//
+//    /**
+//     * 获取优惠券列表组件调用
+//     *
+//     * @param couponIds
+//     * @param num
+//     * @return
+//     */
+//    @GetMapping("/coupon/components_of_mall")
+//    public Result<List<MallCouponListVo>> componentsOfMall(@RequestParam(name = "coupon_ids", defaultValue = "") String couponIds, @RequestParam(name = "num", defaultValue = "4") Integer num) {
+//        return Result.success(couponService.getPlatformCouponComponents(couponIds, num));
+//    }
+//    /**
+//     * 优惠券二维码
+//     *
+//     * @param id
+//     * @return
+//     */
+//    @GetMapping("/coupon/qrcode/{id}")
+//    public Result<Object> qrcode(@PathVariable("id") Integer id) {
+//        Object obj = couponService.getQrcode(id);
+//        return Result.success(obj);
+//    }
 
     /**
      * 获取优惠券类型
@@ -142,7 +169,7 @@ public class CouponController {
      * @return
      */
     @GetMapping("/coupon_type")
-    public Result<Object> getCouponType() {
+    public Result<?> getCouponType() {
         return Result.success(couponService.getCouponType());
     }
 

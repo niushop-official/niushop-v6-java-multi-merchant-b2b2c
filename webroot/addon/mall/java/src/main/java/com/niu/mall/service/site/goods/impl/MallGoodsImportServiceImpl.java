@@ -14,17 +14,19 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.component.context.WebAppEnvs;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.mall.entity.goods.MallGoodsImportRecord;
 import com.niu.mall.entity.goods.MallGoodsImportRows;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoodsSku;
 import com.niu.mall.enums.goods.GoodsImportStatusEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.goods.MallGoodsSourceTypeEnum;
 import com.niu.mall.mapper.goods.MallGoodsImportMapper;
 import com.niu.mall.mapper.goods.MallGoodsImportRowMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsPartyService;
+import com.niu.mall.service.core.goods.impl.CoreGoodsPartyDemoService;
 import com.niu.mall.service.core.goods.impl.CoreGoodsPartyServiceImpl;
 import com.niu.mall.service.site.goods.IMallGoodsImportService;
 import com.niu.mall.service.site.goods.param.MallGoodsImportParam;
@@ -65,8 +67,20 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
     public Map<String, Object> add(MallGoodsImportParam params) {
         String filePath = params.getFilePath();
         String goodsType = params.getGoodsType();
-        Integer siteId = RequestUtils.siteId();   // 需从上下文中获取
-        Integer mainId = RequestUtils.uid(); // 当前管理员ID
+
+        if (StrUtil.isBlank(filePath)) {
+            throw new CommonException("请选择要上传的文件");
+        }
+        String lowerPath = filePath.toLowerCase();
+        if (!lowerPath.endsWith(".xlsx") && !lowerPath.endsWith(".xls")) {
+            throw new CommonException("请上传Excel文件（.xlsx或.xls格式）");
+        }
+        if (!GoodsTypeEnum.REAL.getType().equals(goodsType) && !GoodsTypeEnum.VIRTUAL.getType().equals(goodsType)) {
+            throw new CommonException("商品类型参数错误");
+        }
+
+        Integer siteId = RequestUtils.siteId();
+        Integer mainId = RequestUtils.uid();
 
         MallGoodsImportRecord record = new MallGoodsImportRecord();
         record.setSiteId(siteId);
@@ -78,7 +92,6 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
         goodsImportMapper.insert(record);
         Integer recordId = record.getRecordId();
 
-        // 解析文件并保存行数据
         addRow(filePath, goodsType, recordId);
 
         return Map.of("record_id", recordId);
@@ -87,36 +100,60 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
     private void addRow(String filePath, String goodsType, Integer recordId) {
         File file = new File(WebAppEnvs.get().webRootDownResource + filePath);
         if (!file.exists()) {
-            throw new RuntimeException("文件不存在");
+            throw new CommonException("文件不存在");
         }
-        // 使用 EasyExcel 读取
-        List<Map<Integer, String>> excelData = new ArrayList<>();
-        EasyExcel.read(file, new ReadListener<Map<Integer, String>>() {
-            @Override
-            public void invoke(Map<Integer, String> data, AnalysisContext context) {
-                excelData.add(data);
-            }
 
-            @Override
-            public void doAfterAllAnalysed(AnalysisContext context) {
-            }
-        }).sheet().doRead();
+        List<Map<Integer, String>> excelData = new ArrayList<>();
+        try {
+            EasyExcel.read(file, new ReadListener<Map<Integer, String>>() {
+                @Override
+                public void invoke(Map<Integer, String> data, AnalysisContext context) {
+                    excelData.add(data);
+                }
+
+                @Override
+                public void doAfterAllAnalysed(AnalysisContext context) {
+                }
+            }).sheet().doRead();
+        } catch (Exception e) {
+            log.error("读取Excel文件失败", e);
+            throw new CommonException("读取Excel文件失败: " + e.getMessage());
+        }
 
         if (excelData.isEmpty()) {
-            throw new RuntimeException("文件无数据");
+            throw new CommonException("文件无数据");
         }
-        // 获取字段映射
-        List<Map<String, String>> fieldMapping = GoodsTypeEnum.REAL.getType().equals(goodsType) ?
-                CoreGoodsPartyServiceImpl.ImportCollectDict.importRealMap() : CoreGoodsPartyServiceImpl.ImportCollectDict.importVirtualMap();
+
+        List<Map<String, String>> fieldMapping = GoodsTypeEnum.REAL.getType().equals(goodsType)
+                ? CoreGoodsPartyServiceImpl.ImportCollectDict.importRealMap()
+                : CoreGoodsPartyServiceImpl.ImportCollectDict.importVirtualMap();
         int expectedCols = fieldMapping.size();
-        // 校验列数
+
         Map<Integer, String> firstRow = excelData.get(0);
-        if (firstRow.size() != expectedCols) {
-            throw new RuntimeException("上传文件和模版提供的的数据列数不对称");
+        boolean hasRemarkRow = firstRow.size() < expectedCols / 2;
+
+        int startIndex;
+        if (hasRemarkRow && excelData.size() >= 3) {
+            startIndex = 2;
+        } else {
+            startIndex = 1;
         }
-        // 从第3行开始处理（索引1）
+
+        if (excelData.size() <= startIndex) {
+            goodsImportMapper.update(new LambdaUpdateWrapper<MallGoodsImportRecord>()
+                    .eq(MallGoodsImportRecord::getRecordId, recordId)
+                    .set(MallGoodsImportRecord::getTotalNum, 0)
+                    .set(MallGoodsImportRecord::getUpdateTime, System.currentTimeMillis() / 1000));
+            return;
+        }
+
+        Map<Integer, String> firstDataRow = excelData.get(0);
+        if (firstDataRow.size() != expectedCols) {
+            throw new CommonException("上传文件和模版提供的的数据列数不对称");
+        }
+
         List<MallGoodsImportRows> rowList = new ArrayList<>();
-        for (int i = 1; i < excelData.size(); i++) {
+        for (int i = startIndex; i < excelData.size(); i++) {
             Map<Integer, String> row = excelData.get(i);
             Map<String, String> itemMap = new HashMap<>();
             for (int j = 0; j < expectedCols; j++) {
@@ -130,6 +167,8 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
             if (StrUtil.isEmpty(itemMap.get("goods_id"))) {
                 continue;
             }
+            //itemMap.put("goods_type", goodsType);
+
             MallGoodsImportRows rows = new MallGoodsImportRows();
             rows.setRecordId(recordId);
             rows.setGoodsId(itemMap.get("goods_id"));
@@ -141,10 +180,11 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
             rows.setUpdateTime(System.currentTimeMillis() / 1000);
             rowList.add(rows);
         }
+
         if (!rowList.isEmpty()) {
-            importRowMapper.insert(rowList); // 需实现批量插入
+            importRowMapper.insert(rowList);
         }
-        // 更新总数量
+
         goodsImportMapper.update(new LambdaUpdateWrapper<MallGoodsImportRecord>()
                 .eq(MallGoodsImportRecord::getRecordId, recordId)
                 .set(MallGoodsImportRecord::getTotalNum, rowList.size())
@@ -160,10 +200,8 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
         LambdaQueryWrapper<MallGoodsImportRecord> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(MallGoodsImportRecord::getSiteId, siteId);
         wrapper.orderByDesc(MallGoodsImportRecord::getRecordId);
-        // 附加字段（status_name, goods_type_name）可在 VO 中处理，此处返回实体
         IPage<MallGoodsImportRecord> iPage = goodsImportMapper.selectPage(new Page<>(page, limit), wrapper);
         List<MallGoodsImportVo> list = BeanUtil.copyToList(iPage.getRecords(), MallGoodsImportVo.class);
-
 
         return PageResult.build(page, limit, iPage.getTotal()).setData(list);
     }
@@ -176,58 +214,50 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
         Page<MallGoodsImportRows> pageObj = new Page<>(page, limit);
         LambdaQueryWrapper<MallGoodsImportRows> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(MallGoodsImportRows::getRecordId, recordId);
-        String status = (String) params.get("status");
-        if (StrUtil.isNotBlank(status)) {
-            wrapper.eq(MallGoodsImportRows::getStatus, Integer.parseInt(status));
-        }
-        String searchText = (String) params.get("search_text");
-        if (StrUtil.isNotBlank(searchText)) {
-            wrapper.like(MallGoodsImportRows::getData, searchText);
+        if (params != null) {
+            Object status = params.get("status");
+            if (status != null && StrUtil.isNotBlank(status.toString())) {
+                wrapper.eq(MallGoodsImportRows::getStatus, Integer.parseInt(status.toString()));
+            }
+            Object searchText = params.get("search_text");
+            if (searchText != null && StrUtil.isNotBlank(searchText.toString())) {
+                wrapper.like(MallGoodsImportRows::getData, searchText.toString());
+            }
         }
         wrapper.orderByAsc(MallGoodsImportRows::getId);
         IPage<MallGoodsImportRows> rowsPage = importRowMapper.selectPage(pageObj, wrapper);
-        IPage<Map<String, Object>> resultPage = new Page<>(rowsPage.getCurrent(), rowsPage.getSize(), rowsPage.getTotal());
-        List<MallGoodsImportRowVo> list = BeanUtil.copyToList(resultPage.getRecords(), MallGoodsImportRowVo.class);
+        List<MallGoodsImportRowVo> list = BeanUtil.copyToList(rowsPage.getRecords(), MallGoodsImportRowVo.class);
 
-        return PageResult.build(page, limit, resultPage.getTotal()).setData(list);
+        return PageResult.build(page, limit, rowsPage.getTotal()).setData(list);
     }
 
     @Override
     public MallGoodsImportVo info(Integer recordId) {
         MallGoodsImportRecord record = goodsImportMapper.selectById(recordId);
         if (record == null) {
-            throw new RuntimeException("记录不存在");
+            throw new CommonException("记录不存在");
         }
-        MallGoodsImportVo vo = BeanUtil.copyProperties(record, MallGoodsImportVo.class);
-        return vo;
+        return BeanUtil.copyProperties(record, MallGoodsImportVo.class);
     }
 
-//    @Override
-//    public Boolean update(Map<String, Object> where, Map<String, Object> data) {
-//        LambdaUpdateWrapper<ImportRecord> wrapper = new LambdaUpdateWrapper<>();
-//        // 简单处理，实际按需实现
-//        return this.update(wrapper);
-//    }
-
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> execute(Integer recordId) {
         MallGoodsImportRecord record = goodsImportMapper.selectById(recordId);
         if (record == null) {
-            throw new RuntimeException("记录不存在");
+            throw new CommonException("记录不存在");
         }
         if (record.getStatus().equals(GoodsImportStatusEnum.SUCCESS.getStatus())) {
             return Map.of();
         }
         if (record.getStatus().equals(GoodsImportStatusEnum.FAIL.getStatus())) {
-            throw new RuntimeException("导入执行失败");
+            throw new CommonException("导入执行失败");
         }
+
         long startTime = System.currentTimeMillis();
         Map<String, Object> result = importData(record);
         String failRemark = (String) result.getOrDefault("fail_remark", "");
         int status = StrUtil.isBlank(failRemark) ? GoodsImportStatusEnum.SUCCESS.getStatus() : GoodsImportStatusEnum.FAIL.getStatus();
 
-        // 更新记录
         LambdaUpdateWrapper<MallGoodsImportRecord> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(MallGoodsImportRecord::getRecordId, recordId)
                 .set(MallGoodsImportRecord::getStatus, status)
@@ -235,19 +265,24 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
                 .set(MallGoodsImportRecord::getFailNum, result.get("fail_num"))
                 .set(MallGoodsImportRecord::getFailRemark, failRemark)
                 .set(MallGoodsImportRecord::getUpdateTime, System.currentTimeMillis() / 1000);
-        // 生成输出文件
+
+        @SuppressWarnings("unchecked")
         List<List<String>> totalList = (List<List<String>>) result.get("total_list");
         if (totalList != null && !totalList.isEmpty()) {
             String outputPath = writeCsv(totalList, record.getSiteId());
             updateWrapper.set(MallGoodsImportRecord::getOutput, outputPath);
         }
+        @SuppressWarnings("unchecked")
         List<List<String>> failList = (List<List<String>>) result.get("fail_list");
         if (failList != null && failList.size() > 1) {
             String failOutputPath = writeCsvWithTitle(failList, record.getSiteId(), record.getGoodsType());
             updateWrapper.set(MallGoodsImportRecord::getFailOutput, failOutputPath);
         }
+
         long duration = (System.currentTimeMillis() - startTime) / 1000;
-        if (duration < 1) duration = 1;
+        if (duration < 1) {
+            duration = 1;
+        }
         updateWrapper.set(MallGoodsImportRecord::getDuration, (int) duration);
         goodsImportMapper.update(updateWrapper);
         return result;
@@ -257,7 +292,7 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
         Integer recordId = record.getRecordId();
         Integer siteId = record.getSiteId();
         String goodsType = record.getGoodsType();
-        // 查询待处理的行数据
+
         List<MallGoodsImportRows> rows = importRowMapper.selectList(new LambdaQueryWrapper<MallGoodsImportRows>()
                 .eq(MallGoodsImportRows::getRecordId, recordId)
                 .in(MallGoodsImportRows::getStatus, List.of(GoodsImportStatusEnum.WAIT.getStatus(), GoodsImportStatusEnum.PROCESSING.getStatus()))
@@ -265,20 +300,21 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
         if (rows.isEmpty()) {
             return Map.of("success_num", 0, "fail_num", 0, "total_list", List.of(), "fail_list", List.of(), "fail_remark", "");
         }
-        // 解析每条数据的 JSON
+
         List<Map<String, Object>> excelData = rows.stream()
                 .map(row -> JSONUtil.parseObj(row.getData()))
                 .collect(Collectors.toList());
-        // 获取表头（字段名）
-        List<Map<String, String>> fields = goodsType.equals(GoodsTypeEnum.REAL.getType()) ?
-                CoreGoodsPartyServiceImpl.ImportCollectDict.importRealMap() :
-                CoreGoodsPartyServiceImpl.ImportCollectDict.importVirtualMap();
+
+        List<Map<String, String>> fields = goodsType.equals(GoodsTypeEnum.REAL.getType())
+                ? CoreGoodsPartyServiceImpl.ImportCollectDict.importRealMap()
+                : CoreGoodsPartyServiceImpl.ImportCollectDict.importVirtualMap();
         List<String> rowKeys = new ArrayList<>();
         List<String> rowTitle = new ArrayList<>();
         for (Map<String, String> field : fields) {
             rowKeys.add(field.get("key"));
             rowTitle.add(field.get("name"));
         }
+
         List<List<String>> totalList = new ArrayList<>();
         totalList.add(new ArrayList<>(rowTitle) {{
             add("结果");
@@ -292,42 +328,44 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
 
         int successNum = 0;
         int failCount = 0;
-        // 按 goods_id 分组
         Map<Long, List<Map<String, Object>>> groupData = excelData.stream()
                 .collect(Collectors.groupingBy(m -> Long.parseLong(m.get("goods_id").toString())));
+
         for (Map.Entry<Long, List<Map<String, Object>>> entry : groupData.entrySet()) {
             Long goodsId = entry.getKey();
             List<Map<String, Object>> goodsData = entry.getValue();
-            // 更新状态为处理中
+
             importRowMapper.update(null, new LambdaUpdateWrapper<MallGoodsImportRows>()
-                    .eq(MallGoodsImportRows::getGoodsId, goodsId)
+                    .eq(MallGoodsImportRows::getGoodsId, goodsId.toString())
                     .eq(MallGoodsImportRows::getRecordId, recordId)
                     .set(MallGoodsImportRows::getStatus, GoodsImportStatusEnum.PROCESSING.getStatus())
                     .set(MallGoodsImportRows::getUpdateTime, System.currentTimeMillis() / 1000));
+
             String error = null;
             try {
                 Map<String, Object> resp = coreGoodsPartyService.importGoods(goodsData, goodsType, siteId);
                 if (resp.containsKey("fail")) {
-                    error = (String) ((Map) resp.get("fail")).get("msg");
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> fail = (Map<String, Object>) resp.get("fail");
+                    error = (String) fail.get("msg");
                 }
             } catch (Exception e) {
                 error = e.getMessage();
             }
+
             if (StrUtil.isBlank(error)) {
-                // 成功：记录到 totalList，并更新关联的商品ID/SKU ID
                 for (Map<String, Object> skuInfo : goodsData) {
-//                    List<String> row = skuInfo.values().stream().map(Object::toString).collect(Collectors.toList());
                     List<String> row = new ArrayList<>();
                     for (String s : rowKeys) {
-                        row.add((String) skuInfo.getOrDefault(s, ""));
+                        Object val = skuInfo.getOrDefault(s, "");
+                        row.add(val != null ? val.toString() : "");
                     }
-
                     row.add("成功");
                     row.add("");
                     totalList.add(row);
                 }
                 successNum += goodsData.size();
-                // 查询关联的实际商品SKU
+
                 List<Long> sourceSkuIds = goodsData.stream()
                         .map(m -> Long.parseLong(m.get("sku_id").toString()))
                         .toList();
@@ -339,22 +377,21 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
                         .orderByDesc(MallGoodsSku::getSkuId));
 
                 for (MallGoodsSku sku : goodsSkuList) {
-                    LambdaUpdateWrapper<MallGoodsImportRows> updateWrapper = new LambdaUpdateWrapper<>();
-                    updateWrapper.eq(MallGoodsImportRows::getGoodsId, goodsId)
-                            .eq(MallGoodsImportRows::getSkuId, sku.getSourceSkuId())
+                    importRowMapper.update(null, new LambdaUpdateWrapper<MallGoodsImportRows>()
+                            .eq(MallGoodsImportRows::getGoodsId, goodsId.toString())
+                            .eq(MallGoodsImportRows::getSkuId, sku.getSourceSkuId().toString())
                             .eq(MallGoodsImportRows::getRecordId, recordId)
                             .set(MallGoodsImportRows::getRelateGoodsId, sku.getGoodsId())
                             .set(MallGoodsImportRows::getRelateSkuId, sku.getSkuId())
                             .set(MallGoodsImportRows::getStatus, GoodsImportStatusEnum.SUCCESS.getStatus())
-                            .set(MallGoodsImportRows::getUpdateTime, System.currentTimeMillis() / 1000);
-                    importRowMapper.update(updateWrapper);
+                            .set(MallGoodsImportRows::getUpdateTime, System.currentTimeMillis() / 1000));
                 }
             } else {
                 for (Map<String, Object> skuInfo : goodsData) {
-//                    List<String> row = skuInfo.values().stream().map(Object::toString).collect(Collectors.toList());
                     List<String> row = new ArrayList<>();
                     for (String s : rowKeys) {
-                        row.add((String) skuInfo.getOrDefault(s, ""));
+                        Object val = skuInfo.getOrDefault(s, "");
+                        row.add(val != null ? val.toString() : "");
                     }
                     row.add("失败");
                     row.add(error);
@@ -363,12 +400,13 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
                 }
                 failCount += goodsData.size();
                 importRowMapper.update(null, new LambdaUpdateWrapper<MallGoodsImportRows>()
-                        .eq(MallGoodsImportRows::getGoodsId, goodsId)
+                        .eq(MallGoodsImportRows::getGoodsId, goodsId.toString())
                         .eq(MallGoodsImportRows::getRecordId, recordId)
                         .set(MallGoodsImportRows::getStatus, GoodsImportStatusEnum.FAIL.getStatus())
                         .set(MallGoodsImportRows::getUpdateTime, System.currentTimeMillis() / 1000));
             }
         }
+
         return Map.of(
                 "success_num", successNum,
                 "fail_num", failCount,
@@ -379,9 +417,11 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
     }
 
     private String writeCsv(List<List<String>> rows, Integer siteId) {
-        String dir = WebAppEnvs.get().webRootDownResource + "upload/goods/import/" + siteId + "/" + "output" + "/";
+        String dir = WebAppEnvs.get().webRootDownResource + "upload/goods/import/" + siteId + "/output/";
         File dirFile = new File(dir);
-        if (!dirFile.exists()) dirFile.mkdirs();
+        if (!dirFile.exists()) {
+            dirFile.mkdirs();
+        }
         String fileName = IdUtil.fastSimpleUUID() + ".csv";
         String fullPath = dir + fileName;
         try (FileWriter fw = new FileWriter(fullPath, StandardCharsets.UTF_8);
@@ -398,14 +438,15 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
     }
 
     private String writeCsvWithTitle(List<List<String>> rows, Integer siteId, String goodsType) {
-        String dir = WebAppEnvs.get().webRootDownResource + "upload/goods/import/" + siteId + "/" + "fail_output" + "/";
+        String dir = WebAppEnvs.get().webRootDownResource + "upload/goods/import/" + siteId + "/fail_output/";
         File dirFile = new File(dir);
-        if (!dirFile.exists()) dirFile.mkdirs();
+        if (!dirFile.exists()) {
+            dirFile.mkdirs();
+        }
         String fileName = IdUtil.fastSimpleUUID() + ".csv";
         String fullPath = dir + fileName;
         try (FileWriter fw = new FileWriter(fullPath, StandardCharsets.UTF_8);
              BufferedWriter writer = new BufferedWriter(fw)) {
-            // 获取合并标题（模板第一行）
             String mergeTitle = getDefaultGoodsImportTemplateRemark(goodsType);
             mergeTitle = mergeTitle.replace("\r", " ").replace("\n", " ");
             int totalColumns = rows.get(0).size();
@@ -425,7 +466,9 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
     }
 
     private String escapeCsv(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.replace("\"", "\"\"");
     }
 
@@ -437,13 +480,14 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
             templatePath = WebAppEnvs.get().webRootDownResource + "/addon/mall/import/mall_virtual_goods_import_template.xlsx";
         }
         File file = new File(templatePath);
-        if (!file.exists()) return "";
+        if (!file.exists()) {
+            return "";
+        }
 
         try (InputStream is = new FileInputStream(file)) {
-            // 读取第一个 sheet 的第一行第一列
             List<Map<Integer, String>> data = EasyExcel.read(is)
                     .sheet(0)
-                    .headRowNumber(0) // 无表头
+                    .headRowNumber(0)
                     .doReadSync();
             if (!data.isEmpty()) {
                 return data.get(0).getOrDefault(0, "");
@@ -456,9 +500,8 @@ public class MallGoodsImportServiceImpl implements IMallGoodsImportService {
 
     @Override
     public Map<String, Object> demo() {
-//        return coreGoodsImportService.demo(getSiteId());
-        return Map.of();
+        Integer siteId = RequestUtils.siteId();
+        List<Map<String, Object>> demoData = CoreGoodsPartyDemoService.importExample();
+        return coreGoodsPartyService.importGoods(demoData, GoodsTypeEnum.REAL.getType(), siteId);
     }
-
-
 }

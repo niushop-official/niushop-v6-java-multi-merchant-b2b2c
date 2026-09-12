@@ -66,22 +66,17 @@ public class CoreShopSettlementServiceImpl implements ICoreShopSettlementService
     public void orderPay(MallOrder order) {
 
         SiteShop siteShop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", order.getSiteId()));
-        if(ObjectUtils.isNotEmpty(siteShop))
-        {
-            BigDecimal commissionRate = siteShop.getCommissionRate();
-            if(commissionRate.compareTo(BigDecimal.ZERO) > 0)
-            {
-                BigDecimal siteOrderMoney = order.getOrderMoney().subtract(order.getSupplyMoney());
-                BigDecimal mallMoney = siteOrderMoney.multiply(commissionRate).divide(new BigDecimal(100), 2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal shopMoney = siteOrderMoney.subtract(mallMoney);
-                MallOrder mallOrder = new MallOrder();
-                mallOrder.setOrderId(order.getOrderId());
-                mallOrder.setMallMoney(mallMoney);
-                mallOrder.setShopMoney(shopMoney);
-                mallOrder.setMallRate(commissionRate);
-                mallOrderMapper.updateById(mallOrder);
-            }
-
+        if (ObjectUtils.isNotEmpty(siteShop)) {
+            BigDecimal commissionRate = siteShop.getServiceRate() != null ? siteShop.getServiceRate() : BigDecimal.ZERO;
+            BigDecimal siteOrderMoney = order.getOrderMoney().subtract(order.getSupplyMoney());
+            BigDecimal mallMoney = siteOrderMoney.multiply(commissionRate).divide(new BigDecimal(100), 2, BigDecimal.ROUND_HALF_UP);
+            BigDecimal shopMoney = siteOrderMoney.subtract(mallMoney);
+            MallOrder mallOrder = new MallOrder();
+            mallOrder.setOrderId(order.getOrderId());
+            mallOrder.setMallMoney(mallMoney);
+            mallOrder.setShopMoney(shopMoney);
+            mallOrder.setMallRate(commissionRate);
+            mallOrderMapper.updateById(mallOrder);
         }
 
     }
@@ -208,6 +203,7 @@ public class CoreShopSettlementServiceImpl implements ICoreShopSettlementService
         separAccount.setStatus("wait");
         separAccount.setOutTradeNo(order.getOutTradeNo());
         separAccount.setPayType(pay.getType());
+        separAccount.setTradeScene(ObjectUtil.defaultIfNull(order.getOrderFrom(), ""));
         separAccount.setCreateTime(System.currentTimeMillis() / 1000);
         
         // 创建分账详情

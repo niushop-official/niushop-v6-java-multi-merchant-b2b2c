@@ -2,6 +2,7 @@ package com.niu.core.service.core.local_delivery.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -12,11 +13,14 @@ import com.niu.core.common.loader.local_delivery.BaseLocalDelivery;
 import com.niu.core.common.loader.local_delivery.LocalDeliveryLoader;
 import com.niu.core.common.utils.DistanceCalculateUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrder;
+import com.niu.core.entity.member.Member;
 import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
 import com.niu.core.enums.local_delivery.LocalDeliveryStatusEnum;
 import com.niu.core.event.local_delivery.GetLocalDeliveryTrackEventDefiner;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderMapper;
+import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.service.api.delivery.param.TrackOfLocalServiceParam;
+import com.niu.core.service.api.delivery.vo.RiderLocationVo;
 import com.niu.core.service.api.delivery.vo.TrackCenterVo;
 import com.niu.core.service.api.delivery.vo.TrackOfLocalServiceVo;
 import com.niu.core.service.api.delivery.vo.TrackPointsVo;
@@ -51,6 +55,8 @@ public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrde
     private ICoreDeliveryConfigService coreDeliveryConfigService;
     @Resource
     private ICoreMapService coreMapService;
+    @Resource
+    private MemberMapper memberMapper;
 
     @Override
     @Transactional
@@ -95,6 +101,49 @@ public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrde
     }
 
     @Override
+    public RiderLocationVo getRiderLocation(TrackOfLocalServiceParam param) {
+        DeliveryLocalDeliveryOrder localDeliveryOrder = deliveryLocalDeliveryOrderMapper.selectOne(new LambdaQueryWrapper<DeliveryLocalDeliveryOrder>()
+                .eq(DeliveryLocalDeliveryOrder::getTradeType, param.getTradeType())
+                .eq(DeliveryLocalDeliveryOrder::getTradeNo, param.getTradeNo())
+                .orderByDesc(DeliveryLocalDeliveryOrder::getCreateTime)
+                .last("limit 1"));
+        if (ObjectUtil.isEmpty(localDeliveryOrder)) {
+            throw new CommonException("DELIVERY_ORDER_NOT_EXIT");
+        }
+        syncMerchantInDeliveryStatus(localDeliveryOrder);
+        RiderLocationVo location = RiderLocationVo.builder().latitude("").longitude("").build();
+        Integer status;
+        try {
+            status = Integer.parseInt(String.valueOf(localDeliveryOrder.getStatus()));
+        } catch (Exception e) {
+            return location;
+        }
+        if (!LocalDeliveryStatusEnum.PENDING_PICKUP.getStatus().equals(status)
+                && !LocalDeliveryStatusEnum.IN_DELIVERY.getStatus().equals(status)) {
+            return location;
+        }
+        try {
+            Map<String, Object> config = new HashMap<>();
+            if (!DeliveryStoreTypeEnum.MERCHANT.getKey().equals(localDeliveryOrder.getDeliveryService())) {
+                config = coreLocalDeliveryService.getConfig(localDeliveryOrder.getDeliveryService(), localDeliveryOrder.getSiteId());
+            }
+            BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(localDeliveryOrder.getDeliveryService())
+                    .init(JSONUtil.parseObj(config));
+            Map<String, Object> requestData = new HashMap<>();
+            requestData.put("delivery_no", localDeliveryOrder.getDeliveryNo());
+            Map<String, Object> responseData = driver.getTransporterPosition(requestData);
+            if (ObjectUtil.isNotEmpty(responseData)) {
+                location.setLatitude(ObjectUtil.defaultIfNull(responseData.get("rider_latitude"), "").toString());
+                location.setLongitude(ObjectUtil.defaultIfNull(responseData.get("rider_longitude"), "").toString());
+            }
+        } catch (Exception e) {
+            log.error("获取骑手位置失败 tradeType={}, tradeNo={}, err={}",
+                    param.getTradeType(), param.getTradeNo(), e.getMessage());
+        }
+        return location;
+    }
+
+    @Override
     public TrackOfLocalServiceVo getTrackInfo(TrackOfLocalServiceParam param) {
         DeliveryLocalDeliveryOrder localDeliveryOrder = deliveryLocalDeliveryOrderMapper.selectOne(new LambdaQueryWrapper<DeliveryLocalDeliveryOrder>()
                 .eq(DeliveryLocalDeliveryOrder::getTradeType, param.getTradeType())
@@ -102,6 +151,10 @@ public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrde
                 .orderByDesc(DeliveryLocalDeliveryOrder::getCreateTime)
                 .last("limit 1")
         );
+        if (ObjectUtil.isEmpty(localDeliveryOrder)) {
+            return new TrackOfLocalServiceVo();
+        }
+        syncMerchantInDeliveryStatus(localDeliveryOrder);
         //查询配送订单的起始点
         GetLocalDeliveryTrackEventDefiner.GetLocalDeliveryTrackEvent event = new GetLocalDeliveryTrackEventDefiner.GetLocalDeliveryTrackEvent();
         event.setSiteId(localDeliveryOrder.getSiteId());
@@ -114,6 +167,10 @@ public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrde
             if (ObjectUtil.isNotEmpty(itemResult) && ObjectUtil.isNotEmpty(itemResult.getPoints())) {
                 points = itemResult.getPoints();
             }
+        }
+        // 商家配送无三方轨迹监听，按 PHP 地图展示逻辑兜底生成点位
+        if (points.isEmpty() && DeliveryStoreTypeEnum.MERCHANT.getKey().equals(localDeliveryOrder.getDeliveryService())) {
+            points = buildMerchantTrackPoints(localDeliveryOrder, param.getMemberId());
         }
         if (points.isEmpty()) {
             return new TrackOfLocalServiceVo();
@@ -131,7 +188,8 @@ public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrde
                 TrackPointsVo fromPoint = points.get(0);
                 TrackPointsVo toPoint = points.get(1);
                 try {
-                    driving = coreMapService.getPolygon(fromPoint.getLatitude() + "," + fromPoint.getLongitude(), toPoint.getLatitude() + "," + toPoint.getLongitude());
+//                    driving = coreMapService.getPolygon(fromPoint.getLatitude() + "," + fromPoint.getLongitude(), toPoint.getLatitude() + "," + toPoint.getLongitude());
+                    driving = coreMapService.getPolyline(event.getSiteId(), fromPoint.getLatitude() + "," + fromPoint.getLongitude(), toPoint.getLatitude() + "," + toPoint.getLongitude());
                 } catch (Exception e) {
                     log.error(" 获取配送订单轨迹失败 - 堆栈信息:{}", e.getMessage());
                 }
@@ -251,6 +309,141 @@ public class CoreLocalDeliveryOrderServiceImpl implements ICoreLocalDeliveryOrde
         // 转换为HH:mm格式
         LocalDateTime dateTime = LocalDateTime.ofEpochSecond(expectedFinishTime, 0, java.time.ZoneOffset.UTC);
         return dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+    }
+
+    /**
+     * 商家配送发货后同城单应为配送中；历史数据若仍停在接单/待取货，按是否已有商家配送单纠正
+     */
+    private void syncMerchantInDeliveryStatus(DeliveryLocalDeliveryOrder order) {
+        if (order == null || !DeliveryStoreTypeEnum.MERCHANT.getKey().equals(order.getDeliveryService())) {
+            return;
+        }
+        int status;
+        try {
+            status = Integer.parseInt(String.valueOf(order.getStatus()));
+        } catch (Exception e) {
+            return;
+        }
+        if (status < 0
+                || LocalDeliveryStatusEnum.IN_DELIVERY.getStatus().equals(status)
+                || LocalDeliveryStatusEnum.COMPLETED.getStatus().equals(status)) {
+            return;
+        }
+        try {
+            Map<String, Object> config = new HashMap<>();
+            config.put("siteId", order.getSiteId());
+            BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(DeliveryStoreTypeEnum.MERCHANT.getKey())
+                    .init(JSONUtil.parseObj(config));
+            Map<String, Object> pos = driver.getTransporterPosition(Map.of("delivery_no", order.getDeliveryNo()));
+            if (ObjectUtil.isEmpty(pos)) {
+                return;
+            }
+            DeliveryLocalDeliveryOrder update = new DeliveryLocalDeliveryOrder();
+            update.setId(order.getId());
+            update.setStatus(LocalDeliveryStatusEnum.IN_DELIVERY.getStatus().toString());
+            if (ObjectUtil.isNotEmpty(pos.get("rider_name"))) {
+                update.setRiderName(String.valueOf(pos.get("rider_name")));
+                order.setRiderName(update.getRiderName());
+            }
+            if (ObjectUtil.isNotEmpty(pos.get("rider_mobile"))) {
+                update.setRiderMobile(String.valueOf(pos.get("rider_mobile")));
+                order.setRiderMobile(update.getRiderMobile());
+            }
+            deliveryLocalDeliveryOrderMapper.updateById(update);
+            order.setStatus(update.getStatus());
+        } catch (Exception e) {
+            log.warn("同步商家配送状态失败 deliveryNo={}, err={}", order.getDeliveryNo(), e.getMessage());
+        }
+    }
+
+    /**
+     * 商家配送轨迹点（对齐 PHP 配送中地图：骑手 + 买家）
+     */
+    private List<TrackPointsVo> buildMerchantTrackPoints(DeliveryLocalDeliveryOrder order, Integer memberId) {
+        List<TrackPointsVo> points = new ArrayList<>();
+        int status;
+        try {
+            status = Integer.parseInt(String.valueOf(order.getStatus()));
+        } catch (Exception e) {
+            return points;
+        }
+        String headimg = "static/resource/images/default_headimg.png";
+        if (memberId != null && memberId > 0) {
+            Member member = memberMapper.selectById(memberId);
+            if (member != null && ObjectUtil.isNotEmpty(member.getHeadimg())) {
+                headimg = member.getHeadimg();
+            }
+        }
+        Map<String, Object> riderPos = new HashMap<>();
+        try {
+            Map<String, Object> config = new HashMap<>();
+            config.put("siteId", order.getSiteId());
+            BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(DeliveryStoreTypeEnum.MERCHANT.getKey())
+                    .init(JSONUtil.parseObj(config));
+            Map<String, Object> requestData = new HashMap<>();
+            requestData.put("delivery_no", order.getDeliveryNo());
+            riderPos = ObjectUtil.defaultIfNull(driver.getTransporterPosition(requestData), new HashMap<>());
+        } catch (Exception e) {
+            log.warn("商家配送获取骑手位置失败 deliveryNo={}, err={}", order.getDeliveryNo(), e.getMessage());
+        }
+        String riderLat = StrUtil.blankToDefault(
+                ObjectUtil.isNotEmpty(riderPos.get("rider_latitude")) ? String.valueOf(riderPos.get("rider_latitude")) : "",
+                ObjectUtil.defaultIfNull(order.getDeliveryStartLat(), ""));
+        String riderLng = StrUtil.blankToDefault(
+                ObjectUtil.isNotEmpty(riderPos.get("rider_longitude")) ? String.valueOf(riderPos.get("rider_longitude")) : "",
+                ObjectUtil.defaultIfNull(order.getDeliveryStartLng(), ""));
+
+        if (LocalDeliveryStatusEnum.ORDER_ACCEPTED.getStatus().equals(status)
+                || LocalDeliveryStatusEnum.PENDING_ACCEPTANCE.getStatus().equals(status)) {
+            points.add(TrackPointsVo.builder()
+                    .pointsType("shop")
+                    .latitude(order.getDeliveryStartLat())
+                    .longitude(order.getDeliveryStartLng())
+                    .iconPath("static/resource/images/local_delivery/in_stock.png")
+                    .callout(TrackPointsVo.CalloutInfo.builder().content(status == 0 ? "已接单" : "备货中").build())
+                    .build());
+            points.add(TrackPointsVo.builder()
+                    .pointsType("member")
+                    .latitude(order.getDeliveryEndLat())
+                    .longitude(order.getDeliveryEndLng())
+                    .iconPath(headimg)
+                    .callout(TrackPointsVo.CalloutInfo.builder().content("").build())
+                    .build());
+            return points;
+        }
+        if (LocalDeliveryStatusEnum.PENDING_PICKUP.getStatus().equals(status)
+                || LocalDeliveryStatusEnum.RIDER_ARRIVED.getStatus().equals(status)
+                || LocalDeliveryStatusEnum.IN_DELIVERY.getStatus().equals(status)) {
+            String tip = LocalDeliveryStatusEnum.IN_DELIVERY.getStatus().equals(status)
+                    ? "配送中"
+                    : (LocalDeliveryStatusEnum.RIDER_ARRIVED.getStatus().equals(status) ? "骑手到店取餐中" : "骑手正赶往商家");
+            String pointsType = LocalDeliveryStatusEnum.RIDER_ARRIVED.getStatus().equals(status) ? "rider_arrived" : "rider";
+            points.add(TrackPointsVo.builder()
+                    .pointsType(pointsType)
+                    .latitude(riderLat)
+                    .longitude(riderLng)
+                    .iconPath("static/resource/images/local_delivery/in_delivery.png")
+                    .callout(TrackPointsVo.CalloutInfo.builder().content(tip).build())
+                    .build());
+            if (LocalDeliveryStatusEnum.PENDING_PICKUP.getStatus().equals(status)) {
+                points.add(TrackPointsVo.builder()
+                        .pointsType("shop")
+                        .latitude(order.getDeliveryStartLat())
+                        .longitude(order.getDeliveryStartLng())
+                        .iconPath("static/resource/images/local_delivery/in_stock.png")
+                        .callout(TrackPointsVo.CalloutInfo.builder().content("").build())
+                        .build());
+            } else {
+                points.add(TrackPointsVo.builder()
+                        .pointsType("member")
+                        .latitude(order.getDeliveryEndLat())
+                        .longitude(order.getDeliveryEndLng())
+                        .iconPath(headimg)
+                        .callout(TrackPointsVo.CalloutInfo.builder().content("").build())
+                        .build());
+            }
+        }
+        return points;
     }
 
     /**

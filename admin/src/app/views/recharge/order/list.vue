@@ -26,43 +26,39 @@
             </el-card>
 
             <el-card class="box-card !border-none mb-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="orderTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="orderTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('rechargeNo')" prop="order_no">
-                        <el-input v-model="orderTableData.searchParam.order_no" :placeholder="t('rechargeNoPlaceholder')" />
+                        <el-input v-model="orderTableData.searchParam.order_no" :placeholder="t('rechargeNoPlaceholder')" clearable  class="search-input" />
                     </el-form-item>
 
                     <el-form-item :label="t('orderFromName')" prop="order_from">
-                        <el-select v-model="orderTableData.searchParam.order_from" clearable class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="orderTableData.searchParam.order_from" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item" :value="key" v-for="(item, key) in channelList" :key="key" />
                         </el-select>
                     </el-form-item>
 
                     <el-form-item :label="t('orderStatus')" prop="order_status">
-                        <el-select v-model="orderTableData.searchParam.order_status" clearable class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="orderTableData.searchParam.order_status" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item['name']" :value="item['status']" v-for="(item,index) in statusList" :key="index" />
                         </el-select>
                     </el-form-item>
 
                     <el-form-item :label="t('createTime')" prop="create_time">
-                        <el-date-picker v-model="orderTableData.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+                        <el-date-picker v-model="orderTableData.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
 
                     <el-form-item :label="t('rechargeMoney')">
-                        <div class="region-input">
-                            <el-form-item prop="start_money">
-                                <input type="text" :placeholder="t('startMoney')" v-model="orderTableData.searchParam.start_money" maxlength="8" />
-                            </el-form-item>
+                        <div class="region-input search-input">
+                              <input type="text" :placeholder="t('startMoney')" v-model="orderTableData.searchParam.start_money" maxlength="8" class="w-[130px]" />
                             <span class="separator">-</span>
-                            <el-form-item prop="end_money">
-                                <input type="text" :placeholder="t('endMoney')" v-model="orderTableData.searchParam.end_money" maxlength="8" />
-                            </el-form-item>
+                            <input type="text" :placeholder="t('endMoney')" v-model="orderTableData.searchParam.end_money" maxlength="8" class="w-[130px]" />
                         </div>
                     </el-form-item>
 
                     <el-form-item :label="t('payTime')"  prop="pay_time">
-                        <el-date-picker v-model="orderTableData.searchParam.pay_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+                        <el-date-picker v-model="orderTableData.searchParam.pay_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
 
                     <el-form-item>

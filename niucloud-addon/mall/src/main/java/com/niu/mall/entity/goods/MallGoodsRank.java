@@ -87,4 +87,14 @@ public class MallGoodsRank implements Serializable {
      */
     private Long updateTime;
 
+    /**
+     * 是否显示到搜索页（0不显示 1显示）
+     */
+    private Integer isShowSearch;
+
+    /**
+     * 榜单设置
+     */
+    private String config;
+
 }

@@ -71,7 +71,7 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
         }
 
 
-        IPage<SysUserLog> iPage = sysUserLogMapper.selectPage(new Page<SysUserLog>(page, limit), queryWrapper);
+        IPage<SysUserLog> iPage = sysUserLogMapper.selectPage(new Page<>(page, limit), queryWrapper);
 
         List<SysUserLogListVo> list = new LinkedList<>();
         for (SysUserLog item : iPage.getRecords()) {
@@ -79,7 +79,7 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
             BeanUtils.copyProperties(item, vo);
             list.add(vo);
         }
-        return PageResult.build(page, limit, iPage.getTotal()).setData(list);
+        return PageResult.build(page, limit, iPage.getTotal(), list);
     }
 
     /**
@@ -91,11 +91,12 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
     @Override
     public SysUserLogInfoVo info(Integer id) {
         QueryWrapper<SysUserLog> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", id);
-        
+        queryWrapper.eq("id", id)
+                .eq("site_id", RequestUtils.siteId());
+
         // 选择字段，与PHP版本保持一致
         queryWrapper.select("id", "ip", "site_id", "uid", "username", "operation", "url", "params", "type", "create_time");
-        
+
         SysUserLog model = sysUserLogMapper.selectOne(queryWrapper);
 
         Assert.notNull(model, "数据不存在");
@@ -113,13 +114,14 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
     @Override
     public void add(SysUserLogParam addParam) {
         SysUserLog model = new SysUserLog();
-        model.setIp(addParam.getIp());
-        model.setSiteId(addParam.getSiteId());
-        model.setUid(addParam.getUid());
-        model.setUsername(addParam.getUsername());
-        model.setUrl(addParam.getUrl());
-        model.setParams(addParam.getParams());
-        model.setType(addParam.getType());
+        model.setIp(ObjectUtil.defaultIfNull(addParam.getIp(), ""));
+        model.setSiteId(ObjectUtil.defaultIfNull(addParam.getSiteId(), RequestUtils.siteId()));
+        model.setUid(ObjectUtil.defaultIfNull(addParam.getUid(), 0));
+        model.setUsername(ObjectUtil.defaultIfNull(addParam.getUsername(), ""));
+        model.setUrl(ObjectUtil.defaultIfNull(addParam.getUrl(), ""));
+        model.setParams(ObjectUtil.defaultIfNull(addParam.getParams(), "{}"));
+        model.setType(ObjectUtil.defaultIfNull(addParam.getType(), ""));
+        model.setOperation(ObjectUtil.defaultIfNull(addParam.getOperation(), ""));
         model.setCreateTime(System.currentTimeMillis() / 1000);
         sysUserLogMapper.insert(model);
     }
@@ -146,6 +148,7 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
         model.setUrl(editParam.getUrl());
         model.setParams(editParam.getParams());
         model.setType(editParam.getType());
+        model.setOperation(editParam.getOperation());
         sysUserLogMapper.updateById(model);
     }
 
@@ -167,11 +170,12 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
     }
 
     /**
-     * 清空日志
+     * 清空当前站点操作日志（对齐 PHP UserLogService::destroy）
      */
     @Override
     public void destroy() {
-        sysUserLogMapper.delete(new QueryWrapper<>());
+        sysUserLogMapper.delete(new QueryWrapper<SysUserLog>()
+                .eq("site_id", RequestUtils.siteId()));
     }
 
 }

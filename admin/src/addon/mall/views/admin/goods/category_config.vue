@@ -92,7 +92,7 @@
 <script lang="ts" setup>
 import { reactive, ref, computed } from 'vue'
 import { t } from '@/lang'
-import { getCategoryConfig, setCategoryConfig } from '@/addon/mall/api/admin/goods'
+import { getCategoryConfig, setCategoryConfig } from '@/app/lang/zh-cn/api/admin/goods'
 import { img } from '@/utils/common'
 import { useRoute, useRouter } from 'vue-router'
 

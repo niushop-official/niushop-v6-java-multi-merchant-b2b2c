@@ -91,7 +91,7 @@ import {
     getActiveGoodsCount,
     getGoodsSkuList,
     editGoodsListPrice
-} from '@/addon/mall/api/site/goods'
+} from '@/app/lang/zh-cn/api/site/goods'
 
 const goods: any = reactive({})
 const activeGoodsCount: any = ref(0)

@@ -79,7 +79,7 @@ import { cloneDeep } from 'lodash-es'
 import { img, deepClone } from '@/utils/common'
 import { ElMessage, FormInstance } from 'element-plus'
 import { getCategoryTree } from '@/app/api/basic_admin'
-import { getGoodsSelectPageList, getGoodsSkuNoPageList, getGoodsType } from '@/addon/mall/api/admin/goods'
+import { getGoodsSelectPageList, getGoodsSkuNoPageList, getGoodsType } from '@/app/lang/zh-cn/api/admin/goods'
 
 const prop = defineProps({
     goodsIds: {
@@ -142,7 +142,9 @@ const goodsType: any = reactive([])
 // 初始化数据
 const initData = () => {
 // 查询商品分类树结构
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []
@@ -150,16 +152,26 @@ const initData = () => {
                 const children: any = []
                 if (item.child_list) {
                     item.child_list.forEach((childItem: any) => {
+                        const grandson: any = []
+                        if (childItem.child_list) {
+                            childItem.child_list.forEach((grandsonItem: any) => {
+                                grandson.push({
+                                    label: grandsonItem.category_name,
+                                    value: grandsonItem.category_id
+                                })
+                            })
+                        }
                         children.push({
+                            label: childItem.category_name,
                             value: childItem.category_id,
-                            label: childItem.category_name
+                            children: grandson
                         })
                     })
                 }
                 goodsCategoryTree.push({
-                    value: item.category_id,
                     label: item.category_name,
-                    children
+                    value: item.category_id,
+                    children: children
                 })
             })
             goodsCategoryOptions.splice(0, goodsCategoryOptions.length, ...goodsCategoryTree)

@@ -57,17 +57,21 @@ public class SysPosterServiceImpl implements ISysPosterService {
         Integer limit =pageParam.getLimit();
 
         QueryWrapper<SysPoster> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id", "site_id", "name", "type", "channel", "status",
+                "addon", "is_default", "create_time", "update_time");
         queryWrapper.eq("site_id", RequestUtils.siteId());
         queryWrapper.orderByDesc("id");
 
         if (ObjectUtil.isNotEmpty(searchParam.getName())) queryWrapper.like("name", searchParam.getName());
-        if (ObjectUtil.isNotEmpty(searchParam.getType())) queryWrapper.eq("type", searchParam.getType());
+        if (ObjectUtil.isNotEmpty(searchParam.getType()) && !"all".equals(searchParam.getType())) queryWrapper.eq("type", searchParam.getType());
 
+        Map<String, String> typeNameMap = buildPosterTypeNameMap();
         IPage<SysPoster> iPage = sysPosterMapper.selectPage(new Page<>(page, limit), queryWrapper);
         List<SysPosterListVo> list = new LinkedList<>();
         for (SysPoster item : iPage.getRecords()) {
             SysPosterListVo vo = new SysPosterListVo();
             BeanUtils.copyProperties(item, vo);
+            vo.setTypeName(typeNameMap.getOrDefault(item.getType(), ""));
             list.add(vo);
         }
         return PageResult.build(page, limit, iPage.getTotal()).setData(list);
@@ -82,20 +86,34 @@ public class SysPosterServiceImpl implements ISysPosterService {
     @Override
     public List<SysPosterListVo> list(SysPosterSearchParam searchParam) {
         QueryWrapper<SysPoster> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id", "site_id", "name", "type", "channel", "status",
+                "addon", "is_default", "create_time", "update_time");
         queryWrapper.eq("site_id", RequestUtils.defaultSiteId());
         queryWrapper.orderByDesc("id");
 
         if (ObjectUtil.isNotEmpty(searchParam.getName())) queryWrapper.like("name", searchParam.getName());
-        if (ObjectUtil.isNotEmpty(searchParam.getType())) queryWrapper.eq("type", searchParam.getType());
+        if (ObjectUtil.isNotEmpty(searchParam.getType()) && !"all".equals(searchParam.getType())) queryWrapper.eq("type", searchParam.getType());
 
+        Map<String, String> typeNameMap = buildPosterTypeNameMap();
         List<SysPoster> records = sysPosterMapper.selectList(queryWrapper);
         List<SysPosterListVo> list = new LinkedList<>();
         for (SysPoster item : records) {
             SysPosterListVo vo = new SysPosterListVo();
             BeanUtils.copyProperties(item, vo);
+            vo.setTypeName(typeNameMap.getOrDefault(item.getType(), ""));
             list.add(vo);
         }
         return list;
+    }
+
+    private Map<String, String> buildPosterTypeNameMap() {
+        Map<String, String> map = new HashMap<>();
+        JSONArray types = PosterTypeEnum.getType();
+        for (int i = 0; i < types.size(); i++) {
+            JSONObject item = types.getJSONObject(i);
+            map.put(item.getStr("type", ""), item.getStr("name", ""));
+        }
+        return map;
     }
 
     /**

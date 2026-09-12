@@ -9,6 +9,7 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.json.JacksonUtils;
 import com.niu.core.common.component.context.cache.CacheFactory;
 import com.niu.core.common.component.context.cache.Cached;
@@ -18,7 +19,7 @@ import com.niu.core.service.core.sys.ICoreConfigService;
 import com.niu.core.consts.ShopDeliveryElectronicSheetConst;
 import com.niu.core.entity.delivery.DeliveryCompany;
 import com.niu.core.entity.delivery.DeliveryElectronicSheet;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoodsSku;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderDelivery;
 import com.niu.mall.entity.order.MallOrderGoods;
@@ -27,7 +28,7 @@ import com.niu.mall.enums.order.OrderDeliveryTypeEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
 import com.niu.core.mapper.site.DeliveryCompanyMapper;
 import com.niu.core.mapper.delivery.DeliveryElectronicSheetMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import com.niu.mall.mapper.order.MallOrderDeliveryMapper;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
@@ -88,6 +89,8 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
             sheetQueryWrapper.eq(DeliveryElectronicSheet::getStatus, 1);
         }
 
+        sheetQueryWrapper.like(DeliveryElectronicSheet::getSupportTrade, "mall");
+
         var shopDeliveryElectronicSheets = deliveryElectronicSheetMapper.selectList(sheetQueryWrapper);
         var companyIds = CollStreamUtil.toSet(shopDeliveryElectronicSheets, DeliveryElectronicSheet::getExpressCompanyId);
         var companyMap = deliveryCompanyMapper.selectBatchIds(companyIds)
@@ -123,7 +126,7 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
             this.config = getElectronicSheetConfig(param.getSiteId());
 
             if (ObjectUtil.hasEmpty(config.getKdniaoId(), config.getKdniaoApiKey())) {
-                throw new RuntimeException("未配置电子面单接口");
+                throw new CommonException("未配置电子面单接口");
             }
 
             init();
@@ -158,9 +161,12 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
             // 查询电子面单模板
             boolean notDefault = ObjectUtil.isNotEmpty(param.getElectronicSheetId());
             List<ElectronicSheetInfo> info = getInfo(notDefault ? 0 : 1, notDefault ? param.getElectronicSheetId() : null);
+            if (ObjectUtil.isEmpty(info)) {
+                throw new CommonException("电子面单模板不存在");
+            }
             ElectronicSheetInfo esTemplateInfo = info.get(0);
             if (ObjectUtil.isEmpty(esTemplateInfo)) {
-                throw new RuntimeException("电子面单模板不存在");
+                throw new CommonException("电子面单模板不存在");
             }
 
             if ("0".equals(esTemplateInfo.getPrintStyle())) {
@@ -178,26 +184,9 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
             String key = String.format("%s_%s_%s_%s_%s", company.getExpressNoElectronicSheet(), orderInfo.getOrderNo(),
                     config.getKdniaoId(), esTemplateInfo.getPrintStyle(), count);
 
-            Set<Integer> skuIds = CollStreamUtil.toSet(orderGoods, MallOrderGoods::getSkuId);
-            List<MallGoodsSku> skuList = mallGoodsSkuMapper.selectBatchIds(skuIds);
-            BigDecimal weightTotal = skuList.stream()
-                    .map(MallGoodsSku::getWeight)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            BigDecimal volumeTotal = skuList.stream()
-                    .map(MallGoodsSku::getVolume)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            List<ApplyParam.Commodity> commodities = orderGoods.stream()
-                    .map(orderGood -> {
-                        String goodsName = renderIllegalChar(CharSequenceUtil.sub(orderGood.getGoodsName() + " " + orderGood.getSkuName(), 0, 50));
-                        return new ApplyParam.Commodity()
-                                .setGoodsName(goodsName)
-                                .setGoodsquantity(orderGood.getNum());
-                    })
-                    .toList();
-
-            if (ObjectUtil.isEmpty(commodities)) {
+            List<MallOrderInfo.OrderGoodsInfo> shipmentGoods = orderInfo.getOrderGoods();
+            ExtraShopGoodsDetail shopGoodsDetail = buildGoodsDetailForShipment(shipmentGoods);
+            if (ObjectUtil.isEmpty(shopGoodsDetail.getCommodities())) {
                 ElectronicSheetPrintVo vo = new ElectronicSheetPrintVo();
                 vo.setSuccess(false);
                 vo.setResultCode(-1);
@@ -206,11 +195,6 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
                 return List.of(vo);
             }
 
-            ExtraShopGoodsDetail shopGoodsDetail = new ExtraShopGoodsDetail()
-                    .setWeightTotal(weightTotal)
-                    .setVolumeTotal(volumeTotal)
-                    .setRemarks(Collections.emptyList())
-                    .setCommodities(commodities);
             ElectronicSheetPrintVo apply = apply(key, esTemplateInfo, orderInfo.getOrderNo() + count, orderInfo, shopGoodsDetail);
             return List.of(apply);
         }
@@ -281,7 +265,7 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
             var electronicSheetInfos = getInfo(isDefault ? 1 : 0, isDefault ? null : param.getElectronicSheetId());
 
             if (ObjectUtil.isEmpty(electronicSheetInfos)) {
-                throw new RuntimeException("电子面单模板不存在");
+                throw new CommonException("电子面单模板不存在");
             }
 
             var electronicSheetInfo = electronicSheetInfos.get(0);
@@ -346,6 +330,8 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
                                          MallOrderInfo order, ExtraShopGoodsDetail extraShopGoodsDetail) {
             var sender = BeanUtil.toBean(siteAddress, ApplyParam.Sender.class)
                     .setName(siteAddress.getContactName())
+                    .setMobile(siteAddress.getMobile())
+                    .setAddress(siteAddress.getAddress())
                     .setProvinceName(senderProvinceSysArea.getName())
                     .setCityName(senderCitySysArea.getName())
                     .setExpAreaName(senderExpSysArea.getName())
@@ -384,6 +370,34 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
                     .setCost(order.getDeliveryMoney())
                     .setTemplateSize(electronicSheetInfo.getPrintStyle())
                     .setIsNotice(electronicSheetInfo.getIsNotice());
+        }
+
+        private ExtraShopGoodsDetail buildGoodsDetailForShipment(List<MallOrderInfo.OrderGoodsInfo> shopGoodsInfoList) {
+            var weightTotal = BigDecimal.ZERO;
+            var volumeTotal = BigDecimal.ZERO;
+            var commodities = new ArrayList<ApplyParam.Commodity>(shopGoodsInfoList.size());
+            for (var orderGood : shopGoodsInfoList) {
+                var goodsName = renderIllegalChar(CharSequenceUtil.sub(orderGood.getGoodsName() + " " + orderGood.getSkuName(), 0, 50));
+                commodities.add(new ApplyParam.Commodity()
+                        .setGoodsName(goodsName)
+                        .setGoodsquantity(orderGood.getNum()));
+
+                var shopGoodsSkuQueryWrapper = new LambdaQueryWrapper<MallGoodsSku>()
+                        .eq(MallGoodsSku::getSkuId, orderGood.getSkuId())
+                        .eq(MallGoodsSku::getSiteId, param.getSiteId());
+                var goodsSku = mallGoodsSkuMapper.selectOne(shopGoodsSkuQueryWrapper);
+                if (ObjectUtil.isEmpty(goodsSku)) {
+                    continue;
+                }
+                weightTotal = weightTotal.add(NumberUtil.round(goodsSku.getWeight(), 3));
+                volumeTotal = volumeTotal.add(NumberUtil.round(goodsSku.getVolume(), 3));
+            }
+
+            return new ExtraShopGoodsDetail()
+                    .setWeightTotal(weightTotal)
+                    .setVolumeTotal(volumeTotal)
+                    .setRemarks(Collections.emptyList())
+                    .setCommodities(commodities);
         }
 
         private ExtraShopGoodsDetail extraShopGoodsDetail(Integer orderId, List<MallOrderInfo.OrderGoodsInfo> shopGoodsInfoList) {
@@ -492,13 +506,40 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
 
         private void init() {
             initOrderList();
+            initSenderAddress();
+        }
+
+        private void initSenderAddress() {
+            ShopDeliveryPrintElectronicSheetParam.SenderAddress customAddress = param.getAddress();
+            if (customAddress != null && ObjectUtil.isNotEmpty(customAddress.getContactName())) {
+                siteAddress = new SiteAddress();
+                siteAddress.setContactName(customAddress.getContactName());
+                siteAddress.setMobile(customAddress.getMobile());
+                siteAddress.setAddress(customAddress.getAddress());
+
+                if (ObjectUtil.isAllNotEmpty(customAddress.getProvinceId(), customAddress.getCityId(), customAddress.getDistrictId())) {
+                    Map<Integer, SysArea> areaIdMap = groupSysAreaById(
+                            customAddress.getProvinceId(), customAddress.getCityId(), customAddress.getDistrictId());
+                    senderProvinceSysArea = areaIdMap.getOrDefault(customAddress.getProvinceId(), new SysArea());
+                    senderCitySysArea = areaIdMap.getOrDefault(customAddress.getCityId(), new SysArea());
+                    senderExpSysArea = areaIdMap.getOrDefault(customAddress.getDistrictId(), new SysArea());
+                } else {
+                    senderProvinceSysArea = new SysArea();
+                    senderProvinceSysArea.setName(ObjectUtil.defaultIfNull(customAddress.getProvinceName(), ""));
+                    senderCitySysArea = new SysArea();
+                    senderCitySysArea.setName(ObjectUtil.defaultIfNull(customAddress.getCityName(), ""));
+                    senderExpSysArea = new SysArea();
+                    senderExpSysArea.setName(ObjectUtil.defaultIfNull(customAddress.getDistrictName(), ""));
+                }
+                return;
+            }
 
             LambdaQueryWrapper<SiteAddress> addressQueryWrapper = new LambdaQueryWrapper<SiteAddress>()
                     .eq(SiteAddress::getIsDeliveryAddress, 1)
                     .eq(SiteAddress::getIsDefaultDelivery, 1)
                     .eq(SiteAddress::getSiteId, param.getSiteId());
             if (ObjectUtil.isEmpty((siteAddress = shopAddressMapper.selectOne(addressQueryWrapper)))) {
-                throw new RuntimeException("商家未设置默认地址");
+                throw new CommonException("商家未设置默认地址");
             }
 
             int provinceId = siteAddress.getProvinceId();
@@ -520,7 +561,7 @@ public class CoreElectronicSheetServiceImpl implements ICoreElectronicSheetServi
 
             var orders = mallOrderMapper.selectList(orderQueryWrapper);
             if (ObjectUtil.isEmpty(orders)) {
-                throw new RuntimeException("订单不存在");
+                throw new CommonException("订单不存在");
             }
 
             var orderGoodsQueryWrapper = new LambdaQueryWrapper<MallOrderGoods>()

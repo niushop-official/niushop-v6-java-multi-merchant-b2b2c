@@ -86,101 +86,6 @@ export function getGoodsStatus() {
 }
 
 /**
- * 获取商品标签分页列表
- * @param params
- * @returns
- */
-export function getLabelPageList(params: Record<string, any>) {
-    return request.get(`mall/admin/goods/label`, { params })
-}
-
-/**
- * 获取商品标签列表
- * @param params
- * @returns
- */
-export function getLabelList(params: Record<string, any>) {
-    return request.get(`mall/admin/goods/label/list`, { params })
-}
-
-/**
- * 编辑商品列表标签
- * @param params
- * @returns
- */
-export function editGoodsLabel(params: Record<string, any>) {
-    return request.put(`mall/admin/goods/edit_label`, params, {
-        showErrorMessage: true,
-        showSuccessMessage: true
-    })
-}
-/**
- * 获取商品标签详情
- * @param label_id 商品标签label_id
- * @returns
- */
-export function getLabelInfo(label_id: number) {
-    return request.get(`mall/admin/goods/label/${label_id}`);
-}
-
-/**
- * 添加商品标签
- * @param params
- * @returns
- */
-export function addLabel(params: Record<string, any>) {
-    return request.post('mall/admin/goods/label', params, { showErrorMessage: true, showSuccessMessage: true })
-}
-
-/**
- * 编辑商品标签
- * @param params
- * @returns
- */
-export function editLabel(params: Record<string, any>) {
-    return request.put(`mall/admin/goods/label/${params.label_id}`, params, {
-        showErrorMessage: true,
-        showSuccessMessage: true
-    })
-}
-
-/**
- * 修改商品标签状态
- * @param params
- */
-export function modifyLabelStatus(params: Record<string, any>) {
-    return request.put(`mall/admin/goods/label/status`, params, { showSuccessMessage: true })
-}
-
-/**
- * 删除商品标签
- * @param label_id
- * @returns
- */
-export function deleteLabel(label_id: number) {
-    return request.delete(`mall/admin/goods/label/${label_id}`, { showErrorMessage: true, showSuccessMessage: true })
-}
-
-/**
- * 修改商品标签排序号
- * @param params
- */
-export function modifyLabelSort(params: Record<string, any>) {
-    return request.put(`mall/admin/goods/label/sort`, params, { showSuccessMessage: true })
-}
-
-/**
- * 复制标签
- * @param params
- */
-export function copyLabel(params: Record<string, any>) {
-    return request.post(`mall/admin/goods/label/copy/${ params.label_id }`, params, { showSuccessMessage: true })
-}
-
-
-
-
-/**
  * 设置商品分类配置
  * @param params
  * @returns
@@ -347,4 +252,78 @@ export function setConfig(param: any) {
  */
 export function getGoodsSource() {
     return request.get(`mall/admin/goods/source`);
+}
+
+/*********************************  商品标签  ***************************************/
+
+/**
+ * 获取商品标签分页列表
+ * @param params
+ * @returns
+ */
+export function getLabelPageList(params: Record<string, any>) {
+    return request.get(`basic/admin/goods/label`, { params })
+}
+
+/**
+ * 获取商品标签详情
+ * @param label_id 商品标签label_id
+ * @returns
+ */
+export function getLabelInfo(label_id: number) {
+    return request.get(`basic/admin/goods/label/${label_id}`);
+}
+
+/**
+ * 添加商品标签
+ * @param params
+ * @returns
+ */
+export function addLabel(params: Record<string, any>) {
+    return request.post('basic/admin/goods/label', params, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
+ * 编辑商品标签
+ * @param params
+ * @returns
+ */
+export function editLabel(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/label/${params.label_id}`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+
+/**
+ * 修改商品标签状态
+ * @param params
+ */
+export function modifyLabelStatus(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/label/status`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 删除商品标签
+ * @param label_id
+ * @returns
+ */
+export function deleteLabel(label_id: number) {
+    return request.delete(`basic/admin/goods/label/${label_id}`, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
+ * 修改商品标签排序号
+ * @param params
+ */
+export function modifyLabelSort(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/label/sort`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 复制标签
+ * @param params
+ */
+export function copyLabel(params: Record<string, any>) {
+    return request.post(`basic/admin/goods/label/copy/${ params.label_id }`, params, { showSuccessMessage: true })
 }

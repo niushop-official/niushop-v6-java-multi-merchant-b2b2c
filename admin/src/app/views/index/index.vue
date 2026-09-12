@@ -56,7 +56,7 @@
 						</div>
 					</div>
 					<div class="flex-1 box-border mr-[20px]">
-						<div class="bg-[#F4F7FC] h-[170px] box-border py-[20px] px-[16px]" @click="toLink('/member/member')">
+						<div class="bg-[#F4F7FC] h-[170px] box-border py-[20px] px-[16px]" >
 							<div class="flex justify-between items-center mb-[14px]">
 								<span class="text-[14px] text-[#333]">今日新增会员数</span>
 								<el-tooltip effect="light" :content="'会员数:' + statInfo.member_stat.yesterday_member_count" placement="bottom">
@@ -80,7 +80,7 @@
 						</div>
 					</div>
 					<div class="flex-1 box-border mr-[20px]">
-						<div class="bg-[#F4F7FC] h-[170px] box-border py-[20px] px-[16px] cursor-pointer" @click="toLink('/shop/list')">
+						<div class="bg-[#F4F7FC] h-[170px] box-border py-[20px] px-[16px] cursor-pointer" >
 							<div class="flex justify-between items-center mb-[14px]">
 								<span class="text-[14px] text-[#333]">今日申请店铺数</span>
 								<el-tooltip effect="light" :content="'申请店铺数:' + statInfo.site_stat.yesterday_site_count" placement="bottom">
@@ -103,7 +103,7 @@
 							</div>
 						</div>
 					</div>
-					<div class="flex-1 box-border">
+					<div class="flex-1 box-border" v-if="appType != 'circle'">
 						<div class="bg-[#F4F7FC] h-[170px] box-border py-[20px] px-[16px]">
 							<div class="flex justify-between items-center mb-[14px]">
 								<span class="text-[14px] text-[#333]">今日退款额</span>
@@ -134,10 +134,6 @@
 					<div class="p-[20px] bg-[#fff]">
 						<div class="flex justify-between items-center mb-[16px]">
 							<span class="text-[#333] text-[18px] font-500">商城订单</span>
-							<div class="text-[#999] cursor-pointer flex items-center">
-								<span  class="text-[14px] mr-[4px]">全部</span>
-								<span class=" iconfont iconxiangyoujiantou !text-[14px]"></span>
-							</div>
 						</div>
 						<div class="h-[96px] flex justify-between items-center">
 							<div class="flex-1 flex justify-center items-center ">
@@ -171,7 +167,7 @@
 						</div>
 					</div>
 				</el-col>
-				<el-col :span="6">
+				<el-col :span="6" v-if="appType != 'circle'">
 					<div class="p-[20px] bg-[#fff]">
 						<div class="flex justify-between items-center mb-[16px]">
 							<span class="text-[#333] text-[18px] font-500">提现</span>
@@ -204,10 +200,6 @@
 					<div class="p-[20px] bg-[#fff]">
 						<div class="flex justify-between items-center mb-[16px]">
 							<span class="text-[#333] text-[18px] font-500">商品</span>
-							<div class="text-[#999] cursor-pointer flex items-center">
-								<span class="text-[14px] mr-[4px]">全部</span>
-								<span class=" iconfont iconxiangyoujiantou !text-[14px]"></span>
-							</div>
 						</div>
 						<div class="h-[96px] flex justify-between items-center ">
 							<div class="flex-1 flex justify-center items-center">
@@ -228,7 +220,7 @@
 					</div>
 				</el-col>
 			</el-row>
-			<el-row :gutter="20" class="mt-[20px]">
+			<el-row :gutter="20" class="mt-[20px]" v-if="appType != 'circle'">
 				<el-col :span="10">
 					<div class="p-[20px] box-border bg-[var(--el-fill-color-blank)]">
 						<div class="text-[18px] text-[#333] font-500  mb-[20px]">近7天订单数</div>
@@ -274,6 +266,7 @@ import { img } from '@/utils/common';
 import { useClipboard } from '@vueuse/core'
 import { getStatInfo, getStatChart, getStatNewsList } from '@/app/api/stat'
 import { getService } from '@/app/api/sys'
+import storage from '@/utils/storage'
 import * as echarts from 'echarts'
 import useStyleStore from '@/stores/modules/style'
 import { getFrameworkNewVersion } from '@/app/api/module'
@@ -281,6 +274,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { AnyObject } from '@/types/global'
 import { ElMessage } from 'element-plus'
 
+const appType = storage.get('app_type')
 const loading = ref(true)
 const orderStat = ref<any>(null)
 const saleStat = ref<any>(null)

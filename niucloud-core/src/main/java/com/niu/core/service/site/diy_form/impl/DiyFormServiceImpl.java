@@ -741,10 +741,10 @@ public class DiyFormServiceImpl implements IDiyFormService {
         DiyFormSelectVo result = new DiyFormSelectVo();
         List<Integer> verifyFormIds = new ArrayList<>();
 
-        if(!param.getVerifyFormIds().isEmpty()){
+        if (param.getVerifyFormIds() != null && !param.getVerifyFormIds().isEmpty()) {
             QueryWrapper<DiyForm> queryWrapper = new QueryWrapper<>();
             queryWrapper.select("form_id");
-            queryWrapper.in("form_id", verifyFormIds); // in 查询
+            queryWrapper.in("form_id", param.getVerifyFormIds());
 
             List<DiyForm> diyForms = diyFormMapper.selectList(queryWrapper);
             // 提取所有 form_id 到 List<Integer>

@@ -87,6 +87,7 @@ public class LocalDeliveryServiceImpl implements ILocalDeliveryService {
             local.setWeightStart(BigDecimal.ZERO);
             local.setWeightUnit(BigDecimal.ZERO);
             local.setWeightPrice(BigDecimal.ZERO);
+            local.setFreeGoodsMoney(BigDecimal.ZERO);
         }
         return local;
     }

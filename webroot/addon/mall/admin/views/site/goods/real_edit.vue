@@ -53,8 +53,8 @@
                   <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipOne') }}</div>
                   <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipTwo') }}</div>
                   <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipThree') }}</div>
-                  <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipFour') }}</div>
-                  <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipFive') }}</div>
+<!--                  <div class="mt-[5px] text-[12px] text-[var(&#45;&#45;el-color-primary)] leading-[20px]">{{ t('goodsVideoTipFour') }}</div>-->
+<!--                  <div class="mt-[5px] text-[12px] text-[var(&#45;&#45;el-color-primary)] leading-[20px]">{{ t('goodsVideoTipFive') }}</div>-->
                 </div>
               </div>
             </el-form-item>
@@ -149,7 +149,13 @@
                 </el-input>
               </div>
             </el-form-item>
-
+            <!-- 关联推荐 -->
+            <el-form-item :label="t('关联推荐')">
+              <div>
+                <goods-select-popup ref="goodsSelectPopupRef" v-model="goodsEdit.formData.recommend_goods_ids" :exclude_goods_id="goodsEdit.formData.goods_id"  :min="1" :max="6" />
+                <div class="text-[12px] text-[#999]">设置后，该商品详情页【店铺推荐】会展示选中的商品</div>
+              </div>
+            </el-form-item>
             <el-form-item :label="t('unit')" prop="unit">
               <el-input v-model.trim="goodsEdit.formData.unit" clearable :placeholder="t('unitPlaceholder')" class="input-width" show-word-limit maxlength="6" :disabled="goodsEdit.isSupplyDisabled('unit')" />
             </el-form-item>
@@ -227,7 +233,7 @@
           </el-form>
 
           <!-- 多规格 -->
-          <el-form :model="goodsEdit.goodsSkuData" label-width="120px" ref="skuFormRef" class="page-form">
+          <el-form :model="goodsEdit.goodsSkuData" label-width="140px" ref="skuFormRef" class="page-form">
             <div class="el-form-item asterisk-left" v-show="goodsEdit.formData.spec_type == 'multi'">
               <div class="el-form-item__label w-[120px]">{{ t('goodsSku') }}</div>
               <div class="spec-wrap">
@@ -475,6 +481,13 @@
                 <div class="text-[12px] text-[#999] leading-[20px]" v-if="goodsEdit.formData.member_discount == 'fixed_price'">{{t('fixedPriceHint')}}</div>
               </div>
             </el-form-item>
+            <el-form-item :label="t('付费会员等级折扣')">
+              <el-radio-group v-model="goodsEdit.formData.vip_card_discount" :disabled="goodsEdit.isSupplyDisabled('vip_card_discount')">
+                <el-radio label="">{{ t('nonparticipation') }}</el-radio>
+                <el-radio label="discount">{{ t('discount') }}</el-radio>
+                <el-radio label="fixed_price">{{ t('fixedPrice') }}</el-radio>
+              </el-radio-group>
+            </el-form-item>
           </el-form>
           <el-form :model="goodsEdit.formData" label-width="120px" ref="priceStockCommonFormRef" :rules="goodsEdit.formRules" class="page-form">
             <el-form-item :label="t('isLimit')">
@@ -695,11 +708,12 @@ import { t } from '@/lang'
 import { FormInstance } from 'element-plus'
 import { Rank, ArrowLeft, CircleCloseFilled } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
-import { deepClone, filterNumber } from '@/utils/common'
-import { addGoods, editGoods, getGoodsInit } from '@/addon/mall/api/site/goods'
+import { deepClone, filterNumber, filterDigit } from '@/utils/common'
+import { addGoods, editGoods, getGoodsInit } from '@/app/lang/zh-cn/api/site/goods'
 import { getShopDeliveryList, getShippingTemplateList } from '@/app/api/delivery_site'
 import { useGoodsEdit } from './public/js/useGoodsEdit'
-import { getShopPointConfig } from '@/addon/mall/api/site/marketing'
+import { getShopPointConfig } from '@/app/api/basic_site'
+import goodsSelectPopup from '@/addon/mall/views/site/goods/components/goods-select-popup.vue'
 
 const route = useRoute()
 const router = useRouter()

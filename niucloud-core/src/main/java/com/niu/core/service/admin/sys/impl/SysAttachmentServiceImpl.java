@@ -19,6 +19,8 @@ import com.niu.core.mapper.sys.SysAttachmentMapper;
 import com.niu.core.service.admin.sys.ISysAttachmentService;
 import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.service.admin.sys.vo.AttachmentUploadVo;
+import com.niu.core.service.admin.sys.vo.IconCategoryVo;
+import com.niu.core.service.admin.sys.vo.IconGlyphVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentCategoryListVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentConfigVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentListVo;
@@ -36,8 +38,17 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Resource;
+import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.ClassPathResource;
+
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -289,6 +300,92 @@ public class SysAttachmentServiceImpl implements ISysAttachmentService {
         JSONObject configObject = new JSONObject();
         configObject.set("is_cropper", param.getIsCropper() != null ? param.getIsCropper() : 0);
         coreConfigService.setConfig(siteId, "ALBUM_CONFIG", configObject);
+    }
+
+    /**
+     * 加载 iconfont.json 资源
+     */
+    private List<IconCategoryVo> loadIconData() {
+        try {
+            ClassPathResource resource = new ClassPathResource("core/icon/iconfont.json");
+            InputStream inputStream = resource.getInputStream();
+            String json = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            inputStream.close();
+            List<IconCategoryVo> list = JSONUtil.toList(json, IconCategoryVo.class);
+            // PHP 逻辑：只有一个分类时直接返回；多个时将最后一个移到第一位
+            if (list.size() > 1) {
+                IconCategoryVo last = list.remove(list.size() - 1);
+                list.add(0, last);
+            }
+            return list;
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 获取图标分类列表
+     */
+    @Override
+    public List<IconCategoryVo> getIconCategoryList(String name) {
+        List<IconCategoryVo> list = loadIconData();
+        // 不返回 glyphs 字段（与 PHP 一致）
+        list.forEach(cat -> cat.setGlyphs(null));
+        // 名称筛选
+        if (StrUtil.isNotEmpty(name)) {
+            list = list.stream()
+                    .filter(cat -> cat.getName() != null && cat.getName().contains(name))
+                    .collect(Collectors.toList());
+        }
+        return list;
+    }
+
+    /**
+     * 获取图标列表（分页）
+     */
+    @Override
+    public Map<String, Object> getIconList(Integer page, Integer limit, String cateId, String realName) {
+        List<IconCategoryVo> categories = loadIconData();
+        List<IconGlyphVo> allIcons = new ArrayList<>();
+
+        for (IconCategoryVo cat : categories) {
+            if (cat.getGlyphs() == null) continue;
+
+            List<IconGlyphVo> glyphs = cat.getGlyphs();
+            for (IconGlyphVo glyph : glyphs) {
+                // 组装字段（与 PHP 一致）
+                glyph.setAttId(glyph.getIconId());
+                glyph.setUrl(cat.getFontFamily() + "-" + cat.getCssPrefixText() + glyph.getFontClass());
+                glyph.setRealName(glyph.getName());
+
+                // 名称筛选
+                if (StrUtil.isNotEmpty(realName) && (glyph.getName() == null || !glyph.getName().contains(realName))) {
+                    continue;
+                }
+                allIcons.add(glyph);
+            }
+
+            // 指定分类时只取该分类
+            if (StrUtil.isNotEmpty(cateId) && cateId.equals(cat.getId())) {
+                break;
+            }
+        }
+
+        // 手动分页（与 PHP 一致）
+        int total = allIcons.size();
+        int currentPage = page != null && page > 0 ? page : 1;
+        int perPage = limit != null && limit > 0 ? limit : 20;
+        int start = (currentPage - 1) * perPage;
+        int end = Math.min(start + perPage, total);
+
+        List<IconGlyphVo> pageData = start < total ? allIcons.subList(start, end) : new ArrayList<>();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("current_page", currentPage);
+        result.put("per_page", perPage);
+        result.put("data", pageData);
+        result.put("total", total);
+        return result;
     }
 
 }

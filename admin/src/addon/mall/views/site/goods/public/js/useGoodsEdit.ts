@@ -7,14 +7,8 @@ import { debounce, deepClone } from '@/utils/common'
 import { useRoute, useRouter } from 'vue-router'
 import Test from '@/utils/test'
 import { getDiyList } from '@/app/api/diy'
-import { getGoodsType, getLabelList, getSupplierList, getGoodsSync, getPayTypeList } from '@/addon/mall/api/site/goods'
-import {
-    getCategoryTree,
-    getAttrList,
-    getAttrInfo,
-    getBrandList,
-    getServeList
-} from '@/app/api/basic_site'
+import { getGoodsType, getSupplierList, getGoodsSync, getPayTypeList } from '@/app/lang/zh-cn/api/site/goods'
+import {  getCategoryTree, getAttrList, getAttrInfo, getBrandList, getServeList, getLabelList } from '@/app/api/basic_site'
 import { getCategoryTree as getMallCategoryTree, getAttrList as getMallAttrList} from '@/app/api/basic_admin'
 import userStore from '@/stores/modules/user'
 import { getDiyFormList } from '@/app/api/diy_form_site'
@@ -59,6 +53,7 @@ export function useGoodsEdit(params: any = {}) {
         is_enable_point_deduct: 0,
 
         addon_shop_supplier: [],
+        recommend_goods_ids: [],
 
         // 价格库存
         spec_type: 'single',
@@ -71,6 +66,7 @@ export function useGoodsEdit(params: any = {}) {
         sku_no: '',
         unit: '',
         virtual_sale_num: '',
+        vip_card_discount: '',
         member_discount: '',
         is_limit: 0,
         limit_type: 1,
@@ -175,7 +171,9 @@ export function useGoodsEdit(params: any = {}) {
 
     // 刷新商品分类
     const refreshGoodsCategory = (bool = false) => {
-        getCategoryTree().then((res) => {
+        getCategoryTree({
+            addon:'mall'
+        }).then((res) => {
             const data = res.data
             if (data) {
                 const goodsCategoryTree: any = []
@@ -213,7 +211,9 @@ export function useGoodsEdit(params: any = {}) {
 
     // 刷新平台商品分类
     const refreshMallGoodsCategory = () => {
-        getMallCategoryTree().then((res) => {
+        getMallCategoryTree({
+            addon:'mall'
+        }).then((res) => {
             const data = res.data
             if (data) {
                 const goodsCategoryTree: any = []
@@ -263,7 +263,7 @@ export function useGoodsEdit(params: any = {}) {
 
     // 商品品牌
     const refreshGoodsBrand = (query='', bool = false) => {
-        getBrandList({brand_name: query, brand_id: formData.brand_id}).then((res) => {
+        getBrandList({brand_name: query, brand_id: formData.brand_id,addon:'mall'}).then((res) => {
             const data = res.data
             if (data) {
                 brandOptions.splice(0, brandOptions.length, ...data)
@@ -370,7 +370,7 @@ export function useGoodsEdit(params: any = {}) {
 
     // 商品服务
     const refreshGoodsService = () => {
-        getServeList({}).then((res) => {
+        getServeList({addon: 'mall'}).then((res) => {
             const data = res.data
             if (data) {
                 serviceOptions.splice(0, serviceOptions.length, ...data)
@@ -414,6 +414,7 @@ export function useGoodsEdit(params: any = {}) {
             }
         })
     }
+
 
     const goodsSpecFormat: any = reactive([]) // 规格项/规格值
     const goodsSkuData: any = reactive({}) // 商品SKU规格数据
@@ -478,6 +479,7 @@ export function useGoodsEdit(params: any = {}) {
             formData.service_ids = data.goods_info.service_ids
             formData.supplier_id = data.goods_info.supplier_id
             formData.shop_sort = data.goods_info.shop_sort
+            formData.recommend_goods_ids = data.goods_info.recommend_goods_ids || []
             // 上下架
             if (['1', '0'].indexOf(data.goods_info.status) != -1) {
                 formData.status = data.goods_info.status
@@ -565,6 +567,7 @@ export function useGoodsEdit(params: any = {}) {
                             goodsSkuData[key].cost_price = item.cost_price;
                             goodsSkuData[key].min_price = item.min_price;
                             goodsSkuData[key].max_price = item.max_price;
+                            goodsSkuData[key].member_price = item.member_price;
 
                             for (let field in appendRefreshGoodsSkuData) {
                                 goodsSkuData[key][field] = item[field];
@@ -588,7 +591,7 @@ export function useGoodsEdit(params: any = {}) {
             }
 
             formData.member_discount = data.goods_info.member_discount
-            
+            formData.vip_card_discount = data.goods_info.vip_card_discount  
             formData.unit = data.goods_info.unit
             formData.virtual_sale_num = data.goods_info.virtual_sale_num
             formData.is_limit = data.goods_info.is_limit
@@ -1539,7 +1542,6 @@ export function useGoodsEdit(params: any = {}) {
                 return
             }
         }
-
         setTimeout(() => {
             let verify = true
             // 检测验证，并且定位tab页面
@@ -1986,6 +1988,5 @@ export function useGoodsEdit(params: any = {}) {
         attrRadioChange,
         attrCheckboxChange,
         payTypeOptions
-
     }
 }

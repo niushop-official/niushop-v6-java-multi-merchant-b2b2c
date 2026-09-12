@@ -50,4 +50,8 @@ public class MemberAddressListInfoVo {
     // 地址类型  address 普通地址  location_address 定位地址
     private String type;
 
+    private String provinceName;
+    private String cityName;
+    private String districtName;
+
 }

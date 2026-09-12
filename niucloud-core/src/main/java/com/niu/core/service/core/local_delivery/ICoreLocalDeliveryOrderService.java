@@ -2,6 +2,7 @@
 package com.niu.core.service.core.local_delivery;
 
 import com.niu.core.service.api.delivery.param.TrackOfLocalServiceParam;
+import com.niu.core.service.api.delivery.vo.RiderLocationVo;
 import com.niu.core.service.api.delivery.vo.TrackOfLocalServiceVo;
 
 /**
@@ -26,5 +27,10 @@ public interface ICoreLocalDeliveryOrderService {
      * 获取配送轨迹
      */
     TrackOfLocalServiceVo getTrackInfo(TrackOfLocalServiceParam param);
+
+    /**
+     * 获取骑手位置（对齐 PHP getRiderLocation）
+     */
+    RiderLocationVo getRiderLocation(TrackOfLocalServiceParam param);
 
 }

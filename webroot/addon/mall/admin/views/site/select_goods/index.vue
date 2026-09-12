@@ -118,7 +118,7 @@ import { t } from '@/lang'
 import { img, moneyFormat } from '@/utils/common'
 import { useRouter, useRoute } from 'vue-router'
 import { cloneDeep } from 'lodash-es'
-import { getSupplyList } from '@/addon/mall/api/site/select_goods'
+import { getSupplyList } from '@/app/lang/zh-cn/api/site/select_goods'
 import { ElMessage } from 'element-plus'
 import useSystemStore from '@/stores/modules/system'
 

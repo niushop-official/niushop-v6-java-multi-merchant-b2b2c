@@ -1,0 +1,13 @@
+[
+  {
+    "type": "mall_buy_goods_discount",
+    "name": "商城专属商品",
+    "icon": "static/resource/images/member/vip_card/benefits/mall_buy_goods_discount.png",
+    "desc": "商城专属商品",
+    "addon": "mall",
+    "component": "/src/addon/mall/views/admin/member/vip_card/components/buy-goods-discount.vue",
+    "contentStr": {
+      "admin": "com.niu.mall.service.core.vip_card.benefits.MallBuyGoodsDiscountHandler"
+    }
+  }
+]

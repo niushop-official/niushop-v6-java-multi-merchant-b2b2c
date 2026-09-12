@@ -12,12 +12,12 @@ import com.niu.core.common.utils.CommonUtils;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.goods.GoodsCategory;
 import com.niu.core.mapper.goods.GoodsCategoryMapper;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoodsSku;
 import com.niu.mall.entity.goods.MallGoodsSpec;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.enums.goods.GoodsTypeEnum;
+import com.niu.core.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import com.niu.mall.mapper.goods.MallGoodsSpecMapper;
 import com.niu.mall.service.admin.points_mall.IGoodsService;
 import com.niu.mall.service.admin.points_mall.param.PointsMallGoodsSelectDetailParam;
@@ -85,7 +85,7 @@ public class GoodsServiceImpl implements IGoodsService {
         }
 
         if (StrUtil.isNotBlank(param.getGoodsMallCategory())) {
-            queryWrapper.like("g.goods_mall_category", "%" + param.getGoodsMallCategory() + "%");
+            queryWrapper.like("g.goods_mall_category", "\"" + param.getGoodsMallCategory() + "\"");
         }
 
         queryWrapper.orderByAsc("g.sort").orderByDesc("g.create_time");

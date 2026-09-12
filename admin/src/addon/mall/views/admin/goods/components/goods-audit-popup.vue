@@ -121,7 +121,7 @@ import { t } from '@/lang'
 import { ref, reactive, computed } from 'vue'
 import { cloneDeep } from 'lodash-es'
 import { img } from '@/utils/common'
-import { getGoodsInfo, audit, refuse } from '@/addon/mall/api/admin/goods'
+import { getGoodsInfo, audit, refuse } from '@/app/lang/zh-cn/api/admin/goods'
 import { FormInstance } from 'element-plus'
 
 const showDialog = ref(false)

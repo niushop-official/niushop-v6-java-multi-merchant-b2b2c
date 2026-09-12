@@ -8,9 +8,10 @@ public interface ICoreAddonInstallService {
      * 安装插件
      *
      * @param addon
-     * @return
+     * @param mode 安装方式：local 本地安装，cloud 云安装
+     * @return tips 数组（空数组表示无额外提示），对齐 PHP 返回值
      */
-    JSONObject install(String addon, String mode);
+    Object install(String addon, String mode);
 
     /**
      * 获取安装任务

@@ -255,8 +255,7 @@ diyStore.editComponent.verify = (index: number) => {
             res.message = t('goodsCategoryPlaceholder')
         }
     } else if (diyStore.value[index].source == 'custom') {
-        const goodsIds = diyStore.value[index].goods_ids
-        if (!Array.isArray(goodsIds) || goodsIds.length == 0) {
+        if (diyStore.value[index].goods_ids.length == 0) {
             res.code = false
             res.message = t('goodsPlaceholder')
         }
@@ -275,9 +274,6 @@ const categoryTable = reactive({
     }
 })
 onMounted(() => {
-    if (!Array.isArray(diyStore.editComponent.goods_ids)) {
-        diyStore.editComponent.goods_ids = []
-    }
     loadCategoryList()
     btnStyleList.forEach((item, index, arr) => {
         if (item.type == 'button') {

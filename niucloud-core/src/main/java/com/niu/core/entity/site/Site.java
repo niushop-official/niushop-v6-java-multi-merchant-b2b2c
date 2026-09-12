@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import lombok.Data;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 站点实体
@@ -25,9 +26,6 @@ public class Site implements Serializable {
 
     /** 分组ID(0:不限制) */
     private Integer groupId;
-
-    /** 关键字 */
-    private String keywords;
 
     /** 站点类型 */
     private String appType;
@@ -69,6 +67,9 @@ public class Site implements Serializable {
     /** 营业时间 */
     private String businessHours;
 
+    /** 营业状态（0已打烊，1营业中） */
+    private Integer businessState;
+
     /** 创建时间 */
     private Long createTime;
 
@@ -80,9 +81,6 @@ public class Site implements Serializable {
 
     /** 前台logo */
     private String frontEndLogo;
-
-    /** 前台icon */
-    private String frontEndIcon;
 
     /** 网站图标 */
     private String icon;
@@ -114,6 +112,27 @@ public class Site implements Serializable {
     /** 配送设置 */
     private String deliveryConfig;
 
+    /** 行业类目ID集合(JSON格式) */
+    private String categoryIds;
+
     private Integer isinit;
+
+    /** 联系人姓名 */
+    private String contactName;
+
+    /** 联系电话 */
+    private String contactMobile;
+
+    /** 当前余额 */
+    private BigDecimal money;
+
+    /** 累计结算 */
+    private BigDecimal moneyGet;
+
+    /** 提现中 */
+    private BigDecimal moneyCashOuting;
+
+    /** 营业执照 */
+    private String businessLicense;
 
 }

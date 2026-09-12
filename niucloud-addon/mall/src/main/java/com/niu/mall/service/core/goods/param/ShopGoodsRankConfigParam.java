@@ -9,5 +9,6 @@ public class ShopGoodsRankConfigParam {
     private String selectColor;
     private String selectBgColorStart;
     private String selectBgColorEnd;
+    private Integer searchStyleType;
     private Integer siteId;
 }

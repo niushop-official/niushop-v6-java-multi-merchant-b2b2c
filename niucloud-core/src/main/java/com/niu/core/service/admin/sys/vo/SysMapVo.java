@@ -9,4 +9,8 @@ public class SysMapVo {
     private String key = "IZQBZ-3UHEU-WTCVD-2464U-I5N4V-ZFFU3";
     private Integer isOpen = 1; // 是否开启定位
     private Integer validTime = 5; // 定位有效期/分钟，过期后将重新获取定位信息，0为不过期
+
+    private String mapType = "tencent";              // 地图类型（如 amap, tianditu）
+    private String tiandituMapKey = "";       // 天地图地图key
+    private String tiandituMapWebKey = "";    // 天地图网页key
 }

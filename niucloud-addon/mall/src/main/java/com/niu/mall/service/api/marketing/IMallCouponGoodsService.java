@@ -2,9 +2,9 @@ package com.niu.mall.service.api.marketing;
 
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
-import com.niu.mall.entity.coupon.MallCouponGoods;
+import com.niu.core.entity.coupon.MallCouponGoods;
 import com.niu.mall.service.api.goods.vo.MallGoodsCouponVo;
-import com.niu.mall.service.api.marketing.param.MallGoodsCouponSearchParam;
+import com.niu.core.service.api.marketing.param.MallGoodsCouponSearchParam;
 
 import java.util.List;
 

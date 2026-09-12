@@ -13,7 +13,6 @@ import com.niu.core.service.core.site.ICoreSiteService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.Arrays;
 
 @Slf4j
 public class JsonModuleLoader {
@@ -56,9 +55,13 @@ public class JsonModuleLoader {
     public JSONArray mergeContentToArray(String jsonFile) {
 
         String jsonStringContent = RequestUtils.jsonFileContent( "mergeContentToArray" + jsonFile);
-        if(!jsonStringContent.equals(""))
-        {
-            return JSONUtil.parseArray(jsonStringContent);
+        if (!jsonStringContent.isEmpty() && jsonStringContent.trim().startsWith("[")) {
+            try {
+                return JSONUtil.parseArray(jsonStringContent);
+            } catch (Exception e) {
+                log.error("mergeContentToArray缓存解析异常: " + jsonFile + "=>" + e.getMessage());
+                RequestUtils.setJsonFileContent("mergeContentToArray" + jsonFile, "");
+            }
         }
         JSONArray jsonArrayResult = new JSONArray();
         Set<String> addonModules = AddonModuleContext.getAddonModules();
@@ -142,17 +145,25 @@ public class JsonModuleLoader {
      * @return
      */
     public JSONArray mergeResultSet(String jsonFile) {
-        String jsonStringContent = RequestUtils.jsonFileContent( "mergeContentToArray" + jsonFile);
-        if(!jsonStringContent.isEmpty()) {
-            return JSONUtil.parseArray(jsonStringContent);
+        String jsonStringContent = RequestUtils.jsonFileContent("mergeResultSet" + jsonFile);
+        if (!jsonStringContent.isEmpty() && jsonStringContent.trim().startsWith("[")) {
+            try {
+                return JSONUtil.parseArray(jsonStringContent);
+            } catch (Exception e) {
+                log.error("mergeResultSet缓存解析异常: " + jsonFile + "=>" + e.getMessage());
+                // 缓存解析失败，清除缓存并重新生成
+                RequestUtils.setJsonFileContent("mergeResultSet" + jsonFile, "");
+            }
         }
         final JSONArray jsonArrayResult = new JSONArray();
         Set<String> addonModules = AddonModuleContext.getAddonModules();
         Set<String> newAddonModules = new HashSet<>();
-        if (addonModules != null || addonModules.size() <= 0 || !addonModules.contains("core")) {
+        if (addonModules == null || addonModules.size() <= 0 || !addonModules.contains("core")) {
             newAddonModules.add("core");
         }
-        newAddonModules.addAll(addonModules);
+        if (addonModules != null) {
+            newAddonModules.addAll(addonModules);
+        }
         for (String addonModule : newAddonModules) {
             String jsonString = AddonModuleContext.readResourceAsStreamToText(addonModule, "loader/" + jsonFile);
             if (StrUtil.isNotEmpty(jsonString)) {
@@ -168,7 +179,7 @@ public class JsonModuleLoader {
                 }
             }
         }
-        RequestUtils.setJsonFileContent( "mergeContentToArray" + jsonFile, jsonArrayResult.toString());
+        RequestUtils.setJsonFileContent("mergeResultSet" + jsonFile, jsonArrayResult.toString());
         return jsonArrayResult;
     }
 
@@ -180,6 +191,16 @@ public class JsonModuleLoader {
      * @return
      */
     public JSONArray mergeResultSet(Integer siteId, String jsonFile) {
+        String cacheKey = "mergeResultSet_" + siteId + "_" + jsonFile;
+        String jsonStringContent = RequestUtils.jsonFileContent(cacheKey);
+        if (!jsonStringContent.isEmpty() && jsonStringContent.trim().startsWith("[")) {
+            try {
+                return JSONUtil.parseArray(jsonStringContent);
+            } catch (Exception e) {
+                log.error("mergeResultSet缓存解析异常: " + siteId + "=>" + jsonFile + "=>" + e.getMessage());
+                RequestUtils.setJsonFileContent(cacheKey, "");
+            }
+        }
         final JSONArray jsonArrayResult = new JSONArray();
         List<String> addonModules = getSiteAddonModules(siteId);
         for (String addonModule : addonModules) {
@@ -197,6 +218,7 @@ public class JsonModuleLoader {
                 }
             }
         }
+        RequestUtils.setJsonFileContent(cacheKey, jsonArrayResult.toString());
         return jsonArrayResult;
     }
 
@@ -254,7 +276,7 @@ public class JsonModuleLoader {
         {
             return JSONUtil.parseObj(jsonStringContent);
         }
-        Set<JSONObject> jsonContentSet = new HashSet<>();
+        List<JSONObject> jsonContentList = new ArrayList<>();
         List<String> addonModules = getSiteAddonModules(siteId);
         for (String addonModule : addonModules) {
             String jsonString = AddonModuleContext.readResourceAsStreamToText(addonModule, "loader/" + jsonFile);
@@ -262,7 +284,7 @@ public class JsonModuleLoader {
                 jsonString = jsonString.trim();
                 try {
                     if (jsonString.startsWith("{")) {
-                        jsonContentSet.add(JSONUtil.parseObj(jsonString));
+                        jsonContentList.add(JSONUtil.parseObj(jsonString));
                     }
                 } catch (Exception e) {
                     log.error(addonModule + "=>" + jsonFile + " json context error.");
@@ -272,7 +294,7 @@ public class JsonModuleLoader {
         }
         JSONObject jsonObjectResult = new JSONObject();
         try {
-            jsonObjectResult = this.mergeJsonForAttribute(jsonContentSet);
+            jsonObjectResult = this.mergeJsonForAttribute(jsonContentList);
         } catch (Exception e) {
             log.error("JSON合并异常:" + e.getMessage());
             e.printStackTrace();
@@ -354,7 +376,7 @@ public class JsonModuleLoader {
                                 Object v1 = jsonValue1.get(k);
                                 if (v1 instanceof JSONObject && v2 instanceof JSONObject) {
                                     jsonValue1.set(k, mergeJsonForAttribute(Arrays.asList((JSONObject)v1, (JSONObject)v2)));
-                                } 
+                                }
                                 else if (v1 instanceof JSONArray && v2 instanceof JSONArray) {
                                     JSONArray arr1 = (JSONArray) v1;
                                     JSONArray arr2 = (JSONArray) v2;

@@ -54,11 +54,11 @@ public class MallOrderBatchDeliveryServiceImpl implements IMallOrderBatchDeliver
         queryWrapper.eq("site_id", RequestUtils.siteId())
                 .orderByDesc("create_time");
 
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus()) && !"all".equals(String.valueOf(searchParam.getStatus()))) {
             queryWrapper.eq("status", searchParam.getStatus());
         }
 
-        if (ObjectUtil.isNotEmpty(searchParam.getType())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getType()) && !"all".equals(String.valueOf(searchParam.getType()))) {
             queryWrapper.eq("type", searchParam.getType());
         }
 
