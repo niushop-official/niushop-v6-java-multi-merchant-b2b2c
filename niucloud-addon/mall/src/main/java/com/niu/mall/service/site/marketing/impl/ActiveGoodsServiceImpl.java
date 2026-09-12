@@ -1,8 +1,8 @@
 package com.niu.mall.service.site.marketing.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.niu.mall.entity.active.MallActiveGoods;
-import com.niu.mall.mapper.active.MallActiveGoodsMapper;
+import com.niu.core.entity.active.MallActiveGoods;
+import com.niu.core.mapper.active.MallActiveGoodsMapper;
 import com.niu.mall.service.site.marketing.IActiveGoodsService;
 import org.springframework.stereotype.Service;
 import java.util.List;

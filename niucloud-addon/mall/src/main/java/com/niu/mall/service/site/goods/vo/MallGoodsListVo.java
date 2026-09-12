@@ -3,9 +3,9 @@ package com.niu.mall.service.site.goods.vo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
-import com.niu.mall.enums.goods.GoodsAuditStatusEnum;
-import com.niu.mall.enums.goods.GoodsStatusEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsAuditStatusEnum;
+import com.niu.core.enums.goods.GoodsStatusEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -36,6 +36,7 @@ public class MallGoodsListVo implements Serializable {
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long createTime; // 创建时间
     private String memberDiscount;
+    private String vipCardDiscount;
     private Integer isGift;
     @JsonProperty("goodsSku")
     private GoodsSku goodsSku;

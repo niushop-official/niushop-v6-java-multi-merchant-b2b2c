@@ -186,6 +186,9 @@ public class InvoiceListVo implements Serializable {
                 return SpringContext.bean(ICoreUploadService.class);
             }
 
+            private String specData;
+            private String specJson;
+
             public String getSkuImageThumbMid() {
                 return coreUploadService().thumb(this.siteId, this.getSkuImage(), UploadThumbTypeEnum.MID.getType()).getDataMap().get(UploadThumbTypeEnum.MID.getType());
             }

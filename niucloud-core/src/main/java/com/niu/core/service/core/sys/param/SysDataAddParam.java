@@ -97,4 +97,10 @@ public class SysDataAddParam implements Serializable {
 
     /** 供应商退款分账金额 */
     private BigDecimal supplyRefundSeparateMoney = BigDecimal.ZERO;
+
+    /** 商圈佣金 */
+    private BigDecimal circleCommission = BigDecimal.ZERO;
+
+    /** 商圈退还佣金 */
+    private BigDecimal circleRefundCommission = BigDecimal.ZERO;
 }

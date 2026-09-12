@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 会员地址
  */
@@ -50,7 +52,7 @@ public class MemberAddressController {
      */
     @PostMapping("/address")
     public Result<?> addAddress(@RequestBody MemberAddressAddParam param) {
-        return Result.success(memberAddressService.add(param));
+        return Result.success(Map.of("id", memberAddressService.add(param)));
     }
 
     /**

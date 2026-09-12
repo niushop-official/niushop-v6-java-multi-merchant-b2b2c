@@ -3,6 +3,7 @@ package com.niu.core.service.site.delivery.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -96,6 +97,14 @@ public class DeliveryStoreServiceImpl implements IDeliveryStoreService {
                 .eq("site_id", RequestUtils.siteId()));
         if(ObjectUtil.isNotEmpty( info)){
             BeanUtils.copyProperties(info, deliveryStoreInfoVo);
+            deliveryStoreInfoVo.setArea(StrUtil.isEmpty(info.getArea()) ? null: info.getArea());
+        }
+        String tradeTimeJson = deliveryStoreInfoVo.getTradeTimeJson();
+        if (!ObjectUtil.equal(deliveryStoreInfoVo.getTimeIsOpen(), 1)
+                || "[]".equals(tradeTimeJson == null ? "" : tradeTimeJson.trim())
+                || "[{}]".equals(tradeTimeJson == null ? "" : tradeTimeJson.trim())) {
+            // PHP returns null for disabled or unconfigured delivery time slots.
+            deliveryStoreInfoVo.setTradeTimeJson(null);
         }
         if(ObjectUtil.isEmpty(deliveryStoreInfoVo.getTimeInterval())){
             deliveryStoreInfoVo.setTimeInterval(LocalDeliveryConst.TIME_INTERVAL_30);
@@ -282,11 +291,17 @@ public class DeliveryStoreServiceImpl implements IDeliveryStoreService {
 
         deliveryStoreCheckVo.setLocalDeliveryStoreCount(localDeliveryStoreCount.intValue());
         deliveryStoreCheckVo.setCurrentLocalDeliveryStoreCount(currentLocalDeliveryStoreCount.intValue());
-        deliveryStoreCheckVo.setLocalDeliveryConfig(localDeliveryConfig.isEmpty() ? null : localDeliveryConfig.stream().filter(info ->LocalDeliveryStoreTypeEnum.LOCAL_DELIVERY.getType().equals(info.getKey())).toList().get(0));
+        deliveryStoreCheckVo.setLocalDeliveryConfig(localDeliveryConfig.stream()
+                .filter(info -> LocalDeliveryStoreTypeEnum.LOCAL_DELIVERY.getType().equals(info.getKey()))
+                .findFirst()
+                .orElse(null));
 
         deliveryStoreCheckVo.setPickUpStoreCount(pickUpStoreCount.intValue());
         deliveryStoreCheckVo.setCurrentPickUpStoreCount(currentPickUpStoreCount.intValue());
-        deliveryStoreCheckVo.setPickUpConfig(pickUpConfig.isEmpty() ? null : pickUpConfig.stream().filter(info ->LocalDeliveryStoreTypeEnum.STORE.getType().equals(info.getKey())).toList().get(0));
+        deliveryStoreCheckVo.setPickUpConfig(pickUpConfig.stream()
+                .filter(info -> LocalDeliveryStoreTypeEnum.STORE.getType().equals(info.getKey()))
+                .findFirst()
+                .orElse(null));
         return deliveryStoreCheckVo;
     }
 }

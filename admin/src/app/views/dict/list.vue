@@ -10,12 +10,12 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="dictTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="90px" :model="dictTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('name')" prop="name">
-                        <el-input v-model="dictTable.searchParam.name" :placeholder="t('namePlaceholder')" />
+                        <el-input v-model="dictTable.searchParam.name" :placeholder="t('namePlaceholder')" class="search-input" clearable />
                     </el-form-item>
                     <el-form-item :label="t('key')" prop="key">
-                        <el-input v-model="dictTable.searchParam.key" :placeholder="t('keyPlaceholder')" />
+                        <el-input v-model="dictTable.searchParam.key" :placeholder="t('keyPlaceholder')" class="search-input" clearable />
                     </el-form-item>
 
                     <el-form-item>

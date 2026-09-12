@@ -1,5 +1,6 @@
 package com.niu.core.service.core.verify.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -21,12 +22,14 @@ import com.niu.core.event.sys.VerifyCreateEventDefiner;
 import com.niu.core.event.sys.VerifyEventDefiner;
 import com.niu.core.event.verify.VerifierCheckEventDefiner;
 import com.niu.core.event.verify.VerifyCheckEventDefiner;
+import com.niu.core.event.verify.VerifyInfoByCodeEventDefiner;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.mapper.sys.SysUserMapper;
 import com.niu.core.mapper.verify.VerifierMapper;
 import com.niu.core.mapper.verify.VerifyMapper;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.verify.ICoreVerifyService;
+import com.niu.core.service.core.verify.vo.CoreVerifyCreateCodeVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -170,15 +173,17 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
         // 获取核销员ID列表
         List<Integer> verifyMemberIds = new ArrayList<>();
         if (verifierResults != null && !verifierResults.isEmpty()) {
-            VerifierCheckEventDefiner.VerifierCheckResult firstResult = verifierResults.get(0);
-            if (firstResult != null && firstResult.getVerifyMemberIds() != null) {
-                verifyMemberIds = firstResult.getVerifyMemberIds();
+            for (VerifierCheckEventDefiner.VerifierCheckResult verifierResult : verifierResults) {
+                List<Integer> verifyMemberIdsQuery = verifierResult.getVerifyMemberIds();
+                if (CollUtil.isNotEmpty(verifyMemberIdsQuery)) {
+                    verifyMemberIds.addAll(verifyMemberIdsQuery);
+                }
             }
         }
 
         // 检查当前核销员是否有权限
         if (!verifyMemberIds.contains(memberId)) {
-            throw new RuntimeException("您没有订单核销权限，请联系管理员");
+            throw new RuntimeException("您没有核销权限，请联系管理员");
         }
 
         return value;
@@ -228,9 +233,11 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
         // 获取核销员ID列表
         List<Integer> verifyMemberIds = new ArrayList<>();
         if (!verifierResults.isEmpty()) {
-            VerifierCheckEventDefiner.VerifierCheckResult firstResult = verifierResults.get(0);
-            if (firstResult != null && firstResult.getVerifyMemberIds() != null) {
-                verifyMemberIds = firstResult.getVerifyMemberIds();
+            for (VerifierCheckEventDefiner.VerifierCheckResult verifierResult : verifierResults) {
+                List<Integer> verifyMemberIdsQuery = verifierResult.getVerifyMemberIds();
+                if (CollUtil.isNotEmpty(verifyMemberIdsQuery)) {
+                    verifyMemberIds.addAll(verifyMemberIdsQuery);
+                }
             }
         }
 
@@ -253,28 +260,35 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
         verifyDataMap.put("verifier_headimg", memberInfo != null ? memberInfo.getHeadimg() : "");
         verifyDataMap.put("verifier_type", VerifierTypeEnum.MEMBER.getType());
         // 核销
-        VerifyEventDefiner.VerifyEvent verifyEvent = new VerifyEventDefiner.VerifyEvent();
-        verifyEvent.setSiteId(siteId);
-        verifyEvent.build(verifyDataMap);
-        EventAndSubscribeOfPublisher.publishAndCallback(verifyEvent);
-        // 添加核销记录
-        Verify model = new Verify();
-        model.setSiteId(verifyEvent.getSiteId());
-        model.setCode(verifyEvent.getCode());
-        model.setData(JSONUtil.toJsonStr(verifyEvent.getData()));
-        model.setValue(verifyEvent.getValue());
-        model.setType(verifyEvent.getType());
-        model.setBody(verifyEvent.getBody());
-        model.setRelateTag(verifyEvent.getRelateTag());
-        model.setCreateTime(verifyEvent.getCreateTime());
-        model.setVerifierMemberId(verifyEvent.getVerifierMemberId());
-        model.setVerifierName(verifyEvent.getVerifierName());
-        model.setVerifierHeadimg(verifyEvent.getVerifierHeadimg());
-        model.setVerifierType(verifyEvent.getVerifierType());
-        model.setIsAdmin(0); // 非后台核销
-        verifyMapper.insert(model);
-        // 核销码失效
-        this.clearCode(code);
+        try {
+            VerifyEventDefiner.VerifyEvent verifyEvent = new VerifyEventDefiner.VerifyEvent();
+            verifyEvent.setSiteId(siteId);
+            verifyEvent.build(verifyDataMap);
+            EventAndSubscribeOfPublisher.publishAndCallback(verifyEvent);
+            // 添加核销记录
+            Verify model = new Verify();
+            model.setSiteId(verifyEvent.getSiteId());
+            model.setCode(verifyEvent.getCode());
+            model.setData(JSONUtil.toJsonStr(verifyEvent.getData()));
+            model.setValue(verifyEvent.getValue());
+            model.setType(verifyEvent.getType());
+            model.setBody(verifyEvent.getBody());
+            model.setRelateTag(verifyEvent.getRelateTag());
+            model.setCreateTime(verifyEvent.getCreateTime());
+            model.setVerifierMemberId(verifyEvent.getVerifierMemberId());
+            model.setVerifierName(verifyEvent.getVerifierName());
+            model.setVerifierHeadimg(verifyEvent.getVerifierHeadimg());
+            model.setVerifierType(verifyEvent.getVerifierType());
+            model.setIsAdmin(0); // 非后台核销
+            verifyMapper.insert(model);
+        } catch (CommonException e) {
+            throw e;  // 透传监听器异常
+        } catch (Exception e) {
+            throw new CommonException("核销码失效");
+        } finally {
+            // 核销码失效
+            this.clearCode(code);
+        }
         return true;
     }
 
@@ -363,12 +377,22 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
 
     private Map<String, Object> getCodeData(String verifyCode) {
         Map<String, Object> codeMap = (Map<String, Object>) cached.tag(CACHE_VERIFY).get(verifyCode);
-        if (codeMap == null) {
-            // 核销码已过期
-            throw new RuntimeException("当前核销码已核销或已失效");
-
+        if (codeMap != null && !codeMap.isEmpty()) {
+            return codeMap;
         }
-        return codeMap;
+        VerifyInfoByCodeEventDefiner.VerifyInfoByCodeEvent event = new VerifyInfoByCodeEventDefiner.VerifyInfoByCodeEvent();
+        event.setCode(verifyCode);
+        List<VerifyInfoByCodeEventDefiner.VerifyInfoByCodeResult> results =
+                EventAndSubscribeOfPublisher.publishAndCallback(event);
+        if (results != null) {
+            for (VerifyInfoByCodeEventDefiner.VerifyInfoByCodeResult result : results) {
+                if (result != null && result.getVerifyData() != null && !result.getVerifyData().isEmpty()) {
+                    return result.getVerifyData();
+                }
+            }
+        }
+        this.clearCode(verifyCode);
+        throw new RuntimeException("当前核销码已核销或已失效");
     }
 
     /**
@@ -381,7 +405,7 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
     }
 
     @Override
-    public List<String> create(Integer siteId, Integer memberId, String type, Map<String, Object> data) {
+    public List<CoreVerifyCreateCodeVo> create(Integer siteId, Integer memberId, String type, Map<String, Object> data) {
         if (ObjectUtil.isEmpty(VerifyTypeEnum.getTypeByName(type))) {
             throw new RuntimeException("核销类型错误");
         }
@@ -423,14 +447,25 @@ public class CoreVerifyServiceImpl implements ICoreVerifyService {
         value.put("body", body);
         value.put("relate_tag", relateTag);
         // 生成核销码
-        List<String> verifyCodeList = new ArrayList<>();
-        int temp = 0;
-        while (temp < count) {
-            String salt = IdUtil.randomUUID();
-            String verifyCode = DigestUtil.md5Hex(salt + strData);
-            this.createCode(verifyCode, value, expireTime);
-            verifyCodeList.add(verifyCode);
-            temp++;
+        List<CoreVerifyCreateCodeVo> verifyCodeList = new ArrayList<>();
+        if (result != null && Integer.valueOf(1).equals(result.getIsDiy())
+                && result.getDiyVerifyCode() != null && !result.getDiyVerifyCode().isEmpty()) {
+            for (CoreVerifyCreateCodeVo diyCode : result.getDiyVerifyCode()) {
+                if (StrUtil.isEmpty(diyCode.getCode())) {
+                    continue;
+                }
+                this.createCode(diyCode.getCode(), value, expireTime);
+                verifyCodeList.add(diyCode);
+            }
+        } else {
+            int temp = 0;
+            while (temp < count) {
+                String salt = IdUtil.randomUUID();
+                String verifyCode = DigestUtil.md5Hex(salt + strData);
+                this.createCode(verifyCode, value, expireTime);
+                verifyCodeList.add(CoreVerifyCreateCodeVo.ofCode(verifyCode));
+                temp++;
+            }
         }
         return verifyCodeList;
     }

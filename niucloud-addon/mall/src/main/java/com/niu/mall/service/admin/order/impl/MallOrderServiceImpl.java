@@ -33,10 +33,11 @@ import com.niu.core.service.admin.member.vo.MemberBriefInfoVo;
 import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
 import com.niu.core.service.core.pay.ICorePayService;
-import com.niu.mall.entity.goods.MallGoods;
+import com.niu.mall.common.MallCircleFilter;
+import com.niu.core.entity.goods.MallGoods;
 import com.niu.mall.entity.order.*;
 import com.niu.mall.enums.order.*;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.order.*;
 import com.niu.mall.service.admin.order.IMallOrderService;
 import com.niu.mall.service.admin.order.param.EditDeliveryParam;
@@ -160,9 +161,11 @@ public class MallOrderServiceImpl implements IMallOrderService {
         }
 
         if (ObjectUtil.isNotEmpty(searchParam.getStatus())) queryWrapper.eq("o.status", searchParam.getStatus());
-        if (ObjectUtil.isNotEmpty(searchParam.getOrderFrom()))
+        if (ObjectUtil.isNotEmpty(searchParam.getOrderFrom()) && !"all".equals(searchParam.getOrderFrom()))
             queryWrapper.eq("o.order_from", searchParam.getOrderFrom());
-        if (ObjectUtil.isNotEmpty(searchParam.getPayType())) queryWrapper.eq("p.type", searchParam.getPayType());
+        if (ObjectUtil.isNotEmpty(searchParam.getPayType()) && !"all".equals(searchParam.getPayType()) ) {
+            queryWrapper.eq("p.type", searchParam.getPayType());
+        }
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime()))
             QueryMapperUtils.buildByTime(queryWrapper, "o.create_time", searchParam.getCreateTime());
         if (ObjectUtil.isNotEmpty(searchParam.getPayTime()))
@@ -171,20 +174,23 @@ public class MallOrderServiceImpl implements IMallOrderService {
             queryWrapper.and(i -> i.eq("taker_name", searchParam.getKeyword()).or().eq("taker_mobile", searchParam.getKeyword()));
         if (ObjectUtil.isNotEmpty(searchParam.getActivityType()))
             queryWrapper.eq("o.activity_type", searchParam.getActivityType());
-        if (ObjectUtil.isNotEmpty(searchParam.getOrderType()))
+        if (ObjectUtil.isNotEmpty(searchParam.getOrderType()) && !"all".equals(searchParam.getOrderType()))
             queryWrapper.eq("o.order_type", searchParam.getOrderType());
         if (ObjectUtil.isNotEmpty(searchParam.getExtendField1()))
             queryWrapper.eq("o.extend_field_1", searchParam.getExtendField1());
         if (ObjectUtil.isNotEmpty(searchParam.getExtendField2()))
             queryWrapper.eq("o.extend_field_2", searchParam.getExtendField2());
-        if (ObjectUtil.isNotEmpty(searchParam.getDeliveryType()))
+        if (ObjectUtil.isNotEmpty(searchParam.getDeliveryType()) && !"all".equals(searchParam.getDeliveryType()))
             queryWrapper.eq("o.delivery_type", searchParam.getDeliveryType());
-        if (ObjectUtil.isNotEmpty(searchParam.getGoodsSource())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getGoodsSource()) && !"all".equals(searchParam.getGoodsSource())) {
             if (searchParam.getGoodsSource().equals("self_goods") || searchParam.getGoodsSource().equals("0")) {
                 queryWrapper.eq("o.supply_order_id", 0);
             } else {
                 queryWrapper.ne("o.supply_order_id", 0);
             }
+        }
+        if (!MallCircleFilter.applyCircleIdFilter(queryWrapper, "o.circle_id")) {
+            return PageResult.build(page, limit, 0L);
         }
 
         IPage<MallOrderListVo> iPage = mallOrderMapper.selectJoinPage(new Page<>(page, limit), MallOrderListVo.class, queryWrapper);
@@ -263,12 +269,15 @@ public class MallOrderServiceImpl implements IMallOrderService {
         if (RequestUtils.siteId() != 0) {
             wrapper.eq("site_id", RequestUtils.siteId());
         }
+        if (!MallCircleFilter.applyCircleIdFilter(wrapper)) {
+            throw new CommonException("订单不存在");
+        }
         MallOrder model = mallOrderMapper.selectOne(wrapper);
         Assert.notNull(model, "订单不存在");
 
         MallOrderInfoVo vo = new MallOrderInfoVo();
         BeanUtils.copyProperties(model, vo);
-        vo.setUsePoint(model.getUsePoint() != null ? new BigDecimal(model.getUsePoint()) : BigDecimal.ZERO);
+        vo.setUsePoint(model.getUsePoint() != null ? new BigDecimal(String.valueOf(model.getUsePoint())) : BigDecimal.ZERO);
         vo.setRefundDeductPoint(model.getRefundDeductPoint() != null ? new BigDecimal(model.getRefundDeductPoint()) : BigDecimal.ZERO);
 
         MemberBriefInfoVo memberVo = new MemberBriefInfoVo();

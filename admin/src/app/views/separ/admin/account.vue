@@ -6,17 +6,18 @@
 				<span class="text-page-title">{{ pageName }}</span>
 			</div>
 			<el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-				<el-form :inline="true" :model="separAccountTable.searchParam" ref="searchFormRef">
+				<el-form :inline="true" label-width="70px" :model="separAccountTable.searchParam" ref="searchFormRef" class="page-form">
 					<el-form-item :label="t('tradeNo')" prop="trade_no">
-						<el-input v-model="separAccountTable.searchParam.trade_no" :placeholder="t('tradeNoPlaceholder')" />
+						<el-input v-model="separAccountTable.searchParam.trade_no" :placeholder="t('tradeNoPlaceholder')"  clearable  class="search-input" />
 					</el-form-item>
 					<el-form-item :label="t('status')" prop="status">
-                        <el-select v-model="separAccountTable.searchParam.status" :placeholder="t('statusPlaceholder')" clearable>
+                        <el-select v-model="separAccountTable.searchParam.status" :placeholder="t('statusPlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,index) in statusList" :key="index" :label="item" :value="index" />
                         </el-select>
                     </el-form-item>
 					<el-form-item :label="t('createTime')" prop="create_time">
-						<el-date-picker v-model="separAccountTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+						<el-date-picker v-model="separAccountTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
 					</el-form-item>
 
 					<el-form-item>

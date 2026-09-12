@@ -1,13 +1,10 @@
 package com.niu.core.service.admin.sys;
 
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
-import com.niu.core.common.domain.PageParam;
-import com.niu.core.common.domain.PageResult;
 import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.service.admin.sys.vo.*;
 import com.niu.core.service.core.sys.vo.SceneDomainVo;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 系统设置接口服务层
@@ -48,7 +45,7 @@ public interface ISysConfigService {
      * 获取地图配置
      * @return
      */
-    SysMapVo getMap();
+    SysMapVo getMap(Boolean needEncrypt);
 
     /**
      * 设置地图配置
@@ -135,5 +132,15 @@ public interface ISysConfigService {
      * 获取服务器域名
      */
     String getServerDomain();
+
+    /**
+     * 获取平台首页列表
+     */
+    JSONArray getAdminIndexList();
+
+    /**
+     * 设置平台首页
+     */
+    void setAdminIndex(SysAdminIndexParam param);
 
 }

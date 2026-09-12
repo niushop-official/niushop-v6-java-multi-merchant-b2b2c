@@ -79,5 +79,5 @@ public interface ICorePointDeductService {
      * @param point    返还积分
      * @param orderNo  订单号
      */
-    void refundPointDeduct(Integer siteId, Integer memberId, Integer point, String orderNo);
+    void refundPointDeduct(Integer siteId, Integer memberId, BigDecimal point, String orderNo);
 }

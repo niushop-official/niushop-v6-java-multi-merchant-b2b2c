@@ -88,7 +88,7 @@ public class DateUtils {
      */
     public static Long StringToTimestamp(String date) {
 
-        if (date.equals("") || date.equals("0")) {
+        if (date == null || date.isEmpty() || "0".equals(date)) {
             return 0L;
         }
         java.util.Date dateTime = DateUtil.parse(date);

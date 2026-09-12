@@ -12,8 +12,11 @@ import com.niu.mall.service.site.goods.vo.MallGoodsLabelListVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -44,15 +47,18 @@ public class MallGoodsLabelServiceImpl implements IMallGoodsLabelService {
         queryWrapper.orderByDesc("create_time");
 
         List<MallGoodsLabel> record = mallGoodsLabelMapper.selectList(queryWrapper);
-        List<MallGoodsLabelListVo> list = new LinkedList<>();
-
+        Map<String, MallGoodsLabelListVo> dedupMap = new LinkedHashMap<>();
         for (MallGoodsLabel item : record) {
+            String key = item.getLabelName();
+            if (dedupMap.containsKey(key)) {
+                continue;
+            }
             MallGoodsLabelListVo vo = new MallGoodsLabelListVo();
             BeanUtils.copyProperties(item, vo);
-            list.add(vo);
+            dedupMap.put(key, vo);
         }
 
-        return list;
+        return new ArrayList<>(dedupMap.values());
     }
 
 }

@@ -127,6 +127,7 @@ public class CoreOrderSettlementServiceImpl implements ICoreOrderSettlementServi
                 separAccount.setOutTradeNo(order.getOutTradeNo());
                 separAccount.setPayType(pay.getType());
                 separAccount.setSeparData(JSONUtil.toJsonStr(separData));
+                separAccount.setTradeScene(order.getOrderFrom() != null ? order.getOrderFrom() : "");
 
                 // 构建分账详情记录
                 List<SeparAccountDetail> separDetailList = new ArrayList<>();

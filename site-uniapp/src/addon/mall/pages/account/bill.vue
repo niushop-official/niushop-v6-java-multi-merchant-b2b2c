@@ -68,19 +68,23 @@
                         <view class="tab-left-item leading-[40rpx] " :class="{ 'select-wrap': type == 'month'}" @click="handleBill('month')">月账单</view>
                     </view>
                 </view>
-                <view class="flex items-center leading-[80rpx]" v-if="list.length">
+                <view class="flex items-center leading-[80rpx]" v-if="list.length && !loading">
                     <view class="w-[30%] text-center">日期</view>
                     <view class="w-[30%] text-center">收入</view>
                     <view class="w-[30%] text-center">支出</view>
                     <view class="w-[10%]"></view>
                 </view>
-                <view v-if="list.length">
+                <view v-if="list.length && !loading">
                     <view v-for="(item, index) in list" :key="index" class="flex leading-[80rpx]" :class="{'bg-[var(--page-bg-color)] rounded-[8rpx]':index % 2 == 0}" @click="toLink(item)">
                         <view class="w-[30%] text-center">{{ item.time }}</view>
                         <view class="w-[30%] text-center">{{ item.income_money }}</view>
                         <view class="w-[30%] text-center">{{ item.outlay_money }}</view>
                         <view class="w-[10%] nc-iconfont nc-icon-youV6xx text-[28rpx] flex-center"></view>
                     </view>
+                </view>
+                <view v-if="loading" class="flex justify-center items-center py-[60rpx]">
+                    <view class="nc-iconfont nc-icon-jiazai text-[40rpx] animate-spin text-[var(--primary-color)]"></view>
+                    <text class="ml-[16rpx] text-[26rpx] text-[#999]">加载中...</text>
                 </view>
                 <mescroll-empty v-if="!list.length && !loading"></mescroll-empty>
             </view>
@@ -95,7 +99,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { img, redirect } from '@/utils/common'
-import { getFinanceAccountsTotal, getFinanceAccountsList } from '@/app/api/stat'
+import { getFinanceAccountsTotal, getFinanceAccountsList } from '@/addon/mall/api/account'
 import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue';
 import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.vue';
 import useMescroll from '@/components/mescroll/hooks/useMescroll.js';
@@ -214,6 +218,7 @@ const handleDate = (item: any) => {
 
 const  handleBill = (data: any) => {
     type.value = data
+    loading.value = true
     getMescroll().resetUpScroll();
 }
 

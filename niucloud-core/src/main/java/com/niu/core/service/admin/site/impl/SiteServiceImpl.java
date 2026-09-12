@@ -2,8 +2,8 @@ package com.niu.core.service.admin.site.impl;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -20,9 +20,8 @@ import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.TreeUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.json.JacksonUtils;
-import com.niu.core.common.utils.json.JsonModuleLoader;
 import com.niu.core.entity.addon.Addon;
-import com.niu.core.entity.diy.DiyPage;
+import com.niu.core.entity.shop.SiteSupply;
 import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteGroup;
 import com.niu.core.entity.sys.SysMenu;
@@ -32,15 +31,16 @@ import com.niu.core.enums.addon.AddonTypeEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.enums.sys.AppTypeEnum;
 import com.niu.core.enums.sys.CacheTagEnum;
+import com.niu.core.event.site.GetCircleListEventDefiner;
 import com.niu.core.event.site.SiteAddAfterEvent;
 import com.niu.core.event.site.SiteEditAfterEvent;
 import com.niu.core.mapper.addon.AddonMapper;
-import com.niu.core.mapper.diy.DiyPageMapper;
+import com.niu.core.mapper.shop.SiteSupplyMapper;
 import com.niu.core.mapper.site.SiteGroupMapper;
 import com.niu.core.mapper.site.SiteMapper;
-import com.niu.core.mapper.sys.SysMenuMapper;
 import com.niu.core.mapper.sys.SysUserRoleMapper;
 import com.niu.core.service.admin.auth.IAuthService;
+import com.niu.core.service.admin.shop.ISiteShopService;
 import com.niu.core.service.admin.site.ISiteGroupService;
 import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.site.param.*;
@@ -52,6 +52,7 @@ import com.niu.core.service.admin.sys.ISysUserService;
 import com.niu.core.service.admin.sys.param.SysUserRoleParam;
 import com.niu.core.service.admin.sys.vo.SysUserRoleInfoVo;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
+import com.niu.core.service.core.site.ICoreSiteCategoryService;
 import com.niu.core.service.core.site.ICoreSiteService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
@@ -92,6 +93,9 @@ public class SiteServiceImpl implements ISiteService {
     SiteMapper siteMapper;
 
     @Resource
+    SiteSupplyMapper siteSupplyMapper;
+
+    @Resource
     AddonMapper addonMapper;
 
     @Resource
@@ -101,10 +105,7 @@ public class SiteServiceImpl implements ISiteService {
     SiteGroupMapper siteGroupMapper;
 
     @Resource
-    SysMenuMapper sysMenuMapper;
-
-    @Resource
-    ICoreSiteService iCoreSiteService;
+    ICoreSiteService coreSiteService;
 
     @Resource
     ISysMenuService sysMenuService;
@@ -126,10 +127,11 @@ public class SiteServiceImpl implements ISiteService {
     IAuthService authService;
 
     @Resource
-    ICoreSiteService coreSiteService;
+    @Lazy
+    ISiteShopService siteShopService;
 
     @Resource
-    DiyPageMapper diyPageMapper;
+    ICoreSiteCategoryService siteCategoryService;
 
     /**
      * 站点列表
@@ -146,7 +148,7 @@ public class SiteServiceImpl implements ISiteService {
         QueryWrapper<Site> queryWrapper = new QueryWrapper<>();
         //查询条件判断组装
         if (ObjectUtil.isNotEmpty(searchParam.getKeywords())) {
-            queryWrapper.like("site_name", searchParam.getKeywords()).or().like("keywords", searchParam.getKeywords());
+            queryWrapper.like("site_name", searchParam.getKeywords());
         }
 
         if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
@@ -218,6 +220,72 @@ public class SiteServiceImpl implements ISiteService {
     }
 
     /**
+     * 站点列表（不分页），对齐 PHP SiteService::getList
+     */
+    @Override
+    public List<SiteListVo> getList(SiteSearchParam searchParam) {
+        QueryWrapper<Site> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne("site_id", RequestUtils.defaultSiteId());
+        applySiteListSearch(queryWrapper, searchParam);
+        queryWrapper.orderByDesc("create_time");
+
+        List<Site> sites = siteMapper.selectList(queryWrapper);
+        List<Integer> groupIds = sites.stream().map(Site::getGroupId).distinct().toList();
+        List<SiteGroup> siteGroups = new ArrayList<>();
+        if (!groupIds.isEmpty()) {
+            siteGroups = siteGroupMapper.selectByIds(groupIds);
+        }
+
+        List<SiteListVo> resultList = new LinkedList<>();
+        for (Site item : sites) {
+            SiteListVo vo = new SiteListVo();
+            BeanUtils.copyProperties(item, vo);
+            siteGroups.stream()
+                    .filter(group -> group.getGroupId().equals(item.getGroupId()))
+                    .findFirst()
+                    .ifPresent(group -> vo.setGroupName(group.getGroupName()));
+            resultList.add(vo);
+        }
+        return resultList;
+    }
+
+    private void applySiteListSearch(QueryWrapper<Site> queryWrapper, SiteSearchParam searchParam) {
+        if (ObjectUtil.isNotEmpty(searchParam.getKeywords())) {
+            queryWrapper.like("site_name", searchParam.getKeywords());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+            queryWrapper.eq("status", searchParam.getStatus());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getGroupId())) {
+            queryWrapper.eq("group_id", searchParam.getGroupId());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getApp())) {
+            queryWrapper.like("app", "\"" + searchParam.getApp() + "\"");
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getSiteDomain())) {
+            queryWrapper.like("site_domain", searchParam.getSiteDomain());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
+            applyTimeRange(queryWrapper, "create_time", searchParam.getCreateTime());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getExpireTime())) {
+            applyTimeRange(queryWrapper, "expire_time", searchParam.getExpireTime());
+        }
+    }
+
+    private void applyTimeRange(QueryWrapper<Site> queryWrapper, String column, String[] timeRange) {
+        Long startTime = (timeRange[0] == null) ? 0 : DateUtils.StringToTimestamp(timeRange[0]);
+        Long endTime = (timeRange[1] == null) ? 0 : DateUtils.StringToTimestamp(timeRange[1]);
+        if (startTime > 0 && endTime > 0) {
+            queryWrapper.between(column, startTime, endTime);
+        } else if (startTime > 0) {
+            queryWrapper.ge(column, startTime);
+        } else if (endTime > 0) {
+            queryWrapper.le(column, endTime);
+        }
+    }
+
+    /**
      * 站点详情
      *
      * @param id 主键
@@ -225,7 +293,7 @@ public class SiteServiceImpl implements ISiteService {
      */
     @Override
     public SiteInfoVo info(Integer id) {
-        SiteInfoVo siteInfoVo = iCoreSiteService.getSiteCache(id);
+        SiteInfoVo siteInfoVo = coreSiteService.getSiteCache(id);
         return siteInfoVo;
     }
 
@@ -233,25 +301,47 @@ public class SiteServiceImpl implements ISiteService {
      * 站点添加
      *
      * @param addParam 参数
+     * @return
      */
     @Transactional
     @Override
-    public void add(SiteAddParam addParam) {
-        SiteGroup siteGroup = siteGroupService.info(addParam.getGroupId());
-        if (ObjectUtil.isNull(siteGroup) || ObjectUtil.isEmpty(siteGroup)) {
-            throw new CommonException("SITE_GROUP_NOT_EXIST");
+    public Integer add(SiteAddParam addParam) {
+        SiteGroup siteGroup;
+
+        // 如果提供了行业类目ID，通过类目服务获取分组信息
+        if (ObjectUtil.isNotEmpty(addParam.getCategoryId())) {
+            siteGroup = siteCategoryService.getGroupInfoByCategoryId(addParam.getCategoryId());
+        } else {
+            siteGroup = siteGroupService.info(addParam.getGroupId());
         }
+
+        if (ObjectUtil.isNull(siteGroup) || ObjectUtil.isEmpty(siteGroup)) {
+            throw new CommonException("套餐不存在");
+        }
+
         Site model = new Site();
         model.setSiteName(addParam.getSiteName());
-        model.setGroupId(addParam.getGroupId());
+        model.setGroupId(siteGroup.getGroupId());
         model.setAppType(AppTypeEnum.SITE.getName());
         model.setCreateTime(DateUtils.currTime());
-        model.setExpireTime(DateUtils.StringToTimestamp(addParam.getExpireTime()));
+        String expireTimeStr = addParam.getExpireTime();
+        if (expireTimeStr == null || expireTimeStr.isEmpty() || "0".equals(expireTimeStr)) {
+            model.setExpireTime(0L);
+        } else {
+            model.setExpireTime(DateUtils.StringToTimestamp(expireTimeStr));
+        }
         model.setApp(siteGroup.getApp());
-        model.setAddons("");
+        model.setAddons(siteGroup.getAddon() != null ? siteGroup.getAddon() : "");
         model.setSiteDomain(addParam.getSiteDomain());
+
+        // 设置行业类目ID集合
+        if (ObjectUtil.isNotEmpty(addParam.getCategoryId())) {
+            model.setCategoryIds(JSONUtil.toJsonStr(List.of(addParam.getCategoryId())));
+        }
+
         siteMapper.insert(model);
         Integer siteId = model.getSiteId();
+
         if (ObjectUtil.isNull(addParam.getUid()) || addParam.getUid() == 0) {
             //添加用户
             SiteUserParam siteUserParam = new SiteUserParam();
@@ -278,6 +368,7 @@ public class SiteServiceImpl implements ISiteService {
         event.setSite(model);
         event.setSiteGroup(siteGroup);
         EventAndSubscribeOfPublisher.publishAll(event);
+        return siteId;
     }
 
     /**
@@ -311,14 +402,18 @@ public class SiteServiceImpl implements ISiteService {
 
         SiteGroup siteGroup = siteGroupService.info(editParam.getGroupId());
         if (ObjectUtil.isNull(siteGroup) || ObjectUtil.isEmpty(siteGroup)) {
-            throw new CommonException("SITE_GROUP_NOT_EXIST");
+            throw new CommonException("套餐不存在");
         }
         initallJsonArray.addAll(JSONUtil.parseArray(siteGroup.getApp()));
         initallJsonArray.addAll(JSONUtil.parseArray(siteGroup.getAddon()));
 
         model.setInitalledAddon(JSONUtil.toJsonStr(initallJsonArray));
         model.setSiteDomain(editParam.getSiteDomain());
-        model.setExpireTime(new DateTime(editParam.getExpireTime()).getTime() / 1000);
+        if(ObjectUtil.isNotEmpty(editParam.getExpireTime())){
+            model.setExpireTime(new DateTime(editParam.getExpireTime()).getTime() / 1000);
+        }else{
+            model.setExpireTime(0L);
+        }
         model.setStatus(model.getExpireTime() > DateUtils.currTime() ? SiteStatusEnum.ON.getCode() : SiteStatusEnum.EXPIRE.getCode());
         siteMapper.updateById(model);
 
@@ -354,20 +449,12 @@ public class SiteServiceImpl implements ISiteService {
 
     @Override
     public void closeSite(Integer siteId) {
-        Site model = new Site();
-        model.setSiteId(siteId);
-        model.setStatus(SiteStatusEnum.CLOSE.getCode());
-        siteMapper.updateById(model);
-        coreSiteService.clearSiteCache(siteId);
+        siteShopService.closeShop(siteId);
     }
 
     @Override
     public void openSite(Integer siteId) {
-        Site model = new Site();
-        model.setSiteId(siteId);
-        model.setStatus(SiteStatusEnum.ON.getCode());
-        siteMapper.updateById(model);
-        coreSiteService.clearSiteCache(siteId);
+        siteShopService.openShop(siteId);
     }
 
     /**
@@ -388,7 +475,7 @@ public class SiteServiceImpl implements ISiteService {
         if (appType.equals(AppTypeEnum.ADMIN.getName())) {
             return sysMenuService.getAllApiList(appType, status);
         } else {
-            List<String> addonKeys = iCoreSiteService.getAddonKeysBySiteId(siteId);
+            List<String> addonKeys = coreSiteService.getAddonKeysBySiteId(siteId);
             return sysMenuService.getApiListBySystem(appType, addonKeys);
         }
     }
@@ -479,219 +566,33 @@ public class SiteServiceImpl implements ISiteService {
     @Override
     public Map<String, ShowAppListVo> getSiteAppTools(SiteAppToolsParam param) {
         List<String> siteAddonKeys = coreSiteService.getAddonKeysBySiteId(RequestUtils.siteId());
-
-        QueryWrapper<Addon> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("type", "addon")
-                .eq("status", 1)
-                .in("`key`", siteAddonKeys)
-                .select("title", "icon", "`key`", "`desc`", "status", "type", "support_app");
-
-        if (param != null && ObjectUtil.isNotEmpty(param.getTitle())) {
-            queryWrapper.like("title", param.getTitle());
-        }
-
-        List<Addon> addons = addonMapper.selectList(queryWrapper);
-
-        return getShowAppToolsWithAddons(addons, "site");
+        List<String> addonKeys = listInstalledAddonKeys(siteAddonKeys, param);
+        return coreSiteService.getShowAppTools(addonKeys, AppTypeEnum.SITE.getName(), RequestUtils.siteId());
     }
-
 
     @Override
     public Map<String, ShowAppListVo> getAdminAppTools(SiteAppToolsParam param) {
-        QueryWrapper<Addon> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("type", "addon")
-                .eq("status", 1)
-                .select("title", "icon", "`key`", "`desc`", "status", "type", "support_app");
+        List<String> addonKeys = listInstalledAddonKeys(null, param);
+        return coreSiteService.getShowAppTools(addonKeys, AppTypeEnum.ADMIN.getName(), 0);
+    }
 
+    private List<String> listInstalledAddonKeys(List<String> siteAddonKeys, SiteAppToolsParam param) {
+        LambdaQueryWrapper<Addon> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(Addon::getType, AddonTypeEnum.ADDON.getType())
+                .eq(Addon::getStatus, AddonStatusEnum.ON.getCode())
+                .select(Addon::getKey);
+        if (siteAddonKeys != null && !siteAddonKeys.isEmpty()) {
+            wrapper.in(Addon::getKey, siteAddonKeys);
+        } else if (siteAddonKeys != null) {
+            return List.of();
+        }
         if (param != null && ObjectUtil.isNotEmpty(param.getTitle())) {
-            queryWrapper.like("title", param.getTitle());
+            wrapper.like(Addon::getTitle, param.getTitle());
         }
-
-        List<Addon> addons = addonMapper.selectList(queryWrapper);
-        return getShowAppToolsWithAddons(addons, "admin");
-    }
-
-    private Map<String, ShowAppListVo> getShowAppToolsWithAddons(List<Addon> addons, String appType) {
-        Map<String, ShowAppListVo> map = new HashMap<>();
-        ShowAppListVo addonVo = new ShowAppListVo();
-        addonVo.setTitle("运营工具");
-        addonVo.setList(new ArrayList<>());
-        map.put("addon", addonVo);
-        ShowAppListVo toolsVo = new ShowAppListVo();
-        toolsVo.setTitle("系统工具");
-        toolsVo.setList(new ArrayList<>());
-        map.put("tool", toolsVo);
-        ShowAppListVo promotionVo = new ShowAppListVo();
-        promotionVo.setTitle("营销活动");
-        promotionVo.setList(new ArrayList<>());
-        map.put("promotion", promotionVo);
-
-        List<String> filterKeys = new ArrayList<>();
-        filterKeys.add("b2b2c_dada");
-        if ("site".equals(appType)) {
-            filterKeys.add("points_mall");
-        }
-
-        JsonModuleLoader jsonModuleLoader = new JsonModuleLoader();
-        JSONObject appConfig = new JSONObject();
-        if (appType.equals("admin")) {
-            appConfig = jsonModuleLoader.mergeResultElement("sys/show_admin_app.json");
-        } else {
-            appConfig = jsonModuleLoader.mergeResultElement("sys/show_site_app.json");
-        }
-
-
-        List<String> appKeys = new ArrayList<>(filterKeys);
-        if (ObjectUtil.isNotEmpty(appConfig)) {
-            for (String key : appConfig.keySet()) {
-                JSONArray jsonArray = appConfig.getJSONArray(key);
-                for (int i = 0; i < jsonArray.size(); i++) {
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    String appKey = jsonObject.getStr("key");
-
-                    //处理拼团路径
-                    if (appKey.equals("pintuan_diy")) {
-                        String page = "/admin/decorate/edit?type=DIY_PINTUAN_ACTIVITY_GOODS_DETAIL&title=拼团活动详情&back=/admin/app/index&is_target=true";
-                        DiyPage diyPageInfo = diyPageMapper.selectOne(new LambdaQueryWrapper<DiyPage>()
-                                .eq(DiyPage::getType, "DIY_PINTUAN_ACTIVITY_GOODS_DETAIL")
-                                .eq(DiyPage::getMode, "diy")
-                                .eq(DiyPage::getSiteId, RequestUtils.siteId())
-                                .eq(DiyPage::getIsDefault, 1)
-                                .last("limit 1")
-                        );
-                        if (ObjectUtil.isNotEmpty(diyPageInfo)) {
-                            page = "/admin/decorate/edit?id=" + diyPageInfo.getId() + "&back=/admin/app/index&is_target=true";
-                        }
-                        //替换url
-                        jsonObject.set("url", page);
-                    }
-                    // 过滤特定插件
-                    if (filterKeys.contains(appKey)) {
-                        continue;
-                    }
-
-                    ShowAppListVo.AppInfo appInfo = new ShowAppListVo.AppInfo();
-                    appInfo.setTitle(jsonObject.getStr("title"));
-                    appInfo.setKey(appKey);
-                    appInfo.setDesc(jsonObject.getStr("desc"));
-                    appInfo.setIcon(jsonObject.getStr("icon"));
-                    appInfo.setUrl(jsonObject.getStr("url"));
-
-                    if (key.equals("addon")) {
-                        addonVo.getList().add(appInfo);
-                    } else if (key.equals("tool")) {
-                        toolsVo.getList().add(appInfo);
-                    } else if (key.equals("promotion")) {
-                        promotionVo.getList().add(appInfo);
-                    }
-                    appKeys.add(appKey);
-                }
-            }
-        }
-
-        if (ObjectUtil.isNotEmpty(addons)) {
-            // 查询插件的菜单URL
-            List<String> addonKeyList = addons.stream()
-                    .map(Addon::getKey)
-                    .filter(key -> !appKeys.contains(key))
-                    .toList();
-
-            Map<String, String> addonUrlMap = new HashMap<>();
-            if (!addonKeyList.isEmpty()) {
-                QueryWrapper<SysMenu> menuQueryWrapper = new QueryWrapper<>();
-                menuQueryWrapper.select("addon", "router_path")
-                        .in("addon", addonKeyList)
-                        .eq("is_show", 1)
-                        .eq("menu_type", 1)
-                        .eq("app_type", appType)
-                        .orderByAsc("id")
-                        .groupBy("addon");
-
-                List<SysMenu> menus = sysMenuMapper.selectList(menuQueryWrapper);
-                for (SysMenu menu : menus) {
-                    addonUrlMap.put(menu.getAddon(), menu.getRouterPath());
-                }
-            }
-
-            for (Addon addon : addons) {
-                if (!appKeys.contains(addon.getKey())) {
-                    String url = addonUrlMap.getOrDefault(addon.getKey(), "");
-
-                    ShowAppListVo.AppInfo appInfo = new ShowAppListVo.AppInfo();
-                    appInfo.setTitle(addon.getTitle());
-                    appInfo.setKey(addon.getKey());
-                    appInfo.setDesc(addon.getDesc());
-                    appInfo.setIcon(addon.getIcon());
-                    appInfo.setUrl(ObjectUtil.isNotEmpty(url) ? "/" + url : "");
-
-                    addonVo.getList().add(appInfo);
-                }
-            }
-        }
-
-        return map;
-    }
-
-    @Override
-    public Map<String, ShowAppListVo> getShowAppTools(String appType) {
-        Map<String, ShowAppListVo> map = new HashMap<>();
-        ShowAppListVo addonVo = new ShowAppListVo();
-        addonVo.setTitle("运营工具");
-        addonVo.setList(new ArrayList<>());
-        map.put("addon", addonVo);
-        ShowAppListVo toolsVo = new ShowAppListVo();
-        toolsVo.setTitle("系统工具");
-        toolsVo.setList(new ArrayList<>());
-        map.put("tool", toolsVo);
-        JsonModuleLoader jsonModuleLoader = new JsonModuleLoader();
-        JSONObject appConfig = new JSONObject();
-        if (appType.equals("admin")) {
-            appConfig = jsonModuleLoader.mergeResultElement("sys/show_admin_app.json");
-        } else {
-            appConfig = jsonModuleLoader.mergeResultElement("sys/show_site_app.json");
-        }
-
-
-        List<String> appKeys = new ArrayList<>();
-        if (ObjectUtil.isNotEmpty(appConfig)) {
-            for (String key : appConfig.keySet()) {
-                JSONArray jsonArray = appConfig.getJSONArray(key);
-                for (int i = 0; i < jsonArray.size(); i++) {
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    ShowAppListVo.AppInfo appInfo = new ShowAppListVo.AppInfo();
-                    appInfo.setTitle(jsonObject.getStr("title"));
-                    appInfo.setKey(jsonObject.getStr("key"));
-                    appInfo.setDesc(jsonObject.getStr("desc"));
-                    appInfo.setIcon(jsonObject.getStr("icon"));
-                    appInfo.setUrl(jsonObject.getStr("url"));
-                    if (key.equals("addon")) {
-                        addonVo.getList().add(appInfo);
-                    } else if (key.equals("tool")) {
-                        toolsVo.getList().add(appInfo);
-                    }
-                    appKeys.add(appInfo.getKey());
-                }
-
-            }
-        }
-        List<Addon> siteAddons;
-        if (appType.equals("admin")) {
-            siteAddons = addonMapper.selectList(new QueryWrapper<Addon>().eq("type", "addon"));
-        } else {
-            siteAddons = this.getSiteAddons();
-        }
-
-        for (Addon addon : siteAddons) {
-            if (!appKeys.contains(addon.getKey())) {
-                ShowAppListVo.AppInfo appInfo = new ShowAppListVo.AppInfo();
-                appInfo.setTitle(addon.getTitle());
-                appInfo.setKey(addon.getKey());
-                appInfo.setDesc(addon.getDesc());
-                appInfo.setIcon(addon.getIcon());
-                addonVo.getList().add(appInfo);
-            }
-        }
-        return map;
+        return addonMapper.selectList(wrapper).stream()
+                .map(Addon::getKey)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -699,26 +600,25 @@ public class SiteServiceImpl implements ISiteService {
         Integer page = pageParam.getPage();
         Integer limit = pageParam.getLimit();
 
-        MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.setAlias("s")
-                .innerJoin("?_site_group sg ON sg.group_id = s.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .innerJoin("?_site_shop p ON s.site_id = p.site_id".replace("?_", GlobalConfig.tablePrefix));
-        queryWrapper.select("s.site_id", "s.site_name", "s.logo", "s.icon", "s.front_end_name", "s.front_end_logo");
-        queryWrapper.select("p.supply_follow_num");
+        MPJQueryWrapper<SiteSupply> queryWrapper = new MPJQueryWrapper<>();
+        queryWrapper.setAlias("sp")
+                .leftJoin("?_site s ON sp.site_id = s.site_id".replace("?_", GlobalConfig.tablePrefix));
+        queryWrapper.select("sp.site_id", "s.site_name", "s.logo", "s.icon", "s.front_end_name", "s.front_end_logo", "sp.supply_follow_num");
+        queryWrapper.eq("s.status", SiteStatusEnum.ON.getCode());
+        if (StrUtil.isNotBlank(appName)) {
+            queryWrapper.like("s.app", "\"" + appName + "\"");
+        }
+        if (StrUtil.isNotBlank(keyword)) {
+            queryWrapper.and(w -> w.like("s.site_name", keyword).or().like("sp.keywords", keyword));
+        }
         if (ObjectUtil.isNotEmpty(order) && ObjectUtil.isNotEmpty(sort)) {
             queryWrapper.orderBy(true, sort.equals("asc"), order);
         } else {
-            queryWrapper.orderByDesc("supply_follow_num");
-            queryWrapper.orderByDesc("supply_up_num");
-            queryWrapper.orderByDesc("supply_sale_num");
+            queryWrapper.orderByDesc("sp.supply_follow_num");
+            queryWrapper.orderByDesc("sp.supply_up_num");
+            queryWrapper.orderByDesc("sp.supply_sale_num");
         }
-        queryWrapper.eq("s.status", SiteStatusEnum.ON.getCode());
-        queryWrapper.like("sg.app", appName);
-        //查询条件判断组装
-        if (ObjectUtil.isNotEmpty(keyword)) {
-            queryWrapper.like("site_name", keyword).or().like("keywords", keyword);
-        }
-        IPage<SiteNameListVo> list = siteMapper.selectJoinPage(new Page<>(page, limit), SiteNameListVo.class, queryWrapper);
+        IPage<SiteNameListVo> list = siteSupplyMapper.selectJoinPage(new Page<>(page, limit), SiteNameListVo.class, queryWrapper);
         if (!list.getRecords().isEmpty()) {
             Random rand = new Random();
             list.getRecords().forEach(item -> {
@@ -784,7 +684,7 @@ public class SiteServiceImpl implements ISiteService {
         List<String> addonKeys = addonMapper.selectList(wrapper)
                 .stream().map(Addon::getKey).collect(Collectors.toList());
 
-        return coreSiteService.getShowPromotionTools(addonKeys, RequestUtils.appType(), RequestUtils.siteId());
+        return coreSiteService.getShowPromotionTools(addonKeys, AppTypeEnum.SITE.getName(), RequestUtils.siteId());
     }
 
     @Override
@@ -799,7 +699,60 @@ public class SiteServiceImpl implements ISiteService {
         List<String> addonKeys = addonMapper.selectList(wrapper)
                 .stream().map(Addon::getKey).toList();
 
-        return coreSiteService.getShowPromotionTools(addonKeys, RequestUtils.appType(), null);
+        return coreSiteService.getShowPromotionTools(addonKeys, AppTypeEnum.ADMIN.getName(), null);
+    }
+
+    /**
+     * 获取商圈列表（不分页），对齐 PHP SiteService::getCircleList
+     */
+    @Override
+    public List<?> getCircleList(SiteCircleListParam param) {
+        GetCircleListEventDefiner.GetCircleListEvent event = new GetCircleListEventDefiner.GetCircleListEvent();
+        if (param != null && param.getUid() != null && param.getUid() > 0) {
+            event.setUid(param.getUid());
+        }
+        return publishGetCircleList(event);
+    }
+
+    /**
+     * 发布 GetCircleList 事件并合并各插件返回的商圈树
+     */
+    public List<Object> publishGetCircleList(GetCircleListEventDefiner.GetCircleListEvent event) {
+        List<GetCircleListEventDefiner.GetCircleListResult> resultList = EventAndSubscribeOfPublisher.publishAndCallback(event);
+        List<Object> list = new ArrayList<>();
+        if (resultList == null || resultList.isEmpty()) {
+            return list;
+        }
+        for (GetCircleListEventDefiner.GetCircleListResult result : resultList) {
+            if (result == null || result.getList() == null) {
+                continue;
+            }
+            list.addAll(result.getList());
+        }
+        return list;
+    }
+
+    @Override
+    public void editBusinessStatus(Integer businessStatus) {
+        coreSiteService.editSiteBusinessStatus(RequestUtils.siteId(), businessStatus);
+    }
+
+    @Override
+    public List<SysMenu> getShowMenuList(Integer siteId) {
+        List<String> menuKeys = getMenuIdsBySiteId(siteId, 1);
+        return sysMenuService.getShowMenuListByMenuKeys(menuKeys);
+    }
+
+    private List<String> getMenuIdsBySiteId(Integer siteId, Integer status) {
+        SiteInfoVo siteInfo = coreSiteService.getSiteCache(siteId);
+        if (siteInfo == null) {
+            return List.of();
+        }
+        if (AppTypeEnum.ADMIN.getName().equals(siteInfo.getAppType())) {
+            return sysMenuService.getAllMenuKeysByAppType(siteInfo.getAppType(), status);
+        }
+        List<String> addonKeys = coreSiteService.getAddonKeysBySiteId(siteId);
+        return sysMenuService.getMenuKeysBySystem(siteInfo.getAppType(), addonKeys);
     }
 
 }

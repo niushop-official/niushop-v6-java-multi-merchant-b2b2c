@@ -42,7 +42,16 @@ public class CoreShopDeliveryOrderEventServiceImpl implements ICoreShopDeliveryO
         update.setId(localDeliveryOrder.getId());
         update.setStatus(LocalDeliveryStatusEnum.IN_DELIVERY.getStatus().toString());
         update.setOutStatus(param.getStatus());
+        if (StringUtils.isNotEmpty(param.getMainName())) {
+            update.setRiderName(param.getMainName());
+        }
         deliveryLocalDeliveryOrderMapper.updateById(update);
+
+        LocalDeliveryEvent event = new LocalDeliveryEvent();
+        event.setEvent("rider_pickedup");
+        event.setTradeType(localDeliveryOrder.getTradeType());
+        event.setTradeNo(localDeliveryOrder.getTradeNo());
+        EventAndSubscribeOfPublisher.publishAll(event);
 
         //添加配送订单日志
         LocalDeliveryOperateEnum.OperateResult operateResult = LocalDeliveryOperateEnum.getOperateByStatus(LocalDeliveryStatusEnum.IN_DELIVERY.getStatus());

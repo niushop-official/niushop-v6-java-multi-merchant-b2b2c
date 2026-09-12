@@ -1,0 +1,46 @@
+[
+  {
+    "type": "buy_card_reward",
+    "name": "购卡返利",
+    "icon": "static/resource/images/member/vip_card/benefits/buy_card_reward.png",
+    "desc": "购卡返利",
+    "addon": "app",
+    "component": "/src/app/views/member/vip_card/components/buy-card-reward.vue",
+    "contentStr": {
+      "admin": "com.niu.core.service.core.vip_card.card.benefits.BuyCardRewardHandler"
+    }
+  },
+  {
+    "type": "stage_reward",
+    "name": "阶段返利",
+    "icon": "static/resource/images/member/vip_card/benefits/stage_reward.png",
+    "desc": "阶段返利",
+    "addon": "app",
+    "component": "/src/app/views/member/vip_card/components/stage-reward.vue",
+    "contentStr": {
+      "admin": "com.niu.core.service.core.vip_card.card.benefits.StageRewardHandler"
+    }
+  },
+  {
+    "type": "cycle_reward",
+    "name": "周期返利",
+    "icon": "static/resource/images/member/vip_card/benefits/cycle_reward.png",
+    "desc": "周期返利",
+    "addon": "app",
+    "component": "/src/app/views/member/vip_card/components/cycle-reward.vue",
+    "contentStr": {
+      "admin": "com.niu.core.service.core.vip_card.card.benefits.CycleRewardHandler"
+    }
+  },
+  {
+    "type": "birthday_reward",
+    "name": "生日特权",
+    "icon": "static/resource/images/member/vip_card/benefits/birthday_reward.png",
+    "desc": "生日特权",
+    "addon": "app",
+    "component": "/src/app/views/member/vip_card/components/birthday-reward.vue",
+    "contentStr": {
+      "admin": "com.niu.core.service.core.vip_card.card.benefits.BirthdayRewardHandler"
+    }
+  }
+]

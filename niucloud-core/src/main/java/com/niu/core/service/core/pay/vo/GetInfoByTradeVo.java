@@ -30,6 +30,11 @@ public class GetInfoByTradeVo implements Serializable {
     private Integer mainId;
 
     /**
+     * 发起支付会员id（帮付场景）
+     */
+    private Integer fromMainId;
+
+    /**
      * 支付流水号
      */
     private String outTradeNo;

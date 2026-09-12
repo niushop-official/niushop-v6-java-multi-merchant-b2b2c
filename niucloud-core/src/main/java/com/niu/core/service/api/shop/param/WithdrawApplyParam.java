@@ -16,6 +16,12 @@ public class WithdrawApplyParam implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
+     * 结算账户ID
+     */
+    @NotNull(message = "请选择提现账号")
+    private Integer accountId;
+
+    /**
      * 申请提现金额
      */
     @NotNull(message = "提现金额不能为空")

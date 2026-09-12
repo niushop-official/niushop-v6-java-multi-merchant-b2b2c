@@ -1,6 +1,7 @@
 package com.niu.core.service.core.addon.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -13,10 +14,13 @@ import com.niu.core.common.utils.file.AddonUpgradeHelper;
 import com.niu.core.common.utils.file.FileTools;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.enums.sys.CacheTagEnum;
+import com.niu.core.event.addon.InstallAddonAfterEvent;
+import com.niu.core.event.addon.UninstallAddonAfterEvent;
 import com.niu.core.mapper.addon.AddonMapper;
 import com.niu.core.service.admin.addon.IAddonDevelopBuildService;
 import com.niu.core.service.admin.niucloud.ICloudBuildService;
 import com.niu.core.service.core.addon.*;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.app.tools.SQLScriptRunnerTools;
 import com.niu.core.service.core.schedule.ICoreScheduleService;
 import com.niu.core.service.core.sys.ICoreMenuService;
@@ -57,12 +61,6 @@ public class CoreAddonInstallServiceImpl extends CoreAddonBaseService implements
     @Resource
     IAddonDevelopBuildService addonDevelopBuildService;
 
-    /**
-     * 插件安装检测
-     *
-     * @param addon
-     * @return
-     */
     @Override
     public JSONObject installCheck(String addon) {
         Boolean installCheck = true;
@@ -90,10 +88,12 @@ public class CoreAddonInstallServiceImpl extends CoreAddonBaseService implements
 
         readableDir.put(new JSONObject().set("dir", runtimePath + "admin").set("status", true));
         readableDir.put(new JSONObject().set("dir", runtimePath + "uni-app").set("status", true));
+        readableDir.put(new JSONObject().set("dir", runtimePath + "site-uniapp").set("status", true));
         readableDir.put(new JSONObject().set("dir", runtimePath + "web").set("status", true));
 
         writeDir.put(new JSONObject().set("dir", runtimePath + "admin").set("status", true));
         writeDir.put(new JSONObject().set("dir", runtimePath + "uni-app").set("status", true));
+        writeDir.put(new JSONObject().set("dir", runtimePath + "site-uniapp").set("status", true));
         writeDir.put(new JSONObject().set("dir", runtimePath + "web").set("status", true));
 
         for (int i = 0; i < readableDir.size(); i++) {
@@ -124,17 +124,17 @@ public class CoreAddonInstallServiceImpl extends CoreAddonBaseService implements
      * 安装插件
      *
      * @param addon
-     * @return
+     * @return tips 数组（或空），对齐 PHP 返回值
      */
 //    @Transactional(rollbackFor = Exception.class)
     @Override
-    public JSONObject install(String addon, String mode) {
+    public Object install(String addon, String mode) {
         Boolean installCheck = (Boolean) cached.get("addon_install_check");
         if (installCheck == null || !installCheck) {
             throw new CommonException("安装校验未通过");
         }
         Addon addonObject = coreAddonService.getInfoByKey(addon);
-        if (ObjectUtil.isNotEmpty(addonObject)) {
+        if (ObjectUtil.isNotEmpty(addonObject) && !GlobalConfig.runActive.equalsIgnoreCase("dev")) {
             throw new CommonException("当前插件已安装,不能重复安装");
         }
         JSONObject installTask = this.getInstallTask();
@@ -157,10 +157,27 @@ public class CoreAddonInstallServiceImpl extends CoreAddonBaseService implements
             this.installUniapp(addon);
             if (mode.equals("local")) {
                 this.handleAddonInstall();
+
+                // 本地安装是同步完成，handleAddonInstall 后读取 tips 再清 installTask
+                JSONObject finalTask = this.getInstallTask();
+                JSONArray tipsArray = new JSONArray();
+                if (finalTask != null && finalTask.containsKey("tips")) {
+                    tipsArray = finalTask.getJSONArray("tips");
+                }
+
+                // 对齐 PHP：本地安装完成后清除 installTask 缓存
+                // PHP handleAddonInstall 最后执行 Cache::delete('install_task')
+                this.cancleInstall();
+
+                // 对齐 PHP 返回值：PHP return empty($tips) ? true : $tips
+                // 前端 handleInstall 中直接用 res.data.length 判断并赋给 installAfterTips
+                return tipsArray;
             } else {
+                // 云安装触发异步编译，installTask 需保留让前端轮询 getInstallTask
                 this.cloudInstall();
+                // 返回当前 installTask 给前端（status=installing 或 restart）
+                return this.getInstallTask();
             }
-            return this.getInstallTask();
         } catch (Exception e) {
             e.printStackTrace();
             this.installExceptionHandle();
@@ -357,15 +374,22 @@ public class CoreAddonInstallServiceImpl extends CoreAddonBaseService implements
         String addon = installTask.getStr("addon");
 
         if (installTask.getStr("mode").equals("local")) {
-            tips.add("本地安装成功后会将admin，web，wap端的插件代码进行安装，但是不会进行编译，请手动编译对应admin，web，wap端的代码");
+            tips.add("本地安装成功后会将admin，wap，adminapp，web端的插件代码进行安装，但是不会进行编译，请手动编译对应admin，web，wap端的代码");
             if (new File(WebAppEnvs.get().webRootDownAddon + addon + "/package/admin-package.json").exists())
                 tips.add("该插件admin端引用了新的依赖需在项目根目录下admin目录执行 npm install 更新依赖");
             if (new File(WebAppEnvs.get().webRootDownAddon + addon + "/package/uni-app-package.json").exists())
                 tips.add("该插件wap端引用了新的依赖需在项目根目录下uni-app目录执行 npm install 更新依赖");
+            if (new File(WebAppEnvs.get().webRootDownAddon + addon + "/package/site-uniapp-package.json").exists())
+                tips.add("该插件adminapp端引用了新的依赖需在项目根目录下site-uniapp目录执行 npm install 更新依赖");
             if (new File(WebAppEnvs.get().webRootDownAddon + addon + "/package/web-package.json").exists())
                 tips.add("该插件web端引用了新的依赖需在项目根目录下web目录执行 npm install 更新依赖");
         }
         AddonInstallJavaTools.installExec(this, addon, tips);
+
+        InstallAddonAfterEvent installEvent = new InstallAddonAfterEvent(addon);
+        installEvent.addAppSign("core");
+        installEvent.setName("InstallAddonAfterEvent");
+        EventAndSubscribeOfPublisher.publishAll(installEvent);
 
         if (GlobalConfig.runActive.equalsIgnoreCase("dev")) {
             installTask.put("status", "success");
@@ -407,6 +431,12 @@ public class CoreAddonInstallServiceImpl extends CoreAddonBaseService implements
             addonMapper.delete(new QueryWrapper<Addon>().eq("`key`", addon));
             // 执行卸载其它
             AddonInstallJavaTools.uninstallExec(this, addon);
+
+            UninstallAddonAfterEvent uninstallEvent = new UninstallAddonAfterEvent(addon);
+            uninstallEvent.addAppSign("core");
+            uninstallEvent.setName("UninstallAddonAfterEvent");
+            EventAndSubscribeOfPublisher.publishAll(uninstallEvent);
+
             // 是否需要重启服务
             JSONObject data = new JSONObject();
             if (!GlobalConfig.runActive.equalsIgnoreCase("dev")) {
@@ -435,6 +465,11 @@ public class CoreAddonInstallServiceImpl extends CoreAddonBaseService implements
     @Override
     public void installResult(boolean result, String addon, String message) {
         JSONObject installTask = this.getInstallTask();
+        // installTask 可能为 null：重启后缓存过期 / 本地安装已清缓存 / 云安装未创建
+        if (installTask == null) {
+            log.warn("installResult: installTask is null, addon={}, result={}, message={}", addon, result, message);
+            return;
+        }
         if (result) {
             installTask.put("status", "success");
             List<String> tips = AddonUpgradeHelper.getAddonInfo();

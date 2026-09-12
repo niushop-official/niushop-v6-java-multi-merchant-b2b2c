@@ -31,28 +31,24 @@ public class FastJson2TreeUtils {
         }
         // 遍历结果集
         for (Object o : arr) {
-            // 单条记录
             JSONObject aVal = (JSONObject) o;
-            System.out.println("pid=" + pid);
-            System.out.println("aVal=" + aVal);
-            System.out.println("pid value =" + aVal.get(pid));
-            System.out.println("hash=" + hash);
-            // 在hash中取出key为单条记录中pid的值
-            JSONObject hashVP = (JSONObject) hash.get(aVal.get(pid).toString());
-            // 如果记录的pid存在,则说明它有父节点,将她添加到孩子节点的集合中
-            if (hashVP != null) {
-                // 检查是否有child属性
-                if (hashVP.get(child) != null) {
-                    JSONArray ch = (JSONArray) hashVP.get(child);
-                    ch.add(aVal);
-                    hashVP.put(child, ch);
-                } else {
-                    JSONArray ch = new JSONArray();
-                    ch.add(aVal);
-                    hashVP.put(child, ch);
-                }
-            } else {
+            Object parentIdObj = aVal.get(pid);
+            String parentId = parentIdObj == null ? "" : parentIdObj.toString();
+            if (parentId.isEmpty()) {
                 jsonArray.add(aVal);
+            } else {
+                JSONObject hashVP = (JSONObject) hash.get(parentId);
+                if (hashVP != null) {
+                    if (hashVP.get(child) != null) {
+                        JSONArray ch = (JSONArray) hashVP.get(child);
+                        ch.add(aVal);
+                        hashVP.put(child, ch);
+                    } else {
+                        JSONArray ch = new JSONArray();
+                        ch.add(aVal);
+                        hashVP.put(child, ch);
+                    }
+                }
             }
         }
         return jsonArray;

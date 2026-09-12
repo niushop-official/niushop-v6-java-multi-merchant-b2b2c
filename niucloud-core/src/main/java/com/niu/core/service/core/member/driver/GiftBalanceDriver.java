@@ -60,7 +60,7 @@ public class GiftBalanceDriver {
                     AccountTypeEnum.BALANCE.getType(),
                     Double.valueOf(config.getStr("money")),
                     vars.getOrDefault("from_type", "").toString(),
-                    vars.getOrDefault("momo", "").toString(),
+                    vars.getOrDefault("memo", "").toString(),
                     vars.getOrDefault("related_id", "").toString());
         } catch (Exception e) {
             System.out.println("红包发放失败");

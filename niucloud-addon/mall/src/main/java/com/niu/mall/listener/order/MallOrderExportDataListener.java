@@ -21,6 +21,7 @@ import com.niu.core.service.admin.member.IMemberService;
 import com.niu.core.service.admin.member.vo.MemberInfoVo;
 import com.niu.core.service.admin.order.IInvoiceService;
 import com.niu.core.service.admin.order.vo.InvoiceInfoVo;
+import com.niu.mall.common.MallCircleFilter;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.enums.order.OrderDeliveryTypeEnum;
 import com.niu.mall.mapper.order.MallOrderMapper;
@@ -77,7 +78,7 @@ public class MallOrderExportDataListener extends ExportDataEventDefiner {
             }
 
             Object order_from = where.get("order_from");
-            if (ObjectUtil.isNotEmpty(order_from)) {
+            if (ObjectUtil.isNotEmpty(order_from) && !"all".equals(order_from.toString())) {
                 queryWrapper.eq("t.order_from", order_from);
             }
 
@@ -91,19 +92,23 @@ public class MallOrderExportDataListener extends ExportDataEventDefiner {
             }
 
             Object pay_type = where.get("pay_type");
-            if (ObjectUtil.isNotEmpty(pay_type)) {
+            if (ObjectUtil.isNotEmpty(pay_type) && !"all".equals(pay_type.toString())) {
                 queryWrapper.eq("p.type", pay_type);
             }
             Object delivery_type = where.get("delivery_type");
-            if (ObjectUtil.isNotEmpty(delivery_type)) queryWrapper.eq("t.delivery_type", delivery_type.toString());
+            if (ObjectUtil.isNotEmpty(delivery_type) && !"all".equals(delivery_type.toString())) queryWrapper.eq("t.delivery_type", delivery_type.toString());
             Object goods_source = where.get("goods_source");
-            if (ObjectUtil.isNotEmpty(goods_source)) {
+            if (ObjectUtil.isNotEmpty(goods_source) && !"all".equals(goods_source.toString())) {
                 if (goods_source.toString().equals("self_goods") || goods_source.toString().equals("0")) {
                     queryWrapper.eq("t.supply_order_id", 0);
                 } else {
                     queryWrapper.ne("t.supply_order_id", 0);
                 }
             }
+        }
+        String circleIdColumn = where != null ? "t.circle_id" : MallCircleFilter.DEFAULT_CIRCLE_ID_COLUMN;
+        if (!MallCircleFilter.applyCircleIdFilter(queryWrapper, circleIdColumn)) {
+            return new ExportDataEventResult();
         }
         PageParam pageParam = event.getPageParam();
         List<MallOrder> list = new ArrayList<>();

@@ -147,18 +147,20 @@ public class MallStatController {
      * @return
      */
     @GetMapping("/rank")
-    public Result rank(@RequestParam(value = "date")String date) {
+    public Result rank(@RequestParam(value = "date") String date,
+                       @RequestParam(value = "order", required = false) String order,
+                       @RequestParam(value = "sort", required = false) String sort) {
         Long startTime = 0L;
         Long endTime = 0L;
-        if(date.equals("today")){
+        if (date.equals("today")) {
             startTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), 0)).getTime() / 1000;
-        }else if(date.equals("7days")){
+        } else if (date.equals("7days")) {
             startTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), -6)).getTime() / 1000;
             endTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), 1)).getTime() / 1000;
-        }else if(date.equals("30days")){
+        } else if (date.equals("30days")) {
             startTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), -29)).getTime() / 1000;
             endTime = DateUtil.beginOfDay(DateUtil.offsetDay(new DateTime(DateUtil.today()), 1)).getTime() / 1000;
         }
-        return Result.success(iMallStatService.getGoodsRank( startTime,endTime));
+        return Result.success(iMallStatService.getGoodsRank(startTime, endTime, order, sort));
     }
 }

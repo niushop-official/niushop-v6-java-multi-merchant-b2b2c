@@ -24,6 +24,8 @@ public enum SiteFinanceLogEnum {
     /**************************************************** 平台佣金（平台） ************************************************************/
     PLAT_COMMISSION("平台佣金", "plat_commission"),
     PLAT_REFUND_COMMISSION("平台退还佣金", "plat_refund_commission"),
+    CIRCLE_COMMISSION("商圈佣金", "circle_commission"),
+    CIRCLE_REFUND_COMMISSION("退还商圈佣金", "circle_refund_commission"),
 
     /**************************************************** 商户佣金（商户） ************************************************************/
     SITE_COMMISSION("商户佣金", "site_commission"),
@@ -44,6 +46,9 @@ public enum SiteFinanceLogEnum {
 
     SUPPLY_SEPARATE("支付分账(供货商)", "supply_separate"),
     SUPPLY_REFUND_SEPARATE("退款分账(供货商)", "supply_refund_separate"),
+
+    O2O_SEPARATE("支付分账(o2o)", "o2o_separate"),//支付分账(o2o)
+    O2O_REFUND_SEPARATE("退款分账(o2o)","o2o_refund_separate"),//退款分账(o2o)
 
     PLAT_SEPARATE("支付分账(平台)", "plat_separate"),
 

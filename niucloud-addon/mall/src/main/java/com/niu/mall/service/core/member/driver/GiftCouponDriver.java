@@ -5,11 +5,14 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.component.context.SpringContext;
-import com.niu.mall.entity.coupon.MallCoupon;
-import com.niu.mall.mapper.coupon.MallCouponMapper;
-import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
+import com.niu.core.entity.coupon.MallCoupon;
+import com.niu.core.enums.coupon.CouponTypeEnum;
+import com.niu.core.mapper.coupon.MallCouponMapper;
+import com.niu.core.service.core.marketing.ICoreCouponMemberService;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -74,24 +77,73 @@ public class GiftCouponDriver {
                     signContinueContent.add(contentItem);
                 }
                 return signContinueContent;
+            case "wap":
+                return buildWapCouponContent(siteId, config);
             default:
                 return "";
         }
+    }
+
+    private JSONArray buildWapCouponContent(Integer siteId, JSONObject config) {
+        JSONArray couponIds = config.getJSONArray("coupon_id");
+        if (ObjectUtil.isEmpty(couponIds)) {
+            return new JSONArray();
+        }
+        List<MallCoupon> couponList = shopCouponMapper().selectList(
+                new QueryWrapper<MallCoupon>()
+                        .in("id", couponIds)
+                        .select("id", "site_id", "title", "price", "min_condition_money", "type", "valid_type", "length", "valid_start_time", "valid_end_time")
+        );
+        JSONArray wapContent = new JSONArray();
+        for (MallCoupon coupon : couponList) {
+            JSONObject item = new JSONObject();
+            item.set("id", coupon.getId());
+            item.set("title", coupon.getTitle());
+            item.set("price", coupon.getPrice());
+            item.set("min_condition_money", formatMoney(coupon.getMinConditionMoney()));
+            item.set("coupon_min_price", coupon.getMinConditionMoney());
+            item.set("type", coupon.getType());
+            item.set("valid_type", coupon.getValidType());
+            item.set("length", coupon.getLength());
+            item.set("valid_start_time", coupon.getValidStartTime());
+            item.set("valid_end_time", coupon.getValidEndTime());
+            item.set("type_name", CouponTypeEnum.getNameByType(coupon.getType()));
+            wapContent.add(item);
+        }
+        return wapContent;
+    }
+
+    private String formatMoney(BigDecimal money) {
+        if (money == null) {
+            return "0.00";
+        }
+        return money.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     /**
      * 发放礼包
      */
     public void grant(Integer siteId, Integer memberId, JSONObject config, Map<String, Object> vars) {
-        try {
-            JSONArray couponIds = config.getJSONArray("coupon_id");
-            for (int i = 0; i < couponIds.size(); i++) {
-                Integer couponId = couponIds.getInt(i);
-                coreCouponMemberService().sendCoupon(siteId, memberId, couponId, config.getByPath("coupon_list.id_" + couponId, Integer.class));
+        if (config == null) {
+            return;
+        }
+        JSONArray couponIds = config.getJSONArray("coupon_id");
+        if (ObjectUtil.isEmpty(couponIds)) {
+            return;
+        }
+        String memo = vars != null && vars.get("memo") != null ? String.valueOf(vars.get("memo")) : "";
+        for (int i = 0; i < couponIds.size(); i++) {
+            Integer couponId = couponIds.getInt(i);
+            Integer num = config.getByPath("coupon_list.id_" + couponId, Integer.class);
+            if (couponId == null || num == null || num <= 0) {
+                continue;
             }
-        } catch (Exception e) {
-            System.out.println("优惠券发放失败");
-            e.printStackTrace();
+            try {
+                // 不可用券（已过期/已失效/有效期已过）在 sendCoupon 内拒绝，跳过继续发其它券
+                coreCouponMemberService().sendCoupon(siteId, memberId, couponId, num, memo);
+            } catch (Exception e) {
+                System.out.println("优惠券发放失败 couponId=" + couponId + ", reason=" + e.getMessage());
+            }
         }
     }
 }

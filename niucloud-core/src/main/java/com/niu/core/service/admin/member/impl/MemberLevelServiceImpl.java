@@ -1,6 +1,9 @@
 package com.niu.core.service.admin.member.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -12,7 +15,6 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.member.Member;
-import com.niu.core.entity.member.MemberLabel;
 import com.niu.core.entity.member.MemberLevel;
 import com.niu.core.mapper.member.MemberLevelMapper;
 import com.niu.core.mapper.member.MemberMapper;
@@ -113,7 +115,95 @@ public class MemberLevelServiceImpl implements IMemberLevelService {
 
         MemberLevelInfoVo vo = new MemberLevelInfoVo();
         BeanUtils.copyProperties(model, vo);
+        // 对齐前端 gift-coupon：coupon_id 必须为数组，否则不会调 platform_coupon/selected，礼包优惠券不展示
+        vo.setLevelGifts(normalizeLevelGifts(model.getLevelGifts()));
         return vo;
+    }
+
+    /**
+     * 规范化等级礼包 JSON：shop_coupon.coupon_id 统一为数组，is_use 统一为 0/1。
+     */
+    private String normalizeLevelGifts(String raw) {
+        if (StrUtil.isBlank(raw)) {
+            return "{}";
+        }
+        String trim = raw.trim();
+        if (!trim.startsWith("{")) {
+            return "{}";
+        }
+        try {
+            JSONObject gifts = JSONUtil.parseObj(trim);
+            JSONObject shopCoupon = gifts.getJSONObject("shop_coupon");
+            if (shopCoupon != null) {
+                shopCoupon.set("is_use", shopCoupon.getInt("is_use", 0));
+                shopCoupon.set("coupon_id", toCouponIdArray(shopCoupon.get("coupon_id")));
+                if (shopCoupon.get("coupon_list") == null) {
+                    shopCoupon.set("coupon_list", new JSONObject());
+                }
+                gifts.set("shop_coupon", shopCoupon);
+            }
+            return gifts.toString();
+        } catch (Exception e) {
+            return trim;
+        }
+    }
+
+    private JSONArray toCouponIdArray(Object couponId) {
+        JSONArray arr = new JSONArray();
+        if (couponId == null) {
+            return arr;
+        }
+        if (couponId instanceof JSONArray) {
+            for (Object item : (JSONArray) couponId) {
+                Integer id = toPositiveInt(item);
+                if (id != null) {
+                    arr.add(id);
+                }
+            }
+            return arr;
+        }
+        if (couponId instanceof JSONObject) {
+            for (Object item : ((JSONObject) couponId).values()) {
+                Integer id = toPositiveInt(item);
+                if (id != null) {
+                    arr.add(id);
+                }
+            }
+            return arr;
+        }
+        if (couponId instanceof CharSequence) {
+            String text = couponId.toString().trim();
+            if (StrUtil.isBlank(text)) {
+                return arr;
+            }
+            if (JSONUtil.isTypeJSONArray(text)) {
+                return toCouponIdArray(JSONUtil.parseArray(text));
+            }
+            for (String part : StrUtil.splitTrim(text, ',')) {
+                Integer id = toPositiveInt(part);
+                if (id != null) {
+                    arr.add(id);
+                }
+            }
+            return arr;
+        }
+        Integer id = toPositiveInt(couponId);
+        if (id != null) {
+            arr.add(id);
+        }
+        return arr;
+    }
+
+    private Integer toPositiveInt(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            int id = Integer.parseInt(value.toString().trim());
+            return id > 0 ? id : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**

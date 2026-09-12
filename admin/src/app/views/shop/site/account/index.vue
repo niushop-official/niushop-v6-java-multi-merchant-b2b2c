@@ -43,23 +43,22 @@
 				</el-row>
 			</el-card>
 			<el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-				<el-form :inline="true" :model="shopAccountLogTable.searchParam" ref="searchFormRef">
+				<el-form :inline="true" label-width="70px" :model="shopAccountLogTable.searchParam" ref="searchFormRef" class="page-form">
 					<el-form-item :label="t('tradeNo')" prop="related_id">
 						<el-input v-model="shopAccountLogTable.searchParam.related_id"
-							:placeholder="t('tradeNoPlaceholder')" />
+							:placeholder="t('tradeNoPlaceholder')" clearable  class="search-input" />
 					</el-form-item>
 					<el-form-item :label="t('type')" class="items-center" prop="from_type">
-						<el-select v-model="shopAccountLogTable.searchParam.from_type" class="m-2"
+						<el-select v-model="shopAccountLogTable.searchParam.from_type" class="search-input"
 							:placeholder="t('accountTypePlaceholder')">
-							<el-option :label="t('all')" value="" />
-							<el-option v-for="(item, index) in accountType" :key="index" :label="item.name"
-								:value="index" />
+							<el-option  label="全部" value="all" />
+							<el-option v-for="(item, index) in accountType" :key="index" :label="item.name" :value="index" />
 						</el-select>
 					</el-form-item>
 					<el-form-item :label="t('createTime')" prop="create_time">
 						<el-date-picker v-model="shopAccountLogTable.searchParam.create_time" type="datetimerange"
 							value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-							:end-placeholder="t('endDate')" />
+							:end-placeholder="t('endDate')" class="search-input" />
 					</el-form-item>
 
 					<el-form-item>
@@ -165,8 +164,8 @@
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
 import { img } from '@/utils/common'
-import { getShopAccountInfo, getShopAccountLog, getShopAccountTypeList, getAccountCheck, getShopCashOutInfo } from '@/app/api/shop_site'
-import type { FormInstance, ElMessageBox } from 'element-plus'
+import { getShopAccountInfo, getShopAccountLog, getShopAccountTypeList, getShopCashOutInfo } from '@/app/api/shop_site'
+import type { FormInstance } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import transfer from '@/app/views/shop/site/account/components/transfer.vue'
 const route = useRoute()
@@ -233,29 +232,11 @@ setAccountInfo()
 
 // 提现按钮
 const transferDialogRef = ref({})
-const transfeLock = ref(false)
 const transferClick = () => {
-    if (transfeLock.value) return
-    transfeLock.value = true
-    getAccountCheck().then(res => {
-        transfeLock.value = false
-        if (res.data.is_fill) {
-            transferDialogRef.value.setFormData(accountInfo.value)
-            transferDialogRef.value.showDialog = true
-            return false
-        }
-        ElMessageBox.confirm(t('transferSettingsTip'), t('warning'),
-            {
-                confirmButtonText: t('confirm'),
-                cancelButtonText: t('cancel'),
-                type: 'warning'
-            }
-        ).then(() => {
-            router.push('/site/account/transfer_type')
-        }).catch(() => { })
-    }).catch(() => {
-        transfeLock.value = false
-    })
+	transferDialogRef.value.setFormData({
+		money: accountInfo.value.money
+	})
+    transferDialogRef.value.showDialog = true
 }
 
 /**

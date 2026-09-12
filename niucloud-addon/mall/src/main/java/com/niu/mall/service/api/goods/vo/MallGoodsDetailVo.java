@@ -22,6 +22,7 @@ import com.niu.core.service.core.delivery.ICoreDeliveryConfigService;
 import com.niu.core.service.core.delivery.vo.DeliveryConfigVo;
 import com.niu.mall.service.api.marketing.vo.MallDiscountGoodsInfoVo;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -95,6 +96,8 @@ public class MallGoodsDetailVo implements Serializable {
 
     private ImageSize imageSize = new ImageSize();
 
+    private List<MallGoodsListVo> recommendGoodsList = new ArrayList<>();
+
     @Data
     public static class Goods {
         private Integer goodsId; // 商品id
@@ -139,6 +142,7 @@ public class MallGoodsDetailVo implements Serializable {
         private String attrFormat; // 商品参数内容，json格式
         private Integer isDiscount; // 是否参与限时折扣
         private String memberDiscount; // 会员等级折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
+        private String vipCardDiscount; // 付费会员卡折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
         private Integer posterId; // 海报id
         private Integer isCollect = 0;
         private int hasBuy;
@@ -150,6 +154,7 @@ public class MallGoodsDetailVo implements Serializable {
         private Integer formId;
         @JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
         private String deliveryTypeList;
+        private Integer auditStatus;
 
         /** 平台商品参数id，支持多个 */
         private String attrIds;
@@ -310,6 +315,7 @@ public class MallGoodsDetailVo implements Serializable {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper=false)
     public static class Spec extends MallGoodsSpec {
 
     }

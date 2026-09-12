@@ -2,10 +2,11 @@ package com.niu.core.service.admin.home.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
-import com.niu.core.enums.site.SiteStatusEnum;
+import com.niu.core.enums.shop.ShopStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Site列表视图
@@ -48,7 +49,18 @@ public class SiteListVo implements Serializable {
     private String initalledAddon;  // 站点已执行初始化方法的插件
     private String siteDomain;  // 站点域名
     private Integer businessStatus;
-    private String getStatusName(){
-        return SiteStatusEnum.getNameByCode(this.status);
+
+    /** 应用名称列表 */
+    private List<String> appName;
+
+    /** 登录选店展示的业务类型 */
+    private List<String> plugin;
+
+    public Integer getBusinessState() {
+        return this.businessStatus;
+    }
+
+    public String getBusinessStateName() {
+        return ShopStatusEnum.getNameByKey(this.businessStatus);
     }
 }

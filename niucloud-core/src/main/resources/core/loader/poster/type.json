@@ -5,5 +5,12 @@
 		"name": "找朋友帮忙付海报",
 		"decs": "找朋友帮忙付，分享后进入帮付页面",
 		"icon": "static/resource/images/poster/type_friendspay.png"
+	},
+	{
+		"type": "cash",
+		"addon": "",
+		"name": "买单海报",
+		"decs": "买单海报，扫码进入收银页面",
+		"icon": "static/resource/images/poster/type_cash.png"
 	}
 ]

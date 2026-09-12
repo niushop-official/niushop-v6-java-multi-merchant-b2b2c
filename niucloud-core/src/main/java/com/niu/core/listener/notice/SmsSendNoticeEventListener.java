@@ -8,6 +8,7 @@ import com.niu.core.common.component.context.event.DefaultEventResult;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.loader.notice.NoticeDataVo;
 import com.niu.core.entity.member.Member;
+import com.niu.core.entity.sys.SysUser;
 import com.niu.core.entity.sys.SysNoticeLog;
 import com.niu.core.enums.notice.NoticeTypeEnum;
 import com.niu.core.event.notice.SendNoticeEventDefiner;
@@ -15,6 +16,7 @@ import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.mapper.sys.SysNoticeLogMapper;
 import com.niu.core.service.core.notice.vo.NoticeInfoVo;
 import com.niu.core.service.core.sms.ICoreSmsService;
+import com.niu.core.service.core.user.ICoreUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +32,9 @@ public class SmsSendNoticeEventListener extends SendNoticeEventDefiner {
 
     @Autowired
     ICoreSmsService coreSmsService;
+
+    @Autowired
+    ICoreUserService coreUserService;
 
     public DefaultEventResult handleCallback(SendNoticeEvent event) {
         NoticeInfoVo notice = event.getNotice();
@@ -56,6 +61,14 @@ public class SmsSendNoticeEventListener extends SendNoticeEventDefiner {
                     model.setNickname(member.getNickname());
                 }
             }
+            if (mobile.isEmpty() && noticeData.getUid() > 0) {
+                SysUser user = coreUserService.getInfoByUid(noticeData.getUid());
+                if (user != null && user.getMobile() != null && !user.getMobile().isEmpty()) {
+                    noticeData.setMobile(user.getMobile());
+                    mobile = user.getMobile();
+                    model.setNickname(user.getUsername());
+                }
+            }
             if (mobile.isEmpty()) {
                 if (!notice.getAsync()) throw new CommonException("手机号为空");
                 return null;
@@ -68,6 +81,7 @@ public class SmsSendNoticeEventListener extends SendNoticeEventDefiner {
                 coreSmsService.send(event.getSiteId(), notice, noticeData);
                 sysNoticeLogMapper.insert(model);
             } catch (Exception e) {
+                e.printStackTrace();
                 model.setResult(e.getMessage());
                 sysNoticeLogMapper.insert(model);
                 if (!notice.getAsync()) throw new CommonException(e.getMessage());

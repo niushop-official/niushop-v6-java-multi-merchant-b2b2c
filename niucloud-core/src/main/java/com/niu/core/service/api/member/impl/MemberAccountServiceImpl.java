@@ -46,7 +46,6 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
 
         QueryWrapper<MemberAccountLog> queryWrapper = new QueryWrapper();
         queryWrapper.select("id, member_id, site_id, account_type, account_data, from_type, related_id, create_time, memo");
-        queryWrapper.eq("site_id", param.siteId());
         queryWrapper.eq("member_id", param.memberId());
         if ("income".equals(param.getAmountType())) {
             queryWrapper.gt("account_data", 0);
@@ -156,7 +155,6 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
 
         QueryWrapper<MemberAccountLog> queryWrapper = new QueryWrapper();
         queryWrapper.select("id, member_id, site_id, account_type, account_data, from_type, related_id, create_time, memo");
-        queryWrapper.eq("site_id", param.siteId());
         queryWrapper.eq("member_id", param.memberId());
         queryWrapper.in("account_type", new String[]{ AccountTypeEnum.BALANCE.getType(), AccountTypeEnum.MONEY.getType() });
 
@@ -201,7 +199,6 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
         Integer limit = pageParam.getLimit();
         QueryWrapper<MemberAccountLog> queryWrapper = new QueryWrapper();
         queryWrapper.select("id, member_id, site_id, account_type, account_data, from_type, related_id, create_time, memo");
-        queryWrapper.eq("site_id", param.siteId());
         queryWrapper.eq("member_id", param.memberId());
         if ("income".equals(param.getTradeType())) {
             queryWrapper.in("account_type", "balance", "money");
@@ -239,7 +236,6 @@ public class MemberAccountServiceImpl implements IMemberAccountService {
         Integer limit = pageParam.getLimit();
         QueryWrapper<MemberAccountLog> queryWrapper = new QueryWrapper();
         queryWrapper.select("id, member_id, site_id, account_type, account_data, from_type, related_id, create_time, memo");
-        queryWrapper.eq("site_id", param.siteId());
         queryWrapper.eq("member_id", param.memberId());
         if (StrUtil.isNotEmpty(param.getAccountType())) {
             queryWrapper.eq("account_type", param.getAccountType());

@@ -18,32 +18,38 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class TreeUtils {
 
     /**
+     * JSONArray转树形结构（默认根节点 pid = 0，对齐 PHP list_to_tree）
+     */
+    public static JSONArray listToTree(JSONArray arr, String id, String pid, String child) {
+        return listToTree(arr, id, pid, child, 0);
+    }
+
+    /**
      * JSONArray转树形结构
      *
      * @param arr   JSON数组
      * @param id    主键字段名
      * @param pid   上级字段名
      * @param child 子级字段名
+     * @param root  根节点 pid 值，对应 PHP list_to_tree 的 $root 参数
      * @return JSONArray
      */
-    public static JSONArray listToTree(JSONArray arr, String id, String pid, String child) {
+    public static JSONArray listToTree(JSONArray arr, String id, String pid, String child, Object root) {
         JSONArray jsonArray = new JSONArray();
         JSONObject hash = new JSONObject();
-        // 顶级数组
+        String rootKey = normalizeTreeKey(root);
         for (Object o : arr) {
             JSONObject json = (JSONObject) o;
             hash.put(json.getStr(id), json);
         }
-        // 遍历结果集
         for (Object o : arr) {
-            // 单条记录
             JSONObject aVal = (JSONObject) o;
-            if (aVal.get(pid) != null) {
-                // 在hash中取出key为单条记录中pid的值
-                JSONObject hashVP = (JSONObject) hash.get(aVal.get(pid).toString());
-                // 如果记录的pid存在,则说明它有父节点,将她添加到孩子节点的集合中
+            String parentKey = normalizeTreeKey(resolveParentId(aVal.get(pid), root));
+            if (rootKey.equals(parentKey)) {
+                jsonArray.add(aVal);
+            } else {
+                JSONObject hashVP = (JSONObject) hash.get(parentKey);
                 if (hashVP != null) {
-                    // 检查是否有child属性
                     if (hashVP.get(child) != null) {
                         JSONArray ch = (JSONArray) hashVP.get(child);
                         ch.add(aVal);
@@ -53,12 +59,24 @@ public class TreeUtils {
                         ch.add(aVal);
                         hashVP.put(child, ch);
                     }
-                } else {
-                    jsonArray.add(aVal);
                 }
             }
         }
         return jsonArray;
+    }
+
+    private static Object resolveParentId(Object parentIdObj, Object root) {
+        if (parentIdObj == null || parentIdObj.toString().trim().isEmpty()) {
+            return root;
+        }
+        return parentIdObj;
+    }
+
+    private static String normalizeTreeKey(Object key) {
+        if (key == null) {
+            return "0";
+        }
+        return key.toString().trim();
     }
 
     /**

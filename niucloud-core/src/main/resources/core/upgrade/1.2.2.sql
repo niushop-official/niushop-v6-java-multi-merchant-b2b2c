@@ -1,0 +1,241 @@
+CREATE TABLE IF NOT EXISTS `{{prefix}}cash_order` (
+    `order_id` int NOT NULL AUTO_INCREMENT COMMENT '订单ID',
+    `site_id` int NOT NULL DEFAULT '0' COMMENT '站点ID',
+    `site_name` varchar(255) NOT NULL DEFAULT '' COMMENT '店铺名称',
+    `order_no` varchar(50) NOT NULL DEFAULT '' COMMENT '订单编号',
+    `order_from` varchar(55) NOT NULL DEFAULT '' COMMENT '订单来源',
+    `out_trade_no` varchar(50) NOT NULL DEFAULT '' COMMENT '支付流水号',
+    `status` varchar(55) NOT NULL DEFAULT '' COMMENT '订单状态',
+    `member_id` int NOT NULL DEFAULT '0' COMMENT '会员ID',
+    `ip` varchar(20) NOT NULL DEFAULT '' COMMENT 'IP地址',
+    `trade_type` varchar(50) NOT NULL DEFAULT '' COMMENT '业务来源',
+    `total_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '买单总金额（用户输入）',
+    `no_discount_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '不参与优惠的金额',
+    `discountable_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '可参与优惠的金额（总金额-不参与优惠金额）',
+    `platform_coupon_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '平台优惠券金额',
+    `platform_coupon_id` int NOT NULL DEFAULT '0' COMMENT '使用的平台优惠券ID',
+    `site_coupon_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '店铺优惠券金额',
+    `site_coupon_id` int NOT NULL DEFAULT '0' COMMENT '使用的店铺优惠券ID',
+    `point_deduct_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '积分抵扣优惠金额',
+    `point` int NOT NULL DEFAULT '0' COMMENT '使用的积分数量',
+    `point_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '积分抵扣金额',
+    `discount_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '店铺优惠总金额',
+    `plat_discount_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '平台优惠总金额',
+    `order_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '订单应付金额（实际支付金额）',
+    `member_remark` varchar(1000) NOT NULL DEFAULT '' COMMENT '会员备注',
+    `shop_remark` varchar(2000) NOT NULL DEFAULT '' COMMENT '商家备注',
+    `refund_status` int NOT NULL DEFAULT '1' COMMENT '退款状态：1不存在退款 2部分退款 3全部退款',
+    `refund_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '累计退款金额',
+    `is_evaluate` int NOT NULL DEFAULT '0' COMMENT '是否已评价',
+    `create_time` int NOT NULL DEFAULT '0' COMMENT '创建时间',
+    `pay_time` int NOT NULL DEFAULT '0' COMMENT '支付时间',
+    `finish_time` int NOT NULL DEFAULT '0' COMMENT '完成时间',
+    `close_time` int NOT NULL DEFAULT '0' COMMENT '关闭时间',
+    `delete_time` int NOT NULL DEFAULT '0' COMMENT '删除时间',
+    PRIMARY KEY (`order_id`) USING BTREE,
+    KEY `idx_site_id` (`site_id`) USING BTREE,
+    KEY `idx_member_id` (`member_id`) USING BTREE,
+    KEY `idx_order_no` (`order_no`) USING BTREE,
+    KEY `idx_status` (`status`) USING BTREE,
+    KEY `idx_create_time` (`create_time`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='买单订单表';
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}cash_order_log` (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '日志ID',
+    `order_id` int NOT NULL DEFAULT '0' COMMENT '订单ID',
+    `main_type` varchar(55) NOT NULL DEFAULT '' COMMENT '操作人类型',
+    `main_id` int NOT NULL DEFAULT '0' COMMENT '操作人ID',
+    `status` int NOT NULL DEFAULT '0' COMMENT '订单状态',
+    `type` varchar(55) NOT NULL DEFAULT '' COMMENT '操作类型',
+    `content` varchar(1000) NOT NULL DEFAULT '' COMMENT '操作内容',
+    `create_time` int NOT NULL DEFAULT '0' COMMENT '操作时间',
+    PRIMARY KEY (`id`) USING BTREE,
+    KEY `idx_order_id` (`order_id`) USING BTREE,
+    KEY `idx_create_time` (`create_time`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC COMMENT='买单订单日志表';
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}member_vip_card` (
+    `card_id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '卡id',
+    `site_id` int NOT NULL DEFAULT '0' COMMENT '站点id',
+    `card_name` varchar(255) NOT NULL DEFAULT '' COMMENT '卡名称',
+    `desc` varchar(2000) NOT NULL DEFAULT '' COMMENT '简介',
+    `status` int NOT NULL DEFAULT '2' COMMENT '状态 1商家 2下架',
+    `is_trial_open` int NOT NULL DEFAULT '0' COMMENT '是否启用试用 0否 1是',
+    `trial_day` int NOT NULL DEFAULT '0' COMMENT '试用天数',
+    `trial_price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '试用价',
+    `benefits_config` text NULL COMMENT '权益配置',
+    `benefits_id` varchar(255) NOT NULL DEFAULT '' COMMENT '权益id集合',
+    `benefits_item_id` varchar(255) NOT NULL DEFAULT '' COMMENT '权益规则id集合',
+    `card_config` text NULL COMMENT '卡面设置',
+    `share_config` text NULL COMMENT '分享配置',
+    `create_time` int NOT NULL DEFAULT '0' COMMENT '添加时间',
+    `update_time` int NOT NULL DEFAULT '0' COMMENT '更新时间',
+    `sort` int NOT NULL DEFAULT '0' COMMENT '排序值',
+    `member_num` int NOT NULL DEFAULT '0' COMMENT '购卡会员数',
+    `sale_num` int NOT NULL DEFAULT '0' COMMENT '会员卡销量',
+    PRIMARY KEY (`card_id`),
+    KEY `idx_status` (`status`),
+    KEY `idx_card_name` (`card_name`),
+    KEY `idx_sort` (`sort`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='付费会员卡表';
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}member_vip_card_benefits` (
+    `benefits_id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '权益id',
+    `name` varchar(255) NOT NULL DEFAULT '' COMMENT '规格名称',
+    `icon` varchar(255) NOT NULL DEFAULT '' COMMENT '权益展示图标',
+    `type` varchar(255) NOT NULL DEFAULT '' COMMENT '权益类型',
+    `desc` varchar(255) NOT NULL DEFAULT '' COMMENT '权益简介',
+    `explain` text NULL COMMENT '权益说明',
+    `status` int NOT NULL DEFAULT '1' COMMENT '是否启用 0否 1是',
+    `addon` varchar(255) NOT NULL DEFAULT '' COMMENT '归属插件',
+    `create_time` int NOT NULL DEFAULT '0' COMMENT '创建时间',
+    `update_time` int NOT NULL DEFAULT '0' COMMENT '更新时间',
+    `sort` int NOT NULL DEFAULT '0' COMMENT '排序号',
+    `is_system` tinyint NOT NULL DEFAULT '0' COMMENT '是否系统默认',
+    PRIMARY KEY (`benefits_id`),
+    KEY `idx_type` (`type`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='付费会员卡权益表';
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}member_vip_card_benefits_item` (
+    `benefits_item_id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '权益规则id',
+    `benefits_id` int NOT NULL DEFAULT '0' COMMENT '权益id',
+    `name` varchar(255) NOT NULL DEFAULT '' COMMENT '规则名称',
+    `benefits_config` text NULL COMMENT '权益配置',
+    PRIMARY KEY (`benefits_item_id`),
+    KEY `idx_benefits_id` (`benefits_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='付费会员卡权益规则表';
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}member_vip_card_benefits_send_log` (
+    `send_id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '发放id',
+    `card_id` int NOT NULL DEFAULT '0' COMMENT '会员卡id',
+    `benefits_id` int NOT NULL DEFAULT '0' COMMENT '权益id',
+    `benefits_type` varchar(255) NOT NULL DEFAULT '' COMMENT '权益类型',
+    `member_id` int NOT NULL DEFAULT '0' COMMENT '会员id',
+    `create_time` int NOT NULL DEFAULT '0' COMMENT '发放时间',
+    PRIMARY KEY (`send_id`),
+    KEY `idx_benefits_id` (`benefits_id`),
+    KEY `idx_benefits_type` (`benefits_type`),
+    KEY `idx_member_id` (`member_id`),
+    KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='付费会员卡权益发放记录表';
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}member_vip_card_buy` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `site_id` int NOT NULL DEFAULT '0' COMMENT '站点id',
+    `order_id` int NOT NULL DEFAULT '0' COMMENT '订单id',
+    `member_id` int NOT NULL DEFAULT '0' COMMENT '购买会员id',
+    `card_id` int NOT NULL DEFAULT '0' COMMENT '卡id',
+    `item_id` int NOT NULL DEFAULT '0' COMMENT '规格id',
+    `is_expire` int NOT NULL DEFAULT '0' COMMENT '是否过期 0否 1是',
+    `is_trial` int NOT NULL DEFAULT '0' COMMENT '是否试用 0否 1是',
+    `trial_day` int NOT NULL DEFAULT '0' COMMENT '试用天数',
+    `expire_time` int NOT NULL DEFAULT '0' COMMENT '到期时间',
+    `create_time` int NOT NULL DEFAULT '0' COMMENT '创建时间',
+    `benefits_config` text NULL COMMENT '卡权益配置',
+    `item_config` varchar(255) NOT NULL DEFAULT '' COMMENT '卡规格配置',
+    PRIMARY KEY (`id`),
+    KEY `idx_order_id` (`order_id`),
+    KEY `idx_member_id` (`member_id`),
+    KEY `idx_card_id` (`card_id`),
+    KEY `idx_item_id` (`item_id`),
+    KEY `idx_is_expire` (`is_expire`),
+    KEY `idx_expire_time` (`expire_time`),
+    KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='付费会员卡会员关联表';
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}member_vip_card_item` (
+    `item_id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '规格id',
+    `site_id` int NOT NULL DEFAULT '0' COMMENT '站点id',
+    `card_id` int NOT NULL DEFAULT '0' COMMENT '卡id',
+    `item_name` varchar(255) NOT NULL DEFAULT '' COMMENT '规格名称',
+    `time_limit` int NOT NULL DEFAULT '0' COMMENT '期限',
+    `time_type` varchar(255) NOT NULL DEFAULT 'day' COMMENT '期限类型 day天 month月 year年',
+    `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '单价',
+    `cost_price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '划线价',
+    `renew_price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '续费价',
+    `is_sale` int NOT NULL DEFAULT '1' COMMENT '是否售卖 0否 1是',
+    `is_trial` int NOT NULL DEFAULT '1' COMMENT '是否试用 0否 1是',
+    `sale_num` int NOT NULL DEFAULT '0' COMMENT '规格销量',
+    PRIMARY KEY (`item_id`) USING BTREE,
+    KEY `idx_item_name` (`item_name`),
+    KEY `idx_is_sale` (`is_sale`),
+    KEY `idx_is_trial` (`is_trial`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='付费会员卡规格表';
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}member_vip_card_order` (
+    `order_id` int NOT NULL AUTO_INCREMENT,
+    `site_id` int NOT NULL DEFAULT '0' COMMENT '站点id',
+    `order_no` varchar(50) NOT NULL DEFAULT '' COMMENT '订单编号',
+    `body` varchar(1000) NOT NULL DEFAULT '' COMMENT '订单内容',
+    `order_from` varchar(55) NOT NULL DEFAULT '' COMMENT '订单来源',
+    `order_type` varchar(50) NOT NULL DEFAULT '' COMMENT '订单类型',
+    `out_trade_no` varchar(50) NOT NULL DEFAULT '' COMMENT '支付流水号',
+    `status` int NOT NULL DEFAULT '1' COMMENT '订单状态',
+    `refund_status` int NOT NULL DEFAULT '0' COMMENT '退款状态',
+    `member_id` int NOT NULL DEFAULT '0' COMMENT '会员id',
+    `ip` varchar(20) NOT NULL DEFAULT '' COMMENT '会员ip',
+    `order_discount_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '订单优惠金额',
+    `order_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '订单金额',
+    `create_time` int NOT NULL DEFAULT '0' COMMENT '创建时间',
+    `pay_time` int NOT NULL DEFAULT '0' COMMENT '订单支付时间',
+    `close_time` int NOT NULL DEFAULT '0' COMMENT '订单关闭时间',
+    `is_delete` int NOT NULL DEFAULT '0' COMMENT '是否删除(针对后台)',
+    `is_enable_refund` int NOT NULL DEFAULT '0' COMMENT '是否允许退款',
+    `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '商家留言',
+    `timeout` int NOT NULL DEFAULT '0' COMMENT '通用业务超时时间记录',
+    `invoice_id` int NOT NULL DEFAULT '0' COMMENT '发票id，0表示不开发票',
+    `close_reason` varchar(255) NOT NULL DEFAULT '' COMMENT '关闭原因',
+    `settlement_status` varchar(255) NOT NULL DEFAULT 'wait' COMMENT '结算状态',
+    `weapp_version` varchar(255) NOT NULL DEFAULT '' COMMENT '小程序类型，developer为开发版；trial为体验版；formal为正式版；默认为正式版',
+    PRIMARY KEY (`order_id`),
+    KEY `idx_order_no` (`order_no`),
+    KEY `idx_body` (`body`(768)),
+    KEY `idx_member_id` (`member_id`),
+    KEY `idx_create_time` (`create_time`),
+    KEY `idx_pay_time` (`pay_time`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='付费会员卡订单表';
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}member_vip_card_order_item` (
+    `order_item_id` int NOT NULL AUTO_INCREMENT,
+    `order_id` int NOT NULL DEFAULT '0' COMMENT '订单id',
+    `site_id` int NOT NULL DEFAULT '0' COMMENT '站点id',
+    `member_id` int NOT NULL DEFAULT '0' COMMENT '购买会员id',
+    `card_id` int NOT NULL DEFAULT '0' COMMENT '会员卡id',
+    `item_id` int NOT NULL DEFAULT '0' COMMENT '会员卡规格id',
+    `card_name` varchar(255) DEFAULT NULL COMMENT '会员卡名称',
+    `item_name` varchar(400) NOT NULL DEFAULT '' COMMENT '会员卡规格名称',
+    `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '规格单价',
+    `num` int NOT NULL DEFAULT '0' COMMENT '购买数量',
+    `item_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '规格总价',
+    `is_refund` int NOT NULL DEFAULT '0' COMMENT '是否退款',
+    `refund_no` varchar(255) NOT NULL DEFAULT '' COMMENT '退款编号',
+    `refund_status` int NOT NULL DEFAULT '0' COMMENT '退款状态',
+    `benefits_config` text NULL COMMENT '卡权益配置',
+    `item_config` varchar(255) NOT NULL DEFAULT '' COMMENT '卡规格配置',
+    `is_renew` int NOT NULL DEFAULT '0' COMMENT '是否续费',
+    `is_trial` int NOT NULL DEFAULT '0' COMMENT '是否试用',
+    PRIMARY KEY (`order_item_id`),
+    KEY `idx_order_id` (`order_id`) USING BTREE,
+    KEY `idx_card_id` (`card_id`) USING BTREE,
+    KEY `idx_member_id` (`member_id`) USING BTREE,
+    KEY `idx_is_renew` (`is_renew`) USING BTREE,
+    KEY `idx_is_trial` (`is_trial`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='付费会员卡订单项表';
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}member_vip_card_order_log` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `order_id` int NOT NULL DEFAULT '0' COMMENT '订单id',
+    `main_type` varchar(255) NOT NULL DEFAULT '' COMMENT '操作人类型',
+    `main_id` int NOT NULL DEFAULT '0' COMMENT '操作人id',
+    `status` int NOT NULL DEFAULT '0' COMMENT '订单状态',
+    `type` varchar(255) NOT NULL DEFAULT '',
+    `content` varchar(255) NOT NULL DEFAULT '' COMMENT '日志内容',
+    `create_time` int NOT NULL DEFAULT '0' COMMENT '创建时间',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='付费会员卡订单日志表';
+
+ALTER TABLE `{{prefix}}sys_notice` MODIFY COLUMN `key` varchar(255) NOT NULL DEFAULT '' COMMENT '标识';
+
+ALTER TABLE `{{prefix}}sys_notice_sms_log` MODIFY COLUMN `key` varchar(255) NOT NULL DEFAULT '' COMMENT '发送关键字（注册、找回密码）';

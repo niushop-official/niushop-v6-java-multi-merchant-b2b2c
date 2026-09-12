@@ -3,18 +3,19 @@ package com.niu.core.listener.poster;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.annotation.EventCallback;
 import com.niu.core.common.utils.QrcodeUtils;
-import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.pay.Pay;
+import com.niu.core.entity.site.Site;
 import com.niu.core.enums.pay.PayStatusEnum;
-import com.niu.core.enums.pay.PayTypeEnum;
 import com.niu.core.event.sys.GetPosterDataEventDefiner;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.mapper.pay.PayMapper;
+import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.core.pay.ICorePayChannelService;
 import com.niu.core.service.core.pay.vo.PayTypeVo;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
@@ -25,7 +26,6 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @EventCallback("core")
 @Component
@@ -33,6 +33,7 @@ public class GetPosterDataListener extends GetPosterDataEventDefiner {
     private PayMapper payMapper;
     private MemberMapper memberMapper;
     private ICoreSysConfigService coreSysConfigService;
+    private SiteMapper siteMapper;
     @Resource
     private ICorePayChannelService corePayChannelService;
 
@@ -113,6 +114,52 @@ public class GetPosterDataListener extends GetPosterDataEventDefiner {
             result.setData(data);
             return result;
         }
+
+        // 买单海报
+        if (event.getType().equals("cash")) {
+            GetPosterDataEventDefiner.GetPosterDataResult result = new GetPosterDataEventDefiner.GetPosterDataResult();
+            String wapUrl = coreSysConfigService.getSceneDomain().getWapUrl();
+            Map<String, Object> param = event.getParam() != null ? event.getParam() : Map.of();
+            String mode = String.valueOf(param.getOrDefault("mode", ""));
+            Integer siteId = event.getSiteId();
+            Object siteIdParam = param.getOrDefault("site_id", null);
+            if (siteIdParam != null) {
+                if (siteIdParam instanceof Integer) {
+                    siteId = (Integer) siteIdParam;
+                } else {
+                    try {
+                        siteId = Integer.valueOf(siteIdParam.toString());
+                    } catch (Exception e) {
+                    }
+                }
+            }
+
+            Map<String, Object> data = new HashMap<>(8, 1);
+            if ("preview".equals(mode)) {
+                data.put("site_name", "店铺名称");
+                data.put("site_logo", "static/resource/images/default_headimg.jpg");
+            } else {
+                Site site = siteMapper.selectOne(new LambdaQueryWrapper<Site>().eq(Site::getSiteId, siteId));
+                if (site != null) {
+                    String siteLogo = ObjectUtil.defaultIfBlank(site.getFrontEndLogo(), "static/resource/images/default_headimg.jpg");
+                    data.put("site_name", site.getSiteName());
+                    data.put("site_logo", siteLogo);
+                } else {
+                    data.put("site_name", "店铺名称");
+                    data.put("site_logo", "static/resource/images/default_headimg.jpg");
+                }
+            }
+
+            Map<String, Object> urlInfo = new HashMap<>(4, 1);
+            urlInfo.put("url", wapUrl);
+            urlInfo.put("page", "app/pages/dopay/dopay");
+            urlInfo.put("data", List.of(Map.of("key", "site_id", "value", siteId)));
+            data.put("url", urlInfo);
+
+            result.setData(data);
+            return result;
+        }
+
         return null;
     }
 
@@ -129,6 +176,11 @@ public class GetPosterDataListener extends GetPosterDataEventDefiner {
     @Autowired
     public void setCoreSysConfigService(ICoreSysConfigService coreSysConfigService) {
         this.coreSysConfigService = coreSysConfigService;
+    }
+
+    @Autowired
+    public void setSiteMapper(SiteMapper siteMapper) {
+        this.siteMapper = siteMapper;
     }
 
 }

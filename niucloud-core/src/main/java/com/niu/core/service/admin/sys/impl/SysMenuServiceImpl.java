@@ -2,6 +2,7 @@ package com.niu.core.service.admin.sys.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
@@ -15,14 +16,17 @@ import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.json.JacksonUtils;
 import com.niu.core.entity.sys.SysMenu;
 import com.niu.core.enums.sys.AdminIndexEnum;
+import com.niu.core.enums.sys.AppTypeEnum;
 import com.niu.core.enums.sys.CacheTagEnum;
 import com.niu.core.enums.sys.MenuSourceEnum;
+import com.niu.core.event.trade.TradeTypeEventDefiner;
 import com.niu.core.mapper.sys.SysMenuMapper;
 import com.niu.core.service.admin.sys.ISysMenuService;
 import com.niu.core.service.admin.sys.param.SysMenuParam;
 import com.niu.core.service.admin.sys.vo.SysMenuInfoVo;
 import com.niu.core.service.admin.sys.vo.SysMenuTreeVo;
 import com.niu.core.service.core.addon.ICoreAddonService;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.site.ICoreSiteService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
@@ -31,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 菜单实现类
@@ -203,13 +208,12 @@ public class SysMenuServiceImpl implements ISysMenuService {
     public Map<String, List<String>> getApiListBySystem(String appType, List<String> addons) {
 
         return cached.rememberObject(useCache, cacheTagName, Arrays.asList("getApiListBySystem", appType, addons), uniqueKey -> {
+            // 对齐 PHP：将空字符串加入 addons 列表，使核心模块（addon=''）的菜单也被查到
+            List<String> addonList = new ArrayList<>(addons != null ? addons : List.of());
+            addonList.add("");
+
             QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
-            if (addons.size() > 0) {
-                queryWrapper.in("addon", addons);
-                if (!addons.contains("supply")) {
-                    queryWrapper.notLikeRight("menu_key", "supply_");
-                }
-            }
+            queryWrapper.in("addon", addonList);
             if (ObjectUtil.isNotEmpty(appType)) {
                 queryWrapper.eq("app_type", appType);
             }
@@ -217,14 +221,9 @@ public class SysMenuServiceImpl implements ISysMenuService {
             queryWrapper.orderByDesc("sort");
             List<SysMenu> list = sysMenuMapper.selectList(queryWrapper);
 
-            if (!addons.contains("mall")) {
-                list.removeIf(menu -> menu.getMenuKey().equals("mall_account_bill_list"));
-            }
-            if (!addons.contains("supply")) {
-                list.removeIf(menu -> menu.getMenuKey().equals("supply_account_bill_list"));
-            }
             Map<String, List<String>> apiMap = new HashMap<>();
             for (SysMenu sysMenu : list) {
+                if (sysMenu.getApiUrl() == null || sysMenu.getApiUrl().isEmpty()) continue;
                 if (!apiMap.containsKey(sysMenu.getMethods())) {
                     apiMap.put(sysMenu.getMethods(), new ArrayList<String>());
                 }
@@ -232,6 +231,45 @@ public class SysMenuServiceImpl implements ISysMenuService {
             }
             return apiMap;
         });
+    }
+
+    @Override
+    public List<String> getAllMenuKeysByAppType(String appType, Integer status) {
+        QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("app_type", appType);
+        if (status != null && status > 0) {
+            queryWrapper.eq("status", status);
+        }
+        queryWrapper.orderByDesc("sort");
+        queryWrapper.select("menu_key");
+        return sysMenuMapper.selectList(queryWrapper).stream().map(SysMenu::getMenuKey).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getMenuKeysBySystem(String appType, List<String> addons) {
+        QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
+        List<String> addonList = new ArrayList<>(addons != null ? addons : List.of());
+        addonList.add("");
+        queryWrapper.in("addon", addonList);
+        if (ObjectUtil.isNotEmpty(appType)) {
+            queryWrapper.eq("app_type", appType);
+        }
+        queryWrapper.orderByDesc("sort");
+        queryWrapper.select("menu_key");
+        return sysMenuMapper.selectList(queryWrapper).stream().map(SysMenu::getMenuKey).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SysMenu> getShowMenuListByMenuKeys(List<String> menuKeys) {
+        if (menuKeys == null || menuKeys.isEmpty()) {
+            return List.of();
+        }
+        QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("menu_key", menuKeys);
+        queryWrapper.eq("menu_type", 1);
+        queryWrapper.eq("app_type", AppTypeEnum.SITE.getName());
+        queryWrapper.eq("is_show", 1);
+        return sysMenuMapper.selectList(queryWrapper);
     }
 
     /**
@@ -394,7 +432,8 @@ public class SysMenuServiceImpl implements ISysMenuService {
             applySupportAddonFilter(queryWrapper);
             queryWrapper.orderByDesc("sort");
 
-            //排除菜单 后期处理
+            //根据店铺业务类型过滤需要隐藏显示的菜单
+            applyHiddenMenuFilter(queryWrapper, siteId);
 
             List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
             return menuList;
@@ -548,7 +587,8 @@ public class SysMenuServiceImpl implements ISysMenuService {
             applySupportAddonFilter(queryWrapper);
             queryWrapper.orderByDesc("sort");
 
-            //排除菜单 后期处理
+            //根据店铺业务类型过滤需要隐藏显示的菜单
+            applyHiddenMenuFilter(queryWrapper, siteId);
 
             List<SysMenu> menuList = sysMenuMapper.selectList(queryWrapper);
             return menuList;
@@ -638,7 +678,8 @@ public class SysMenuServiceImpl implements ISysMenuService {
             }
             queryWrapper.orderByDesc("sort");
 
-            //排除菜单 后期处理
+            //根据店铺业务类型过滤需要隐藏显示的菜单
+            applyHiddenMenuFilter(queryWrapper, siteId);
 
             return sysMenuMapper.selectList(queryWrapper);
         });
@@ -658,6 +699,59 @@ public class SysMenuServiceImpl implements ISysMenuService {
                 wrapper.or().like("support_addon", "\"" + addonKey + "\"");
             }
         });
+    }
+
+    /**
+     * 根据店铺业务类型过滤隐藏菜单，对齐 PHP MenuService + TradeTypeListener.hidden_menu
+     */
+    private void applyHiddenMenuFilter(QueryWrapper<SysMenu> queryWrapper, Integer siteId) {
+        List<String> hiddenMenus = getHiddenMenusBySiteId(siteId);
+        if (ObjectUtil.isNotEmpty(hiddenMenus)) {
+            queryWrapper.notIn("menu_key", hiddenMenus);
+        }
+    }
+
+    /**
+     * 聚合站点各业务类型的 hidden_menu
+     */
+    private List<String> getHiddenMenusBySiteId(Integer siteId) {
+        List<String> hiddenMenus = new ArrayList<>();
+        if (siteId == null || siteId <= 0) {
+            return hiddenMenus;
+        }
+        List<String> tradeTypes = coreSiteService.getSiteTradeType(siteId);
+        if (ObjectUtil.isEmpty(tradeTypes)) {
+            return hiddenMenus;
+        }
+        for (String tradeType : tradeTypes) {
+            if (StrUtil.isBlank(tradeType)) {
+                continue;
+            }
+            TradeTypeEventDefiner.TradeTypeEvent event = new TradeTypeEventDefiner.TradeTypeEvent();
+            event.setTradeType(tradeType);
+            event.setAuthority(false);
+            List<TradeTypeEventDefiner.TradeTypeResult> results = EventAndSubscribeOfPublisher.publishAndCallback(event);
+            if (ObjectUtil.isEmpty(results)) {
+                continue;
+            }
+            for (TradeTypeEventDefiner.TradeTypeResult result : results) {
+                if (result == null || result.getConfig() == null) {
+                    continue;
+                }
+                Object hiddenMenuObj = result.getConfig().get("hidden_menu");
+                Collection<?> collection = hiddenMenuObj instanceof Collection<?> values ? values : List.of();
+                // Any unrestricted trade type must not inherit another trade type's hidden menus.
+                if (collection.isEmpty()) {
+                    return List.of();
+                }
+                for (Object item : collection) {
+                    if (item != null && StrUtil.isNotBlank(item.toString())) {
+                        hiddenMenus.add(item.toString());
+                    }
+                }
+            }
+        }
+        return hiddenMenus.stream().distinct().collect(Collectors.toList());
     }
 
     /**

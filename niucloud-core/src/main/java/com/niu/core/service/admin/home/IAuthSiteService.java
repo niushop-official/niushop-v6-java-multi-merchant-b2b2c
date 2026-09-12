@@ -8,6 +8,7 @@ import com.niu.core.service.admin.home.param.SiteSearchParam;
 import com.niu.core.service.admin.home.vo.SiteInfoVo;
 import com.niu.core.service.admin.home.vo.SiteListVo;
 import com.niu.core.service.admin.home.vo.UserCreateSiteVo;
+import com.niu.core.service.core.addon.vo.AppWithSiteNumVo;
 
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,21 @@ public interface IAuthSiteService {
      * @return
      */
     List<Integer> getSiteIds();
+
+    /**
+     * 检测站点用户是否存在（非平台默认站点下的用户角色）
+     */
+    boolean checkSiteUserAccount();
+
+    /**
+     * 统计当前用户可访问、包含指定应用的店铺数量
+     */
+    Integer countSitesByApp(String appKey);
+
+    /**
+     * 获取应用列表及当前用户可访问的店铺数量
+     */
+    List<AppWithSiteNumVo> getAppWithSiteNumList();
 
     /**
      * 获取可选择的店铺套餐

@@ -13,22 +13,22 @@
 
             <el-card class="box-card !border-none mb-[10px] table-search-wrap" shadow="never">
                 <div class="flex justify-between">
-                    <el-form :inline="true" :model="cronTableData.searchParam" ref="searchFormRef">
+                    <el-form :inline="true" label-width="70px" :model="cronTableData.searchParam" ref="searchFormRef" class="page-form">
                         <el-form-item :label="t('name')" prop="key">
-                            <el-select v-model="cronTableData.searchParam.key" placeholder="全部" filterable remote clearable>
+                            <el-select v-model="cronTableData.searchParam.key" placeholder="全部" filterable remote clearable class="search-input" >
                                 <el-option label="全部" value="all" />
                                 <el-option v-for="item in templateList" :key="item.key" :label="item.name" :value="item.key" />
                             </el-select>
                         </el-form-item>
                         <el-form-item :label="t('status')" prop="status">
-                            <el-select v-model="cronTableData.searchParam.status" placeholder="全部" filterable remote clearable>
+                            <el-select v-model="cronTableData.searchParam.status" placeholder="全部" filterable remote clearable class="search-input" >
                                 <el-option label="全部" value="all" />
                                 <el-option label="成功" value="success" />
                                 <el-option label="失败" value="error" />
                             </el-select>
                         </el-form-item>
                         <el-form-item :label="t('executeTime')" prop="execute_time">
-                            <el-date-picker v-model="cronTableData.searchParam.execute_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+                            <el-date-picker v-model="cronTableData.searchParam.execute_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
                         </el-form-item>
                         <el-form-item>
                             <el-button type="primary" @click="loadCronLogList()">{{ t('search') }}</el-button>

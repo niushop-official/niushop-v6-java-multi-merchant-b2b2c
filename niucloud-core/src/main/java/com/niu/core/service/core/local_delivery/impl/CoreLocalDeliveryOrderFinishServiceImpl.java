@@ -6,23 +6,15 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.loader.local_delivery.BaseLocalDelivery;
 import com.niu.core.common.loader.local_delivery.LocalDeliveryLoader;
-import com.niu.core.common.loader.local_delivery.param.CloseShopDeliveryOrderParam;
 import com.niu.core.common.loader.local_delivery.param.FinishShopDeliveryOrderParam;
-import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrder;
 import com.niu.core.entity.delivery.DeliveryShopDeliveryOrder;
 import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
-import com.niu.core.enums.delivery.DeliveryTypeEnum;
-import com.niu.core.enums.local_delivery.LocalDeliveryOrderCancelReasonEnum;
-import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderMapper;
-import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderCloseService;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderFinishService;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryService;
-import com.niu.core.service.core.local_delivery.param.LocalDeliveryOrderCloseParam;
 import com.niu.core.service.core.local_delivery.param.LocalDeliveryOrderFinishParam;
 import jakarta.annotation.Resource;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,8 +67,14 @@ public class CoreLocalDeliveryOrderFinishServiceImpl implements ICoreLocalDelive
         addShopDeliveryOrderParam.setNotifyUrl(coreLocalDeliveryService.buildNotifyUrl(info.getSiteId().toString(), deliveryService, "", null));
         DeliveryShopDeliveryOrder responseData = driver.finishOrder(addShopDeliveryOrderParam);
 
-        if(ObjectUtil.isNotEmpty( responseData)){
-            BeanUtils.copyProperties(responseData, updateData);
+        if (ObjectUtil.isNotEmpty(responseData)) {
+            // 仅合并驱动回传字段（如 finish_time），避免整实体覆盖同城配送单
+            if (ObjectUtil.isNotEmpty(responseData.getFinishTime())) {
+                updateData.setFinishTime(responseData.getFinishTime());
+            }
+            if (ObjectUtil.isNotEmpty(responseData.getStatus())) {
+                updateData.setStatus(responseData.getStatus());
+            }
             updateData.setId(info.getId());
             deliveryLocalDeliveryOrderMapper.updateById(updateData);
         }

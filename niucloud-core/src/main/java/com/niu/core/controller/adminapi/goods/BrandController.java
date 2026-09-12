@@ -2,6 +2,7 @@ package com.niu.core.controller.adminapi.goods;
 
 import com.niu.core.common.domain.Result;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.enums.trade.TradeTypeDict;
 import com.niu.core.service.admin.goods.param.*;
 import com.niu.core.service.admin.goods.IGoodsBrandService;
 import com.niu.core.service.admin.goods.vo.GoodsBrandInfoVo;
@@ -11,9 +12,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品品牌控制器
+ * 对齐 PHP goods.admin.Brand
  */
 
 @RestController
@@ -25,10 +28,6 @@ public class BrandController {
 
     /**
      * 商品品牌分页列表
-     *
-     * @param pageParam 分页
-     * @param searchParam 搜索条件
-     * @return Result<PageResult<ShopGoodsBrandListVo>>
      */
     @GetMapping("")
     public Result<PageResult<GoodsBrandListVo>> page(@Validated PageParam pageParam, @Validated GoodsBrandSearchParam searchParam) {
@@ -38,10 +37,6 @@ public class BrandController {
 
     /**
      * 商品品牌审核分页列表
-     *
-     * @param pageParam 分页
-     * @param searchParam 搜索条件
-     * @return Result<PageResult<ShopGoodsBrandListVo>>
      */
     @GetMapping("/audit")
     public Result<PageResult<GoodsBrandListVo>> pageAudit(@Validated PageParam pageParam, @Validated GoodsBrandSearchParam searchParam) {
@@ -51,9 +46,6 @@ public class BrandController {
 
     /**
      * 商品品牌列表
-     *
-     * @param searchParam 搜索条件
-     * @return Result<PageResult<ShopGoodsBrandListVo>>
      */
     @GetMapping("/list")
     public Result<List<GoodsBrandListVo>> list(@Validated GoodsBrandSearchParam searchParam) {
@@ -62,10 +54,24 @@ public class BrandController {
     }
 
     /**
+     * 获取商品品牌业务类型（须放在 /{id} 之前，避免 trade_type 被当成 id）
+     * 对齐 PHP: GET admin/goods/brand/trade_type
+     */
+    @GetMapping("/trade_type")
+    public Result<Map<String, String>> getTradeType() {
+        return Result.success(TradeTypeDict.getTradeType("goods_brand"));
+    }
+
+    /**
+     * 获取商品品牌字典
+     */
+    @GetMapping("/init")
+    public Result init() {
+        return Result.success(goodsBrandService.init());
+    }
+
+    /**
      * 商品品牌详情
-     *
-     * @param id 主键ID
-     * @return Result<ShopGoodsBrandInfoVo>
      */
     @GetMapping("/{id}")
     public Result<GoodsBrandInfoVo> info(@PathVariable("id") Integer id) {
@@ -75,9 +81,6 @@ public class BrandController {
 
     /**
      * 商品品牌添加
-     *
-     * @param addParam 添加参数
-     * @return AjaxResult<Object>
      */
     @PostMapping("")
     public Result<Object> add(@Validated @RequestBody GoodsBrandParam addParam) {
@@ -87,9 +90,6 @@ public class BrandController {
 
     /**
      * 商品品牌编辑
-     *
-     * @param editParam 编辑参数
-     * @return Result<Object>
      */
     @PutMapping("/{id}")
     public Result<Object> edit(@PathVariable("id") Integer id, @Validated @RequestBody GoodsBrandParam editParam) {
@@ -99,9 +99,6 @@ public class BrandController {
 
     /**
      * 商品品牌删除
-     *
-     * @param id 参数
-     * @return Result<Object>
      */
     @DeleteMapping("/{id}")
     public Result<Object> del(@PathVariable("id") Integer id) {
@@ -111,8 +108,6 @@ public class BrandController {
 
     /**
      * 修改排序
-     *
-     * @return
      */
     @PutMapping("/sort")
     public Result<Object> modifySort(@Validated @RequestBody EditGoodsBrandSortParam editParam) {
@@ -122,8 +117,6 @@ public class BrandController {
 
     /**
      * 商品品牌审核
-     *
-     * @return
      */
     @PutMapping("/audit")
     public Result<Object> audit(@Validated @RequestBody GoodsBrandAuditParam editParam) {
@@ -133,8 +126,6 @@ public class BrandController {
 
     /**
      * 修改商品品牌是否热门
-     *
-     * @return
      */
     @PutMapping("/hot")
     public Result<Object> hot(@Validated @RequestBody GoodsBrandIsHotParam editParam) {
@@ -144,8 +135,6 @@ public class BrandController {
 
     /**
      * 修改品牌状态
-     *
-     * @return
      */
     @PutMapping("/status")
     public Result<Object> modifyStatus(@Validated @RequestBody GoodsBrandStatusParam editParam) {
@@ -153,23 +142,12 @@ public class BrandController {
         return Result.success();
     }
 
-
     /**
      * 转到平台
-     *
-     * @return
      */
     @PutMapping("/move")
     public Result<Object> move(@Validated @RequestBody GoodsBrandMoveParam moveParam) {
         goodsBrandService.move(moveParam.getBrandId());
         return Result.success();
     }
-
-    /**
-     * 获取商品品牌字典
-     *
-     * @return
-     */
-    @GetMapping("/init")
-    public Result init() { return Result.success(goodsBrandService.init());  }
 }

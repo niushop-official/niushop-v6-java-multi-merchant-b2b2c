@@ -33,44 +33,44 @@
             </el-card>
 
             <el-card class="box-card !border-none mb-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="orderTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="orderTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('applyTime')" prop="create_time">
                         <el-date-picker v-model="orderTableData.searchParam.create_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('cashOutNumber')" prop="cash_out_no">
-                        <el-input v-model.trim="orderTableData.searchParam.cash_out_no" class="w-[240px]"
-                            :placeholder="t('cashOutNumberPlaceholder')" />
+                        <el-input v-model.trim="orderTableData.searchParam.cash_out_no"
+                            :placeholder="t('cashOutNumberPlaceholder')"  clearable  class="search-input"/>
                     </el-form-item>
 
                     <el-form-item :label="t('memberInfo')" prop="keywords">
-                        <el-input v-model.trim="orderTableData.searchParam.keywords" class="w-[240px]"
-                            :placeholder="t('memberInfoPlaceholder')" />
+                        <el-input v-model.trim="orderTableData.searchParam.keywords"
+                            :placeholder="t('memberInfoPlaceholder')" clearable  class="search-input" />
                     </el-form-item>
 
                     <el-form-item :label="t('cashOutMethod')" prop="transfer_type">
-                        <el-select v-model="orderTableData.searchParam.transfer_type" clearable class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="orderTableData.searchParam.transfer_type" clearable  class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item.name" :value="key" v-for="(item, key) in Transfertype" :key="key"/>
                         </el-select>
                     </el-form-item>
 
                     <el-form-item :label="t('cashOutStatus')" prop="status">
-                        <el-select v-model="orderTableData.searchParam.status" clearable class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="orderTableData.searchParam.status" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item" :value="key" v-for="(item, key) in cashOutStatusList" :key="key"/>
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('auditTime')" prop="audit_time">
                         <el-date-picker v-model="orderTableData.searchParam.audit_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('transferTime')" prop="transfer_time">
                         <el-date-picker v-model="orderTableData.searchParam.transfer_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadOrderList()">{{ t('search') }}</el-button>

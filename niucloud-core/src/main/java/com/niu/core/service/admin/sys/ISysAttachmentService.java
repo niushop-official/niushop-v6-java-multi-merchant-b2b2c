@@ -4,6 +4,7 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.service.admin.sys.vo.AttachmentUploadVo;
+import com.niu.core.service.admin.sys.vo.IconCategoryVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentCategoryListVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentConfigVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentInfoVo;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 附件管理服务接口
@@ -100,4 +102,21 @@ public interface ISysAttachmentService {
      * @param param 配置参数
      */
     void setConfig(SysAttachmentConfigParam param);
+
+    /**
+     * 获取图标分类列表
+     * @param name 分类名称筛选
+     * @return 图标分类列表
+     */
+    List<IconCategoryVo> getIconCategoryList(String name);
+
+    /**
+     * 获取图标列表（分页）
+     * @param page 页码
+     * @param limit 每页数量
+     * @param cateId 分类ID
+     * @param realName 图标名称筛选
+     * @return 分页图标列表
+     */
+    Map<String, Object> getIconList(Integer page, Integer limit, String cateId, String realName);
 }

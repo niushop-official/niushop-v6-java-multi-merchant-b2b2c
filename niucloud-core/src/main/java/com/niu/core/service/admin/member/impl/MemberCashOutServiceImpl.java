@@ -73,9 +73,9 @@ public class MemberCashOutServiceImpl implements IMemberCashOutService {
             );
         }
         if (ObjectUtil.isNotEmpty(searchParam.getMemberId()) && searchParam.getMemberId() > 0) queryWrapper.eq("mco.member_id", searchParam.getMemberId());
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) queryWrapper.eq("mco.status", searchParam.getStatus());
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus()) && !"all".equals(String.valueOf(searchParam.getStatus()))) queryWrapper.eq("mco.status", searchParam.getStatus());
         if (ObjectUtil.isNotEmpty(searchParam.getCashOutNo())) queryWrapper.like("mco.cash_out_no", searchParam.getCashOutNo());
-        if (ObjectUtil.isNotEmpty(searchParam.getTransferType())) queryWrapper.like("mco.transfer_type", searchParam.getTransferType());
+        if (ObjectUtil.isNotEmpty(searchParam.getTransferType()) && !"all".equals(searchParam.getTransferType())) queryWrapper.like("mco.transfer_type", searchParam.getTransferType());
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) QueryMapperUtils.buildByTime(queryWrapper, "mco.create_time", searchParam.getCreateTime());
         if (ObjectUtil.isNotEmpty(searchParam.getTransferTime())) QueryMapperUtils.buildByTime(queryWrapper, "mco.transfer_time", searchParam.getTransferTime());
         if (ObjectUtil.isNotEmpty(searchParam.getAuditTime())) QueryMapperUtils.buildByTime(queryWrapper, "mco.audit_time", searchParam.getAuditTime());

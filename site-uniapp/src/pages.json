@@ -17,6 +17,7 @@
 			},
 			"needLogin": true
 		},
+
 		{
 			"path": "app/pages/site/index",
 			"style": {
@@ -276,6 +277,13 @@
 			"needLogin": true
 		},
 		{
+			"path": "app/pages/account/edit_transfer_type",
+			"style": {
+				"navigationBarTitleText": "%pages.account.edit_transfer_type%"
+			},
+			"needLogin": true
+		},
+		{
 			"path": "app/pages/attachment/config",
 			"style": {
 				"navigationBarTitleText": "%pages.attachment.config%"
@@ -312,6 +320,20 @@
 					"needLogin": true
 				},
 				{
+					"path": "pages/goods/discount",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.discount%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/goods/fixed_price",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.fixed_price%"
+					},
+					"needLogin": true
+				},
+				{
 					"path": "pages/goods/content",
 					"style": {
 						"navigationBarTitleText": "%mall.pages.goods.content%"
@@ -332,6 +354,16 @@
 						"navigationStyle": "custom",
 						// #endif
 						"navigationBarTitleText": "%mall.pages.order.detail%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/log",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.order.log%"
 					},
 					"needLogin": true
 				},
@@ -411,11 +443,26 @@
 						"navigationBarTitleText": "%mall.pages.account.bill_detail%"
 					},
 					"needLogin": true
+				},
+				{
+					"path": "pages/site_shop/info",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.site_shop.info%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/site_shop/setting",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.site_shop.setting%"
+					},
+					"needLogin": true
 				}
 			]
             
 		}
 		// MALL_PAGE_END
+		// {{ PAGE_END }}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",

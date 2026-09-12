@@ -1,9 +1,6 @@
 package com.niu.core.common.utils;
 
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
-import com.google.gson.JsonObject;
 import com.niu.core.common.component.base.ThreadLocalHolder;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.context.cache.Cached;
@@ -12,6 +9,7 @@ import com.niu.core.service.core.member.ICoreMemberService;
 import com.niu.core.service.core.member.dto.MemberInfoDto;
 import com.niu.core.service.core.user.ICoreUserService;
 import com.niu.core.service.core.user.dto.UserInfoDto;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -19,7 +17,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.HandlerMapping;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 系统请求工具类（需为 Spring Bean，{@link #setApplicationContext} 才会注入上下文）。
@@ -45,6 +46,7 @@ public class RequestUtils {
 
     /**
      * 获取当前登录用户信息（带缓存）
+     *
      * @return 用户信息，若uid无效则返回null
      */
     public static UserInfoDto getCurrentUser() {
@@ -67,6 +69,7 @@ public class RequestUtils {
 
     /**
      * 获取当前登录会员信息（带缓存）
+     *
      * @return 会员信息，若memberId无效则返回null
      */
     public static MemberInfoDto getCurrentMember() {
@@ -86,18 +89,22 @@ public class RequestUtils {
 
         return member;
     }
+
     /**
      * 获取默认站点id
      */
-    public static Integer defaultSiteId(){
+    public static Integer defaultSiteId() {
         return 0;
-    };
+    }
+
+    ;
 
     /**
      * request请求后台获取站点id
+     *
      * @return
      */
-    public static Integer adminSiteId(){
+    public static Integer adminSiteId() {
         HttpServletRequest request = RequestUtils.handler();
         if (request != null) {
             return Integer.parseInt(ObjectUtil.defaultIfNull(request.getHeader("site-id"), "0"));
@@ -106,10 +113,26 @@ public class RequestUtils {
     }
 
     /**
+     * request请求后台获取当前选中的商圈id
+     */
+    public static Integer circleId() {
+        HttpServletRequest request = RequestUtils.handler();
+        if (request != null) {
+            String circleId = request.getHeader("circle-id");
+            if (circleId == null || circleId.isEmpty()) {
+                return 0;
+            }
+            return Integer.parseInt(circleId);
+        }
+        return 0;
+    }
+
+    /**
      * request请求前端获取站点id
+     *
      * @return
      */
-    public static Integer apiSiteId(){
+    public static Integer apiSiteId() {
         HttpServletRequest request = RequestUtils.handler();
         if (request != null) {
             return Integer.parseInt(ObjectUtil.defaultIfNull(request.getHeader("site-id"), "0"));
@@ -120,9 +143,10 @@ public class RequestUtils {
 
     /**
      * request请求后台请求获取token
+     *
      * @return
      */
-    public static String adminToken(){
+    public static String adminToken() {
         HttpServletRequest request = RequestUtils.handler();
         if (request != null) {
             return request.getHeader("token");
@@ -132,9 +156,10 @@ public class RequestUtils {
 
     /**
      * request前端请求获取token
+     *
      * @return
      */
-    public static String apiToken(){
+    public static String apiToken() {
         HttpServletRequest request = RequestUtils.handler();
         if (request != null) {
             return request.getHeader("token");
@@ -144,9 +169,10 @@ public class RequestUtils {
 
     /**
      * request前端请求来源渠道
+     *
      * @return
      */
-    public static String channel(){
+    public static String channel() {
         HttpServletRequest request = RequestUtils.handler();
         if (request != null) {
             return request.getHeader("channel");
@@ -156,9 +182,10 @@ public class RequestUtils {
 
     /**
      * request请求后台获取 weapp_version
+     *
      * @return
      */
-    public static String weappVersion(){
+    public static String weappVersion() {
         HttpServletRequest request = RequestUtils.handler();
         if (request != null) {
             return request.getHeader("weapp-version");
@@ -168,6 +195,7 @@ public class RequestUtils {
 
     /**
      * request前端请求来源ip
+     *
      * @return
      */
     public static String ip() {
@@ -193,20 +221,23 @@ public class RequestUtils {
 
     /**
      * 获取本地线程siteId
+     *
      * @return
      */
-    public static Integer siteId(){
-        return ThreadLocalHolder.getInteger("site-id")!=null?ThreadLocalHolder.getInteger("site-id"):0;
+    public static Integer siteId() {
+        return ThreadLocalHolder.getInteger("site-id") != null ? ThreadLocalHolder.getInteger("site-id") : 0;
     }
+
     /**
      * 设置本地线程siteId
      */
-    public static void setSiteId(Integer siteId){
+    public static void setSiteId(Integer siteId) {
         ThreadLocalHolder.put("site-id", siteId);
     }
 
     /**
      * 系统json文件加载
+     *
      * @return
      */
     public static String jsonFileContent(String pathTag) {
@@ -214,13 +245,14 @@ public class RequestUtils {
         Object jsonFileContent = cached.tag("json_file").get(pathTag);
         if (ObjectUtil.isEmpty(jsonFileContent)) {
             return "";
-        }else{
+        } else {
             return jsonFileContent.toString();
         }
     }
 
     /**
      * 设置系统json文件
+     *
      * @param pathTag
      * @param content
      */
@@ -228,69 +260,117 @@ public class RequestUtils {
         Cached cached = SpringContext.bean(Cached.class);
         cached.tag("json_file").put(pathTag, content);
     }
+
     /**
      * 获取本地线程uid
+     *
      * @return
      */
-    public static Integer uid(){
+    public static Integer uid() {
         return ThreadLocalHolder.getInteger("uid");
     }
 
     /**
      * 设置本地线程uid
      */
-    public static void setUid(Integer uid){ ThreadLocalHolder.put("uid", uid);}
+    public static void setUid(Integer uid) {
+        ThreadLocalHolder.put("uid", uid);
+    }
 
     /**
      * 获取本地线程memberId
+     *
      * @return
      */
-    public static Integer memberId(){return ThreadLocalHolder.getInteger("member-id");}
+    public static Integer memberId() {
+        return ThreadLocalHolder.getInteger("member-id");
+    }
 
     /**
      * 设置本地线程memberId
      */
-    public static void setMemberId(Integer memberId){ThreadLocalHolder.put("member-id", memberId);}
+    public static void setMemberId(Integer memberId) {
+        ThreadLocalHolder.put("member-id", memberId);
+    }
 
     /**
      * 获取本地线程请求类型
+     *
      * @return
      */
-    public static String appType(){
+    public static String appType() {
         return ThreadLocalHolder.getString("app-type");
     }
 
     /**
      * 设置本地线程请求类型
      */
-    public static void setAppType(String appType){ThreadLocalHolder.put("app-type", appType);}
+    public static void setAppType(String appType) {
+        ThreadLocalHolder.put("app-type", appType);
+    }
+
+    /**
+     * 获取本地线程circleIds
+     *
+     * @return
+     */
+    public static List<Integer> circleIds() {
+        String circleIdsStr = ThreadLocalHolder.getString("circle-ids");
+        if (circleIdsStr == null || circleIdsStr.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return Arrays.stream(circleIdsStr.split(","))
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 设置本地线程circleIds
+     */
+    public static void setCircleIds(List<Integer> circleIds) {
+        if (circleIds == null || circleIds.isEmpty()) {
+            ThreadLocalHolder.put("circle-ids", "");
+        } else {
+            ThreadLocalHolder.put("circle-ids", circleIds.stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(",")));
+        }
+    }
 
     /**
      * 获取请求的ip地址
+     *
      * @return
      */
-    public static String getRequestIpAddr(){return ThreadLocalHolder.getString("request-ipaddr");}
+    public static String getRequestIpAddr() {
+        return ThreadLocalHolder.getString("request-ipaddr");
+    }
+
     /**
      * 设置获取请求的ip地址
+     *
      * @param request
      */
-    public static void setRequestIpAddr(HttpServletRequest request){ThreadLocalHolder.put("request-ipaddr", IpUtils.getIpAddr(request));}
+    public static void setRequestIpAddr(HttpServletRequest request) {
+        ThreadLocalHolder.put("request-ipaddr", IpUtils.getIpAddr(request));
+    }
 
     /**
      * 设置当前请求的域名
      *
      * @param requestDomain
      */
-    public static void setRequestDomain(String requestDomain){
+    public static void setRequestDomain(String requestDomain) {
 
         ThreadLocalHolder.put("request-domain", requestDomain);
     }
+
     /**
      * 获取当前请求的域名
      *
      * @return
      */
-    public static String getRequestDomain(){
+    public static String getRequestDomain() {
 
         return ThreadLocalHolder.getString("request-domain");
     }
@@ -300,16 +380,17 @@ public class RequestUtils {
      *
      * @param requestSecure
      */
-    public static void setRequestSecure(String requestSecure){
+    public static void setRequestSecure(String requestSecure) {
 
         ThreadLocalHolder.put("request-secure", requestSecure);
     }
+
     /**
      * 当前请求类型 http 还是 https
      *
      * @return
      */
-    public static String getRequestSecure(){
+    public static String getRequestSecure() {
 
         return ThreadLocalHolder.getString("request-secure");
     }
@@ -319,9 +400,9 @@ public class RequestUtils {
      *
      * @return
      */
-    public static String getReqeustURI(){
+    public static String getReqeustURI() {
         HttpServletRequest request = RequestUtils.handler();
-        String rule="";
+        String rule = "";
         if (request != null) {
             //未被参数化的路由
             String bestMatchingPattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
@@ -340,16 +421,18 @@ public class RequestUtils {
      *
      * @return
      */
-    public static String getRequestMethod(){
+    public static String getRequestMethod() {
         HttpServletRequest request = RequestUtils.handler();
-        String method="";
-        if(request !=null){
+        String method = "";
+        if (request != null) {
             method = request.getMethod().trim().toLowerCase();
         }
         return method;
     }
+
     /**
      * 获取请求对象
+     *
      * @return HttpServletRequest
      */
     public static HttpServletRequest handler() {
@@ -363,6 +446,7 @@ public class RequestUtils {
     /**
      * 获取请求域名
      * 2026-01-15 修改 如果是定时任务发起退款，获取不到请求域名，则使用系统配置的域名
+     *
      * @param isScheme
      * @return
      */

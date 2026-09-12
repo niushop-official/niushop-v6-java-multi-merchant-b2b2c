@@ -5,13 +5,14 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.entity.shop.SiteShop;
+import com.niu.core.event.fenxiao.*;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.mapper.shop.SiteShopMapper;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.MallOrderGroup;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.OrderDeliveryStatusEnum;
 import com.niu.mall.enums.order.OrderGroupEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
@@ -19,6 +20,7 @@ import com.niu.mall.enums.order.OrderTypePayEnum;
 import com.niu.mall.event.order.MallOrderPayCustomEvent;
 import com.niu.mall.event.order.MallOrderPayEvent;
 import com.niu.mall.event.order.OrderPayAfterEvent;
+import com.niu.core.enums.fenxiao.FenxiaoTradeTypeEnum;
 import com.niu.mall.mapper.order.MallOrderGoodsMapper;
 import com.niu.mall.mapper.order.MallOrderGroupMapper;
 import com.niu.mall.mapper.order.MallOrderMapper;
@@ -151,6 +153,8 @@ public class CoreOrderPayServiceImpl implements ICoreOrderPayService {
             event.setName("MallOrderPayEvent");
             event.setOrder(orderEvent);
             EventAndSubscribeOfPublisher.publishAll(event);
+
+            publishFenxiaoOrderCreate(orderEvent);
         }
     }
 
@@ -175,6 +179,8 @@ public class CoreOrderPayServiceImpl implements ICoreOrderPayService {
             payEvent.setName("MallOrderPayEvent");
             payEvent.setOrder(orderEvent);
             EventAndSubscribeOfPublisher.publishAll(payEvent);
+
+            publishFenxiaoOrderCreate(orderEvent);
         }
 
         order = mallOrderMapper.selectById(order.getOrderId());
@@ -236,18 +242,35 @@ public class CoreOrderPayServiceImpl implements ICoreOrderPayService {
      */
     private void shopOrderCalc(MallOrder order) {
         SiteShop shop = shopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", order.getSiteId()));
-        BigDecimal commissionRate = shop.getCommissionRate();
+        BigDecimal commissionRate = shop.getServiceRate() != null ? shop.getServiceRate() : BigDecimal.ZERO;
+        BigDecimal orderMoney = order.getOrderMoney().subtract(order.getDeliveryMoney()).setScale(2, RoundingMode.DOWN);
+        BigDecimal mallMoney = orderMoney.multiply(commissionRate).divide(new BigDecimal("100"), 2, RoundingMode.DOWN);
+        BigDecimal shopMoney = order.getOrderMoney().subtract(mallMoney).setScale(2, RoundingMode.DOWN);
         order.setMallRate(commissionRate);
-        if (commissionRate.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal orderMoney = (order.getOrderMoney().subtract(order.getDeliveryMoney())).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal mallMoney = (orderMoney.multiply(commissionRate.divide(new BigDecimal(100)))).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal shopMoney = (order.getOrderMoney().subtract(mallMoney)).setScale(2, RoundingMode.HALF_UP);
-            if (order.getSupplyId() > 0) {
-                order.setSupplyMoney(order.getCostGoodsMoney());
-            }
-            order.setMallMoney(mallMoney);
-            order.setShopMoney(shopMoney);
+        order.setMallMoney(mallMoney);
+        order.setShopMoney(shopMoney);
+        if (order.getSupplyId() > 0) {
+            order.setSupplyMoney(order.getCostGoodsMoney());
         }
         mallOrderMapper.updateById(order);
+    }
+
+    /**
+     * 支付成功后发布通用分销订单创建事件
+     */
+    private void publishFenxiaoOrderCreate(MallOrder order) {
+        List<MallOrderGoods> goodsList = mallOrderGoodsMapper.selectList(
+                new QueryWrapper<MallOrderGoods>().eq("order_id", order.getOrderId()));
+        List<FenxiaoOrderGoodsItem> items = new java.util.ArrayList<>();
+        for (MallOrderGoods goods : goodsList) {
+            items.add(FenxiaoOrderEventUtil.buildGoodsItem(
+                    goods.getOrderGoodsId(), goods.getGoodsId(), goods.getSkuId(), goods.getNum(),
+                    goods.getOrderGoodsMoney(), goods.getSupplyOrderId(), goods.getCostGoodsMoney()));
+        }
+        FenxiaoOrderData orderData = FenxiaoOrderEventUtil.buildOrderData(
+                order.getSiteId(), order.getOrderId(), order.getOrderNo(), order.getMemberId(), order.getOrderMoney());
+        FenxiaoOrderCreateEvent fenxiaoEvent =
+                FenxiaoOrderEventUtil.buildCreateEvent(FenxiaoTradeTypeEnum.MALL.getType(), orderData, items);
+        EventAndSubscribeOfPublisher.publishAll(fenxiaoEvent);
     }
 }

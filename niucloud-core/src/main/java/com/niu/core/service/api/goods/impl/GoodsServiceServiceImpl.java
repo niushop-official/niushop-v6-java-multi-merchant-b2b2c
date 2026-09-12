@@ -6,18 +6,19 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
+import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.goods.GoodsService;
 import com.niu.core.entity.shop.SiteShop;
-import com.niu.core.entity.shop.SiteShopCategory;
+import com.niu.core.entity.site.SiteCategory;
 import com.niu.core.entity.site.Site;
 import com.niu.core.enums.delivery.DeliveryTypeEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.event.shop.MallShopGoodsListEventDefiner;
 import com.niu.core.mapper.goods.GoodsServiceMapper;
-import com.niu.core.mapper.shop.SiteShopCategoryMapper;
+import com.niu.core.mapper.site.SiteCategoryMapper;
 import com.niu.core.mapper.shop.SiteShopMapper;
 import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.api.goods.IGoodsServiceService;
@@ -54,13 +55,18 @@ public class GoodsServiceServiceImpl implements IGoodsServiceService {
     SiteShopMapper siteShopMapper;
 
     @Resource
-    SiteShopCategoryMapper siteShopCategoryMapper;
+    SiteCategoryMapper siteCategoryMapper;
     @Resource
     ICoreConfigService coreConfigService;
 
 
     @Resource
     ICoreDeliveryConfigService coreDeliveryConfigService;
+
+    private static final String SITE_SHOP_JOIN_SELECT =
+            "ns.site_id, ns.site_name, ns.group_id, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.business_state, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.icon, ns.member_no, " +
+            "ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, ns.contact_name, ns.contact_mobile, ns.money, ns.money_get, ns.money_cash_outing, nsg.group_name, " +
+            "nss.id, nssc.name as category_name, nss.is_recommend, nss.is_self, nss.service_rate, nss.category_id, nss.circle_id, nss.child_category_id, nss.keywords, nss.shop_deposit, nss.follow_number, nss.business_status, nss.mall_up_num, nss.mall_sale_num, nss.quality_score, nss.service_score, nss.logistics_score, nss.evaluate_num, nss.background_h5";
 
     /**
      * 商品服务列表
@@ -87,12 +93,11 @@ public class GoodsServiceServiceImpl implements IGoodsServiceService {
         Integer page = searchParam.getPage();
         Integer limit = searchParam.getLimit();
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.create_time, ns.expire_time, " +
-                        "ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license")
+        queryWrapper.select(SITE_SHOP_JOIN_SELECT)
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
         queryWrapper.ne("ns.app_type", "admin");
         AdminDeliveryConfigVo deliveryConfig = coreDeliveryConfigService.getAdminDeliveryConfig();
         // 筛选有上架商品的店铺，与 PHP getShopPage / component() 口径一致
@@ -128,7 +133,7 @@ public class GoodsServiceServiceImpl implements IGoodsServiceService {
 
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) {
             queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", searchParam.getKeyword()))
-                    .or(j -> j.like("ns.keywords", searchParam.getKeyword()))
+                    .or(j -> j.like("nss.keywords", searchParam.getKeyword()))
             );
         }
         if (ObjectUtil.isNotEmpty(searchParam.getCategoryId())) {
@@ -146,6 +151,7 @@ public class GoodsServiceServiceImpl implements IGoodsServiceService {
         if (ObjectUtil.isNotEmpty(searchParam.getIsSelf())) {
             queryWrapper.eq("nss.is_self", searchParam.getIsSelf());
         }
+        applyCircleIdFilter(queryWrapper, searchParam.getCircleId());
         queryWrapper.eq("ns.status", 1);
         queryWrapper.eq("nss.business_status", 1);
         queryWrapper.like("ns.app", "mall");
@@ -220,17 +226,27 @@ public class GoodsServiceServiceImpl implements IGoodsServiceService {
     @Override
     public List<SiteShopListVo> component(ShopSearchParam param) {
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.create_time, ns.expire_time, " +
-                        "ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license")
+        queryWrapper.select(SITE_SHOP_JOIN_SELECT)
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
         queryWrapper.ne("ns.app_type", "admin");
         queryWrapper.eq("ns.status", SiteStatusEnum.ON.getCode());
         queryWrapper.eq("nss.business_status", 1);
         queryWrapper.gt("nss.mall_up_num", 0);
         AdminDeliveryConfigVo deliveryConfig = coreDeliveryConfigService.getAdminDeliveryConfig();
+        applyCircleIdFilter(queryWrapper, param.getCircleId());
+        if (ObjectUtil.isNotEmpty(param.getIsLocalDelivery()) && param.getIsLocalDelivery() > 0
+                && param.getPosition() != null
+                && ObjectUtil.isNotEmpty(param.getPosition().getLatitude())
+                && ObjectUtil.isNotEmpty(param.getPosition().getLongitude())) {
+            List<Integer> allowedSiteIds = filterSiteIdsInLocalDeliveryArea(param);
+            if (allowedSiteIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+            queryWrapper.in("ns.site_id", allowedSiteIds);
+        }
         if (ObjectUtil.isNotEmpty(param.getPosition()) && ObjectUtil.isNotEmpty(param.getPosition().getLatitude()) && ObjectUtil.isNotEmpty(param.getPosition().getLongitude())) {
 
             if (deliveryConfig.getIsShow() == 1) {
@@ -422,15 +438,64 @@ public class GoodsServiceServiceImpl implements IGoodsServiceService {
 
     @Override
     public List<SiteShopCategoryListVo> shopCategory() {
-        QueryWrapper<SiteShopCategory> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<SiteCategory> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByAsc("sort");
-        List<SiteShopCategory> list = siteShopCategoryMapper.selectList(queryWrapper);
+        List<SiteCategory> list = siteCategoryMapper.selectList(queryWrapper);
         List<SiteShopCategoryListVo> listVo = new LinkedList<>();
-        for (SiteShopCategory item : list) {
+        for (SiteCategory item : list) {
             SiteShopCategoryListVo vo = new SiteShopCategoryListVo();
-            BeanUtils.copyProperties(item, vo);
+            vo.setCategoryId(item.getCategoryId());
+            vo.setCategoryName(item.getName());
+            vo.setCommissionRate(item.getServiceRate());
+            vo.setSort(item.getSort());
+            vo.setCreateTime(item.getCreateTime());
             listVo.add(vo);
         }
         return listVo;
+    }
+
+    private void applyCircleIdFilter(MPJQueryWrapper<Site> queryWrapper, Integer circleId) {
+        if (circleId != null && circleId > 0) {
+            queryWrapper.eq("nss.circle_id", circleId);
+            return;
+        }
+        List<Integer> circleIds = RequestUtils.circleIds();
+        if (ObjectUtil.isNotEmpty(circleIds)) {
+            queryWrapper.in("nss.circle_id", circleIds);
+        }
+    }
+
+    private List<Integer> filterSiteIdsInLocalDeliveryArea(ShopSearchParam param) {
+        MPJQueryWrapper<Site> idWrapper = new MPJQueryWrapper<>();
+        idWrapper.select("ns.site_id")
+                .setAlias("ns")
+                .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix));
+        idWrapper.ne("ns.app_type", "admin");
+        idWrapper.eq("ns.status", SiteStatusEnum.ON.getCode());
+        idWrapper.eq("nss.business_status", 1);
+        idWrapper.gt("nss.mall_up_num", 0);
+        idWrapper.eq("ns.is_local_delivery", 1);
+        applyCircleIdFilter(idWrapper, param.getCircleId());
+        if (ObjectUtil.isNotEmpty(param.getPosition()) && ObjectUtil.isNotEmpty(param.getIsLocation()) && param.getIsLocation() > 0
+                && ObjectUtil.isNotEmpty(param.getPosition().getProvinceId())
+                && ObjectUtil.isNotEmpty(param.getPosition().getCityId())) {
+            idWrapper.eq("ns.province_id", param.getPosition().getProvinceId());
+            idWrapper.eq("ns.city_id", param.getPosition().getCityId());
+        }
+        List<Site> siteList = siteMapper.selectJoinList(Site.class, idWrapper);
+        if (siteList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        try {
+            Class<?> serviceClass = Class.forName("com.niu.mall.service.core.delivery.ICoreLocalDeliveryService");
+            Object service = SpringContext.bean(serviceClass);
+            var method = serviceClass.getMethod("checkLocationInArea", List.class, String.class, String.class);
+            @SuppressWarnings("unchecked")
+            List<Integer> result = (List<Integer>) method.invoke(service, siteList,
+                    param.getPosition().getLatitude(), param.getPosition().getLongitude());
+            return result != null ? result : Collections.emptyList();
+        } catch (Exception e) {
+            return siteList.stream().map(Site::getSiteId).filter(Objects::nonNull).toList();
+        }
     }
 }

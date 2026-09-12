@@ -7,9 +7,6 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.LinkedHashMap;
-
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.exception.ApiException;
@@ -28,28 +25,22 @@ import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.service.admin.diy.IDiyService;
 import com.niu.core.service.admin.member.vo.MemberConfigVo;
 import com.niu.core.service.api.diy.IDiyFormService;
-import com.niu.core.service.api.diy.param.DiyFormParam;
 import com.niu.core.service.api.diy.vo.*;
 import com.niu.core.service.core.diy_form.ICoreDiyFormConfigService;
 import com.niu.core.service.core.diy_form.ICoreDiyFormRecordsService;
 import com.niu.core.service.core.diy_form.param.DiyFormRecordsParam;
 import com.niu.core.service.core.diy_form.vo.DiyFormSubmitConfigInfoVo;
 import com.niu.core.service.core.member.ICoreMemberConfigService;
-import com.niu.core.service.core.member.impl.CoreMemberConfigServiceImpl;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -111,7 +102,7 @@ public class DiyFormServiceImpl implements IDiyFormService {
 
         Map<String, Object> result = new LinkedHashMap<>();
         List<Map<String, String>> error = new ArrayList<>();
-        
+
         if (formInfo != null) {
             result.put("form_id", formInfo.getFormId());
             result.put("site_id", formInfo.getSiteId());
@@ -125,22 +116,22 @@ public class DiyFormServiceImpl implements IDiyFormService {
             result.put("write_num", formInfo.getWriteNum());
             result.put("create_time", formInfo.getCreateTime() != null ? DateUtils.timestampToString(formInfo.getCreateTime()) : "");
             result.put("update_time", formInfo.getUpdateTime() != null ? DateUtils.timestampToString(formInfo.getUpdateTime()) : "");
-            
+
             DiyFormTypeEnum diyFormTypeEnum = new DiyFormTypeEnum();
             JSONObject typeObj = diyFormTypeEnum.getType(formInfo.getType());
             result.put("type_name", (typeObj != null && typeObj.containsKey("title")) ? typeObj.getStr("title") : "");
-            
+
             if (ObjectUtil.isNotEmpty(formInfo.getShare())) {
                 result.put("share", formInfo.getShare());
             } else {
                 String defaultShare = "{\"wechat\": {\"title\": \"" + (formInfo.getTitle() != null ? formInfo.getTitle() : "") + "\", \"desc\": \"\", \"url\": \"\"}, \"weapp\": {\"title\": \"" + (formInfo.getTitle() != null ? formInfo.getTitle() : "") + "\", \"desc\": \"\", \"url\": \"\"}}";
                 result.put("share", defaultShare);
             }
-            
+
             if (ObjectUtil.isNotEmpty(formInfo.getValue())) {
                 try {
                     JSONObject valueObj = JSONUtil.parseObj(formInfo.getValue());
-                    
+
                     if (valueObj.containsKey("value")) {
                         Object valueArrayObj = valueObj.get("value");
                         if (valueArrayObj instanceof JSONArray) {
@@ -154,7 +145,7 @@ public class DiyFormServiceImpl implements IDiyFormService {
                             }
                         }
                     }
-                    
+
                     result.put("value", valueObj.toString());
                 } catch (Exception e) {
                     result.put("value", formInfo.getValue());
@@ -186,16 +177,16 @@ public class DiyFormServiceImpl implements IDiyFormService {
             }
         } else {
             result.put("value", createDefaultValueStructure());
-            
+
             Map<String, String> errorMap = new HashMap<>();
             errorMap.put("title", "当前表单无法查看");
             errorMap.put("type", "表单状态");
             errorMap.put("desc", "该表单已关闭");
             error.add(errorMap);
         }
-        
+
         result.put("error", error);
-        
+
         DiyFormInfoVo vo = new DiyFormInfoVo();
         vo.setFormId((Integer) result.get("form_id"));
         vo.setSiteId((Integer) result.get("site_id"));
@@ -210,10 +201,10 @@ public class DiyFormServiceImpl implements IDiyFormService {
         vo.setRemark((String) result.get("remark"));
         vo.setWriteNum((Integer) result.get("write_num"));
         vo.setError(error);
-        
+
         return vo;
     }
-    
+
     /**
      * 创建默认的 value 结构
      */
@@ -233,7 +224,7 @@ public class DiyFormServiceImpl implements IDiyFormService {
 
     /**
      * 规范化组件字段类型
-     * 
+     *
      * @param component 组件JSON对象
      */
     private void normalizeComponentTypes(JSONObject component) {
@@ -246,7 +237,7 @@ public class DiyFormServiceImpl implements IDiyFormService {
                 component.set("isOpen", "1".equals(isOpenObj) || "true".equalsIgnoreCase((String) isOpenObj));
             }
         }
-        
+
         // 为 field.cache 设置默认值 true
         if (component.containsKey("field")) {
             Object fieldObj = component.get("field");
@@ -257,7 +248,7 @@ public class DiyFormServiceImpl implements IDiyFormService {
                 }
             }
         }
-        
+
         // 递归处理嵌套对象
         for (String key : component.keySet()) {
             Object value = component.get(key);
@@ -283,7 +274,7 @@ public class DiyFormServiceImpl implements IDiyFormService {
         memberWrapper.eq("member_id", memberId);
         Member memberInfo = memberMapper.selectOne(memberWrapper);
         if (memberInfo == null) {
-            throw new ApiException("MEMBER_NOT_EXIST");
+            throw new ApiException("用户不存在");
         }
 
         String joinMemberType = diyFormWriteConfig.getJoinMemberType();
@@ -521,10 +512,10 @@ public class DiyFormServiceImpl implements IDiyFormService {
         formQueryWrapper.eq("form_id", diyFormRecordsParam.getFormId());
         DiyForm formInfo = diyFormMapper.selectOne(formQueryWrapper);
         if (formInfo == null) {
-            throw new ApiException("DIY_FORM_NOT_EXIST");
+            throw new ApiException("表单不存在");
         }
         if (formInfo.getStatus() == 0) {
-            throw new ApiException("DIY_FORM_NOT_OPEN");
+            throw new ApiException("该表单已关闭");
         }
 
         // 查询表单填写配置
@@ -580,7 +571,7 @@ public class DiyFormServiceImpl implements IDiyFormService {
 
     @Override
     public DiyFormRecordsDetailVo getFormRecordInfo(Integer recordId) {
-        DiyFormRecords diyFormRecords = diyFormRecordsMapper.selectOne(new QueryWrapper<DiyFormRecords>().eq("record_id", recordId).eq("site_id", RequestUtils.siteId()).eq("member_id", RequestUtils.memberId()));
+        DiyFormRecords diyFormRecords = diyFormRecordsMapper.selectOne(new QueryWrapper<DiyFormRecords>().eq("record_id", recordId).eq("site_id", RequestUtils.siteId()));
         DiyFormRecordsDetailVo vo = new DiyFormRecordsDetailVo();
         if (ObjectUtil.isEmpty(diyFormRecords)) {
             return vo;
@@ -596,6 +587,25 @@ public class DiyFormServiceImpl implements IDiyFormService {
             }
             vo.setRecordsFieldList(volist);
         }
+
+        // 设置 diy_component_list
+        if (vo.getFormId() != null && vo.getFormId() > 0) {
+            DiyForm diyForm = diyFormMapper.selectOne(new QueryWrapper<DiyForm>().eq("form_id", vo.getFormId()));
+            if (diyForm != null && diyForm.getValue() != null) {
+                try {
+                    com.alibaba.fastjson2.JSONObject formValue = com.alibaba.fastjson2.JSON.parseObject(diyForm.getValue());
+                    if (formValue.containsKey("value")) {
+                        Object diyComponentList = formValue.get("value");
+                        if (diyComponentList != null) {
+                            vo.setDiyComponentList(diyComponentList);
+                        }
+                    }
+                } catch (Exception e) {
+                    // 忽略解析异常
+                }
+            }
+        }
+
         return vo;
     }
 

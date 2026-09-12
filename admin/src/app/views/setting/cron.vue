@@ -3,9 +3,9 @@
         <el-card class="box-card !border-none" shadow="never">
 
             <el-card class="box-card !border-none my-[16px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="cronTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="cronTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('title')" prop="title">
-                        <el-input v-model="cronTableData.searchParam.title" :placeholder="t('titlePlaceholder')" />
+                        <el-input v-model="cronTableData.searchParam.title" :placeholder="t('titlePlaceholder')" clearable  class="search-input"  />
                     </el-form-item>
                     <el-form-item :label="t('lastTime')" prop="last_time">
                         <el-date-picker
@@ -13,8 +13,7 @@
                             type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss"
                             :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')"
-                        />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadCronList()">{{ t('search') }}</el-button>

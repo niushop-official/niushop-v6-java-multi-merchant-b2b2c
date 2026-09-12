@@ -8,12 +8,14 @@ import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.upload.IUploadProvider;
 import com.niu.core.common.component.upload.factory.UploadProviderFactory;
+import com.niu.core.common.component.upload.impl.LocalUploadProvider;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.StringUtils;
 import com.niu.core.common.utils.date.DateFormatUtils;
 import com.niu.core.entity.sys.SysAttachment;
 import com.niu.core.enums.sys.StorageEnum;
 import com.niu.core.enums.upload.UploadRolesEnum;
+import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.mapper.sys.SysAttachmentMapper;
 import com.niu.core.service.admin.sys.param.AttachmentUploadParam;
 import com.niu.core.service.admin.sys.vo.AttachmentUploadVo;
@@ -249,6 +251,13 @@ public class CoreUploadServiceImpl implements ICoreUploadService {
         JSONObject configObject = rootJSONObject.getJSONObject(defaultValue);
         // 根据配置初始化
         IUploadProvider uploadProvider = UploadProviderFactory.createAndInit(defaultValue, configObject);
+        if (uploadProvider == null) {
+            uploadProvider = UploadProviderFactory.createAndInit(StorageEnum.LOCAL.getCode(), rootJSONObject.getJSONObject(StorageEnum.LOCAL.getCode()));
+        }
+        if (uploadProvider == null) {
+            uploadProvider = new LocalUploadProvider();
+            uploadProvider.init(rootJSONObject.getJSONObject(StorageEnum.LOCAL.getCode()));
+        }
         DeleteModel deleteModel = new DeleteModel();
         deleteModel.setFilePath(path);
         DeleteModelResult deleteModelResult = uploadProvider.delete(deleteModel);
@@ -280,17 +289,41 @@ public class CoreUploadServiceImpl implements ICoreUploadService {
      */
     @Override
     public ThumbModelResult thumb(Integer siteId, String path, String type) {
+        if (ObjectUtil.isEmpty(path)) {
+            return new ThumbModelResult();
+        }
         // 获取站点的上传配置
         ICoreConfigService coreConfigService = SpringContext.bean(ICoreConfigService.class);
-        JSONObject rootJSONObject = coreConfigService.getConfigValue(RequestUtils.defaultSiteId(), "STORAGE");
+        JSONObject rootJSONObject = coreConfigService.getConfigValue(siteId, "STORAGE");
         String defaultValue = rootJSONObject.getStr("default", StorageEnum.LOCAL.getCode());
         JSONObject configObject = rootJSONObject.getJSONObject(defaultValue);
         // 根据配置初始化
         IUploadProvider uploadProvider = UploadProviderFactory.createAndInit(defaultValue, configObject);
+        if (uploadProvider == null) {
+            uploadProvider = UploadProviderFactory.createAndInit(StorageEnum.LOCAL.getCode(), rootJSONObject.getJSONObject(StorageEnum.LOCAL.getCode()));
+        }
+        if (uploadProvider == null) {
+            uploadProvider = new LocalUploadProvider();
+            uploadProvider.init(rootJSONObject.getJSONObject(StorageEnum.LOCAL.getCode()));
+        }
 
         ThumbModel model = new ThumbModel();
         model.setType(type);
         model.setFilePath(path);
-        return uploadProvider.thumb(model);
+        if (uploadProvider == null) {
+            return new ThumbModelResult().addDataMap(type, path);
+        }
+        ThumbModelResult result = uploadProvider.thumb(model);
+        // 对齐 PHP CoreImageService：缩略图生成失败时回退原图路径，避免列表图为空
+        if ("all".equals(type)) {
+            for (UploadThumbTypeEnum item : UploadThumbTypeEnum.values()) {
+                if (ObjectUtil.isEmpty(result.getDataMap().get(item.getType()))) {
+                    result.addDataMap(item.getType(), path);
+                }
+            }
+        } else if (ObjectUtil.isEmpty(result.getDataMap().get(type))) {
+            result.addDataMap(type, path);
+        }
+        return result;
     }
 }

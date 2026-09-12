@@ -50,11 +50,11 @@ public class ArticleServiceImpl implements IArticleService {
         MPJQueryWrapper<Article> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("at");
         queryWrapper.select("at.id, atc.name as category_name, at.site_id,at.category_id,at.title,at.intro,at.summary,at.image,at.author,at.content,at.visit,at.visit_virtual,at.is_show,at.sort,at.create_time");
-        queryWrapper.leftJoin("?_article_category atc ON atc.`category_id` = at.category_id".replace("?_", "ns_"));
+        queryWrapper.leftJoin("?_article_category atc ON atc.`category_id` = at.category_id".replace("?_", GlobalConfig.tablePrefix));
         if (ObjectUtil.isNotEmpty(searchParam.getTitle())) {
             queryWrapper.like("at.title", searchParam.getTitle());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId()) && !"all".equals(String.valueOf(searchParam.getCategoryId()))) {
             queryWrapper.eq("at.category_id", searchParam.getCategoryId());
         }
         queryWrapper.eq("at.site_id", RequestUtils.siteId());
@@ -85,7 +85,7 @@ public class ArticleServiceImpl implements IArticleService {
         if (ObjectUtil.isNotEmpty(searchParam.getTitle())) {
             queryWrapper.eq("title", searchParam.getTitle());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId()) && !"all".equals(String.valueOf(searchParam.getCategoryId()))) {
             queryWrapper.eq("category_id", searchParam.getCategoryId());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getLimit())) {
@@ -200,7 +200,7 @@ public class ArticleServiceImpl implements IArticleService {
         if (ObjectUtil.isNotEmpty(searchParam.getTitle())) {
             queryWrapper.like("at.title", searchParam.getTitle());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId()) && !"all".equals(String.valueOf(searchParam.getCategoryId()))) {
             queryWrapper.eq("at.category_id", searchParam.getCategoryId());
         }
         queryWrapper.eq("at.is_show",1);

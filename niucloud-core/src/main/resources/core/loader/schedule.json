@@ -1,14 +1,50 @@
 [
-	{
-		"key": "SiteExpireCloseJob",
-		"name": "站点到期自动关闭",
-		"desc": "",
-		"time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
-	},
-	{
-		"key": "rechargeOrderCloseJob",
-		"name": "充值订单未支付关闭",
-		"desc": "",
-		"time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
-	}
+  {
+    "key": "SiteExpireCloseJob",
+    "name": "站点到期自动关闭",
+    "desc": "",
+    "time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
+  },
+  {
+    "key": "rechargeOrderCloseJob",
+    "name": "充值订单未支付关闭",
+    "desc": "",
+    "time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
+  },
+  {
+    "key": "SpearBatchJob",
+    "name": "小程序资金冻结分账",
+    "desc": "",
+    "time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"10\"}"
+  },
+  {
+    "key": "vipCardOrderCloseJob",
+    "name": "付费会员卡订单自动关闭",
+    "desc": "",
+    "time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
+  },
+  {
+    "key": "vipCardBuyExpireJob",
+    "name": "付费会员卡过期",
+    "desc": "",
+    "time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
+  },
+  {
+    "key": "vipCardBenefitsSendJob",
+    "name": "付费会员卡权益发放",
+    "desc": "",
+    "time": "{\"type\":\"day\",\"week\":\"\",\"day\":\"1\",\"hour\":\"1\",\"min\":\"1\"}"
+  },
+  {
+    "key": "vipCardBuyExpireRemindJob",
+    "name": "付费会员卡到期提醒",
+    "desc": "",
+    "time": "{\"type\":\"day\",\"week\":\"\",\"day\":\"1\",\"hour\":\"1\",\"min\":\"1\"}"
+  },
+  {
+    "key": "cashOrderCloseJob",
+    "name": "买单订单未支付关闭",
+    "desc": "",
+    "time": "{\"type\":\"min\",\"week\":\"\",\"day\":\"\",\"hour\":\"\",\"min\":\"1\"}"
+  }
 ]

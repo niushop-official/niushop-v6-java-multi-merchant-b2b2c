@@ -217,7 +217,7 @@ ALTER TABLE `{{prefix}}mall_order_discount_goods` ADD COLUMN `create_time` int N
 ALTER TABLE `{{prefix}}mall_order_discount_goods` MODIFY COLUMN `order_discount_id` int NOT NULL DEFAULT 0 COMMENT '订单参与优惠id';
 
 
-ALTER TABLE `{{prefix}}mall_order_goods` ADD COLUMN `is_gift` tinyint NOT NULL DEFAULT 0 COMMENT '是否是赠品';
+
 
 ALTER TABLE `{{prefix}}mall_order_goods` ADD COLUMN `use_point` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '使用积分数';
 

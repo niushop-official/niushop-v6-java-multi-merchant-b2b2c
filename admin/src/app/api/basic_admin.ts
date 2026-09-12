@@ -5,8 +5,8 @@ import request from '@/utils/request'
  * 获取商品分类树结构
  * @returns
  */
-export function getCategoryTree() {
-    return request.get(`basic/admin/goods/tree`)
+export function getCategoryTree(params: Record<string, any>) {
+    return request.get(`basic/admin/goods/tree`, { params })
 }
 
 
@@ -72,6 +72,15 @@ export function updateCategory(params: Record<string, any>) {
  */
 export function getCategoryTreeComponents() {
     return request.get(`basic/admin/goods/category/components`)
+}
+
+/**
+ * 获取商品分类业务类型
+ * @param 
+ * @returns
+ */
+export function getCategoryTradeType() {
+    return request.get(`basic/admin/goods/category/trade_type`);
 }
 
 /**
@@ -251,6 +260,15 @@ export function getBrandInit() {
 }
 
 /**
+ * 获取商品分类业务类型
+ * @param 
+ * @returns
+ */
+export function getBrandTradeType() {
+    return request.get(`basic/admin/goods/brand/trade_type`);
+}
+
+/**
  * 获取商品配置
  * @returns
  */
@@ -347,6 +365,184 @@ export function modifyAttrValue(params: Record<string, any>) {
     return request.put(`basic/admin/goods/attr/attr_value`, params, { showSuccessMessage: true })
 }
 
+
+/*********************************  商品标签  ***************************************/
+
+/**
+ * 获取商品标签分页列表
+ * @param params
+ * @returns
+ */
+export function getLabelPageList(params: Record<string, any>) {
+    return request.get(`basic/admin/goods/label`, { params })
+}
+
+/**
+ * 获取商品标签列表
+ * @param params
+ * @returns
+ */
+export function getLabelList(params: Record<string, any>) {
+    return request.get(`basic/admin/goods/label/list`, { params })
+}
+
+/**
+ * 编辑商品列表标签
+ * @param params
+ * @returns
+ */
+export function editGoodsLabel(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/edit_label`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+/**
+ * 获取商品标签详情
+ * @param label_id 商品标签label_id
+ * @returns
+ */
+export function getLabelInfo(label_id: number) {
+    return request.get(`basic/admin/goods/label/${label_id}`);
+}
+
+/**
+ * 添加商品标签
+ * @param params
+ * @returns
+ */
+export function addLabel(params: Record<string, any>) {
+    return request.post('basic/admin/goods/label', params, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
+ * 编辑商品标签
+ * @param params
+ * @returns
+ */
+export function editLabel(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/label/${params.label_id}`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+
+/**
+ * 修改商品标签状态
+ * @param params
+ */
+export function modifyLabelStatus(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/label/status`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 删除商品标签
+ * @param label_id
+ * @returns
+ */
+export function deleteLabel(label_id: number) {
+    return request.delete(`basic/admin/goods/label/${label_id}`, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
+ * 修改商品标签排序号
+ * @param params
+ */
+export function modifyLabelSort(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/label/sort`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 复制标签
+ * @param params
+ */
+export function copyLabel(params: Record<string, any>) {
+    return request.post(`basic/admin/goods/label/copy/${ params.label_id }`, params, { showSuccessMessage: true })
+}
+
+/*********************************  商品角标  ***************************************/
+
+/**
+ * 获取商品角标分页列表
+ * @param params
+ * @returns
+ */
+export function getBadgePageList(params: Record<string, any>) {
+    return request.get(`basic/admin/goods/badge`, { params })
+}
+
+/**
+ * 获取商品角标列表
+ * @param params
+ * @returns
+ */
+export function getBadgeList(params: Record<string, any>) {
+    return request.get(`basic/admin/goods/badge/list`, { params })
+}
+
+/**
+ * 获取商品角标详情
+ * @param badge_id 商品角标badge_id
+ * @returns
+ */
+export function getBadgeInfo(badge_id: number) {
+    return request.get(`basic/admin/goods/badge/${badge_id}`);
+}
+
+/**
+ * 添加商品角标
+ * @param params
+ * @returns
+ */
+export function addBadge(params: Record<string, any>) {
+    return request.post('basic/admin/goods/badge', params, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
+ * 编辑商品角标
+ * @param params
+ * @returns
+ */
+export function editBadge(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/badge/${params.badge_id}`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+
+/**
+ * 修改商品角标状态
+ * @param params
+ */
+export function modifyBadgeStatus(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/badge/status`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 删除商品角标
+ * @param badge_id
+ * @returns
+ */
+export function deleteBadge(badge_id: number) {
+    return request.delete(`basic/admin/goods/badge/${badge_id}`, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
+ * 修改商品角标排序号
+ * @param params
+ */
+export function modifyBadgeSort(params: Record<string, any>) {
+    return request.put(`basic/admin/goods/badge/sort`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 复制角标
+ * @param params
+ */
+export function copyBadge(params: Record<string, any>) {
+    return request.post(`basic/admin/goods/badge/copy/${ params.badge_id }`, params, { showSuccessMessage: true })
+}
+
 /*********************************  发票  ***************************************/
 
 /**
@@ -361,4 +557,20 @@ export function getInvoiceList(params: Record<string, any>) {
  */
 export function getInvoiceDetail(id: number) {
     return request.get(`basic/admin/invoice/${id}`)
+}
+
+/*********************************  积分抵扣配置  ***************************************/
+
+/**
+ * 获取积分抵扣配置
+ */
+export function getPointDeductConfig() {
+    return request.get(`basic/admin/point_deduct/config`)
+}
+
+/**
+ * 设置积分抵扣配置
+ */
+export function setPointDeductConfig(params: Record<string, any>) {
+    return request.post(`basic/admin/point_deduct/config`, params, { showSuccessMessage: true })
 }

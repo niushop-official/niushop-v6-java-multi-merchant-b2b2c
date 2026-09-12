@@ -1,20 +1,20 @@
 <template>
-    <el-dialog v-model="dialogVisible" :title="t('accountSettings')" width="500">
+    <el-dialog v-model="dialogVisible"  :title="t('accountSettings')" width="450" >
         <el-form :model="saveInfo" label-width="90px" ref="formRef" class="page-form">
             <el-form-item :label="t('headImg')">
-                <upload-image v-model="saveInfo.head_img" :limit="1" imageFit="cover" />
+                <upload-image v-model="saveInfo.head_img" :limit="1" />
             </el-form-item>
             <el-form-item :label="t('userName')">
                 <span>{{saveInfo.username}}</span>
             </el-form-item>
             <el-form-item :label="t('realName')">
-                <el-input v-model.trim="saveInfo.real_name" :placeholder="t('realNamePlaceholder')" clearable class="input-width" />
+                <el-input v-model="saveInfo.real_name" :placeholder="t('realNamePlaceholder')" clearable class="input-width" />
             </el-form-item>
         </el-form>
         <template #footer>
         <div class="flex justify-end">
             <el-button type="primary" @click="submitForm(formRef)" :loading="loading">{{ t('save') }}</el-button>
-            <el-button @click="dialogVisible = false">{{ t('cancel') }}</el-button>
+            <el-button @click="cancel()">{{ t('cancel') }}</el-button>
         </div>
         </template>
     </el-dialog>
@@ -29,10 +29,12 @@ import useUserStore from '@/stores/modules/user'
 
 const userStore = useUserStore()
 // 提交信息
-const saveInfo: any = reactive({})
+const saveInfo = reactive<any>({})
+
 const formRef = ref<FormInstance>()
 const loading = ref(true)
 const dialogVisible = ref(false)
+
 /**
  * 获取用户信息
  */
@@ -46,7 +48,8 @@ const getUserInfoFn = () => {
     })
 }
 getUserInfoFn()
-const open = ()=>{
+
+const open = () => {
     dialogVisible.value = true
     getUserInfoFn()
 }
@@ -69,9 +72,15 @@ const submitForm = (formEl: FormInstance | undefined) => {
         }
     })
 }
+const cancel = () => {
+    dialogVisible.value = false
+    getUserInfoFn()
+}
 defineExpose({
-    open
+    open,
+    saveInfo
 })
 </script>
 <style lang="scss" scoped>
+
 </style>

@@ -29,7 +29,7 @@ public class CategoryController {
      */
     @GetMapping("/category/tree")
     public Result<JSONArray> tree(@Validated GoodsCategorySearchParam searchParam) {
-        return Result.success(categoryService.tree(searchParam.getSiteId()));
+        return Result.success(categoryService.tree(searchParam));
     }
 
 

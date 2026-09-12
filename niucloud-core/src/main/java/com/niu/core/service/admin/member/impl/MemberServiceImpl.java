@@ -22,6 +22,8 @@ import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.member.MemberLabel;
 import com.niu.core.entity.member.MemberLevel;
+import com.niu.core.entity.vip_card.MemberVipCard;
+import com.niu.core.entity.vip_card.MemberVipCardBuy;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.common.SexEnum;
 import com.niu.core.enums.member.*;
@@ -30,10 +32,12 @@ import com.niu.core.event.member.MemberRegisterEvent;
 import com.niu.core.mapper.member.MemberLabelMapper;
 import com.niu.core.mapper.member.MemberLevelMapper;
 import com.niu.core.mapper.member.MemberMapper;
+import com.niu.core.mapper.vip_card.VipCardMapper;
 import com.niu.core.service.admin.member.IMemberService;
 import com.niu.core.service.admin.member.param.*;
 import com.niu.core.service.admin.member.vo.*;
 import com.niu.core.service.core.member.ICoreMemberService;
+import com.niu.core.service.core.vip_card.card.ICoreVipCardBuyService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -60,6 +64,12 @@ public class MemberServiceImpl implements IMemberService {
 
     @Resource
     ICoreMemberService iCoreMemberService;
+
+    @Resource
+    ICoreVipCardBuyService coreVipCardBuyService;
+
+    @Resource
+    VipCardMapper vipCardMapper;
 
     /**
      * 会员列表
@@ -97,13 +107,13 @@ public class MemberServiceImpl implements IMemberService {
         if (ObjectUtil.isNotEmpty(searchParam.getMemberLevel()) && searchParam.getMemberLevel() != 0) {
             queryWrapper.eq("member_level", searchParam.getMemberLevel());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getRegisterChannel())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getRegisterChannel()) && !"all".equals(searchParam.getRegisterChannel())) {
             queryWrapper.eq("register_channel", searchParam.getRegisterChannel());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getMemberLabel()) && searchParam.getMemberLabel() != 0) {
             queryWrapper.like("member_label", searchParam.getMemberLabel());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getRegisterType())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getRegisterType()) && !"all".equals(searchParam.getRegisterType())) {
             queryWrapper.eq("register_type", searchParam.getRegisterType());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
@@ -193,6 +203,15 @@ public class MemberServiceImpl implements IMemberService {
             }
         }
         vo.setParentMember(buildParentMember(model.getPid(), buildParentMemberMap(Collections.singletonList(model))));
+        MemberVipCardBuy buy = coreVipCardBuyService.getMemberBuy(vo.getMemberId());
+        MemberInfoVo.AdminMemberVipCardInfo adminMemberVipCardInfo = new MemberInfoVo.AdminMemberVipCardInfo();
+        if (buy != null) {
+            adminMemberVipCardInfo.setCardId(buy.getCardId());
+            adminMemberVipCardInfo.setExpireTime(buy.getExpireTime());
+            MemberVipCard card = vipCardMapper.selectOne(new LambdaQueryWrapper<MemberVipCard>()
+                    .select(MemberVipCard::getCardName).eq(MemberVipCard::getCardId, buy.getCardId()));
+            adminMemberVipCardInfo.setCardName(card != null ? card.getCardName() : "");
+        }
         return vo;
     }
 

@@ -1,24 +1,18 @@
 package com.niu.core.service.core.local_delivery.impl;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.niu.core.common.domain.Result;
+import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.loader.local_delivery.BaseLocalDelivery;
 import com.niu.core.common.loader.local_delivery.LocalDeliveryLoader;
 import com.niu.core.common.loader.local_delivery.param.NotifyShopDeliveryOrderParam;
-import com.niu.core.entity.delivery.DeliveryLocalDeliveryOrderLog;
-import com.niu.core.enums.delivery.DeliveryStoreTypeEnum;
-import com.niu.core.enums.local_delivery.LocalDeliveryTypeEnum;
-import com.niu.core.mapper.delivery.DeliveryLocalDeliveryOrderLogMapper;
-import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderLogService;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryOrderNotifyService;
 import com.niu.core.service.core.local_delivery.ICoreLocalDeliveryService;
-import com.niu.core.service.core.local_delivery.param.AddLocalDeliveryOrderLogParam;
 import jakarta.annotation.Resource;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -38,9 +32,17 @@ public class CoreLocalDeliveryOrderNotifyServiceImpl implements ICoreLocalDelive
             config.put("siteId", siteId);
             //第三方配送下单 驱动
             BaseLocalDelivery driver = LocalDeliveryLoader.getDriver(type).init(JSONUtil.parseObj(config));
-            driver.notify(action, param);
-        }catch (Exception e){
+            Result<?> result = driver.notify(action, param);
+            if (result != null && result.getCode() != null && result.getCode() != 1) {
+                throw new CommonException(StrUtil.blankToDefault(result.getMsg(), "同城配送订单状态回调失败"));
+            }
+        } catch (RuntimeException e) {
             log.error("同城配送订单状态回调失败：{}" , e.getMessage());
+            // 事务内吞异常会导致 rollback-only，必须向上抛出真实原因
+            throw e;
+        } catch (Exception e) {
+            log.error("同城配送订单状态回调失败：{}" , e.getMessage());
+            throw new CommonException(e.getMessage());
         }
     }
 }

@@ -62,8 +62,9 @@ public interface IAddonService {
      * 安装插件
      *
      * @param addon
+     * @return tips 数组（空数组表示无额外提示），对齐 PHP 返回值
      */
-    JSONObject install(String addon, String model);
+    Object install(String addon, String model);
 
     /**
      * 云安装进度
@@ -120,6 +121,11 @@ public interface IAddonService {
      * @return JSONArray 字符串
      */
     String getTitleListByKey(String keys);
+
+    /**
+     * 通过 key JSON 数组获取标题列表
+     */
+    List<String> getTitleArrayByKey(String keys);
 
     /**
      * 获取插件列表

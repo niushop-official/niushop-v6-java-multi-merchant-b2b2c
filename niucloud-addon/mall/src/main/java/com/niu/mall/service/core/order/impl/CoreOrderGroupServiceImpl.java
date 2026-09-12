@@ -31,6 +31,8 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -234,7 +236,7 @@ public class CoreOrderGroupServiceImpl implements ICoreOrderGroupService {
             long ingOrderCount = orderMapper.selectCount(
                     new LambdaQueryWrapper<MallOrder>()
                             .eq(MallOrder::getGroupId, groupId)
-                            .ne(MallOrder::getStatus, OrderStatusEnum.CLOSE.getStatus())
+                            .ne(MallOrder::getStatus, OrderStatusEnum.CLOSE.getStatus().toString())
             );
             if (ingOrderCount == 0) {
                 // 全部已关闭，关闭订单组
@@ -268,14 +270,23 @@ public class CoreOrderGroupServiceImpl implements ICoreOrderGroupService {
         // 重新获取最新数据用于事件
         MallOrderGroup closedGroup = mallOrderGroupMapper.selectById(groupId);
 
-        // 发布订单组关闭事件
-//        EventPublisher.publishEvent(new MallOrderGroupCloseEvent(closedGroup));
-        // 订单组关闭后事件（事务提交后执行，可选异步）
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publishOrderGroupCloseAfterEvent(closedGroup);
+                }
+            });
+        } else {
+            publishOrderGroupCloseAfterEvent(closedGroup);
+        }
+    }
+
+    private void publishOrderGroupCloseAfterEvent(MallOrderGroup closedGroup) {
         OrderGroupCloseAfterEvent event = new OrderGroupCloseAfterEvent();
         event.addAppSign("mall");
         event.setName("OrderGroupCloseAfterEvent");
         event.setOrderGroup(closedGroup);
         EventAndSubscribeOfPublisher.publishAll(event);
-//        EventPublisher.publishEvent(new AfterMallOrderGroupCloseEvent(closedGroup));
     }
 }

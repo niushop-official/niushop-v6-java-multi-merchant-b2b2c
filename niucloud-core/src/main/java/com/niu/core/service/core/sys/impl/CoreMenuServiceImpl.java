@@ -55,6 +55,13 @@ public class CoreMenuServiceImpl extends ServiceImpl<SysMenuMapper,SysMenu> impl
                 super.saveBatch(siteMenuBeanList);
             }
         }
+        if (this.isCircleAddonInstalled()) {
+            JSONObject circleMenu = JsonModuleLoader.build().getResultElement(addon, "menu/circle.json");
+            if (ObjectUtil.isNotEmpty(circleMenu) && circleMenu.getJSONArray("menu") != null) {
+                List<SysMenu> circleMenuBeanList = this.menuTreeToList(TreeUtils.treeToList(circleMenu.getJSONArray("menu"), "parent_key", "", "menu_key", "children"), addon, "circle");
+                super.saveBatch(circleMenuBeanList);
+            }
+        }
 
     }
 
@@ -82,6 +89,19 @@ public class CoreMenuServiceImpl extends ServiceImpl<SysMenuMapper,SysMenu> impl
             List<SysMenu> siteMenuBeanList = this.menuTreeToList(menuList, addon, "site");
             super.saveBatch(siteMenuBeanList);
         }
+        if (this.isCircleAddonInstalled()) {
+            File circleMenu = new File(menuDir + "circle.json");
+            if (circleMenu.exists()) {
+                String jsonString = JsonLoadUtils.loadJsonString(circleMenu);
+                List<JSONObject> menuList = TreeUtils.treeToList(JSONUtil.parseObj(jsonString).getJSONArray("menu"), "parent_key", "", "menu_key", "children");
+                List<SysMenu> circleMenuBeanList = this.menuTreeToList(menuList, addon, "circle");
+                super.saveBatch(circleMenuBeanList);
+            }
+        }
+    }
+
+    private boolean isCircleAddonInstalled() {
+        return addonMapper.selectCount(new QueryWrapper<Addon>().eq("`key`", "circle")) > 0;
     }
 
     private List<SysMenu> menuTreeToList(List<JSONObject> menuList, String addon, String appType) {

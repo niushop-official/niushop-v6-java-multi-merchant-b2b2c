@@ -2,7 +2,6 @@ package com.niu.core.service.admin.goods.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.exception.CommonException;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -49,6 +47,7 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
         if (ObjectUtil.isNotEmpty(searchParam.getCategoryName()))
             queryWrapper.like("category_name", searchParam.getCategoryName());
         if (ObjectUtil.isNotEmpty(searchParam.getLevel())) queryWrapper.eq("level", searchParam.getLevel());
+        if (ObjectUtil.isNotEmpty(searchParam.getAddon())) queryWrapper.eq("addon", searchParam.getAddon());
         queryWrapper.orderByDesc(Arrays.asList("sort", "category_id"));
 
         List<GoodsCategory> records = goodsCategoryMapper.selectList(queryWrapper);
@@ -63,62 +62,28 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
 
     /**
      * 获取商品分类树
-     *
-     * @return
+     * 对应 PHP: CategoryService::getTree()
      */
     @Override
     public JSONArray tree() {
-        List<GoodsCategory> list = goodsCategoryMapper.selectList(new QueryWrapper<GoodsCategory>().eq("site_id", RequestUtils.defaultSiteId()));
-        if (list == null) return null;
-
-        JSONArray jsonArray = JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(list));
-        return removeNodesByIsShow(TreeUtils.listToTree(jsonArray, "category_id", "pid", "child_list"));
+        return tree(new GoodsCategorySearchParam());
     }
 
     /**
-     * 移除 JSONArray 中所有 is_show != 1 的节点及其子节点
-     *
-     * @param array 原始 JSONArray
-     * @return 过滤后的 JSONArray（直接修改原数组并返回）
-     */
-    public static JSONArray removeNodesByIsShow(JSONArray array) {
-        if (array == null || array.isEmpty()) {
-            return array;
-        }
-
-        Iterator<Object> iterator = array.iterator();
-        while (iterator.hasNext()) {
-            Object obj = iterator.next();
-            if (!(obj instanceof JSONObject)) {
-                continue;
-            }
-            JSONObject node = (JSONObject) obj;
-            // 判断当前节点是否需要移除
-            Integer isShow = node.getInt("is_show");
-            if (isShow != null && isShow != 1) {
-                iterator.remove(); // 移除当前节点
-                continue;
-            }
-            // 递归处理子节点
-            JSONArray childList = node.getJSONArray("child_list");
-            if (childList != null && !childList.isEmpty()) {
-                removeNodesByIsShow(childList);
-                // 如果子节点列表过滤后为空，可决定是否保留（此处保留空数组）
-            }
-        }
-        return array;
-    }
-
-    /**
-     * 获取商品分类树
-     *
-     * @return
+     * 获取商品分类树（可按 is_show / addon 过滤）
+     * 对应 PHP: CategoryService::getTree()
      */
     @Override
     public JSONArray tree(GoodsCategorySearchParam searchParam) {
-        QueryWrapper queryWrapper = new QueryWrapper<GoodsCategory>().eq("site_id", RequestUtils.defaultSiteId());
+        if (searchParam == null) {
+            searchParam = new GoodsCategorySearchParam();
+        }
+        QueryWrapper<GoodsCategory> queryWrapper = new QueryWrapper<GoodsCategory>().eq("site_id", RequestUtils.defaultSiteId());
         if (ObjectUtil.isNotNull(searchParam.getIsShow())) {
             queryWrapper.eq("is_show", searchParam.getIsShow());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getAddon())) {
+            queryWrapper.eq("addon", searchParam.getAddon());
         }
         List<GoodsCategory> list = goodsCategoryMapper.selectList(queryWrapper);
         if (list == null) {
@@ -126,6 +91,19 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
         }
         JSONArray jsonArray = JSONUtil.parseArray(JacksonUtils.toSnakeCaseJSONString(list));
         return TreeUtils.listToTree(jsonArray, "category_id", "pid", "child_list");
+    }
+
+    /**
+     * 获取商品分类树结构供弹框调用
+     * 对应 PHP: CategoryService::getTreeComponents()
+     */
+    @Override
+    public JSONArray components(GoodsCategorySearchParam searchParam) {
+        GoodsCategorySearchParam param = searchParam == null ? new GoodsCategorySearchParam() : searchParam;
+        if (param.getIsShow() == null) {
+            param.setIsShow(1);
+        }
+        return tree(param);
     }
 
 
@@ -175,13 +153,16 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
         GoodsCategory model = new GoodsCategory();
         BeanUtils.copyProperties(addParam, model);
         model.setSiteId(RequestUtils.defaultSiteId());
+        if (ObjectUtil.isNotEmpty(addParam.getAddon())) {
+            model.setAddon(addParam.getAddon());
+        }
         model.setCreateTime(System.currentTimeMillis() / 1000);
         if (addParam.getPid() > 0) {
             GoodsCategory parentCategory = goodsCategoryMapper.selectOne(new QueryWrapper<GoodsCategory>()
                     .eq("category_id", addParam.getPid()));
             Assert.notNull(parentCategory, "所选父级分类不存在");
-            model.setCategoryFullName(parentCategory.getCategoryName() + "/" + addParam.getCategoryName());
-            model.setLevel(2);
+            model.setCategoryFullName(buildCategoryFullName(parentCategory, addParam.getCategoryName()));
+            model.setLevel(parentCategory.getLevel() + 1);
         } else {
             model.setLevel(1);
             model.setCategoryFullName(addParam.getCategoryName());
@@ -228,8 +209,8 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
             GoodsCategory parentCategory = goodsCategoryMapper.selectOne(new QueryWrapper<GoodsCategory>()
                     .eq("category_id", editParam.getPid()));
             Assert.notNull(parentCategory, "所选父级分类不存在");
-            model.setCategoryFullName(parentCategory.getCategoryName() + "/" + editParam.getCategoryName());
-            model.setLevel(2);
+            model.setCategoryFullName(buildCategoryFullName(parentCategory, editParam.getCategoryName()));
+            model.setLevel(parentCategory.getLevel() + 1);
         } else {
             model.setLevel(1);
             model.setCategoryFullName(editParam.getCategoryName());
@@ -267,6 +248,13 @@ public class GoodsCategoryServiceImpl implements IGoodsCategoryService {
         if (count > 0) throw new CommonException("当前分类下存在商品，不可删除");*/
 
         goodsCategoryMapper.delete(new QueryWrapper<GoodsCategory>().eq("category_id", id).or().eq("pid", id));
+    }
+
+    private String buildCategoryFullName(GoodsCategory parentCategory, String categoryName) {
+        if (ObjectUtil.isEmpty(parentCategory.getCategoryFullName())) {
+            return parentCategory.getCategoryName() + "/" + categoryName;
+        }
+        return parentCategory.getCategoryFullName() + "/" + categoryName;
     }
 
 }

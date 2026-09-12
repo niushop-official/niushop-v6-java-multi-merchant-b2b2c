@@ -10,12 +10,12 @@
 			</div>
 
 			<el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-				<el-form :inline="true" :model="ShopAddressTable.searchParam" ref="searchFormRef">
+				<el-form :inline="true" label-width="90px" :model="ShopAddressTable.searchParam" ref="searchFormRef" class="page-form">
 					<el-form-item :label="t('mobile')" prop="mobile">
-						<el-input v-model="ShopAddressTable.searchParam.mobile" :placeholder="t('mobilePlaceholder')"/>
+						<el-input v-model="ShopAddressTable.searchParam.mobile" :placeholder="t('mobilePlaceholder')" class="search-input" clearable/>
 					</el-form-item>
 					<el-form-item :label="t('fullAddress')" prop="full_address">
-						<el-input v-model="ShopAddressTable.searchParam.full_address"  :placeholder="t('fullAddressPlaceholder')"/>
+						<el-input v-model="ShopAddressTable.searchParam.full_address"  :placeholder="t('fullAddressPlaceholder')" class="search-input" clearable />
 					</el-form-item>
 
 					<el-form-item>

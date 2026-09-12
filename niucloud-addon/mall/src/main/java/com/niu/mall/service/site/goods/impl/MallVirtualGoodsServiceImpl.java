@@ -20,22 +20,26 @@ import com.niu.core.mapper.goods.GoodsBrandMapper;
 import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.addon.vo.InstallAddonListVo;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoodsSku;
 import com.niu.mall.entity.goods.MallGoodsSpec;
-import com.niu.mall.enums.goods.GoodsAuditStatusEnum;
+import com.niu.core.enums.goods.GoodsAuditStatusEnum;
 import com.niu.mall.enums.goods.GoodsFieldEnum;
 import com.niu.mall.event.goods.AfterGoodsEditEvent;
 import com.niu.mall.event.goods.CheckGoodsSkuPriceEvent;
 import com.niu.mall.event.goods.SupplyGoodsSyncEventDefiner;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import com.niu.mall.mapper.goods.MallGoodsSpecMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsConfigService;
 import com.niu.mall.service.site.goods.IMallGoodsService;
 import com.niu.mall.service.site.goods.IMallGoodsSkuService;
 import com.niu.mall.service.site.goods.IMallGoodsSpecService;
 import com.niu.mall.service.site.goods.IMallVirtualGoodsService;
+import com.niu.mall.service.site.goods.helper.GoodsAddExtendParam;
+import com.niu.mall.service.site.goods.helper.GoodsAddHelper;
+import com.niu.mall.service.site.goods.helper.GoodsAddSourceParam;
+import com.niu.mall.service.site.goods.helper.GoodsInitHelper;
 import com.niu.mall.service.site.goods.param.MallVirtualGoodsParam;
 import com.niu.mall.service.site.goods.vo.MallVirtualGoodsInitVo;
 import jakarta.annotation.Resource;
@@ -84,6 +88,9 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
     @Resource
     ICoreGoodsConfigService coreGoodsConfigService;
 
+    @Resource
+    GoodsInitHelper goodsInitHelper;
+
     /**
      * 商品添加
      *
@@ -105,7 +112,8 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
         model.setServiceIds(JSONUtil.parseArray(intArrToStrArr(addParam.getServiceIds())).toString());
         model.setShopSort(addParam.getShopSort());
         model.setStatus(addParam.getStatus());
-        model.setAuditStatus(coreGoodsConfigService.getConfig().getIsVerifyOpen().equals(1) ?
+        boolean verifyOpen = coreGoodsConfigService.getConfig().getIsVerifyOpen().equals(1);
+        model.setAuditStatus(verifyOpen ?
                 GoodsAuditStatusEnum.WAIT_AUDIT.getStatus() : GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
         model.setAttrIds(ObjectUtil.isNotEmpty(addParam.getAttrIds()) ? addParam.getAttrIds().toString() : "");
         model.setShopAttrIds(ObjectUtil.isNotEmpty(addParam.getShopAttrIds()) ? addParam.getShopAttrIds().toString() : "");
@@ -113,6 +121,9 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
         model.setFormId(addParam.getFormId());
         model.setVirtualVerifyMobile(ObjectUtil.isNotEmpty(addParam.getVirtualVerifyMobile()) ? addParam.getVirtualVerifyMobile() : 0);
         applyVirtualDeliveryConfig(model, addParam);
+        GoodsAddExtendParam extendParam = GoodsAddExtendParam.from(addParam, verifyOpen);
+        GoodsAddHelper.applyAddExtendFields(model, extendParam);
+        GoodsAddSourceParam goodsSource = extendParam.toGoodsSourceParam();
         if (model.getUnit().isEmpty()) {
             model.setUnit("件");
         }
@@ -130,6 +141,9 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
             sku.setIsDefault(1);
             sku.setIsSell(1);
             sku.setSkuSpecFormat("");
+            // 指定会员价
+            sku.setMemberPrice(GoodsAddHelper.encodeMemberPrice(addParam.getMemberDiscount(), addParam.getMemberPrice()));
+            GoodsAddHelper.applySkuSourceFields(sku, goodsSource, null);
             skuData.add(sku);
         } else {
             if (addParam.getGoodsSkuData().keySet().size() == 0) throw new CommonException("请添加商品规格");
@@ -156,6 +170,14 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                     defaultCount++;
                     if (defaultCount > 1) throw new CommonException("商品不能有多个默认规格");
                 }
+                sku.setMemberPrice(GoodsAddHelper.encodeMemberPrice(addParam.getMemberDiscount(), skuParam.getMemberPrice()));
+                GoodsAddHelper.applySkuSourceFields(sku, goodsSource, GoodsAddSourceParam.of(
+                        addParam.getSourceType(),
+                        skuParam.getSourceGoodsId(),
+                        skuParam.getSourceSkuId(),
+                        skuParam.getSourceFlatform(),
+                        skuParam.getSourceParty()
+                ));
                 skuData.add(sku);
             }
             if (defaultCount.equals(0)) throw new CommonException("商品缺少默认规格");
@@ -212,8 +234,13 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
         } else if ("verify".equals(deliveryType)) {
             model.setVirtualDeliveryContent("");
             model.setVirtualReceiveType("artificial");
-            model.setVirtualVerifyType(ObjectUtil.defaultIfNull(param.getVirtualVerifyType(), 0));
-            model.setVirtualIndate(ObjectUtil.defaultIfNull(param.getVirtualIndate(), 0));
+            Integer virtualVerifyType = ObjectUtil.defaultIfNull(param.getVirtualVerifyType(), 0);
+            Integer virtualIndate = ObjectUtil.defaultIfNull(param.getVirtualIndate(), 0);
+            if (virtualVerifyType.equals(1) && virtualIndate < 1) {
+                throw new CommonException("核销有效期不能小于1天");
+            }
+            model.setVirtualVerifyType(virtualVerifyType);
+            model.setVirtualIndate(virtualIndate);
             model.setVirtualRefund(ObjectUtil.defaultIfNull(param.getVirtualRefund(), 0));
             model.setVirtualRefundDay(ObjectUtil.defaultIfNull(param.getVirtualRefundDay(), 0));
         }
@@ -306,6 +333,7 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                 sku.setSkuSpecFormat("");
                 sku.setIsDefault(1);
                 sku.setIsSell(1);
+                sku.setMemberPrice(GoodsAddHelper.encodeMemberPrice(editParam.getMemberDiscount(), editParam.getMemberPrice()));
                 skuData.add(sku);
             } else {
                 MallGoodsSku sku = skuList.get(0);
@@ -322,6 +350,7 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                     sku.setSalePrice(editParam.getPrice());
                     sku.setStock(editParam.getStock());
                 }
+                sku.setMemberPrice(GoodsAddHelper.encodeMemberPrice(editParam.getMemberDiscount(), editParam.getMemberPrice()));
                 mallGoodsSkuMapper.updateById(sku);
             }
             // 删除原规格值
@@ -368,6 +397,7 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                         sku.setSalePrice(skuParam.getPrice());
                         sku.setStock(skuParam.getStock());
                     }
+                    sku.setMemberPrice(GoodsAddHelper.encodeMemberPrice(editParam.getMemberDiscount(), skuParam.getMemberPrice()));
 
                     if (skuParam.getIsDefault().equals(1)) {
                         defaultCount++;
@@ -447,6 +477,7 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
                         defaultCount++;
                         if (defaultCount > 1) throw new CommonException("商品不能有多个默认规格");
                     }
+                    sku.setMemberPrice(GoodsAddHelper.encodeMemberPrice(editParam.getMemberDiscount(), skuParam.getMemberPrice()));
                     skuData.add(sku);
                 }
                 if (defaultCount.equals(0)) throw new CommonException("商品缺少默认规格");
@@ -552,98 +583,130 @@ public class MallVirtualGoodsServiceImpl implements IMallVirtualGoodsService {
     }
 
     /**
-     * 获取商品添加/编辑数据
+     * 获取商品添加/编辑数据（对齐 PHP VirtualGoodsService::getInit）
      *
-     * @param goodsId
-     * @return
+     * @param goodsId 商品id
+     * @return init 数据
      */
     @Override
     public MallVirtualGoodsInitVo getInit(Integer goodsId) {
         MallVirtualGoodsInitVo vo = new MallVirtualGoodsInitVo();
-
-        if (goodsId > 0) {
-            MallGoods model = mallGoodsMapper.selectOne(
-                    new QueryWrapper<MallGoods>()
-                            .eq("goods_id", goodsId)
-                            .eq("site_id", RequestUtils.siteId())
-                            .eq("delete_time", 0));
-            if (model == null) return null;
-
-            MallVirtualGoodsInitVo.GoodsInfo goodsInfo = new MallVirtualGoodsInitVo.GoodsInfo();
-            BeanUtils.copyProperties(model, goodsInfo);
-            goodsInfo.setFormId(model.getFormId() == 0 ? "" : model.getFormId());
-            goodsInfo.setGoodsCategory(strArrToIntArr(Convert.toStrArray(JSONUtil.parseArray(model.getGoodsCategory()))));
-            goodsInfo.setLabelIds(strArrToIntArr(Convert.toStrArray(JSONUtil.parseArray(model.getLabelIds()))));
-            goodsInfo.setServiceIds(strArrToIntArr(Convert.toStrArray(JSONUtil.parseArray(model.getServiceIds()))));
-            goodsInfo.setStatus(String.valueOf(model.getStatus()));
-            if (goodsInfo.getDiyDetailId() != null && goodsInfo.getDiyDetailId() == 0) goodsInfo.setDiyDetailId(null);
-            List<MallVirtualGoodsInitVo.SkuInfo> skuList = CollectUtils.convert(mallGoodsSkuMapper.selectList(new QueryWrapper<MallGoodsSku>().eq("goods_id", model.getGoodsId())), MallVirtualGoodsInitVo.SkuInfo.class);
-            goodsInfo.setSkuList(skuList);
-
-            List<MallVirtualGoodsInitVo.SkuInfo> tempSkuList = skuList.stream().filter(i -> i.getSkuSpecFormat() != null && !i.getSkuSpecFormat().isEmpty()).collect(Collectors.toList());
-            if (tempSkuList.size() > 0) {
-                goodsInfo.setSpecType("multi");
-
-                List<MallVirtualGoodsInitVo.SpecInfo> specList = CollectUtils.convert(mallGoodsSpecMapper.selectList(new QueryWrapper<MallGoodsSpec>().eq("goods_id", model.getGoodsId())), MallVirtualGoodsInitVo.SpecInfo.class);
-                goodsInfo.setSpecList(specList);
-            }
-
-//            if (model.getVirtualReceiveType().equals("verify")) {
-//                goodsInfo.setOrderGoodsCount(shopGoodsService.getGoodsTransactionCount(model.getGoodsId()));
-//            }
-            goodsInfo.setOrderGoodsCount(0L);
-
-            if (model.getBrandId().equals(0)) {
-                goodsInfo.setBrandId("");
-                goodsInfo.setBrandOption(new GoodsBrand());
-            } else {
-                goodsInfo.setBrandOption(goodsBrandMapper.selectOne(new QueryWrapper<GoodsBrand>().eq("brand_id", model.getBrandId())));
-            }
-
-            if (model.getSupplyId().equals(0)) goodsInfo.setSupplyId("");
-
-            goodsInfo.setActiveGoodsCount(shopGoodsService.getActiveGoodsCount(goodsId));
-            Addon supply = addonMapper.selectOne(new QueryWrapper<Addon>().eq("`key`", "supply"));
-            goodsInfo.setSupplySyncShow(0);
-            //存在供应商
-            if (ObjectUtil.isNotEmpty(supply)) {
-                if (goodsInfo.getSupplyGoodsId() > 0) {
-                    if (goodsInfo.getSupplySync() == 1) {
-                        //这里需要处理同步设置，事件调用
-                        SupplyGoodsSyncEventDefiner.SupplyGoodsSyncEvent event = new SupplyGoodsSyncEventDefiner.SupplyGoodsSyncEvent();
-                        event.setGoodsId(goodsInfo.getSupplyGoodsId());
-                        List<SupplyGoodsSyncEventDefiner.SupplyGoodsSyncResult> supplyData = EventAndSubscribeOfPublisher.publishAndCallback(event);
-
-                        for (SupplyGoodsSyncEventDefiner.SupplyGoodsSyncResult item : supplyData) {
-                            if (item == null) continue;
-                            if (ObjectUtil.isNotEmpty(item.getGoodsName())) goodsInfo.setGoodsName(item.getGoodsName());
-                            if (ObjectUtil.isNotEmpty(item.getSubTitle())) goodsInfo.setSubTitle(item.getSubTitle());
-                            if (ObjectUtil.isNotEmpty(item.getGoodsCover()))
-                                goodsInfo.setGoodsCover(item.getGoodsCover());
-                            if (ObjectUtil.isNotEmpty(item.getGoodsImage()))
-                                goodsInfo.setGoodsImage(item.getGoodsImage());
-                            if (ObjectUtil.isNotEmpty(item.getGoodsDesc())) goodsInfo.setGoodsDesc(item.getGoodsDesc());
-                        }
-                    }
-                    goodsInfo.setSupplySyncShow(1);
-                    vo.setDisableEditField(goodsInfo.getSupplySync() == 1 ? StringUtils.mergeArrays(GoodsFieldEnum.DISABLE_EDIT_FIELD.getValue(), GoodsFieldEnum.ENABLE_SYNC_FIELD.getValue()) : GoodsFieldEnum.DISABLE_EDIT_FIELD.getValue());
-                    vo.setDisableEditArea(GoodsFieldEnum.DISABLE_EDIT_AREA.getValue());
-                }
-            }
-            if (!goodsInfo.getFormId().equals("")) {
-                DiyForm formInfo = diyFormMapper.selectOne(new QueryWrapper<DiyForm>().eq("form_id", goodsInfo.getFormId()));
-                if (ObjectUtil.isNotEmpty(formInfo)) {
-                    goodsInfo.setPageTitle(formInfo.getPageTitle());
-                }
-            }
-
-
-            List<MallVirtualGoodsInitVo.MallGoodsAttrVo> voList = new Gson().fromJson(model.getAttrFormat(), new TypeToken<List<MallVirtualGoodsInitVo.MallGoodsAttrVo>>() {
-            }.getType());
-            goodsInfo.setAttrFormat(voList);
-
-            vo.setGoodsInfo(goodsInfo);
+        if (goodsId <= 0) {
+            return vo;
         }
+        // 虚拟商品 init 需按 site_id 过滤
+        MallGoods model = mallGoodsMapper.selectOne(
+                new QueryWrapper<MallGoods>()
+                        .eq("goods_id", goodsId)
+                        .eq("site_id", RequestUtils.siteId())
+                        .eq("delete_time", 0));
+        if (model == null) {
+            return null;
+        }
+
+        MallVirtualGoodsInitVo.GoodsInfo goodsInfo = new MallVirtualGoodsInitVo.GoodsInfo();
+        BeanUtils.copyProperties(model, goodsInfo);
+        goodsInfo.setGoodsCategory(goodsInitHelper.filterGoodsCategory(
+                strArrToIntArr(Convert.toStrArray(JSONUtil.parseArray(model.getGoodsCategory())))));
+        goodsInfo.setGoodsMallCategory(goodsInitHelper.normalizeGoodsMallCategory(model.getGoodsMallCategory()));
+        goodsInfo.setLabelIds(parseVirtualIntIdArrayOrEmpty(model.getLabelIds()));
+        goodsInfo.setServiceIds(parseVirtualIntIdArrayOrEmpty(model.getServiceIds()));
+        goodsInfo.setStatus(String.valueOf(model.getStatus()));
+        goodsInfo.setTimerOnStatus(String.valueOf(ObjectUtil.defaultIfNull(model.getTimerOnStatus(), 0)));
+        goodsInfo.setTimerOffStatus(String.valueOf(ObjectUtil.defaultIfNull(model.getTimerOffStatus(), 0)));
+        goodsInfo.setIsEnableRefund(String.valueOf(ObjectUtil.defaultIfNull(model.getIsEnableRefund(), 0)));
+        goodsInfo.setPointDeductType(String.valueOf(ObjectUtil.defaultIfNull(model.getPointDeductType(), "")));
+        goodsInfo.setTimerOnTime(goodsInitHelper.toLongTime(model.getTimerOnTime()));
+        goodsInfo.setTimerOffTime(goodsInitHelper.toLongTime(model.getTimerOffTime()));
+        goodsInfo.setSupportPayType(goodsInitHelper.parseSupportPayType(model.getSupportPayType()));
+        goodsInfo.setAttrIds(goodsInitHelper.parseIntIdArray(model.getAttrIds()));
+        goodsInfo.setShopAttrIds(goodsInitHelper.parseIntIdArray(model.getShopAttrIds()));
+        goodsInfo.setShopAttrNameArr(goodsInitHelper.loadShopAttrNameArr(goodsInfo.getShopAttrIds()));
+        goodsInfo.setRecommendGoodsIds(goodsInitHelper.parseRecommendGoodsIds(model.getRecommendGoodsIds()));
+        goodsInfo.setFormId(goodsInitHelper.normalizeFormId(model.getFormId()));
+        goodsInfo.setPageTitle(goodsInitHelper.loadPageTitle(goodsInfo.getFormId()));
+        goodsInfo.setDiyDetailId(goodsInitHelper.normalizeDiyDetailId(model.getDiyDetailId()));
+        goodsInfo.setSupplierId(model.getSupplierId() == null || model.getSupplierId() <= 0 ? "" : model.getSupplierId());
+        if (model.getSupplyId() != null && model.getSupplyId() > 0) {
+            goodsInfo.setSupplyId(model.getSupplyId());
+        } else {
+            goodsInfo.setSupplyId("");
+        }
+
+        goodsInitHelper.applyBrand(model.getBrandId(), new GoodsInitHelper.BrandTarget() {
+            @Override
+            public void setBrandId(Object brandId) {
+                goodsInfo.setBrandId(brandId);
+            }
+
+            @Override
+            public void setBrandOption(GoodsBrand brandOption) {
+                goodsInfo.setBrandOption(brandOption);
+            }
+        });
+
+        List<MallGoodsSku> skuEntities = goodsInitHelper.loadSkuList(model.getGoodsId());
+        List<MallVirtualGoodsInitVo.SkuInfo> skuList = CollectUtils.convert(skuEntities, MallVirtualGoodsInitVo.SkuInfo.class);
+        goodsInfo.setSkuList(skuList);
+        // 虚拟商品：sku 数量 > 1 则为多规格（与 PHP 一致）
+        goodsInfo.setSpecType("single");
+        if (skuEntities.size() > 1) {
+            goodsInfo.setSpecType("multi");
+            goodsInfo.setSpecList(CollectUtils.convert(goodsInitHelper.loadSpecList(model.getGoodsId()), MallVirtualGoodsInitVo.SpecInfo.class));
+        }
+
+        goodsInfo.setOrderGoodsCount(0L);
+        goodsInfo.setActiveGoodsCount(shopGoodsService.getActiveGoodsCount(goodsId));
+        goodsInfo.setAttrFormat(goodsInitHelper.parseAttrFormat(model.getAttrFormat()));
+
+        // 供货商同步与禁用编辑字段
+        GoodsInitHelper.SupplyInitResult supplyInit = goodsInitHelper.buildSupplyInit(model);
+        goodsInitHelper.applySupplyToGoodsInfo(supplyInit, new GoodsInitHelper.GoodsInitMutable() {
+            @Override
+            public void setSupplySyncShow(Integer supplySyncShow) {
+                goodsInfo.setSupplySyncShow(supplySyncShow);
+            }
+
+            @Override
+            public void setGoodsName(String goodsName) {
+                goodsInfo.setGoodsName(goodsName);
+            }
+
+            @Override
+            public void setSubTitle(String subTitle) {
+                goodsInfo.setSubTitle(subTitle);
+            }
+
+            @Override
+            public void setGoodsCover(String goodsCover) {
+                goodsInfo.setGoodsCover(goodsCover);
+            }
+
+            @Override
+            public void setGoodsImage(String goodsImage) {
+                goodsInfo.setGoodsImage(goodsImage);
+            }
+
+            @Override
+            public void setGoodsVideo(String goodsVideo) {
+                goodsInfo.setGoodsVideo(goodsVideo);
+            }
+
+            @Override
+            public void setGoodsDesc(String goodsDesc) {
+                goodsInfo.setGoodsDesc(goodsDesc);
+            }
+        });
+        vo.setDisableEditField(supplyInit.getDisableEditField());
+        vo.setDisableEditArea(supplyInit.getDisableEditArea());
+
+        vo.setGoodsInfo(goodsInfo);
         return vo;
+    }
+
+    /** 标签/服务等 JSON 数组转 int 数组，空则返回 [] */
+    private Integer[] parseVirtualIntIdArrayOrEmpty(String json) {
+        Integer[] arr = goodsInitHelper.parseIntIdArray(json);
+        return arr.length == 0 ? new Integer[]{} : arr;
     }
 }

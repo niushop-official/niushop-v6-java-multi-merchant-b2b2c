@@ -148,8 +148,8 @@ public class CorePointDeductServiceImpl implements ICorePointDeductService {
     }
 
     @Override
-    public void refundPointDeduct(Integer siteId, Integer memberId, Integer point, String orderNo) {
-        if (point == null || point <= 0) {
+    public void refundPointDeduct(Integer siteId, Integer memberId, BigDecimal point, String orderNo) {
+        if (point == null || point.compareTo(BigDecimal.ZERO) <= 0) {
             return;
         }
         // 返还积分

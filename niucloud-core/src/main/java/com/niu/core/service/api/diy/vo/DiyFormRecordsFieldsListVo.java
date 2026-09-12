@@ -4,6 +4,8 @@ import cn.hutool.core.util.ClassLoaderUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.enums.diy_form.DiyFormComponentEnum;
 import lombok.Data;
 
@@ -93,8 +95,15 @@ public class DiyFormRecordsFieldsListVo implements Serializable {
      */
     private Integer updateNum;
 
+    /**
+     * 修改时间
+     */
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long updateTime;
+
     //@JsonSerialize(using = BeanJsonSerializer.StringToJsonSerializer.class)
     private Object handleFieldValue;
+
 
     private Object renderValue;
 
@@ -151,5 +160,5 @@ public class DiyFormRecordsFieldsListVo implements Serializable {
             return "/src/app/views/diy_form/components/detail-form-render.vue";
         }
     }
-    
+
 }

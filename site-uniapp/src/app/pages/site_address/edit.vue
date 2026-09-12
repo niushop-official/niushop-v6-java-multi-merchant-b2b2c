@@ -71,7 +71,7 @@ import { ref, reactive, nextTick, computed } from 'vue'
 import manifestJson from '@/manifest.json';
 import { onLoad } from '@dcloudio/uni-app'
 import { getAddressByLatlng } from '@/app/api/system';
-import { redirect } from '@/utils/common'
+import { redirect, openMapSelector } from '@/utils/common'
 import { getShopAddressInfo, addShopAddress, editShopAddress } from '@/app/api/delivery_site';
 
 
@@ -237,7 +237,11 @@ const chooseLocation = () => {
     const urlencode = formData;
     uni.setStorageSync('siteAddressEditInfo', urlencode);
     let backurl = location.origin + location.pathname + '?order_id=' + formData.order_id;
-    window.location.href = 'https://apis.map.qq.com/tools/locpicker?search=1&type=0&backurl=' + encodeURIComponent(backurl) + '&key=' + manifestJson.h5.sdkConfigs.maps.qqmap.key + '&referer=myapp';
+    let params = ''
+    if (formData.lat && formData.lng) {
+        params = `latng=${ formData.lat },${ formData.lng }`
+    }
+    openMapSelector(backurl, params);
     // #endif
 }
 

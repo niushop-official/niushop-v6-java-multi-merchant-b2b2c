@@ -1,9 +1,11 @@
 package com.niu.core.service.site.local_delivery.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.utils.RequestUtils;
@@ -83,22 +85,98 @@ public class LocalDeliveryOrderServiceImpl implements ILocalDeliveryOrderService
     public LocalDeliveryOrderInfoVo getInfo(Integer id) {
         DeliveryLocalDeliveryOrder deliveryLocalDeliveryOrder = deliveryLocalDeliveryOrderMapper.selectById(id);
         LocalDeliveryOrderInfoVo result = new LocalDeliveryOrderInfoVo();
+        if (ObjectUtil.isEmpty(deliveryLocalDeliveryOrder)) {
+            return result;
+        }
         BeanUtils.copyProperties(deliveryLocalDeliveryOrder, result);
-        if(ObjectUtil.isNotEmpty(deliveryLocalDeliveryOrder)){
-            QueryWrapper<DeliveryLocalDeliveryOrderLog> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("order_id", id);
-            List<DeliveryLocalDeliveryOrderLog> orderLogList = deliveryLocalDeliveryOrderLogMapper.selectList(queryWrapper);
-            if(!orderLogList.isEmpty()){
-                List<LocalDeliveryOrderInfoVo.orderLogInfo> list = new LinkedList<>();
-                for (DeliveryLocalDeliveryOrderLog item : orderLogList) {
-                    LocalDeliveryOrderInfoVo.orderLogInfo vo = new LocalDeliveryOrderInfoVo.orderLogInfo();
-                    BeanUtils.copyProperties(item, vo);
-                    list.add(vo);
-                }
-                result.setOrderLog(list);
+        if (StrUtil.isBlank(result.getBody())) {
+            result.setBody(resolveTradeBody(result.getTradeType(), result.getTradeId()));
+        }
+        QueryWrapper<DeliveryLocalDeliveryOrderLog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("order_id", id);
+        List<DeliveryLocalDeliveryOrderLog> orderLogList = deliveryLocalDeliveryOrderLogMapper.selectList(queryWrapper);
+        if(!orderLogList.isEmpty()){
+            List<LocalDeliveryOrderInfoVo.orderLogInfo> list = new LinkedList<>();
+            for (DeliveryLocalDeliveryOrderLog item : orderLogList) {
+                LocalDeliveryOrderInfoVo.orderLogInfo vo = new LocalDeliveryOrderInfoVo.orderLogInfo();
+                BeanUtils.copyProperties(item, vo);
+                list.add(vo);
             }
+            result.setOrderLog(list);
         }
         return result;
+    }
+
+    /**
+     * 历史数据 body 为空时，按交易类型回填订单商品信息（避免 core 编译依赖 addon）
+     */
+    private String resolveTradeBody(String tradeType, Integer tradeId) {
+        if (StrUtil.isBlank(tradeType) || tradeId == null || tradeId <= 0) {
+            return "";
+        }
+        try {
+            if ("front_warehouse".equals(tradeType)) {
+                String body = invokeOrderBody("com.niu.front_warehouse.mapper.FrontWarehouseOrderMapper", tradeId);
+                if (StrUtil.isNotBlank(body)) {
+                    return body;
+                }
+                return invokeOrderGoodsBody(
+                        "com.niu.front_warehouse.mapper.FrontWarehouseOrderGoodsMapper",
+                        "com.niu.front_warehouse.entity.FrontWarehouseOrderGoods",
+                        tradeId);
+            }
+            if ("mall".equals(tradeType)) {
+                String body = invokeOrderBody("com.niu.mall.mapper.order.MallOrderMapper", tradeId);
+                if (StrUtil.isNotBlank(body)) {
+                    return body;
+                }
+                return invokeOrderGoodsBody(
+                        "com.niu.mall.mapper.order.MallOrderGoodsMapper",
+                        "com.niu.mall.entity.order.MallOrderGoods",
+                        tradeId);
+            }
+        } catch (Exception ignored) {
+            // 插件未安装或表结构差异时忽略
+        }
+        return "";
+    }
+
+    private String invokeOrderBody(String mapperClassName, Integer tradeId) throws Exception {
+        Object mapper = SpringContext.bean(Class.forName(mapperClassName));
+        if (!(mapper instanceof com.baomidou.mybatisplus.core.mapper.BaseMapper<?> baseMapper)) {
+            return "";
+        }
+        Object order = baseMapper.selectById(tradeId);
+        if (order == null) {
+            return "";
+        }
+        Object body = order.getClass().getMethod("getBody").invoke(order);
+        return body == null ? "" : String.valueOf(body);
+    }
+
+    @SuppressWarnings("unchecked")
+    private String invokeOrderGoodsBody(String mapperClassName, String entityClassName, Integer tradeId) throws Exception {
+        Object mapper = SpringContext.bean(Class.forName(mapperClassName));
+        if (!(mapper instanceof com.baomidou.mybatisplus.core.mapper.BaseMapper<?> baseMapper)) {
+            return "";
+        }
+        Class<?> entityClass = Class.forName(entityClassName);
+        QueryWrapper<?> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("order_id", tradeId);
+        List<?> goodsList = baseMapper.selectList((com.baomidou.mybatisplus.core.conditions.Wrapper) queryWrapper);
+        if (ObjectUtil.isEmpty(goodsList)) {
+            return "";
+        }
+        StringBuilder body = new StringBuilder();
+        for (Object goods : goodsList) {
+            if (goods == null || !entityClass.isInstance(goods)) {
+                continue;
+            }
+            Object skuName = goods.getClass().getMethod("getSkuName").invoke(goods);
+            Object goodsName = goods.getClass().getMethod("getGoodsName").invoke(goods);
+            body.append(skuName == null ? "" : skuName).append(goodsName == null ? "" : goodsName);
+        }
+        return body.toString();
     }
 
     @Override

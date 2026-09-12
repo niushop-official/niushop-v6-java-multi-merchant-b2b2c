@@ -3,6 +3,7 @@ package com.niu.core.service.admin.shop.vo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import java.io.Serializable;
+import java.util.Map;
 
 import com.niu.core.enums.shop.ShopApplyEnum;
 import lombok.Data;
@@ -40,25 +41,26 @@ public class SiteShopApplyInfoVo implements Serializable {
     /** 店铺分类名称 */
     private String categoryName;
 
-
-    /** 店铺套餐id */
-    private Integer groupId;
-
-    private String groupName;
+    // v120 迁移后移除：site_apply 表不再有 group_id 字段
+    // /** 店铺套餐id */
+    // private Integer groupId;
+    //
+    // private String groupName;
 
     /** 申请会员 */
     private Integer memberId;
 
+    /** 会员昵称 */
     private String nickname;
+
+    /** 用户账号 */
+    private String username;
 
     /** 开店状态（1待开店，2已开店） */
     private Integer openStatus;
 
     /** 拒绝原因 */
     private String refuseReason;
-
-    /** 开店店铺id */
-    private Integer siteId;
 
     /** 商户名称 */
     private String siteName;
@@ -73,11 +75,26 @@ public class SiteShopApplyInfoVo implements Serializable {
     /** 用户姓名 */
     private String userName;
 
-    /** 用户账号 */
-    private String Account;
+    /** 店铺用户id */
+    private Integer uid;
 
-    /** 登录密码 */
-    private String password;
+    /** 子级行业id */
+    private Integer childCategoryId;
+
+    /** 子级行业名称 */
+    private String childCategoryName;
+
+    /** 申请方式 */
+    private String applyType;
+
+    /** 商圈id */
+    private Integer circleId;
+
+    /** 万能表单记录id */
+    private Integer formRecordId;
+
+    /** 表单信息 */
+    private Map<String, Object> formInfo;
 
     public String getStatusName() {
         return ShopApplyEnum.getNameByStatus(status);

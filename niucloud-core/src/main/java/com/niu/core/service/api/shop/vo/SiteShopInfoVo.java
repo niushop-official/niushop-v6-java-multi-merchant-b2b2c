@@ -2,16 +2,12 @@ package com.niu.core.service.api.shop.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
-import com.niu.core.entity.addon.Addon;
-import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.enums.site.SiteStatusEnum;
-import com.niu.core.service.admin.site.vo.SiteAdminVo;
-import io.swagger.models.auth.In;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Map;
 
 /**
 * 店铺扩展表详情
@@ -137,6 +133,10 @@ public class SiteShopInfoVo implements Serializable {
 
     private MemberInfo memberInfo;
     private BigDecimal distance;
+
+    /** 店铺二维码配置 */
+    private Map<String, Object> qrcodeShopConfig;
+
     public String getStatusName() {
         return SiteStatusEnum.getNameByCode(this.status);
     }

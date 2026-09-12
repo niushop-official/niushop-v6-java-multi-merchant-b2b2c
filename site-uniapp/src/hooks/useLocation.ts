@@ -1,5 +1,5 @@
 import { onLoad } from '@dcloudio/uni-app';
-import { isWeixinBrowser } from '@/utils/common';
+import { isWeixinBrowser, openMapSelector } from '@/utils/common';
 import { getAddressByLatlng } from '@/app/api/system';
 import manifestJson from '@/manifest.json';
 import wechat from '@/utils/wechat'
@@ -139,7 +139,7 @@ export function useLocation(isOpenLocation: any) {
 
 
     // 打开地图重新选择位置
-    const reposition = () => {
+    const reposition = (url: any = '') => {
         if (!isOpen) return false;
 
         let latitude = systemStore.diyAddressInfo ? systemStore.diyAddressInfo.latitude : '';
@@ -173,8 +173,17 @@ export function useLocation(isOpenLocation: any) {
 
         // #ifdef H5
         uni.setStorageSync('manually_select_location_from_map', true)
-        let backurl = location.origin + location.pathname;
-        window.location.href = 'https://apis.map.qq.com/tools/locpicker?search=1&type=0&backurl=' + encodeURIComponent(backurl) + '&key=' + manifestJson.h5.sdkConfigs.maps.qqmap.key + '&referer=myapp';
+        let backurl = ''
+        if(url) {
+            backurl = location.origin + '/wap' + url;
+        } else {
+            location.origin + location.pathname;
+        }
+        let params = ''
+        if (latitude && longitude) {
+            params = `latng=${ latitude },${ longitude }`
+        }
+        openMapSelector(backurl, params);
         // #endif
     }
 

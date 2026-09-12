@@ -6,6 +6,7 @@ import com.niu.core.service.api.delivery.IConfigService;
 import com.niu.core.service.api.delivery.IOrderService;
 import com.niu.core.service.api.delivery.param.OrderServiceParam;
 import com.niu.core.service.api.delivery.param.TrackOfLocalServiceParam;
+import com.niu.core.service.api.delivery.vo.RiderLocationVo;
 import com.niu.core.service.api.delivery.vo.TrackOfLocalServiceVo;
 import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
 import jakarta.annotation.Resource;
@@ -13,7 +14,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 配送方式控制器
+ * 配送相关接口
+ * 对应 PHP: basic 路由下 delivery.Config / delivery.Order
  */
 @RestController
 @RequestMapping("api/basic/delivery")
@@ -25,7 +27,7 @@ public class DeliveryController {
     IOrderService orderService;
 
     /**
-     * 获取接口配置
+     * 配送通用配置（对齐 PHP Config@getConfig）
      */
     @GetMapping("/config")
     public Result<Object> getAdminDeliveryConfig() {
@@ -33,8 +35,7 @@ public class DeliveryController {
     }
 
     /**
-     * 获取配送方式
-     * @return Result
+     * 配送类型（对齐 PHP Config@getDeliveryType）
      */
     @GetMapping("/delivery_type")
     public Result<Object> getDeliveryType() {
@@ -42,8 +43,7 @@ public class DeliveryController {
     }
 
     /**
-     * 获取配送方式
-     * @return Result
+     * 同城配送配置（对齐 PHP Config@getLocalDeliveryConfig）
      */
     @GetMapping("/local")
     public Result<Object> getLocal(@Validated @RequestParam("site_id") Integer id) {
@@ -51,8 +51,7 @@ public class DeliveryController {
     }
 
     /**
-     * 获取配送轨迹
-     * @return Result
+     * 获取配送轨迹（扩展接口）
      */
     @GetMapping("/track")
     public Result<Object> getDeliveryTrack(@Validated OrderServiceParam param) {
@@ -60,12 +59,19 @@ public class DeliveryController {
     }
 
     /**
-     * 获取同城配送轨迹
-     * @return Result
+     * 同城配送轨迹（对齐 PHP Order@getTrackOfLocalDeliveryOrder）
      */
     @GetMapping("/track_of_local")
-    public Result<Object> getDeliveryTrackOfLocal(@Validated TrackOfLocalServiceParam param) {
+    public Result<TrackOfLocalServiceVo> getDeliveryTrackOfLocal(@Validated TrackOfLocalServiceParam param) {
         return Result.success(orderService.getTrackOfLocalDeliveryOrder(param));
+    }
+
+    /**
+     * 骑手位置（对齐 PHP Order@getRiderLocation）
+     */
+    @GetMapping("/rider_location")
+    public Result<RiderLocationVo> getRiderLocation(@Validated TrackOfLocalServiceParam param) {
+        return Result.success(orderService.getRiderLocation(param));
     }
 
 }

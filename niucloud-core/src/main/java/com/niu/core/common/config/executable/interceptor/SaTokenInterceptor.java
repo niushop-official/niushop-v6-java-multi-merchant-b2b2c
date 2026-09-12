@@ -47,12 +47,14 @@ public class SaTokenInterceptor extends SaInterceptor {
             return true;
         }
         /** 执行授权，验证token操作，通过返回true，不通过返回false */
-        try{
+        try {
             boolean checkToken = super.preHandle(request, response, handler);
-            if(!checkToken){
+            if (!checkToken) {
                 throw new AuthException("MUST_LOGIN", 401);
             }
-        }catch (Exception e){
+        } catch (AuthException e) {
+            throw e;
+        } catch (Exception e) {
             throw new AuthException("MUST_LOGIN", 401);
         }
 

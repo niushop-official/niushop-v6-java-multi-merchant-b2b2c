@@ -2,6 +2,8 @@ package com.niu.core.service.core.local_delivery.param;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class LocalDeliveryOrderCreateSave {
 
@@ -34,4 +36,7 @@ public class LocalDeliveryOrderCreateSave {
     private String deliveryEndLat;
 
     private String body;
+
+    /** Customer-facing delivery fee carried by the originating order. */
+    private BigDecimal deliveryMoney;
 }

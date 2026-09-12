@@ -1,0 +1,23 @@
+{
+    "deductRule": "抵扣规则",
+    "canDeduct": "积分可抵",
+    "maxUsePointGreaterThanBase": "单笔最大可用积分非0时必须大于积分抵扣基数",
+    "pointDeductRule": "积分抵扣",
+    "isUse": "积分抵扣功能",
+    "pointUnit": "积分",
+    "deductPointBaseTip": "例：输入10表示10积分可抵扣指定金额，仅支持正整数",
+    "moneyUnit": "元",
+    "deductAmountTip": "例：输入1表示上述基数积分可抵扣1元，支持最多两位小数",
+    "maxUsePoint": "单笔最大可用积分",
+    "maxUsePointTip": "输入0表示不限制单笔使用积分数量，仅支持非负整数",
+    "ruleExplain": "抵扣规则说明",
+    "save": "保存配置",
+    "deductPointBaseRequired": "请输入积分抵扣基数",
+    "deductPointBaseFormat": "积分抵扣基数仅支持1-5位正整数",
+    "deductPointBaseMin": "积分抵扣基数不能小于1",
+    "deductAmountRequired": "请输入可抵扣金额",
+    "deductAmountFormat": "可抵扣金额仅支持最多两位小数的正数",
+    "deductAmountMin": "可抵扣金额必须大于0",
+    "maxUsePointFormat": "单笔最大可用积分仅支持非负整数",
+    "deductMoney": "积分抵用金额："
+}

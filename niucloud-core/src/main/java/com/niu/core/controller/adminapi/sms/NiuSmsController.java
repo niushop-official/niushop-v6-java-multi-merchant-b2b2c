@@ -295,8 +295,7 @@ public class NiuSmsController {
     @Description("模版同步")
     @GetMapping("/template/sync/{smsType}/{username}")
     public Result<?> templateSync(@PathVariable("smsType") String smsType, @PathVariable("username") String username) {
-        nuiSmsService.templateSync(username, smsType);
-        return Result.success();
+        return Result.success(nuiSmsService.templateSync(username, smsType));
     }
 
     /**

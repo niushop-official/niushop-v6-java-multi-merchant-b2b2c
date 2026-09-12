@@ -1,6 +1,5 @@
 package com.niu.core.service.admin.auth.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
@@ -19,28 +18,35 @@ import com.niu.core.entity.sys.SysUser;
 import com.niu.core.entity.sys.SysUserRole;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.enums.sys.AppTypeEnum;
+import com.niu.core.enums.sys.CacheTagEnum;
 import com.niu.core.mapper.sys.SysUserRoleMapper;
 import com.niu.core.service.admin.auth.IAuthService;
+import com.niu.core.service.admin.auth.ILoginService;
 import com.niu.core.service.admin.auth.param.EditAuthUserParam;
 import com.niu.core.service.admin.auth.param.EditManagerPwdParam;
-import com.niu.core.service.admin.auth.vo.AuthUserInfoVo;
 import com.niu.core.service.admin.niucloud.INiucloudService;
 import com.niu.core.service.admin.niucloud.vo.AuthInfoVo;
 import com.niu.core.service.admin.site.ISiteService;
+import com.niu.core.service.admin.site.ISiteUserService;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
+import com.niu.core.service.admin.site.vo.SiteUserVo;
 import com.niu.core.service.admin.sys.ISysMenuService;
 import com.niu.core.service.admin.sys.ISysRoleService;
-import com.niu.core.service.admin.sys.ISysUserRoleService;
-import com.niu.core.service.admin.sys.ISysUserService;
-import com.niu.core.service.admin.sys.param.SysUserParam;
-import com.niu.core.service.admin.sys.vo.SysUserDetailVo;
 import com.niu.core.service.admin.sys.vo.SysUserRoleInfoVo;
 import com.niu.core.service.core.addon.ICoreAddonService;
+import com.niu.core.service.core.circle.ICoreAuthCircleUserService;
+import com.niu.core.service.core.site.ICoreSiteService;
+import com.niu.core.service.core.user.ICoreUserRoleService;
+import com.niu.core.service.core.user.ICoreUserService;
+import com.niu.core.service.core.user.param.CoreUserEditParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +59,10 @@ public class AuthServiceImpl implements IAuthService {
     ISiteService siteService;
 
     @Resource
-    ISysUserRoleService sysUserRoleService;
+    ISiteUserService siteUserService;
+
+    @Resource
+    ICoreUserRoleService coreUserRoleService;
 
     @Resource
     ISysMenuService sysMenuService;
@@ -65,7 +74,10 @@ public class AuthServiceImpl implements IAuthService {
     ISysRoleService sysRoleService;
 
     @Resource
-    ISysUserService sysUserService;
+    ICoreSiteService coreSiteService;
+
+    @Resource
+    ICoreUserService coreUserService;
 
     @Resource
     ICoreAddonService coreAddonService;
@@ -76,6 +88,13 @@ public class AuthServiceImpl implements IAuthService {
     @Resource
     INiucloudService niucloudService;
 
+    @Lazy
+    @Resource
+    ILoginService loginService;
+
+    @Autowired(required = false)
+    private ICoreAuthCircleUserService coreAuthCircleUserService;
+
     /**
      * 校验用户和传入站点是否存在从属关系
      *
@@ -83,27 +102,42 @@ public class AuthServiceImpl implements IAuthService {
      */
     @Override
     public void checkSiteAuth(HttpServletRequest request) {
-
         Integer uid = RequestUtils.uid();
-
-        //设置当前操作站点id
         Integer siteId = RequestUtils.adminSiteId();
-        RequestUtils.setSiteId(siteId);
-
         //缓存站点信息数据
-        SiteInfoVo siteinfo = siteService.info(siteId);
+        SiteInfoVo siteInfo = coreSiteService.getSiteCache(siteId);
         //站点不存在 抛出异常
-        if (siteinfo == null) {
-            throw new AuthException("SITE_NOT_EXIST", 400);
+        if (siteInfo == null) {
+            loginService.clearToken(uid, RequestUtils.appType(), null);
+            clearSiteAuthCache(siteId);
+            throw new AuthException("SITE_NOT_EXIST", 403);
+        }
+        if (AppTypeEnum.CIRCLE.getName().equals(RequestUtils.appType())) {
+            if (coreAddonService.getInfoByKey("circle") == null) {
+                throw new AuthException("ADDON_IS_NOT_EXIST", 403);
+            }
+            Integer circleId = RequestUtils.circleId();
+            if (circleId != null && circleId > 0) {
+                RequestUtils.setCircleIds(List.of(circleId));
+            } else if (coreAuthCircleUserService != null) {
+                Integer defaultCircleId = coreAuthCircleUserService.getCircleId();
+                if (defaultCircleId != null && defaultCircleId > 0) {
+                    RequestUtils.setCircleIds(List.of(defaultCircleId));
+                }
+            }
+            return;
         }
         //没有当前站点的信息
-        if (!isSuperAdmin() && ObjectUtil.isNotNull(uid) && uid > 0) {
-            SysUserRoleInfoVo sysUserRoleInfoVo = sysUserRoleService.getUserRole(siteId, uid);
-            if (sysUserRoleInfoVo == null) {
-                throw new AuthException("您没有当前店铺的访问权限", 400);
+        if (!isSuperAdmin()  && ObjectUtil.isNotNull(uid) && uid > 0) {
+            if (getAuthRole(siteId) == null) {
+                loginService.clearToken(uid, RequestUtils.appType(), null);
+                clearSiteAuthCache(siteId);
+                throw new AuthException("NO_SITE_PERMISSION", 403);
             }
         }
-        RequestUtils.setAppType(siteinfo.getAppType());
+        //设置当前操作站点id
+        RequestUtils.setSiteId(siteId);
+        RequestUtils.setAppType(siteInfo.getAppType());
     }
 
     /**
@@ -132,38 +166,43 @@ public class AuthServiceImpl implements IAuthService {
      */
     @Override
     public void checkRole(HttpServletRequest request) {
-        //当前访问的路由地址
-        String rule = RequestUtils.getReqeustURI();
-        String method = RequestUtils.getRequestMethod();
+        checkAuthInfo(request);
+
+        String rule = RequestUtils.getReqeustURI().toLowerCase().trim();
+        String method = RequestUtils.getRequestMethod().toLowerCase().trim();
 
         //缓存站点信息数据
-        SiteInfoVo siteinfo = siteService.info(RequestUtils.siteId());
-        if (!method.equals("get")) {
-            if (siteinfo.getStatus().equals(SiteStatusEnum.EXPIRE.getCode())) {
-                throw new AuthException("站点已打烊，续费后可继续使用此项功能", 400);
+        SiteInfoVo siteInfo = siteService.info(RequestUtils.siteId());
+        if (!"get".equals(method)) {
+            if (SiteStatusEnum.EXPIRE.getCode().equals(siteInfo.getStatus())) {
+                throw new AuthException("SITE_EXPIRE_NOT_ALLOW");
             }
-            if (siteinfo.getStatus().equals(SiteStatusEnum.CLOSE.getCode())) {
-                throw new AuthException("站点已停止", 400);
+            if (SiteStatusEnum.CLOSE.getCode().equals(siteInfo.getStatus())) {
+                throw new AuthException("SITE_CLOSE_NOT_ALLOW");
             }
         }
 
+        // 获取当前appType的全部受控接口清单（对齐 PHP MenuService::getAllApiList）
         Map<String, List<String>> allMenuList = sysMenuService.getAllApiList(RequestUtils.appType(), 100);
-        List<String> menulist = allMenuList.get(method);
-        int is_exists = menulist.indexOf(rule);
+        List<String> methodMenuList = allMenuList.getOrDefault(method, Collections.emptyList());
 
-        //判断当前访问的接口是否收到权限的限制
-        if (is_exists < 0) {
-            Map<String, List<String>> otherMenuList = sysMenuService.getAllApiList(RequestUtils.appType().equals(AppTypeEnum.ADMIN.getName()) ? AppTypeEnum.SITE.getName() : AppTypeEnum.ADMIN.getName(), 100);
-            List<String> methodMenuList = otherMenuList.get(method);
-            int is_method_exists = methodMenuList.indexOf(rule);
-            if (is_method_exists > 0) {
-                throw new AuthException("NO_PERMISSION", 400);
-            }
+        if(rule.startsWith("/adminapi")) {
+            rule = rule.substring(9);
         }
+        if(rule.startsWith("/")) {
+            rule = rule.substring(1);
+        }
+        // 第一步：判断当前接口是否受权限控制。不在受控列表中则直接放行（对齐 PHP 逻辑）
+        if (!methodMenuList.contains(rule)) {
+            return;
+        }
+
+        // 第二步：接口受控，校验当前角色是否拥有该接口权限
         Map<String, List<String>> roleMenuList = this.getAuthApiList();
-        /*if(roleMenuList.get(method).size()<=0 || roleMenuList.get(method).indexOf(rule)<=0){
-            throw new AuthException("NO_PERMISSION");
-        }*/
+        List<String> authList = roleMenuList.getOrDefault(method, Collections.emptyList());
+        if (!authList.contains(rule)) {
+            throw new AuthException("NO_PERMISSION", 400);
+        }
 
     }
 
@@ -198,6 +237,11 @@ public class AuthServiceImpl implements IAuthService {
         return !(domain.startsWith("localhost") || domain.startsWith("127.0.0.1"));
     }
 
+    private void clearSiteAuthCache(Integer siteId) {
+        cached.tag("site_cash" + siteId).clear();
+        cached.tag(CacheTagEnum.ADDON_CACHE.getTagName()).clear();
+        cached.tag(CacheTagEnum.MENU_CACHE.getTagName()).clear();
+    }
     /**
      * 当前授权用户接口权限
      *
@@ -207,21 +251,26 @@ public class AuthServiceImpl implements IAuthService {
     public Map<String, List<String>> getAuthApiList() {
         Integer isAdmin = 0;
         Integer siteId = RequestUtils.siteId();
-        Integer uid = RequestUtils.uid();
         String appType = RequestUtils.appType();
         Map<String, List<String>> authApi = new HashMap<>();
         SysUserRoleInfoVo sysUserRoleInfoVo = new SysUserRoleInfoVo();
-        if (isSuperAdmin()) {
+        if (AppTypeEnum.CIRCLE.getName().equals(appType)) {
+            isAdmin = 1;
+        } else if (isSuperAdmin()) {
             isAdmin = 1;
         } else {
-            sysUserRoleInfoVo = sysUserRoleService.getUserRole(siteId, uid);
+            sysUserRoleInfoVo = getAuthRole(siteId);
             if (ObjectUtil.isNull(sysUserRoleInfoVo)) {
                 return authApi;
             }
             isAdmin = sysUserRoleInfoVo.getIsAdmin();//是否是超级管理员
         }
         if (isAdmin > 0) {
-            authApi = siteService.getSiteApiList(siteId, 1);
+            if (AppTypeEnum.CIRCLE.getName().equals(appType)) {
+                authApi = sysMenuService.getAllApiList(appType, 1);
+            } else {
+                authApi = siteService.getSiteApiList(siteId, 1);
+            }
         } else {
             List<String> roleIdList = JSONUtil.toList(JSONUtil.parseArray(sysUserRoleInfoVo.getRoleIds()), String.class);
             List<String> menuKeyList = sysRoleService.getMenuIdsByRoleIds(siteId, roleIdList);
@@ -241,15 +290,13 @@ public class AuthServiceImpl implements IAuthService {
     public JSONArray getAuthMenuTreeList(String addon) {
         Integer isAdmin = 0;
         Integer siteId = RequestUtils.siteId();
-        Integer uid = RequestUtils.uid();
         String appType = RequestUtils.appType();
-        Map<String, List<String>> authApi = new HashMap<>();
         SysUserRoleInfoVo sysUserRoleInfoVo = new SysUserRoleInfoVo();
         List<SysMenu> menuList = new ArrayList<>();
         if (isSuperAdmin()) {
             isAdmin = 1;
         } else {
-            sysUserRoleInfoVo = sysUserRoleService.getUserRole(siteId, uid);
+            sysUserRoleInfoVo = getAuthRole(siteId);
             if (ObjectUtil.isNull(sysUserRoleInfoVo)) {
                 return new JSONArray();
             }
@@ -271,15 +318,15 @@ public class AuthServiceImpl implements IAuthService {
     public JSONArray getAdminAuthMenuList(Boolean isTree, String addon) {
         Integer isAdmin = 0;
         Integer siteId = RequestUtils.siteId();
-        Integer uid = RequestUtils.uid();
         String appType = RequestUtils.appType();
-        Map<String, List<String>> authApi = new HashMap<>();
         SysUserRoleInfoVo sysUserRoleInfoVo = new SysUserRoleInfoVo();
         List<SysMenu> menuList = new ArrayList<>();
-        if (isSuperAdmin()) {
+        if (AppTypeEnum.CIRCLE.getName().equals(appType)) {
+            isAdmin = 1;
+        } else if (isSuperAdmin()) {
             isAdmin = 1;
         } else {
-            sysUserRoleInfoVo = sysUserRoleService.getUserRole(siteId, uid);
+            sysUserRoleInfoVo = getAuthRole(siteId);
             if (ObjectUtil.isNull(sysUserRoleInfoVo)) {
                 return new JSONArray();
             }
@@ -297,20 +344,17 @@ public class AuthServiceImpl implements IAuthService {
         return TreeUtils.listToTree(jsonArray, "menu_key", "parent_key", "children");
     }
 
-
     @Override
     public JSONArray getSiteAuthMenuList(Boolean isTree, String addon) {
         Integer isAdmin = 0;
         Integer siteId = RequestUtils.siteId();
-        Integer uid = RequestUtils.uid();
         String appType = RequestUtils.appType();
-        Map<String, List<String>> authApi = new HashMap<>();
         SysUserRoleInfoVo sysUserRoleInfoVo = new SysUserRoleInfoVo();
         List<SysMenu> menuList = new ArrayList<>();
         if (isSuperAdmin()) {
             isAdmin = 1;
         } else {
-            sysUserRoleInfoVo = sysUserRoleService.getUserRole(siteId, uid);
+            sysUserRoleInfoVo = getAuthRole(siteId);
             if (ObjectUtil.isNull(sysUserRoleInfoVo)) {
                 return new JSONArray();
             }
@@ -340,27 +384,13 @@ public class AuthServiceImpl implements IAuthService {
      * @return
      */
     @Override
-    public AuthUserInfoVo getAuthUserInfo() {
-        Integer uid = RequestUtils.uid();
-        SysUserDetailVo userInfo = sysUserService.info(uid);
-        if (userInfo == null) return null;
+    public SiteUserVo getAuthUserInfo() {
+        return siteUserService.getInfo(RequestUtils.uid());
+    }
 
-        AuthUserInfoVo vo = new AuthUserInfoVo();
-        BeanUtil.copyProperties(userInfo, vo);
-        return vo;
-//        MPJQueryWrapper<SysUserRole> userRoleMPJQueryWrapper = new MPJQueryWrapper<>();
-//        userRoleMPJQueryWrapper.select("sur.id, su.username, su.head_img, su.real_name, su.last_ip, su.last_time, su.login_count, sur.uid, sur.site_id, sur.role_ids, sur.create_time, sur.is_admin, sur.status")
-//                .setAlias("sur")
-//                .leftJoin("?_sys_user su ON sur.uid = su.uid".replace("?_", GlobalConfig.tablePrefix));
-//        userRoleMPJQueryWrapper.eq("sur.uid", uid);
-//        userRoleMPJQueryWrapper.eq("sur.site_id", siteId);
-//        AuthUserInfoVo authUserInfoVo = sysUserRoleMapper.selectJoinOne(AuthUserInfoVo.class, userRoleMPJQueryWrapper);
-//        if(ObjectUtil.isNotNull(authUserInfoVo))
-//        {
-//            authUserInfoVo.setStatusName("");
-//        }
-//
-//        return authUserInfoVo;
+    @Override
+    public void modifyAuth(String field, String value) {
+        siteUserService.modify(RequestUtils.uid(), field, value);
     }
 
     /**
@@ -371,51 +401,48 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public void editAuth(EditAuthUserParam editAuthUserParam) {
         if (ObjectUtil.isNotNull(editAuthUserParam.getPassword()) && ObjectUtil.isNotEmpty(editAuthUserParam.getPassword())) {
-            SysUser sysUser = sysUserService.find(RequestUtils.uid());
+            SysUser sysUser = coreUserService.find(RequestUtils.uid());
             if (!PasswordEncipher.matche(editAuthUserParam.getOriginalPassword(), sysUser.getPassword())) {
-                throw new AuthException("OLD_PASSWORD_ERROR");
+                throw new AuthException("原始密码不正确");
             }
         }
-        SysUserParam sysUserParam = new SysUserParam();
-        sysUserParam.setHeadImg(editAuthUserParam.getHeadImg());
-        sysUserParam.setRealName(editAuthUserParam.getRealName());
-        sysUserParam.setPassword(editAuthUserParam.getPassword());
-        sysUserService.edit(RequestUtils.uid(), sysUserParam);
+        CoreUserEditParam editParam = new CoreUserEditParam();
+        editParam.setHeadImg(editAuthUserParam.getHeadImg());
+        editParam.setRealName(editAuthUserParam.getRealName());
+        editParam.setPassword(editAuthUserParam.getPassword());
+        coreUserService.edit(RequestUtils.uid(), editParam);
     }
 
+    /**
+     * 修改站点管理员密码
+     */
     @Override
     public void sitePassword(EditManagerPwdParam param) {
-        Integer uid = sysUserRoleService.getSiteManagerUid(param.getId());
-        if (uid == null){
-            throw new AuthException("站点管理员不存在");
+        Integer uid = coreUserRoleService.getSiteManagerUid(param.getId());
+        if (uid == null) {
+            throw new AuthException("SITE_MANAGER_NOT_EXIST");
         }
-        if (param.getPassword().isEmpty()){
-            throw new AuthException("密码不能为空");
+        if (ObjectUtil.isEmpty(param.getPassword())) {
+            throw new AuthException("PASSWORD_EMPTY");
         }
-        if (param.getConfirmPassword().isEmpty()){
-            throw  new AuthException("确认密码不能为空");
+        if (ObjectUtil.isEmpty(param.getConfirmPassword())) {
+            throw new AuthException("CONFIRM_PASSWORD_EMPTY");
         }
-        if (!param.getPassword().equals(param.getConfirmPassword())){
-            throw new AuthException("两次密码输入不一致");
+        if (!param.getPassword().equals(param.getConfirmPassword())) {
+            throw new AuthException("THE_TWO_PASSWORD_INPUTS_INCONSISTENT");
         }
-        SysUserParam sysUserParam = new SysUserParam();
-        sysUserParam.setPassword(param.getPassword());
-        sysUserParam.setUid(uid);
-        sysUserService.edit(uid,sysUserParam);
+        CoreUserEditParam editParam = new CoreUserEditParam();
+        editParam.setPassword(param.getPassword());
+        coreUserService.edit(uid, editParam);
     }
-
-
 
     @Override
     public JSONArray getAdminAuthMenuList(Boolean isTree, Integer status, String addon, Integer isButton) {
-        Integer siteId = RequestUtils.siteId();
-        
-        return siteService.getAdminMenuList(siteId, isTree, status, addon, isButton);
+        return siteService.getAdminMenuList(RequestUtils.siteId(), isTree, status, addon, isButton);
     }
 
     @Override
     public SysUserRoleInfoVo getAuthRole(Integer siteId) {
-        SysUserRoleInfoVo userRole = sysUserRoleService.getUserRole(siteId, RequestUtils.uid());
-        return userRole;
+        return coreUserRoleService.getUserRole(siteId, RequestUtils.uid());
     }
 }

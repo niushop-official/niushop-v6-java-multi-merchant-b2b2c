@@ -1,0 +1,5 @@
+{
+  "type": "mall",
+  "goods_detail_path": "/addon/mall/pages/goods/detail",
+  "order_detail_path": "/mall/order/detail"
+}

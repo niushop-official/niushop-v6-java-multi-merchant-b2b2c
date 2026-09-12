@@ -27,4 +27,7 @@ public class GoodsCategoryParam implements Serializable {
     @NotNull(message = "sort参数缺失")
     private Integer sort = 0;
 
+    /** 所属应用；有值直接使用，否则取商户站点 app */
+    private String addon;
+
 }

@@ -36,9 +36,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
@@ -51,14 +48,21 @@ class CoreApplicationRunner implements ApplicationListener<ApplicationReadyEvent
 
     @Override
     public void onApplicationEvent(@Nonnull ApplicationReadyEvent event) {
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         int delaySeconds = 30; // 延迟是为了解决【mybatis-plus-join】的初始化bug
 
         boolean isDev = GlobalConfig.runActive.equalsIgnoreCase("dev");
         String env = isDev ? "开发" : "生产";
-        log.info("{}环境下装载模块开始.", env);
+        log.info("{}环境下装载模块开始（{}秒后执行）.", env, delaySeconds);
 
-        executorService.schedule(() -> {
+        new Thread(() -> {
+            try {
+                Thread.sleep(delaySeconds * 1000L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("模块装载被中断");
+                return;
+            }
+
             Map<String, String> addonEnvsMap;
             if (isDev) {
                 // 初始化已安装的插件
@@ -73,19 +77,24 @@ class CoreApplicationRunner implements ApplicationListener<ApplicationReadyEvent
             // 初始化国际化文件
             AddonModuleBundleMessageSource.init();
 
-            // 业务资源初始化
-            List<? extends Class<?>> list = scanner()
-                    .findCandidateComponents("com.niu")
-                    .stream()
-                    .map(bd -> {
-                        try {
-                            return ClassLoaderUtil.loadClass(bd.getBeanClassName());
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .toList();
-            initialize(list);
+            try {
+                // 业务资源初始化
+                List<? extends Class<?>> list = scanner()
+                        .findCandidateComponents("com.niu")
+                        .stream()
+                        .map(bd -> {
+                            try {
+                                return ClassLoaderUtil.loadClass(bd.getBeanClassName());
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                        .toList();
+                initialize(list);
+            } catch (Exception e) {
+                log.error("模块初始化失败（管道命令处理将继续执行）: {}", e.getMessage());
+                e.printStackTrace();
+            }
 
             if (!isDev) {
                 // 从管道中获取命令
@@ -94,9 +103,7 @@ class CoreApplicationRunner implements ApplicationListener<ApplicationReadyEvent
 
             // 钩子输出
             System.out.println("Service started successfully.");
-        }, delaySeconds, TimeUnit.SECONDS);
-
-        executorService.shutdown();
+        }, "module-init-thread").start();
     }
 
     /**

@@ -26,20 +26,20 @@ import com.niu.core.service.admin.article.IArticleService;
 import com.niu.core.service.admin.article.param.ArticeSearchParam;
 import com.niu.core.service.admin.article.vo.ArticleInfoVo;
 import com.niu.core.service.admin.article.vo.ArticleListVo;
-import com.niu.core.service.admin.shop.ISiteShopCategoryService;
 import com.niu.core.service.admin.shop.ISiteShopService;
-import com.niu.core.service.admin.shop.vo.SiteShopCategoryInfoVo;
 import com.niu.core.service.admin.shop.vo.SiteShopInShopVo;
 import com.niu.core.service.admin.site.ISiteService;
+import com.niu.core.service.admin.site.vo.SiteCategoryInfoVo;
 import com.niu.core.service.admin.site.vo.SiteInfoVo;
+import com.niu.core.service.core.site.ICoreSiteCategoryService;
 import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.core.sys.ICoreUploadService;
 import com.niu.mall.entity.active.MallActive;
-import com.niu.mall.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsStat;
 import com.niu.mall.enums.active.ActiveClassEnum;
 import com.niu.mall.mapper.active.MallActiveMapper;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.goods.MallGoodsStatMapper;
 import com.niu.mall.service.core.shop.ICoreStatService;
 import com.niu.mall.service.core.shop.vo.StatDataVo;
@@ -77,7 +77,7 @@ public class MallStatServiceImpl implements IMallStatService {
     ISiteShopService siteShopService;
 
     @Resource
-    ISiteShopCategoryService siteShopCategoryService;
+    ICoreSiteCategoryService siteCategoryService;
     @Resource
     ICoreUploadService coreUploadService;
 
@@ -181,7 +181,7 @@ public class MallStatServiceImpl implements IMallStatService {
         list.add(vo4);
 
         Integer siteId = RequestUtils.siteId();
-        Long diyCount = diyPageMapper.selectCount(new QueryWrapper<DiyPage>().eq("site_id", siteId).eq("name","DIY_SITE_INDEX").eq("is_default",1));
+        Long diyCount = diyPageMapper.selectCount(new QueryWrapper<DiyPage>().eq("site_id", siteId).eq("name","DIY_MALL_SITE_INDEX").eq("is_default",1));
         Long goodsCount = mallGoodsMapper.selectCount(new QueryWrapper<MallGoods>().eq("site_id", siteId));
         Long shopAddressCount = siteAddressMapper.selectCount(new QueryWrapper<SiteAddress>().eq("site_id", siteId));
         Long templateCount = deliveryShippingTemplateMapper.selectCount(new QueryWrapper<DeliveryShippingTemplate>().eq("site_id", siteId));
@@ -277,8 +277,10 @@ public class MallStatServiceImpl implements IMallStatService {
         //站点和分类关联信息
         SiteShopInShopVo siteShopInShopVo = siteShopService.getShopAccountInfo(siteInfoVo.getSiteId());
         //分类信息
-        SiteShopCategoryInfoVo siteShopCategoryInfoVo = siteShopCategoryService.info(siteShopInShopVo.getCategoryId());
-
+        SiteCategoryInfoVo siteCategoryInfoVo = null;
+        if (ObjectUtil.isNotEmpty(siteShopInShopVo.getCategoryId()) && siteShopInShopVo.getCategoryId() > 0) {
+            siteCategoryInfoVo = siteCategoryService.info(siteShopInShopVo.getCategoryId());
+        }
 
         ShopStatVo result = new ShopStatVo();
         result.setCreateTime(siteInfoVo.getCreateTime());
@@ -292,8 +294,10 @@ public class MallStatServiceImpl implements IMallStatService {
         result.setStatusName(siteInfoVo.getStatusName());
 
         ShopStatVo.categoryName categoryName = new ShopStatVo.categoryName();
-        categoryName.setCategoryId(siteShopCategoryInfoVo.getCategoryId());
-        categoryName.setCategoryName(siteShopCategoryInfoVo.getCategoryName());
+        if (siteCategoryInfoVo != null) {
+            categoryName.setCategoryId(siteCategoryInfoVo.getCategoryId());
+            categoryName.setCategoryName(siteCategoryInfoVo.getName());
+        }
         result.setCategoryName(categoryName);
 
         return result;
@@ -313,38 +317,62 @@ public class MallStatServiceImpl implements IMallStatService {
 
     /**
      * 获取商品排行榜
-     * 516
      * @param startTime
      * @param endTime
      * @return
      */
     @Override
-    public List<GoodsRankVo> getGoodsRank( Long startTime, Long endTime) {
+    public List<GoodsRankVo> getGoodsRank(Long startTime, Long endTime) {
+        return getGoodsRank(startTime, endTime, "sale_num", "desc");
+    }
+
+    @Override
+    public List<GoodsRankVo> getGoodsRank(Long startTime, Long endTime, String order, String sort) {
         MPJQueryWrapper<MallGoodsStat> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("gs")
                 .innerJoin("?_mall_goods g ON gs.goods_id = g.goods_id ".replace("?_", GlobalConfig.tablePrefix));
         queryWrapper.select("gs.goods_id,sum(gs.sale_num) as sale_num,sum(gs.pay_money) as pay_money");
         queryWrapper.select("g.goods_name,g.goods_cover");
         queryWrapper.eq("gs.site_id", RequestUtils.siteId());
-        if(startTime.intValue() > 0 && endTime.intValue() > 0){
+        if (startTime != null && startTime > 0 && endTime != null && endTime > 0) {
             queryWrapper.ge("gs.date_time", startTime);
-            queryWrapper.le("gs.date_time", startTime);
-        }else if(startTime.intValue() > 0){
+            queryWrapper.le("gs.date_time", endTime);
+        } else if (startTime != null && startTime > 0) {
             queryWrapper.eq("gs.date_time", startTime);
         }
-        if(startTime.intValue() <= 0 && endTime.intValue() <= 0){
+        if ((startTime == null || startTime <= 0) && (endTime == null || endTime <= 0)) {
             queryWrapper.gt("gs.date_time", 0);
         }
         queryWrapper.groupBy("gs.goods_id");
-        queryWrapper.orderByDesc("sum(gs.sale_num)");
+        // 对齐 PHP：order 仅允许 sale_num / pay_money
+        String orderField = "sale_num".equals(order) || "pay_money".equals(order) ? order : "sale_num";
+        boolean asc = "asc".equalsIgnoreCase(sort);
+        queryWrapper.orderBy(true, asc, "sum(gs." + orderField + ")");
         queryWrapper.last("limit 5");
-        List<GoodsRankVo> list = mallGoodsStatMapper.selectJoinList(GoodsRankVo.class,queryWrapper);
+        List<GoodsRankVo> list = mallGoodsStatMapper.selectJoinList(GoodsRankVo.class, queryWrapper);
+        List<GoodsRankVo> result = new ArrayList<>();
         for (GoodsRankVo item : list) {
+            if (item == null || item.getGoodsId() == null) {
+                continue;
+            }
             GoodsRankVo.goods goods = new GoodsRankVo.goods();
-            BeanUtils.copyProperties(item, goods);
+            goods.setGoodsId(item.getGoodsId());
+            goods.setGoodsName(item.getGoodsName());
+            goods.setGoodsCover(item.getGoodsCover());
+            // 对齐 PHP append goods_cover_thumb_small，供首页排行榜 img() 使用
+            String cover = ObjectUtil.defaultIfNull(item.getGoodsCover(), "");
+            String thumbSmall = "";
+            if (StringUtils.isNotEmpty(cover)) {
+                thumbSmall = ObjectUtil.defaultIfNull(
+                        coreUploadService.thumb(RequestUtils.siteId(), cover, UploadThumbTypeEnum.SMALL.getType())
+                                .getDataMap().get(UploadThumbTypeEnum.SMALL.getType()),
+                        cover);
+            }
+            goods.setGoodsCoverThumbSmall(ObjectUtil.defaultIfNull(thumbSmall, ""));
             item.setGoods(goods);
+            result.add(item);
         }
-        return list;
+        return result;
     }
 
 }

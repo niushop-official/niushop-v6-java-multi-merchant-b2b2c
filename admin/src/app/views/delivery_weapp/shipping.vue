@@ -5,13 +5,13 @@
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="shippingTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="shippingTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('tradeNo')" prop="trade_no">
-                        <el-input v-model="shippingTableData.searchParam.trade_no" :placeholder="t('tradeNoPlaceholder')" />
+                        <el-input v-model="shippingTableData.searchParam.trade_no" :placeholder="t('tradeNoPlaceholder')"  clearable  class="search-input"/>
                     </el-form-item>
                     <el-form-item :label="t('status')" prop="status">
-                        <el-select v-model="shippingTableData.searchParam.status" clearable :placeholder="t('statusPlaceholder')" class="input-width">
-                            <el-option :label="t('all')" value="" />
+                        <el-select v-model="shippingTableData.searchParam.status" clearable :placeholder="t('statusPlaceholder')" class="search-inpu">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="t('success')" :value="1" />
                             <el-option :label="t('fail')" :value="0" />
                         </el-select>
@@ -19,7 +19,7 @@
                     <el-form-item :label="t('uploadTime')" prop="upload_time">
 						<el-date-picker v-model="shippingTableData.searchParam.upload_time" type="datetimerange"
 							value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-							:end-placeholder="t('endDate')" />
+							:end-placeholder="t('endDate')" class="search-input" />
 					</el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadShippingList()">{{ t('search') }}</el-button>

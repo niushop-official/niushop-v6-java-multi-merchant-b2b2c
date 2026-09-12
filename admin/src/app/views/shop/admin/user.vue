@@ -5,19 +5,19 @@
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="userTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="userTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('userName')" prop="username">
-                        <el-input v-model="userTableData.searchParam.username" :placeholder="t('userNamePlaceholder')" />
+                        <el-input v-model="userTableData.searchParam.username" :placeholder="t('userNamePlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <!-- <el-form-item :label="t('createTime')" prop="create_time">
                         <el-date-picker v-model="userTableData.searchParam.create_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item> -->
                     <el-form-item :label="t('loginTime')" prop="last_time">
                         <el-date-picker v-model="userTableData.searchParam.last_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadUserList()">{{ t('search') }}</el-button>

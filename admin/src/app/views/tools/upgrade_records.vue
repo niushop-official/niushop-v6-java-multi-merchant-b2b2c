@@ -8,9 +8,9 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="tableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="90px" :model="tableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('upgradeName')" prop="name">
-                        <el-input v-model.trim="tableData.searchParam.name" :placeholder="t('upgradeNamePlaceholder')" />
+                        <el-input v-model.trim="tableData.searchParam.name" :placeholder="t('upgradeNamePlaceholder')" class="search-input" clearable />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadList()">{{ t('search') }}</el-button>

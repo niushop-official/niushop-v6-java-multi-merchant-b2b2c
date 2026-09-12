@@ -2,6 +2,7 @@ package com.niu.core.service.core.sys.impl;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -31,6 +32,7 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 @Log4j2
 @Service
 public class CoreSysConfigServiceImpl implements ICoreSysConfigService {
@@ -133,7 +135,50 @@ public class CoreSysConfigServiceImpl implements ICoreSysConfigService {
     @Override
     public SysMapVo getMap(Integer siteId) {
         JSONObject config = coreConfigService.getConfigValue(RequestUtils.defaultSiteId(), "MAPKEY");
-        return JSONUtil.toBean(config, SysMapVo.class);
+        SysMapVo vo = buildSysMapVoFromConfig(config);
+        // 前端不展示腾讯地图 key
+        vo.setKey("");
+        if (vo.getIsOpen() == null) {
+            vo.setIsOpen(1);
+        }
+        if (vo.getValidTime() == null) {
+            vo.setValidTime(5);
+        }
+        if (StrUtil.isBlank(vo.getMapType())) {
+            vo.setMapType("tencent");
+        }
+        if (vo.getTiandituMapKey() == null) {
+            vo.setTiandituMapKey("");
+        }
+        if (vo.getTiandituMapWebKey() == null) {
+            vo.setTiandituMapWebKey("");
+        }
+        return vo;
+    }
+
+    /**
+     * 从 MAPKEY 配置构建地图 VO（对齐 PHP snake_case 字段）
+     */
+    private SysMapVo buildSysMapVoFromConfig(JSONObject config) {
+        SysMapVo vo = new SysMapVo();
+        if (config == null || config.isEmpty()) {
+            return vo;
+        }
+        vo.setKey(config.getStr("key", ""));
+        vo.setMapType(config.getStr("map_type", config.getStr("mapType", "tencent")));
+        vo.setTiandituMapKey(config.getStr("tianditu_map_key", config.getStr("tiandituMapKey", "")));
+        vo.setTiandituMapWebKey(config.getStr("tianditu_map_web_key", config.getStr("tiandituMapWebKey", "")));
+        Integer isOpen = config.getInt("is_open");
+        if (isOpen == null) {
+            isOpen = config.getInt("isOpen");
+        }
+        vo.setIsOpen(isOpen);
+        Integer validTime = config.getInt("valid_time");
+        if (validTime == null) {
+            validTime = config.getInt("validTime");
+        }
+        vo.setValidTime(validTime);
+        return vo;
     }
 
     /**
@@ -144,8 +189,14 @@ public class CoreSysConfigServiceImpl implements ICoreSysConfigService {
      */
     @Override
     public void setMap(Integer siteId, SysMapParam configParam) {
-        JSONObject json = JSONUtil.parseObj(configParam);
-        coreConfigService.setConfig(RequestUtils.siteId(), "MAPKEY", json);
+        JSONObject data = new JSONObject();
+        data.set("map_type", configParam.getMapType());
+        data.set("key", configParam.getKey());
+        data.set("tianditu_map_key", configParam.getTiandituMapKey());
+        data.set("tianditu_map_web_key", configParam.getTiandituMapWebKey());
+        data.set("is_open", configParam.getIsOpen());
+        data.set("valid_time", configParam.getValidTime());
+        coreConfigService.setConfig(siteId, "MAPKEY", data);
 
         if (RequestUtils.defaultSiteId().equals(siteId)) {
             this.mapKeyChange(configParam.getKey());

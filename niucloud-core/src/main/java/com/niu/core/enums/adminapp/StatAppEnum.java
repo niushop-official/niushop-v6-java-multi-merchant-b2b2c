@@ -5,8 +5,8 @@ import com.niu.core.common.utils.json.JsonModuleLoader;
 
 public class StatAppEnum {
 
-    public static JSONArray getStat(){
+    public static JSONArray getStat( Integer siteId){
         JsonModuleLoader jsonModuleLoader = new JsonModuleLoader();
-        return jsonModuleLoader.mergeResultSet("adminapp/stat.json");
+        return jsonModuleLoader.mergeResultSet(siteId,"adminapp/stat.json");
     }
 }

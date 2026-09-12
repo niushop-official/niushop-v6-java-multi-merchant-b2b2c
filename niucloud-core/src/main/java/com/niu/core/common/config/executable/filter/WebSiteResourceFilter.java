@@ -57,6 +57,41 @@ public class WebSiteResourceFilter implements Filter {
             request.getRequestDispatcher(requestUri).forward(request, response);
             return;
         }
+        
+        // 检查 webRootDownResource/static 目录下的静态资源（如 addon 模板文件）
+        // 请求URL: /addon/xxx → 实际路径: webRootDownResource/static/addon/xxx
+        String resourcePath = WebAppEnvs.get().webRootDownResource + "static" + requestUri;
+        File resourceFile = new File(resourcePath);
+        if (resourceFile.isFile() && resourceFile.exists()) {
+            log.info("Found static resource: " + resourcePath);
+            // 直接读取文件并写入响应
+            try {
+                response.setContentType("application/octet-stream");
+                // 根据URL判断文件类型，设置中文文件名
+                String fileName = resourceFile.getName();
+                if (requestUri.contains("supply_real_goods_import_template")) {
+                    fileName = "实物商品模板.xlsx";
+                } else if (requestUri.contains("supply_virtual_goods_import_template")) {
+                    fileName = "虚拟商品模板.xlsx";
+                }
+                response.setHeader("Content-Disposition", "attachment; filename=\"" + 
+                    new String(fileName.getBytes("UTF-8"), "ISO-8859-1") + "\"");
+                java.io.FileInputStream fis = new java.io.FileInputStream(resourceFile);
+                java.io.OutputStream os = response.getOutputStream();
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = fis.read(buffer)) != -1) {
+                    os.write(buffer, 0, len);
+                }
+                fis.close();
+                os.flush();
+                os.close();
+            } catch (Exception e) {
+                log.error("Error reading static resource: " + resourcePath, e);
+            }
+            return;
+        }
+        log.info("Static resource not found: " + resourcePath);
         log.info("url： " + requestUri);
         if (requestUri.startsWith("/adminapp")) {
             request.getRequestDispatcher("/adminapp/index.html").forward(request, response);
@@ -67,12 +102,17 @@ public class WebSiteResourceFilter implements Filter {
             request.getRequestDispatcher("/admin/index.html").forward(request, response);
             return;
         }
-        if (requestUri.startsWith("/site") || requestUri.startsWith("/home") || requestUri.startsWith("/directory")) {
+        if (requestUri.startsWith("/site") || requestUri.startsWith("/home") || requestUri.startsWith("/directory") || requestUri.startsWith("/circle")) {
             request.getRequestDispatcher("/admin/index.html").forward(request, response);
             return;
         }
         if (requestUri.startsWith("/wap")) {
             request.getRequestDispatcher("/wap/index.html").forward(request, response);
+            return;
+        }
+
+        if (requestUri.startsWith("/tianmap") && !requestUri.contains(".")) {
+            request.getRequestDispatcher("/tianmap/index.html").forward(request, response);
             return;
         }
 

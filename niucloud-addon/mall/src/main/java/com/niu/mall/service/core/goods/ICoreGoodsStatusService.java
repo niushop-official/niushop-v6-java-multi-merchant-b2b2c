@@ -1,6 +1,6 @@
 package com.niu.mall.service.core.goods;
 
-import com.niu.mall.service.core.goods.param.GoodsStatusEditParam;
+import com.niu.core.service.core.goods.param.GoodsStatusEditParam;
 
 import java.util.List;
 

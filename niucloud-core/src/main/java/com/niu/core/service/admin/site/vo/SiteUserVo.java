@@ -71,8 +71,12 @@ public class SiteUserVo implements Serializable {
     @Data
     public static class Roles{
         private String appType;
+        /** 站点应用列表，供平台端根据应用跳转对应的站点详情。 */
+        private String app;
         @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
         private Long expireTime;
+        @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+        private Long createTime;
         private Integer isAdmin;
         private Integer siteId;
         private String siteName;

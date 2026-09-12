@@ -4,7 +4,7 @@
             <div class="flex justify-between items-center mb-[10px]">
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
-            <el-tabs v-model="activeName" class="demo-tabs">
+            <!-- <el-tabs v-model="activeName" class="demo-tabs">
                 <el-tab-pane :label="t('developmentProcess')" name="developmentProcess">
                     <el-steps direction="vertical">
                         <el-step>
@@ -191,8 +191,77 @@
                         </el-table-column>
                     </el-table>
                 </el-tab-pane>
-            </el-tabs>
+            </el-tabs> -->
+            <el-steps :active="5" direction="vertical" class="mt-[20px]">
+                <el-step>
+                    <template #title>
+                        <p class="text-[14px] font-[700]">
+                            {{ t("step1") }}
+                        </p>
+                    </template>
+                    <template #description>
+                        <span class="text-[#999]">{{ t("describe1") }}</span>
+                        <div class="mt-[20px] mb-[40px] h-[32px]">
+                            <el-button type="primary" @click="router.push({ path: '/tools/addon_edit' })">{{t("btn1") }}</el-button>
+                        </div>
+                    </template>
+                </el-step>
 
+                <el-step>
+                    <template #title>
+                        <p class="text-[14px] font-[700]">
+                            {{ t("step2") }}
+                        </p>
+                    </template>
+                    <template #description>
+                        <span class="text-[#999]">{{ t("describe2") }}</span>
+                        <div class="mt-[20px] mb-[40px] h-[32px]">
+                            <el-button type="primary" plain @click="router.push({ path: '/tools/addon/list' })">{{t("btn2") }}</el-button>
+                        </div>
+                    </template>
+                </el-step>
+
+                <el-step>
+                    <template #title>
+                        <p class="text-[14px] font-[700]">
+                            {{ t("step3") }}
+                        </p>
+                    </template>
+                    <template #description>
+                        <span class="text-[#999]">{{ t("describe3") }}</span>
+                        <div class="mt-[20px] mb-[40px] h-[32px]">
+                            <el-button type="primary" plain @click="linkEvent('https://www.kancloud.cn/niucloud/niucloud-admin-develop/3225439')">{{t("btn3") }}</el-button>
+                        </div>
+                    </template>
+                </el-step>
+
+                <el-step>
+                    <template #title>
+                        <p class="text-[14px] font-[700]">
+                            {{ t("step4") }}
+                        </p>
+                    </template>
+                    <template #description>
+                        <span class="text-[#999]">{{ t("describe4") }}</span>
+                        <div class="mt-[20px] mb-[40px] h-[32px]">
+                            <el-button type="primary" plain @click="router.push({ path: '/tools/addon/list' })">{{t("btn4") }}</el-button>
+                        </div>
+                    </template>
+                </el-step>
+                <el-step>
+                    <template #title>
+                        <p class="text-[14px] font-[700]">
+                            {{ t("step5") }}
+                        </p>
+                    </template>
+                    <template #description>
+                        <span class="text-[#999]">{{ t("describe5") }}</span>
+                        <div class="mt-[20px] mb-[40px] h-[32px]">
+                            <el-button type="primary" plain @click="linkEvent('https://www.niucloud.com/app')">{{t("btn5") }}</el-button>
+                        </div>
+                    </template>
+                </el-step>
+            </el-steps>
         </el-card>
     </div>
 </template>
@@ -284,31 +353,4 @@ const deleteEvent = (key: any) => {
     })
 }
 </script>
-<style lang="scss" scoped>
-.border-color {
-    border-color: var(--el-color-primary);
-}
-
-.bg-color {
-    background-color: var(--el-color-primary);
-}
-
-.text-color {
-    color: var(--el-color-primary);
-}
-
-.bg-color1 {
-    background-color: var(--el-color-info-light-8);
-}
-
-:deep(.el-step.is-vertical .el-step__icon.is-icon) {
-    padding: 8px 0;
-    height: 40px;
-    background-color: #fff;
-}
-
-:deep(.el-step__title) {
-    height: 40px;
-    line-height: 40px !important;
-}
-</style>
+<style lang="scss" scoped></style>

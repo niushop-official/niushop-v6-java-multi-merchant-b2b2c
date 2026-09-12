@@ -6,12 +6,12 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="payRefundTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px"  :model="payRefundTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('refundNo')" prop="refund_no">
-                        <el-input v-model="payRefundTable.searchParam.refund_no" :placeholder="t('refundNoPlaceholder')" />
+                        <el-input v-model="payRefundTable.searchParam.refund_no" :placeholder="t('refundNoPlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
-                        <el-date-picker v-model="payRefundTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+                        <el-date-picker v-model="payRefundTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
 
                     <el-form-item>

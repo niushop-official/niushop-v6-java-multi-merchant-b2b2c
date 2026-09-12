@@ -6,6 +6,9 @@ import com.niu.core.common.component.context.listener.CallbackListener;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import com.niu.core.service.core.verify.vo.CoreVerifyCreateCodeVo;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,6 +47,16 @@ public abstract class VerifyCreateEventDefiner extends CallbackListener<VerifyCr
         private String relateTag;
 
         private Long expireTime;
+
+        /**
+         * 是否使用业务自定义核销码
+         */
+        private Integer isDiy;
+
+        /**
+         * 自定义核销码列表
+         */
+        private List<CoreVerifyCreateCodeVo> diyVerifyCode;
 
     }
 

@@ -6,6 +6,7 @@ import com.niu.core.enums.shop.ShopApplyEnum;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
 * 商户入驻申请表详情
@@ -41,24 +42,19 @@ public class SiteShopApplyInfoVo implements Serializable {
     private String categoryName;
 
 
-    /** 店铺套餐id */
-    private Integer groupId;
-
-    private String groupName;
+    // v120 迁移后移除：site_apply 表不再有 group_id 字段
+    // /** 店铺套餐 id */
+    // private Integer groupId;
+    //
+    // private String groupName;
 
     /** 申请会员 */
     private Integer memberId;
 
     private String nickname;
 
-    /** 开店状态（1待开店，2已开店） */
-    private Integer openStatus;
-
     /** 拒绝原因 */
     private String refuseReason;
-
-    /** 开店店铺id */
-    private Integer siteId;
 
     /** 商户名称 */
     private String siteName;
@@ -71,19 +67,35 @@ public class SiteShopApplyInfoVo implements Serializable {
     private String userMobile;
 
     /** 用户姓名 */
-//    private String userName;
-//
-//    /** 用户账号 */
-//    private String account;
+    private String userName;
 
-    /** 登录密码 */
-    private String password;
+    /** 子级行业id */
+    private Integer childCategoryId;
+
+    /** 子级行业名称 */
+    private String childCategoryName;
+
+    /** 商圈id */
+    private Integer circleId;
+
+    /** 万能表单记录id */
+    private Integer formRecordId;
+
+    /** 表单信息 */
+    private Map<String, Object> formInfo;
+
+    /** 状态名称 */
+    private String statusName;
 
     public String getStatusName() {
+        if (statusName != null) {
+            return statusName;
+        }
         return ShopApplyEnum.getNameByStatus(status);
     }
-    public String getOpenStatusName() {
-        return ShopApplyEnum.getNameByOpenStatus(openStatus);
+    
+    public void setStatusName(String statusName) {
+        this.statusName = statusName;
     }
 
 }

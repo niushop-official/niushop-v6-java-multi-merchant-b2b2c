@@ -10,7 +10,7 @@ import com.niu.mall.service.api.goods.param.MallGoodsSearchParam;
 import com.niu.mall.service.api.goods.param.ShopComponentsSearchParam;
 import com.niu.mall.service.api.goods.vo.*;
 import com.niu.mall.service.api.marketing.IMallCouponGoodsService;
-import com.niu.mall.service.api.marketing.param.MallGoodsCouponSearchParam;
+import com.niu.core.service.api.marketing.param.MallGoodsCouponSearchParam;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -162,8 +162,9 @@ public class GoodsController {
      * @return 优惠信息详情
      */
     @GetMapping("/goods/sku_promotion/detail")
-    public Result<SkuPromotionDetailVo> skuPromotionDetail(@RequestParam(value = "sku_id") Integer skuId) {
-        SkuPromotionDetailVo detail = goodsService.getSkuPromotionDetail(skuId);
+    public Result<SkuPromotionDetailVo> skuPromotionDetail(@RequestParam(value = "sku_id") Integer skuId,
+                                                         @RequestParam(value = "num", required = false) Integer num) {
+        SkuPromotionDetailVo detail = goodsService.getSkuPromotionDetail(skuId, num);
         return Result.success(detail);
     }
 }

@@ -27,6 +27,7 @@ import com.niu.core.service.admin.diy.vo.DiyRouteListVo;
 import com.niu.core.service.core.diy.ICoreDiyConfigService;
 import com.niu.core.service.core.diy.param.StartUpPageConfigParam;
 import com.niu.core.service.core.diy.vo.StartUpPageConfigVo;
+import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import com.niu.core.service.core.sys.vo.SceneDomainVo;
 import jakarta.annotation.Resource;
@@ -54,6 +55,9 @@ public class DiyServiceImpl implements IDiyService {
 
     @Resource
     IDiyRouteService diyRouteService;
+
+    @Resource
+    ICoreSiteService coreSiteService;
 
     /**
      * 自定义页面分页列表
@@ -102,9 +106,9 @@ public class DiyServiceImpl implements IDiyService {
         if (ObjectUtil.isNotEmpty(searchParam.getTitle())) queryWrapper.like("title", searchParam.getTitle());
         if (ObjectUtil.isNotEmpty(searchParam.getMode())) queryWrapper.eq("mode", searchParam.getMode());
         if (ObjectUtil.isNotEmpty(searchParam.getType())) {
-            if(searchParam.getType().contains(",")){
-                queryWrapper.in("type", searchParam.getType().split( ","));
-            }else{
+            if (searchParam.getType().contains(",")) {
+                queryWrapper.in("type", searchParam.getType().split(","));
+            } else {
                 queryWrapper.eq("type", searchParam.getType());
             }
 
@@ -223,6 +227,7 @@ public class DiyServiceImpl implements IDiyService {
 
     /**
      * 获取自定义链接
+     *
      * @param params 参数Map，可包含type等过滤条件
      * @return JSONObject
      */
@@ -534,8 +539,7 @@ public class DiyServiceImpl implements IDiyService {
             }
             // 根据 sort 排序
             iterator = list.entrySet().iterator();
-            if(iterator.hasNext())
-            {
+            if (iterator.hasNext()) {
                 formComponent.put("list", sortJSONObjectBySortField(list));
                 res.put(formComponentObj, formComponent);
             }
@@ -602,13 +606,54 @@ public class DiyServiceImpl implements IDiyService {
         }
 
         JSONObject template = TemplateEnum.getTemplate(param);
+        JSONObject allPages = PagesEnum.getPagesMerged(RequestUtils.siteId());
 
         for (String key : template.keySet()) {
-            JSONObject pages = ObjectUtil.defaultIfNull(PagesEnum.getPages(key, param.getMode()), new JSONObject());
-            template.putByPath(key + ".template", pages);
+            JSONObject item = template.getJSONObject(key);
+            JSONObject pages = ObjectUtil.defaultIfNull(
+                    PagesEnum.getPagesFromMerged(allPages, key, param.getMode()),
+                    new JSONObject()
+            );
+            item.set("template", pages);
+
+            DiyRouteSearchParam routeSearchParam = new DiyRouteSearchParam();
+            routeSearchParam.setUrl(item.getStr("page"));
+            List<DiyRouteListVo> otherPage = diyRouteService.list(routeSearchParam);
+            if (!otherPage.isEmpty()) {
+                item.set("name", otherPage.get(0).getName());
+            }
+            template.put(key, item);
         }
 
         return template;
+    }
+
+    /**
+     * 获取自定义店铺首页模板列表
+     *
+     * @return 模板列表
+     */
+    public JSONObject getSiteIndexTemplateList() {
+        // 获取当前站点ID
+        Integer siteId = RequestUtils.siteId();
+
+        // 查询店铺拥有权限的插件
+        List<String> siteAddon = coreSiteService.getAddonKeysBySiteId(siteId);
+
+        // 合并多个模板结果
+        JSONObject mergedResult = new JSONObject();
+        for (String addon : siteAddon) {
+            TemplateParam param = new TemplateParam();
+            param.setAppType("site");
+            param.setType("site_index");
+            param.setAddon(addon); // 单个插件key
+            JSONObject part = TemplateEnum.getTemplate(param);
+            if (part != null && !part.isEmpty()) {
+                // 将每个插件返回的模板合并到总结果中（若键冲突则覆盖）
+                mergedResult.putAll(part);
+            }
+        }
+        return mergedResult;
     }
 
     /**
@@ -627,8 +672,8 @@ public class DiyServiceImpl implements IDiyService {
      */
     public JSONObject getDecoratePage(DiyPageSearchParam searchParam) {
         TemplateParam templateParam = new TemplateParam();
-        String[] key = {searchParam.getType()};
-        templateParam.setKey(key);
+        templateParam.setAction("decorate");
+        templateParam.setKey(new String[]{searchParam.getType()});
         JSONObject template = this.getTemplate(templateParam).getJSONObject(searchParam.getType());
         if (template == null) throw new CommonException("模板不存在");
 
@@ -644,9 +689,9 @@ public class DiyServiceImpl implements IDiyService {
         useTemplate.put("url", "");
         useTemplate.put("parent", "");
 
+        StartUpPageConfigVo startConfig = coreDiyConfigService.getStartUpPageConfig(RequestUtils.siteId(), searchParam.getType());
         DiyPageInfoVo info = infoByName(searchParam.getType());
 
-        StartUpPageConfigVo startConfig = coreDiyConfigService.getStartUpPageConfig(RequestUtils.siteId(), searchParam.getType());
         if (startConfig != null) {
             useTemplate.set("title", startConfig.getTitle());
             useTemplate.set("name", startConfig.getName());
@@ -657,23 +702,56 @@ public class DiyServiceImpl implements IDiyService {
         } else if (info != null) {
             useTemplate.set("id", info.getId());
             useTemplate.set("title", info.getTitle());
+
+            JSONObject pageData = getPageData(searchParam.getType(), info.getTemplate());
+            if (pageData != null && !pageData.isEmpty()) {
+                useTemplate.set("url", template.getStr("page") + "?id=" + info.getId());
+            } else {
+                useTemplate.set("url", "/app/pages/index/diy?id=" + info.getId());
+                useTemplate.set("cover", "");
+            }
+        }
+
+        String usePage = useTemplate.getStr("page");
+        if (ObjectUtil.isNotEmpty(usePage)) {
+            DiyRouteSearchParam diyRouteSearchParam = new DiyRouteSearchParam();
+            diyRouteSearchParam.setUrl(usePage);
+            List<DiyRouteListVo> otherPage = diyRouteService.list(diyRouteSearchParam);
+            if (!otherPage.isEmpty()) {
+                DiyRouteListVo route = otherPage.get(0);
+                useTemplate.set("title", route.getTitle());
+                useTemplate.set("name", route.getName());
+                useTemplate.set("parent", route.getParent());
+                useTemplate.set("action", route.getAction());
+            }
+
+            TemplateParam pageTemplateParam = new TemplateParam();
+            pageTemplateParam.setPage(usePage);
+            JSONObject pageTemplate = TemplateEnum.getTemplate(pageTemplateParam);
+            if (pageTemplate != null && !pageTemplate.isEmpty()) {
+                String resolvedType = null;
+                if (startConfig != null && ObjectUtil.isNotEmpty(startConfig.getName())) {
+                    for (String templateKey : pageTemplate.keySet()) {
+                        DiyRouteSearchParam routeParam = new DiyRouteSearchParam();
+                        routeParam.setUrl(pageTemplate.getJSONObject(templateKey).getStr("page"));
+                        List<DiyRouteListVo> routes = diyRouteService.list(routeParam);
+                        if (!routes.isEmpty() && startConfig.getName().equals(routes.get(0).getName())) {
+                            resolvedType = templateKey;
+                            break;
+                        }
+                    }
+                }
+                if (resolvedType == null) {
+                    resolvedType = pageTemplate.keySet().iterator().next();
+                }
+                useTemplate.set("type", resolvedType);
+            }
         }
 
         if (useTemplate.getStr("cover").isEmpty() && useTemplate.getStr("url").isEmpty()) {
             useTemplate.set("url", template.getStr("page"));
         } else if (useTemplate.getStr("url").isEmpty()) {
             useTemplate.set("url", template.getStr("page"));
-        }
-
-        DiyRouteSearchParam diyRouteSearchParam = new DiyRouteSearchParam();
-        diyRouteSearchParam.setUrl(useTemplate.getStr("page"));
-        List<DiyRouteListVo> otherPage = diyRouteService.list(diyRouteSearchParam);
-        if (otherPage.size() > 0) {
-            DiyRouteListVo route = otherPage.get(0);
-            useTemplate.set("title", route.getTitle());
-            useTemplate.set("name", route.getName());
-            useTemplate.set("parent", route.getParent());
-            useTemplate.set("action", route.getAction());
         }
 
         template.put("use_template", useTemplate);
@@ -718,76 +796,69 @@ public class DiyServiceImpl implements IDiyService {
 
     /**
      * 设置 首页/个人中心 的第一个模板 设置为启动页
-     *
-     * @param param
      */
     public void setDiyData(SetDiyDataParam param) {
-        String addonFlag = param.getKey();
-
         TemplateParam templateParam = new TemplateParam();
         String[] key = {param.getKey()};
         templateParam.setKey(key);
-        JSONObject template = getTemplate(templateParam).getJSONObject(param.getKey());
-        if (template == null) return;
+        JSONObject defaultTemplate = getTemplate(templateParam);
+        JSONObject addonTemplateInfo = defaultTemplate.getJSONObject(param.getKey());
+        if (addonTemplateInfo == null) {
+            return;
+        }
 
-        if (!param.getAddon().isEmpty()) {
+        if (param.getAddon() != null && !param.getAddon().isEmpty()) {
             TemplateParam addonTemplateParam = new TemplateParam();
             addonTemplateParam.setAddon(param.getAddon());
             addonTemplateParam.setType(param.getType());
             JSONObject addonTemplate = getTemplate(addonTemplateParam);
-            if (addonTemplate != null) {
-                addonFlag = addonTemplate.keySet().iterator().next();
-                template = addonTemplate.getJSONObject(addonFlag);
+            if (!addonTemplate.isEmpty()) {
+                String addonTemplateKey = addonTemplate.keySet().iterator().next();
+                addonTemplateInfo = addonTemplate.getJSONObject(addonTemplateKey);
             }
         }
 
-        JSONObject pages = template.getJSONObject("template");
-        if (pages.isEmpty()) return;
-
-        String pageKey = pages.keySet().iterator().next();
-        JSONObject page = pages.getJSONObject(pageKey);
-
-        DiyPage info = diyPageMapper.selectOne(new QueryWrapper<DiyPage>()
-                .eq("name", addonFlag)
-                .eq("site_id", param.getSiteId())
-                .eq("is_default", 1)
-        );
-
-        if (info == null) {
+        Integer originalSiteId = RequestUtils.siteId();
+        try {
             RequestUtils.setSiteId(param.getSiteId());
-            DiyPageParam addParam = new DiyPageParam();
-            addParam.setTitle(page.getStr("title", ""));
-            addParam.setPageTitle(page.getStr("title", ""));
-            addParam.setName(addonFlag);
-            addParam.setType(addonFlag);
-            addParam.setTemplate(pageKey);
-            addParam.setValue(page.getJSONObject("data").toString());
-            addParam.setMode(page.getStr("mode", ""));
-            addParam.setIsDefault(1);
-            addParam.setIsChange(0);
-            this.add(addParam);
-        } else {
-            if (info.getName().equals("DIY_INDEX") && info.getType().equals("DIY_INDEX")) {
-                DiyPage update = new DiyPage();
-                update.setId(info.getId());
-                update.setValue(page.getJSONObject("data").toString());
-                diyPageMapper.updateById(update);
-            }
-        }
 
-        if (param.getIsStart().equals(1)) {
-            StartUpPageConfigParam startPage = new StartUpPageConfigParam();
-            startPage.setType(param.getKey());
-            startPage.setMode(page.getStr("mode", ""));
-            startPage.setTitle(page.getStr("title", ""));
-            startPage.setAction(template.getStr("action", ""));
-            startPage.setPage(template.getStr("page"));
-            this.changeTemplate(startPage);
+            List<DiyPage> diyPages = diyPageMapper.selectList(new QueryWrapper<DiyPage>()
+                    .eq("site_id", param.getSiteId())
+                    .eq("type", param.getKey())
+                    .select("id", "name", "type")
+            );
+            for (DiyPage page : diyPages) {
+                if (param.getKey().equals(page.getName())) {
+                    setUse(page.getId());
+                    break;
+                }
+            }
+
+            if (param.getIsStart() != null && param.getIsStart().equals(1)) {
+                DiyRouteSearchParam routeSearchParam = new DiyRouteSearchParam();
+                routeSearchParam.setUrl(addonTemplateInfo.getStr("page"));
+                routeSearchParam.setAddonName(param.getAddon());
+                List<DiyRouteListVo> otherPage = diyRouteService.list(routeSearchParam);
+                if (!otherPage.isEmpty()) {
+                    DiyRouteListVo route = otherPage.get(0);
+                    StartUpPageConfigParam startPage = new StartUpPageConfigParam();
+                    startPage.setType(param.getKey());
+                    startPage.setName(route.getName());
+                    startPage.setParent(route.getParent());
+                    startPage.setPage(route.getPage());
+                    startPage.setTitle(route.getTitle());
+                    startPage.setAction(route.getAction());
+                    changeTemplate(startPage);
+                }
+            }
+        } finally {
+            RequestUtils.setSiteId(originalSiteId);
         }
     }
 
     /**
      * 复制
+     *
      * @param id
      */
     @Override
@@ -811,27 +882,68 @@ public class DiyServiceImpl implements IDiyService {
     }
 
     @Override
-    public int initDefaultPage(Integer siteId, String flag, String addon) {
-        JSONObject template = getFirstPageData(flag, addon);
-        if(template == null) return 0;
+    public JSONObject getPageData(String type, String templateName) {
+        JSONObject pages = PagesEnum.getPagesByAddon(type, "");
+        if (pages == null || templateName == null || templateName.isEmpty()) {
+            return null;
+        }
+        return pages.getJSONObject(templateName);
+    }
+
+    @Override
+    public boolean checkAppTemplatePage(String appFlag) {
         Long count = diyPageMapper.selectCount(new QueryWrapper<DiyPage>()
-        .eq("site_id", siteId).eq("name", flag).eq("is_default", 1).eq("template", template.getStr("template")));
-        if(count.intValue() == 0){
-            DiyPage  page = new DiyPage();
+                .eq("site_id", RequestUtils.defaultSiteId())
+                .eq("name", appFlag)
+                .eq("type", appFlag)
+                .notIn("template", Arrays.asList("default_index", "default_member_index"))
+        );
+        return count != null && count > 0;
+    }
+
+    @Override
+    public boolean initDefaultPage(Integer siteId, String flag, String addon, String appFlag) {
+        if (appFlag != null && !appFlag.isEmpty() && checkAppTemplatePage(appFlag)) {
+            return true;
+        }
+
+        JSONObject template = getFirstPageData(flag, addon);
+        if (template == null) {
+            return false;
+        }
+
+        String name = (appFlag == null || appFlag.isEmpty()) ? flag : appFlag;
+        String type = name;
+
+        Long count = diyPageMapper.selectCount(new QueryWrapper<DiyPage>()
+                .eq("site_id", siteId)
+                .eq("name", name)
+                .eq("is_default", 1)
+                .eq("template", template.getStr("template"))
+        );
+        if (count == null || count == 0) {
+            DiyPage page = new DiyPage();
             page.setSiteId(siteId);
             page.setPageTitle(template.getStr("title"));
             page.setTitle(template.getStr("title"));
-            page.setType(flag);
-            page.setName(flag);
+            page.setType(type);
+            page.setName(name);
             page.setTemplate(template.getStr("template"));
             page.setMode(template.getStr("mode"));
             page.setValue(template.getJSONObject("data").toString());
             page.setIsDefault(1);
             page.setIsChange(0);
             page.setCreateTime(System.currentTimeMillis() / 1000);
-            diyPageMapper.insert( page);
-            setUse(page.getId());
+            diyPageMapper.insert(page);
+
+            Integer originalSiteId = RequestUtils.siteId();
+            try {
+                RequestUtils.setSiteId(siteId);
+                setUse(page.getId());
+            } finally {
+                RequestUtils.setSiteId(originalSiteId);
+            }
         }
-        return 0;
+        return true;
     }
 }

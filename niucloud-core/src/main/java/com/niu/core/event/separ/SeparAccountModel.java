@@ -33,6 +33,9 @@ private static final long serialVersionUID = 1L;
     /**  */
     private String payType;
 
+    /** 订单来源 订单表的order_from */
+    private String tradeScene;
+
     /** 分账数据   总额**   平台手续费** 商户分账** */
     private String separData;
 

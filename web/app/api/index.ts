@@ -47,15 +47,7 @@ export function getGoodsService() {
  * 获取店铺
  */
 export function getWebShopList() {
-    return request.get(`shop/web/select_shop_list`)
-}
-
-
-/**
- * 查看申请权限
- */
-export function checkShopStatus() {
-    return request.get(`shop/web/shop_apply/check`)
+    return request.get(`mall/select_shop_list`)
 }
 
 

@@ -10,12 +10,13 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="templateTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="templateTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('templateName')" prop="template_name">
-                        <el-input v-model.trim="templateTable.searchParam.template_name" :placeholder="t('templateNamePlaceholder')" />
+                        <el-input v-model.trim="templateTable.searchParam.template_name" :placeholder="t('templateNamePlaceholder')" clearable class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('supportTradeName')" prop="support_trade">
-                        <el-select v-model="templateTable.searchParam.support_trade" :placeholder="t('supportTradeNamePlaceholder')" clearable>
+                        <el-select v-model="templateTable.searchParam.support_trade" :placeholder="t('supportTradeNamePlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item, index) in tradeList" :key="index" :label="item" :value="index" />
                         </el-select>
                     </el-form-item>

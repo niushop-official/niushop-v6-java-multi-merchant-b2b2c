@@ -1,5 +1,12 @@
 {
     "pages.index.index": "Index",
+    "pages.picking.index": "Picking",
+    "pages.picking.list": "Picking Order",
+    "pages.picking.history": "Picking History",
+    "pages.picking.detail": "Picking Detail",
+    "pages.ticket.check": "Ticket Check",
+    "pages.ticket.printer_select": "Select Printer",
+    "pages.ticket.reprint": "Reprint Ticket",
     "pages.article.list": "Information Center",
     "pages.article.detail": "Information detail",
     "pages.member.index": "My",

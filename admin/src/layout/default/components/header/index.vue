@@ -33,8 +33,8 @@
             <div class="right-panel h-full flex items-center justify-end">
             <!-- 店铺套餐 -->
             <div class="mx-[10px] text-[14px] bg-[#E6F1FE] rounded-[8px] px-[6px] py-[4px] leading-normal flex items-center cursor-pointer" v-if="appType == 'site'" @click="changeBusinessStatus()">
-                <span class="nc-iconfont nc-icon-dianpu text-[#2878FF] text-[15px] mr-[5px]"></span>
-                <span class="text-[#2878FF]" v-if="siteInfo.business_status">营业中</span>
+                <span class="nc-iconfont nc-icon-qiehuanV6xx text-[#2878FF] text-[15px] mr-[5px]"></span>
+                <span class="text-[#2878FF]" v-if="siteInfo.business_state">营业中</span>
                 <span class="text-[#2878FF]" v-else>暂停营业</span>
             </div>
             <!-- 商家手机管理端 -->
@@ -99,7 +99,7 @@ import useSystemStore from '@/stores/modules/system'
 import useAppStore from '@/stores/modules/app'
 import useUserStore from '@/stores/modules/user'
 import { useRoute, useRouter } from 'vue-router'
-import { updateBusinessStatus } from '@/app/api/shop_site'
+import { updateBusinessStatus } from '@/app/api/site'
 import { t } from '@/lang'
 import { img, copy } from '@/utils/common'
 import storage from '@/utils/storage'
@@ -215,7 +215,7 @@ const loadQrcode = () => {
 loadQrcode()
 const changeBusinessStatus = () => {
     const data = {
-        business_status: siteInfo.value.business_status ? 0 : 1
+        business_status: siteInfo.value.business_state ? 0 : 1
     }
     updateBusinessStatus(data).then((res: any) => {
         useUserStore().getSiteInfo()

@@ -4,7 +4,7 @@ import com.niu.core.common.annotation.EventListen;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.context.listener.AbstractListener;
 import com.niu.core.event.member.MemberRegisterEvent;
-import com.niu.core.service.admin.member.param.MemberAccountLogParam;
+import com.niu.core.service.core.marketing.ICoreNewcomerGiftService;
 import com.niu.core.service.core.member.ICoreMemberService;
 import org.springframework.stereotype.Component;
 
@@ -28,5 +28,8 @@ public class MemberRegisterListener extends AbstractListener {
         Map<String, Object> sendPointParam = new HashMap<>();
         sendPointParam.put("from_type", "member_register");
         coreMemberService.sendPoint(event.getSiteId(), event.getMember().getMemberId(), "member_register", sendPointParam);
+
+        ICoreNewcomerGiftService coreNewcomerGiftService = (ICoreNewcomerGiftService) SpringContext.getBean(ICoreNewcomerGiftService.class);
+        coreNewcomerGiftService.sendNewcomerGift(event.getMember().getMemberId());
     }
 }

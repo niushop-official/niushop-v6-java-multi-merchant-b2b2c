@@ -6,12 +6,13 @@
                 <el-button type="primary" @click="addEvent">{{ t('添加提货点') }}</el-button>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="deliveryStoreTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="90px" :model="deliveryStoreTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('提货点名称')" prop="store_name">
-                        <el-input v-model.trim="deliveryStoreTable.searchParam.store_name" :placeholder="t('请输入提货点名称')" />
+                        <el-input v-model.trim="deliveryStoreTable.searchParam.store_name" :placeholder="t('请输入提货点名称')" clearable class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('提货类型')" prop="pick_up_type">
-                        <el-select v-model="deliveryStoreTable.searchParam.pick_up_type" :placeholder="t('请选择提货类型')" clearable>
+                        <el-select v-model="deliveryStoreTable.searchParam.pick_up_type" :placeholder="t('请选择提货类型')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,key) in pickUpType" :key="key" :label="item" :value="key" />
                         </el-select>
                     </el-form-item>
@@ -40,7 +41,7 @@
                     <el-table-column prop="pick_up_type_name" :label="t('提货类型')" min-width="120" />
                     <el-table-column :label="t('开启状态')" min-width="120">
                         <template #default="{ row }">
-                            <el-tag class="cursor-pointer" :type="row.status ? 'success' : 'danger'" @click="updateStatus(row)">{{ row.status  ? '开启' : '关闭' }}</el-tag>
+                            <el-switch v-model="row.status" :active-value="1" :inactive-value="0" inline-prompt active-text="开启" inactive-text="关闭" @change="(value) => updateStatus(row, value)" />
                         </template>
                     </el-table-column>
                     <el-table-column :label="t('operation')" fixed="right" min-width="120" align="right">
@@ -144,13 +145,12 @@ const deleteEvent = (row: any) => {
     }).catch(() => {})
 }
 // 更新状态
-const updateStatus = (row: any) => {
-    row.status = row.status ? 0 : 1
+const updateStatus = (row: any, value: number) => {
     editDeliveryStoreStatus({
         store_id: row.store_id,
-        status: row.status
-    }).then(() => {
-
+        status: value
+    }).catch(() => {
+        row.status = value == 1 ? 0 : 1
     })
 }
 

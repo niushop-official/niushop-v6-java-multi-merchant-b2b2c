@@ -23,6 +23,7 @@ public class GoodsCategory implements Serializable {
     private String categoryFullName; // 组装分类名称
     private Integer isShow; // 是否显示（1：显示，0：不显示）
     private Integer sort; // 排序号
+    private String addon; // 所属应用
     private Long createTime; // 创建时间
     private Long updateTime; // 修改时间
 

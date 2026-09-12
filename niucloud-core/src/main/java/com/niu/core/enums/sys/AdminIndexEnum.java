@@ -8,7 +8,6 @@ import cn.hutool.json.JSONUtil;
 import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.config.dataization.AddonModuleContext;
 import com.niu.core.common.utils.RequestUtils;
-import com.niu.core.common.utils.json.JsonModuleLoader;
 import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.site.ICoreSiteService;
 
@@ -29,8 +28,7 @@ public class AdminIndexEnum {
      * @return
      */
     public static JSONArray getAdminIndex() {
-        JsonModuleLoader jsonModuleLoader = new JsonModuleLoader();
-        return jsonModuleLoader.mergeResultSet(RequestUtils.siteId(), ADMIN_INDEX_FILE);
+        return mergeAdminIndexEventOrder(RequestUtils.siteId());
     }
 
     /**

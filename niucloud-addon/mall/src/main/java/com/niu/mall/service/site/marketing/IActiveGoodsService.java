@@ -1,6 +1,6 @@
 package com.niu.mall.service.site.marketing;
 
-import com.niu.mall.entity.active.MallActiveGoods;
+import com.niu.core.entity.active.MallActiveGoods;
 
 import java.util.List;
 

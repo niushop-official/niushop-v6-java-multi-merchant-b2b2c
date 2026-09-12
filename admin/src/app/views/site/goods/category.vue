@@ -8,7 +8,7 @@
                 </el-button>
             </div>
             <div class="mt-[10px]">
-                <el-table :data="categoryTable.data" ref="tableRef" size="large" v-loading="categoryTable.loading" row-key="category_id" :tree-props="{ hasChildren: 'hasChildren', children: 'child_list' }">
+                <el-table :data="categoryTable.data" ref="tableRef" size="large" v-loading="categoryTable.loading" row-key="category_id" :tree-props="{ hasChildren: 'hasChildren', children: 'child_list' }" :default-expand-all="true">
                     <template #empty>
                         <span>{{ !categoryTable.loading ? t('emptyData') : '' }}</span>
                     </template>
@@ -33,7 +33,7 @@
                     </el-table-column>
                     <el-table-column prop="is_show" :label="t('isShow')" width="400">
                         <template #default="{ row }">
-                            <el-tag class="cursor-pointer" :type="row.is_show != 2 ? 'success' : 'danger'" @click="showClick(row)">{{ row.is_show != 2 ? '是' : '否' }}</el-tag>
+                            <el-switch v-model="row.is_show" :active-value="1" :inactive-value="2" inline-prompt active-text="是" inactive-text="否" @change="(value) => showClick(row, value)" />
                         </template>
                     </el-table-column>
                     <!-- <el-table-column prop="sort" :label="t('sort')" width="120" /> -->
@@ -191,11 +191,13 @@ const updateCategoryFn = (params: any) => {
     })
 }
 
-const showClick = (row: any) => {
-    row.is_show = row.is_show === 1 ? 2 : 1
+const showClick = (row: any, value: number) => {
     const obj = cloneDeep(row)
+    obj.is_show = value
     delete obj.child_list
-    editCategory(obj)
+    editCategory(obj).catch(() => {
+        row.is_show = value == 1 ? 2 : 1
+    })
 }
 const editCategoryDialog: Record<string, any> | null = ref(null)
 

@@ -10,9 +10,9 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="brandTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px"  :model="brandTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('brandName')" prop="brand_name">
-                        <el-input v-model.trim="brandTable.searchParam.brand_name" :placeholder="t('brandNamePlaceholder')" />
+                        <el-input v-model.trim="brandTable.searchParam.brand_name" :placeholder="t('brandNamePlaceholder')" clearable class="search-input" />
                     </el-form-item>
 
                     <el-form-item>
@@ -51,7 +51,7 @@
                     <el-table-column prop="brand_type_name" :label="t('brandType')" min-width="120" />
                     <el-table-column prop="status_name" :label="t('显示状态')" min-width="120">
                         <template #default="{ row }">
-                            <el-tag class="cursor-pointer" :type="row.status == 1 ? 'success' : 'danger'" @click="updateStatus(row)">{{ row.status == 1 ? '显示': '隐藏' }}</el-tag>
+                            <el-switch v-model="row.status" :active-value="1" :inactive-value="2" inline-prompt active-text="显示" inactive-text="隐藏" :disabled="row.brand_type == 'admin'" @change="(value) => updateStatus(row, value)" />
                         </template>
                     </el-table-column>
                     <el-table-column :label="t('审核状态')" min-width="120">
@@ -186,14 +186,13 @@ const deleteEvent = (id: number) => {
 }
 
 // 更新状态
-const updateStatus = (row: any) => {
+const updateStatus = (row: any, value: number) => {
     if (row.brand_type == 'admin') return false
-    row.status = row.status == 1 ? 2 : 1
     updateBrandStatus({
         brand_id: row.brand_id,
-        status: row.status
-    }).then(() => {
-
+        status: value
+    }).catch(() => {
+        row.status = value == 1 ? 2 : 1
     })
 }
 

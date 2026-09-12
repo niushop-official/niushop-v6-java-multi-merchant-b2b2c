@@ -45,7 +45,9 @@ public class CoreLocalDeliveryServiceImpl implements ICoreLocalDeliveryService {
             String typeName = LocalDeliveryTypeEnum.getName(deliveryType) != null ? LocalDeliveryTypeEnum.getName(deliveryType) : deliveryType;
             throw new RuntimeException(typeName + "未配置");
         }
-        return JSONUtil.parseObj(service.getConfig());
+        Map<String, Object> config = JSONUtil.parseObj(service.getConfig());
+        config.put("is_use", service.getIsUse());
+        return config;
     }
 
     @Override

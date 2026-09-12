@@ -3,8 +3,6 @@ package com.niu.core.controller.adminapi.shop;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
-import com.niu.core.entity.shop.SiteShopCategory;
-import com.niu.core.entity.site.SiteGroup;
 import com.niu.core.service.admin.shop.ISiteShopCategoryService;
 import com.niu.core.service.admin.shop.param.SiteShopCategoryParam;
 import com.niu.core.service.admin.shop.param.SiteShopCategorySearchParam;
@@ -18,9 +16,11 @@ import jakarta.annotation.Resource;
 import java.util.List;
 
 /**
- * 站点分类控制器
+ * 站点分类控制器（兼容层，底层已迁移至 site_category）
+ *
+ * @deprecated 请使用 {@link com.niu.core.controller.siteapi.site.SiteCategoryController} 行业类目接口
  */
-
+@Deprecated
 @RestController
 @RequestMapping("adminapi/shop/admin/shop_category")
 public class SiteShopCategoryController {

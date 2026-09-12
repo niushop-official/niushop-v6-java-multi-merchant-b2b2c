@@ -133,6 +133,7 @@ public class CoreOrderDiscountServiceImpl extends ServiceImpl<MallOrderDiscountM
                 OrderDiscountTypeEnum.getPlatFormDiscountType(), null, 1);
         BigDecimal platformTotalMoney = BigDecimal.ZERO;
         boolean hasPointDeductRow = false;
+        boolean hasPlatformCouponRow = false;
 
         for (MallOrderDiscount item : platformRecords) {
             OrderDiscountDetailsVo.DiscountItemVo row = new OrderDiscountDetailsVo.DiscountItemVo();
@@ -142,6 +143,9 @@ public class CoreOrderDiscountServiceImpl extends ServiceImpl<MallOrderDiscountM
             platformTotalMoney = platformTotalMoney.add(item.getMoney());
             if (OrderDiscountTypeEnum.POINT_DEDUCT.getType().equals(item.getDiscountType())) {
                 hasPointDeductRow = true;
+            }
+            if (OrderDiscountTypeEnum.PLATFORM_COUPON.getType().equals(item.getDiscountType())) {
+                hasPlatformCouponRow = true;
             }
         }
 
@@ -153,11 +157,16 @@ public class CoreOrderDiscountServiceImpl extends ServiceImpl<MallOrderDiscountM
             platformTotalMoney = platformTotalMoney.add(pointDeductMoney);
         }
 
-        OrderDiscountDetailsVo.DiscountItemVo platformCouponRow = new OrderDiscountDetailsVo.DiscountItemVo();
-        platformCouponRow.setDiscountTypeName("平台优惠券");
-        platformCouponRow.setDiscountMoney(platformCouponMoney);
-        platformList.add(platformCouponRow);
-        platformTotalMoney = platformTotalMoney.add(platformCouponMoney);
+        // 对齐 PHP：platform_coupon 已在 mall_order_discount 落库时不再用 mall_coupon_money 重复追加
+        if (!hasPlatformCouponRow) {
+            OrderDiscountDetailsVo.DiscountItemVo platformCouponRow = new OrderDiscountDetailsVo.DiscountItemVo();
+            platformCouponRow.setDiscountTypeName("平台优惠券");
+            platformCouponRow.setDiscountMoney(platformCouponMoney);
+            platformList.add(platformCouponRow);
+            if (platformCouponMoney.compareTo(BigDecimal.ZERO) > 0) {
+                platformTotalMoney = platformTotalMoney.add(platformCouponMoney);
+            }
+        }
 
         platformTotal.setDiscountMoney(platformTotalMoney);
         platformDiscount.setDiscountList(platformList);

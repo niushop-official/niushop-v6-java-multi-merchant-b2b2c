@@ -1,5 +1,6 @@
 package com.niu.mall.service.core.order.param;
 
+import com.niu.core.service.core.delivery.param.ShopDeliveryPrintElectronicSheetParam;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -51,4 +52,6 @@ public class OrderDeliveryParam implements Serializable {
     private String deliverMobile;
 
     private BigDecimal goodsWeight;
+
+    private ShopDeliveryPrintElectronicSheetParam.SenderAddress address;
 }

@@ -1,7 +1,6 @@
 package com.niu.core.controller.siteapi.goods;
 
 import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONObject;
 import com.niu.core.common.domain.Result;
 import com.niu.core.service.site.goods.IGoodsCategoryService;
 import com.niu.core.service.site.goods.param.EditGoodsCategorySortParam;
@@ -9,9 +8,10 @@ import com.niu.core.service.site.goods.param.GoodsCategoryParam;
 import com.niu.core.service.site.goods.param.GoodsCategorySearchParam;
 import com.niu.core.service.site.goods.vo.GoodsCategoryInfoVo;
 import com.niu.core.service.site.goods.vo.GoodsCategoryListVo;
+import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import jakarta.annotation.Resource;
+
 import java.util.List;
 
 /**
@@ -27,22 +27,24 @@ public class CategoryController {
 
     /**
      * 商品分类树列表
-     *
+     * 对齐 PHP: GET site/goods/tree（支持 addon，不过滤 is_show）
      */
     @GetMapping("/tree")
-    public Result<JSONArray> tree() {
-        return Result.success(categoryService.tree());
+    public Result<JSONArray> tree(@Validated GoodsCategorySearchParam searchParam) {
+        return Result.success(categoryService.tree(searchParam));
     }
 
     /**
-     * 商品分类树列表
-     *
+     * 商品分类树（弹框组件）
+     * 对齐 PHP: GET site/goods/category/components（is_show=1，支持 addon）
      */
-    @GetMapping("/components")
-    public Result<JSONArray> components() {
-        GoodsCategorySearchParam param = new GoodsCategorySearchParam();
-        param.setIsShow(10);
-        return Result.success(categoryService.tree(param));
+    @GetMapping({"/components", "/category/components"})
+    public Result<JSONArray> components(@Validated GoodsCategorySearchParam searchParam) {
+        if (searchParam == null) {
+            searchParam = new GoodsCategorySearchParam();
+        }
+        searchParam.setIsShow(1);
+        return Result.success(categoryService.tree(searchParam));
     }
 
     /**

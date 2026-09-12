@@ -42,11 +42,8 @@ public class BootConfig {
         }
         BootLogUtils.isLog = this.printLog();
         // this.checkAndLog();
-        try {
-            System.setOut(new PrintStream(System.out, true, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            // ignore
-        }
+        // 修复控制台编码：设置 Java System.out/err 为 UTF-8，Windows 下同时设置控制台代码页
+        fixConsoleEncoding();
     }
 
     /**
@@ -285,12 +282,9 @@ public class BootConfig {
     }
 
     /**
-     * @return
+     * @return 子进程以 -Dfile.encoding=UTF-8 启动，输出统一为 UTF-8
      */
     public String getPrintEncode() {
-        if (FileTools.osName().contains("Windows")) {
-            return Constants.GBK;
-        }
         return Constants.UTF8;
     }
 
@@ -317,5 +311,27 @@ public class BootConfig {
         return file.getAbsolutePath();
     }
 
+    /**
+     * 修复控制台编码
+     * 1. 设置 Java System.out/err PrintStream 为 UTF-8
+     * 2. Windows 下调用 chcp 65001 设置控制台代码页，inheritIO 确保共享控制台
+     */
+    private void fixConsoleEncoding() {
+        try {
+            System.setOut(new PrintStream(System.out, true, "UTF-8"));
+            System.setErr(new PrintStream(System.err, true, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            // ignore
+        }
+        if (System.getProperty("os.name", "").toLowerCase().contains("windows")) {
+            try {
+                new ProcessBuilder("cmd", "/c", "chcp 65001")
+                        .inheritIO()
+                        .start()
+                        .waitFor();
+            } catch (Exception ignored) {
+            }
+        }
+    }
 
 }

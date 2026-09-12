@@ -18,6 +18,7 @@ public class LoginResultVo implements Serializable {
     private SiteInfoVo siteInfo;
     private SysUserRoleInfoVo userrole;
 
-
+    /** 站点布局风格 */
+    private String layout = "default";
 
 }

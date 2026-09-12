@@ -32,9 +32,10 @@ public class TodoServiceImpl implements ITodoService {
 
     @Override
     public List<TodoItemVo> getTodoList() {
-        JSONArray list = TodoAppEnum.getTodo();
-        Integer uid = RequestUtils.uid();
         Integer siteId = RequestUtils.siteId();
+        JSONArray list = TodoAppEnum.getTodo(siteId);
+        Integer uid = RequestUtils.uid();
+
         JSONArray keys = coreAdminAppService.getValue(uid, siteId, "todo");
         int todoLimit = 4;
         List<JSONObject> todoList;
@@ -58,18 +59,19 @@ public class TodoServiceImpl implements ITodoService {
         List<JSONObject> sortedList = todoList.stream()
                 .sorted(Comparator.comparingInt(item -> item.getInt("sort", 0)))
                 .collect(Collectors.toList());
-        
+
         return convertToVoList(sortedList);
     }
 
     @Override
     public List<TodoItemVo> getAllTodoList() {
-        JSONArray list = TodoAppEnum.getTodo();
+        Integer siteId = RequestUtils.siteId();
+        JSONArray list = TodoAppEnum.getTodo(siteId);
         List<JSONObject> sortedList = JSONUtil.toList(list, JSONObject.class)
                 .stream()
                 .sorted(Comparator.comparingInt(item -> item.getInt("sort", 0)))
                 .collect(Collectors.toList());
-        
+
         return convertToVoList(sortedList);
     }
 
@@ -78,11 +80,11 @@ public class TodoServiceImpl implements ITodoService {
         Integer uid = RequestUtils.uid();
         Integer siteId = RequestUtils.siteId();
         JSONArray valueArray = new JSONArray();
-        
+
         if (param != null && param.getValue() != null) {
             valueArray = new JSONArray(param.getValue());
         }
-        
+
         return coreAdminAppService.setValue(uid, siteId, "todo", valueArray);
     }
 

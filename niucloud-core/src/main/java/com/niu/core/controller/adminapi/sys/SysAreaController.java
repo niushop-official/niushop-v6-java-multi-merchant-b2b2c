@@ -6,9 +6,8 @@ import com.niu.core.common.domain.Result;
 import com.niu.core.entity.sys.SysArea;
 import com.niu.core.service.admin.sys.ISysAreaService;
 import com.niu.core.service.admin.sys.vo.SysAreaByCodeVo;
-import org.springframework.web.bind.annotation.*;
-
 import jakarta.annotation.Resource;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -55,11 +54,9 @@ public class SysAreaController {
      */
     @GetMapping("/code/{code}")
     public Result<Map<String, SysAreaByCodeVo>> getAreaByAreaCode(@PathVariable("code") String code) {
-        if(!code.equals("undefined"))
-        {
+        if (!code.equals("undefined")) {
             int value = Integer.parseInt(code);
-            if(value != 0)
-            {
+            if (value != 0) {
                 return Result.success(sysAreaService.getAreaByAreaCode(value));
             }
         }
@@ -79,11 +76,17 @@ public class SysAreaController {
 
     /**
      * 地址解析
+     *
      * @param address
      * @return
      */
     @GetMapping("/get_info")
     public Result addressInfo(@RequestParam("address") String address) {
         return Result.success(sysAreaService.getAddress(address));
+    }
+
+    public Result<Map<String, Object>> getAddressByLatlng(@RequestParam String latlng) {
+        Map<String, Object> data = sysAreaService.getAddressByLatlng(latlng);
+        return Result.success(data);
     }
 }

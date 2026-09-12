@@ -13,11 +13,12 @@ import com.niu.core.entity.site.Site;
 import com.niu.core.entity.stat.SysStat;
 import com.niu.core.enums.addon.AddonStatusEnum;
 import com.niu.core.enums.addon.AddonTypeEnum;
-import com.niu.core.enums.promotion.SitePromotionEnum;
 import com.niu.core.enums.shop.ShopCashOutEnum;
+import com.niu.core.enums.sys.AppTypeEnum;
 import com.niu.core.mapper.addon.AddonMapper;
 import com.niu.core.mapper.shop.SiteShopCashOutMapper;
 import com.niu.core.mapper.stat.SysStatMapper;
+import com.niu.core.service.admin.site.vo.ShowAppListVo;
 import com.niu.core.service.admin.stat.ISiteStatService;
 import com.niu.core.service.admin.stat.vo.StartChartVo;
 import com.niu.core.service.core.site.ICoreSiteService;
@@ -82,38 +83,25 @@ public class SiteStatServiceImpl implements ISiteStatService {
     @Override
     public Map<String, Object> getAddonCount() {
         Map<String, Object> data = new HashMap<>();
-        Site siteInfo = new Site(); // 这里需要根据实际情况查询数据库
-        // 这里需要实现站点已安装应用数量的查询逻辑
-
-        // 1. 收集所有扩展点提供的应用列表
-        List<Map<String, String>> apps = SitePromotionEnum.getSitePromotionMapList();
-
-        // 2. 获取当前站点已购买的插件 key 集合
         List<String> siteAddonKeys = coreSiteService.getAddonKeysBySiteId(RequestUtils.siteId());
         if (siteAddonKeys == null || siteAddonKeys.isEmpty()) {
             data.put("addon_num", 0);
             return data;
         }
 
-        // 3. 查询已安装且启用的插件 key（type=addon, status=ON, key in siteAddonKeys）
         List<String> installedAddonKeys = addonMapper.selectList(
                 new LambdaQueryWrapper<Addon>()
                         .eq(Addon::getType, AddonTypeEnum.ADDON.getType())
                         .eq(Addon::getStatus, AddonStatusEnum.ON.getCode())
                         .in(Addon::getKey, siteAddonKeys)
         ).stream().map(Addon::getKey).toList();
-        Set<String> installedSet = new HashSet<>(installedAddonKeys);
 
-        // 4. 过滤：移除 addon_key 不在 installedSet 中的应用
-        List<Map<String, String>> filteredApps = apps.stream()
-                .filter(app -> {
-                    String addonKey = app.get("addon_key");
-                    return addonKey == null || installedSet.contains(addonKey);
-                })
-                .toList();
-
-        // 5. 返回数量
-        data.put("addon_num", filteredApps.size());
+        Map<String, ShowAppListVo> appTools = coreSiteService.getShowAppTools(
+                installedAddonKeys, AppTypeEnum.SITE.getName(), RequestUtils.siteId());
+        int addonNum = appTools.values().stream()
+                .mapToInt(group -> group.getList() == null ? 0 : group.getList().size())
+                .sum();
+        data.put("addon_num", addonNum);
         return data;
     }
 

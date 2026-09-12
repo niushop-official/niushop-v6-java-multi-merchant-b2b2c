@@ -7,13 +7,13 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="diyPageTableData.searchParam" ref="searchFormDiyPageRef">
+                <el-form :inline="true" label-width="70px" :model="diyPageTableData.searchParam" ref="searchFormDiyPageRef" class="page-form">
                     <el-form-item :label="t('title')" prop="title">
-                        <el-input v-model="diyPageTableData.searchParam.title" :placeholder="t('titlePlaceholder')" />
+                        <el-input v-model="diyPageTableData.searchParam.title" :placeholder="t('titlePlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('typeName')" prop="type">
-                        <el-select v-model="diyPageTableData.searchParam.type" :placeholder="t('pageTypePlaceholder')">
-                            <el-option :label="t('all')" value="" />
+                        <el-select v-model="diyPageTableData.searchParam.type" :placeholder="t('pageTypePlaceholder')" clearable  class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item, key) in pageType" :label="item.title" :value="key" :key="key"/>
                         </el-select>
                     </el-form-item>
@@ -179,6 +179,7 @@ const loadDiyTemplate = ()=> {
         }
 
         for (const key in res.data) {
+            if (key === 'DIY_WAIMAI_SITE_INDEX') continue
             pageType[key] = res.data[key]
         }
     })

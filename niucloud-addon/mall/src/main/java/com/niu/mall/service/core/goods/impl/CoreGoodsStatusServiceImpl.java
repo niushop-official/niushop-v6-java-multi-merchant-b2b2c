@@ -3,12 +3,12 @@ package com.niu.mall.service.core.goods.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.enums.goods.GoodsStatusEnum;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.enums.goods.GoodsStatusEnum;
 import com.niu.mall.event.goods.AfterMallGoodsStatusEditEvent;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsStatusService;
-import com.niu.mall.service.core.goods.param.GoodsStatusEditParam;
+import com.niu.core.service.core.goods.param.GoodsStatusEditParam;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 

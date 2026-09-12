@@ -23,6 +23,8 @@ import com.niu.core.service.api.member.param.*;
 import com.niu.core.service.api.member.vo.MemberCenterVo;
 import com.niu.core.service.api.member.vo.MemberInfoVo;
 import com.niu.core.service.api.member.vo.MemberQcodeVo;
+import com.niu.core.service.api.vip_card.card.IApiVipCardService;
+import com.niu.core.service.api.vip_card.card.vo.ApiVipCardComponentsVo;
 import com.niu.core.service.core.member.ICoreMemberConfigService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -50,30 +52,37 @@ public class MemberServiceImpl implements IMemberService {
     private ICoreMemberConfigService coreMemberConfigService;
     @Resource
     private DiyFormRecordsMapper diyFormRecordsMapper;
+    @Resource
+    private IApiVipCardService vipCardService;
 
     @Override
     public MemberInfoVo info(MemberInfoParam param) {
         MPJQueryWrapper<Member> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("m")
-            .leftJoin("?_member_level ml ON ml.level_id = m.member_level".replace("?_", GlobalConfig.tablePrefix));
-        queryWrapper.select("member_id, m.site_id, username, member_no, mobile, register_channel, nickname, headimg, member_level, member_label, login_ip, login_type, login_time, m.create_time, last_visit_time, last_consum_time, sex, m.status, birthday, point, balance, m.growth, is_member, member_time, is_del, province_id, city_id, district_id, address, location, money, money_get, wx_openid, weapp_openid, commission, commission_get, commission_cash_outing, ml.level_name as member_level_name");
+                .leftJoin("?_member_level ml ON ml.level_id = m.member_level".replace("?_", GlobalConfig.tablePrefix));
+        queryWrapper.select("member_id, m.site_id, username, member_no, mobile, register_channel, nickname, headimg, member_level, member_label, login_ip, login_type, login_time, m.create_time, last_visit_time, last_consum_time, sex, m.status, birthday, point, balance, m.growth, is_member, member_time, is_del, province_id, city_id, district_id, address, location, money, money_get, is_newcomer_gift, wx_openid, weapp_openid, commission, commission_get, commission_cash_outing, ml.level_name as member_level_name");
         queryWrapper.eq("member_id", param.memberId());
         // SAAS域控制（交给SQL引擎处理）
         queryWrapper.eq("m.site_id", param.siteId());
         MemberInfoVo memberInfoVo = memberMapper.selectJoinOne(MemberInfoVo.class, queryWrapper);
-        if (ObjectUtil.isNotEmpty(memberInfoVo)){
+        if (ObjectUtil.isNotEmpty(memberInfoVo)) {
             MemberConfigVo memberConfig = coreMemberConfigService.getMemberConfig(memberInfoVo.getSiteId());
             memberInfoVo.setFormId(memberConfig.getFormId() == null ? "" : memberConfig.getFormId().toString());
             memberInfoVo.setFormRecordId("");
-            if (StringUtils.isNotEmpty(memberInfoVo.getFormId())){
+            if (StringUtils.isNotEmpty(memberInfoVo.getFormId())) {
                 DiyFormRecords diyFormRecords = diyFormRecordsMapper.selectOne(new LambdaQueryWrapper<DiyFormRecords>()
                         .eq(DiyFormRecords::getFormId, memberConfig.getFormId())
                         .eq(DiyFormRecords::getMemberId, memberInfoVo.getMemberId())
                         .orderByDesc(DiyFormRecords::getCreateTime));
-                if (ObjectUtil.isNotEmpty(diyFormRecords)){
+                if (ObjectUtil.isNotEmpty(diyFormRecords)) {
                     memberInfoVo.setFormRecordId(diyFormRecords.getRecordId().toString());
                 }
             }
+            ApiVipCardComponentsVo vip = vipCardService.getVipCardComponents();
+            MemberInfoVo.MemberVipCardInfo vipCardInfo = new MemberInfoVo.MemberVipCardInfo();
+            vipCardInfo.setIsOpen(vip.getIsOpen() != null ? vip.getIsOpen() : 0);
+            vipCardInfo.setCardName(vip.getCardName() != null ? vip.getCardName() : "");
+            memberInfoVo.setVipCardBuy(vipCardInfo);
         }
         return memberInfoVo;
     }
@@ -81,7 +90,7 @@ public class MemberServiceImpl implements IMemberService {
     @Override
     public MemberCenterVo center(MemberCenterParam param) {
         QueryWrapper<Member> queryWrapper = new QueryWrapper();
-        queryWrapper.select("member_id, site_id, username, member_no, mobile, register_channel, nickname, headimg, member_level, member_label, login_ip, login_type, login_time, create_time, last_visit_time, last_consum_time, sex, status, birthday, point, balance, growth, is_member, member_time, is_del, province_id, city_id, district_id, address, location, money, money_get, commission, commission_get, commission_cash_outing");
+        queryWrapper.select("member_id, site_id, username, member_no, mobile, register_channel, nickname, headimg, member_level, member_label, login_ip, login_type, login_time, create_time, last_visit_time, last_consum_time, sex, status, birthday, point, balance, growth, is_member, member_time, is_del, province_id, city_id, district_id, address, location, money, money_get, is_newcomer_gift, commission, commission_get, commission_cash_outing");
         queryWrapper.eq("member_id", param.memberId());
         queryWrapper.eq("site_id", param.siteId());
         Member member = memberMapper.selectOne(queryWrapper);
@@ -138,7 +147,8 @@ public class MemberServiceImpl implements IMemberService {
         if (ObjectUtil.isNotEmpty(param.getData().getHeadimg())) newMember.setHeadimg(param.getData().getHeadimg());
         if (ObjectUtil.isNotEmpty(param.getData().getBirthday())) newMember.setBirthday(param.getData().getBirthday());
         if (ObjectUtil.isNotEmpty(param.getData().getSex())) newMember.setSex(param.getData().getSex());
-        if (ObjectUtil.isNotEmpty(param.getData().getLastVisitTime())) newMember.setLastVisitTime(param.getData().getLastVisitTime());
+        if (ObjectUtil.isNotEmpty(param.getData().getLastVisitTime()))
+            newMember.setLastVisitTime(param.getData().getLastVisitTime());
         return this.memberMapper.updateById(newMember);
     }
 
@@ -189,13 +199,13 @@ public class MemberServiceImpl implements IMemberService {
     @Override
     public Integer getCount(List<List<String>> condition) {
         QueryWrapper<Member> queryWrapper = new QueryWrapper<>();
-        
+
         for (List<String> conditionItem : condition) {
             if (conditionItem.size() >= 3) {
                 String field = conditionItem.get(0);
                 String operator = conditionItem.get(1);
                 String value = conditionItem.get(2);
-            
+
                 switch (operator) {
                     case "=":
                         queryWrapper.eq(field, value);
@@ -209,7 +219,7 @@ public class MemberServiceImpl implements IMemberService {
                 }
             }
         }
-        
+
         Long count = memberMapper.selectCount(queryWrapper);
         return count != null ? count.intValue() : 0;
     }

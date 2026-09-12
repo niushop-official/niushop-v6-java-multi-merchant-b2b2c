@@ -139,6 +139,7 @@
         "title": "系统",
         "key": "app"
       },
+      "type": "folder",
       "child_list": [
         {
           "title": "自定义链接",
@@ -148,14 +149,12 @@
         {
             "title": "小程序跳转",
             "name": "DIY_JUMP_OTHER_APPLET"
-
         },
         {
             "title": "拨打电话",
             "name": "DIY_MAKE_PHONE_CALL",
             "link_type": "all"
          }
-
       ]
     }
 

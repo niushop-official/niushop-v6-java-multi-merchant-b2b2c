@@ -8,28 +8,28 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="memberTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="memberTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('memberInfo')" prop="keyword">
-                        <el-input v-model="memberTableData.searchParam.keyword" class="w-[240px]" :placeholder="t('memberInfoPlaceholder')" />
+                        <el-input v-model="memberTableData.searchParam.keyword" :placeholder="t('memberInfoPlaceholder')" clearable  class="search-input" />
                     </el-form-item>
 
                     <el-form-item :label="t('registerChannel')" prop="register_channel">
-                        <el-select v-model="memberTableData.searchParam.register_channel" clearable :placeholder="t('channelPlaceholder')" class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="memberTableData.searchParam.register_channel" clearable :placeholder="t('channelPlaceholder')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item" :value="key" v-for="(item, key) in channelList" :key="key" />
                         </el-select>
                     </el-form-item>
 
                     <el-form-item :label="t('memberLabel')" prop="member_label">
-                        <el-select v-model="memberTableData.searchParam.member_label" collapse-tags clearable :placeholder="t('memberLabelPlaceholder')" class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="memberTableData.searchParam.member_label" collapse-tags clearable :placeholder="t('memberLabelPlaceholder')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item['label_name']" :value="item['label_id']" v-for="(item, index) in labelSelectData" :key="index" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
                         <el-date-picker v-model="memberTableData.searchParam.create_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadMemberList()">{{ t('search') }}</el-button>
@@ -122,8 +122,7 @@
 
                     <el-table-column prop="member_label" :label="t('status')" min-width="120" align="center">
                         <template #default="{ row }">
-                            <el-tag type="success" v-if="row.status == 1" @click="lockMember(row, 0)" class="cursor-pointer">{{ t('normal') }}</el-tag>
-                            <el-tag type="error" v-else @click="lockMember(row, 1)" class="cursor-pointer">{{ t('lock') }}</el-tag>
+                            <el-switch v-model="row.status" :active-value="1" :inactive-value="0" inline-prompt :active-text="t('normal')" :inactive-text="t('lock')" @change="(value) => lockMember(row, value)" />
                         </template>
                     </el-table-column>
                     <el-table-column :label="t('createTime')" min-width="150" align="center">
@@ -177,7 +176,7 @@
             <detail-member ref="detailMemberDialog"  @load="loadMemberList(getTablePageStorage(memberTableData.searchParam).page)"></detail-member>
             <reset-password ref="resetPasswordDialog" @complete="loadMemberList(getTablePageStorage(memberTableData.searchParam).page)"></reset-password>
             <modify-recommender ref="modifyRecommenderDialog" @complete="loadMemberList(getTablePageStorage(memberTableData.searchParam).page)" />
-            <component :is="sendComponent.component"  ref="sendCouponRef" v-if="sendComponent.component" @complete="loadMemberList(getTablePageStorage(memberTableData.searchParam).page)"/>
+            <send-coupon ref="sendCouponRef" @complete="loadMemberList(getTablePageStorage(memberTableData.searchParam).page)"/>
         </el-card>
     </div>
 </template>
@@ -186,7 +185,7 @@
 import { reactive, ref, defineAsyncComponent } from 'vue'
 import { t } from '@/lang'
 import { setTablePageStorage, getTablePageStorage, img } from '@/utils/common'
-import { getRegisterChannelType, getMemberList, getMemberLabelAll, editMemberStatus, deleteMember, getMemberSendComponent } from '@/app/api/member'
+import { getRegisterChannelType, getMemberList, getMemberLabelAll, editMemberStatus, deleteMember } from '@/app/api/member'
 import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import AddMember from '@/app/views/member/components/add-member.vue'
@@ -197,6 +196,7 @@ import PointEdit from '@/app/views/member/components/member-point-edit.vue'
 import BalanceEdit from '@/app/views/member/components/member-balance-edit.vue'
 import BatchAccount from '@/app/views/member/components/member-batch-account.vue'
 import modifyRecommender from '@/app/views/member/components/modify-recommender.vue'
+import sendCoupon from '@/app/views/admin/marketing/coupon/components/send-coupon.vue'
 import userStore from '@/stores/modules/user'
 import { concat } from 'lodash-es'
 
@@ -447,17 +447,6 @@ const modifyRecommenderEvent = (data: any) => {
     modifyRecommenderDialog.value.setFormData(data)
 }
 
-// 送优惠券
-const modules: any = import.meta.glob('@/**/*.vue')
-const sendComponent = ref<any>({})
-const getMemberSendComponentFn = () => {
-    getMemberSendComponent('send_coupon').then((res: any) => {
-        sendComponent.value = res.data
-        sendComponent.value.component && (sendComponent.value.component = defineAsyncComponent(modules[sendComponent.value.component]))
-    })
-}
-getMemberSendComponentFn()
-
 const sendCouponRef: Record<string, any> | null = ref(null)
 const sendCouponEvent = (row: any) => {
     const data = ref({
@@ -545,6 +534,8 @@ const lockMember = (res: any, status: any) => {
         if (res.code >= 0) {
             loadMemberList(getTablePageStorage(memberTableData.searchParam).page)
         }
+    }).catch(() => {
+        res.status = status == 1 ? 0 : 1
     })
 }
 </script>

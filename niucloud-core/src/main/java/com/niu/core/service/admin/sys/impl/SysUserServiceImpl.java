@@ -30,8 +30,9 @@ import com.niu.core.service.admin.site.param.SiteUserParam;
 import com.niu.core.service.admin.site.param.SiteUserSearchParam;
 import com.niu.core.service.admin.site.vo.SiteUserVo;
 import com.niu.core.service.admin.sys.ISysUserRoleService;
-import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.service.admin.sys.ISysUserService;
+import com.niu.core.service.admin.sys.param.*;
+import com.niu.core.service.core.user.ICoreUserService;
 import com.niu.core.service.admin.sys.vo.*;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.entity.sys.SysUser;
@@ -70,6 +71,9 @@ public class SysUserServiceImpl implements ISysUserService {
 
     @Resource
     Cached cached;
+
+    @Resource
+    ICoreUserService coreUserService;
 
     public ILoginService getLoginService() {
         return (ILoginService) SpringContext.getBean(LoginServiceImpl.class);
@@ -467,63 +471,7 @@ public class SysUserServiceImpl implements ISysUserService {
     @Transactional
     @Override
     public Integer addSiteUser(SiteUserParam siteUserParam, Integer siteId) {
-        Integer uid = 0;
-        try {
-            //
-            if (ObjectUtil.isNotNull(siteUserParam.getUid()) && siteUserParam.getUid() > 0) {
-                uid = siteUserParam.getUid();
-                QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("uid", uid).select("uid");
-                SysUser sysUser = sysUserMapper.selectOne(queryWrapper);
-                if (ObjectUtil.isNull(sysUser)) {
-                    throw new AdminException("USER_NOT_EXIST");
-                } else {
-                    if (ObjectUtil.isNotEmpty(siteUserParam.getMobile())) {
-                        //查询手机号是否唯一
-                        if(checkUserMobile(siteUserParam.getMobile(), uid)){
-                            throw new AdminException("手机号必须是唯一的");
-                        }
-                        SysUser updateUser = new SysUser();
-                        updateUser.setMobile(siteUserParam.getMobile());
-                        QueryWrapper<SysUser> updateWrapper = new QueryWrapper<>();
-                        updateWrapper.eq("uid", uid);
-                        sysUserMapper.update(updateUser, updateWrapper);
-                    }
-                }
-            } else {
-                SysUserParam sysUserParam = new SysUserParam();
-                sysUserParam.setHeadImg(siteUserParam.getHeadImg());
-                sysUserParam.setPassword(siteUserParam.getPassword());
-                sysUserParam.setLastIp("");
-                sysUserParam.setLoginCount(0);
-                sysUserParam.setUsername(siteUserParam.getUsername());
-                sysUserParam.setIsDel(0);
-                sysUserParam.setLastTime(DateUtils.currTime());
-                sysUserParam.setStatus(siteUserParam.getStatus());
-                sysUserParam.setRealName(siteUserParam.getRealName());
-                sysUserParam.setMobile(siteUserParam.getMobile());
-                uid = this.add(sysUserParam);
-            }
-            
-            List<String> roleIds = siteUserParam.getRoleIds();
-            Integer isAdmin = siteUserParam.getIsAdmin() == null ? 0 : siteUserParam.getIsAdmin();
-            Integer status = siteUserParam.getStatus() == null ? StatusEnum.ON.getStatus() : siteUserParam.getStatus();
-            
-            SysUserRoleParam sysUserRoleParam = new SysUserRoleParam();
-            sysUserRoleParam.setRoleIds(JSONUtil.toJsonStr(roleIds));
-            sysUserRoleParam.setSiteId(siteId);
-            sysUserRoleParam.setUid(uid);
-            sysUserRoleParam.setStatus(status);
-            sysUserRoleParam.setIsAdmin(isAdmin);
-            sysUserRoleService.add(sysUserRoleParam);
-            
-            String cacheName = "user_role_list_" + uid;
-            cached.remove(cacheName);
-            
-        } catch (Exception e) {
-            throw new AdminException(e.getMessage());
-        }
-        return uid;
+        return coreUserService.addSiteUser(siteUserParam, siteId);
     }
 
     /**
@@ -648,6 +596,11 @@ public class SysUserServiceImpl implements ISysUserService {
         SysUser sysuser=sysUserMapper.selectById(uid);
         Assert.notNull(sysuser, "用户数据不存在!");
         return sysuser;
+    }
+
+    @Override
+    public void resetPassword(Integer uid, String password) {
+        coreUserService.modifyPassword(uid, password);
     }
 
 }

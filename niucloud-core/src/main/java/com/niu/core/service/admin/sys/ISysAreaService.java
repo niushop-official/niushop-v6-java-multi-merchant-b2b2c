@@ -2,14 +2,13 @@ package com.niu.core.service.admin.sys;
 
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
+import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.entity.sys.SysArea;
 import com.niu.core.service.admin.sys.param.SysAreaSearchParam;
-import com.niu.core.common.domain.PageParam;
 import com.niu.core.service.admin.sys.vo.SysAreaByCodeVo;
 import com.niu.core.service.admin.sys.vo.SysAreaListVo;
 import com.niu.core.service.admin.sys.vo.SysAreaResolveVo;
-import com.niu.core.service.api.sys.param.SysAreaAddressByLatlngParam;
 
 import java.util.List;
 import java.util.Map;
@@ -55,14 +54,18 @@ public interface ISysAreaService {
 
     /**
      * 逆地址解析
+     *
      * @param location
      */
     JSONObject getAddressInfo(String location);
 
     /**
      * 地址解析
+     *
      * @param address
      * @return
      */
     JSONObject getAddress(String address);
+
+    Map<String, Object> getAddressByLatlng(String latlng);
 }

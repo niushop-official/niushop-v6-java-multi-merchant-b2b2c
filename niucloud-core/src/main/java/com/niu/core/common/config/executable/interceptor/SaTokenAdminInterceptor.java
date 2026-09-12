@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.niu.core.common.exception.AuthException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.service.admin.auth.IAuthService;
@@ -49,6 +50,10 @@ public class SaTokenAdminInterceptor extends SaInterceptor {
             //设置当前登录用户id
             Integer uid = Integer.parseInt(StpUtil.getLoginId().toString());
             RequestUtils.setUid(uid);
+            Object appType = StpUtil.getExtra("appType");
+            if (ObjectUtil.isNotEmpty(appType) && StrUtil.isNotBlank(appType.toString())) {
+                RequestUtils.setAppType(appType.toString());
+            }
         }
 
         if (!RequestUtils.getReqeustURI().contains("/adminapi/home")) {

@@ -10,6 +10,16 @@
             <el-form-item :label="t('desc')">
                 <el-input v-model.trim="formData.desc" type="textarea" rows="4" :placeholder="t('descPlaceholder')" class="input-width" maxlength="200" clearable />
             </el-form-item>
+            <el-form-item :label="t('plugins')">
+                <el-select v-model="formData.addon" multiple placeholder="请选择插件" class="input-width">
+                    <el-option
+                        v-for="item in addonList"
+                        :key="item.key"
+                        :label="item.title"
+                        :value="item.key"
+                    />
+                </el-select>
+            </el-form-item>
         </el-form>
 
         <template #footer>
@@ -22,14 +32,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { t } from '@/lang'
 import type { FormInstance } from 'element-plus'
 import { addServe, editServe, getServeInfo } from '@/app/api/basic_admin'
+import { getAppList } from '@/app/api/shop_admin'
 
 const showDialog = ref(false)
 const loading = ref(false)
 const title = ref('')
+const addonList = ref<any[]>([])
 
 /**
  * 表单数据
@@ -38,7 +50,8 @@ const initialFormData = {
     service_id: '',
     service_name: '',
     image: '',
-    desc: ''
+    desc: '',
+    addon: []
 }
 const formData: Record<string, any> = reactive({ ...initialFormData })
 
@@ -54,6 +67,12 @@ const formRules = computed(() => {
 })
 
 const emit = defineEmits(['complete'])
+
+// 获取插件列表
+const loadAddonList = async () => {
+    const res = await getAppList()
+    addonList.value = res.data
+}
 
 /**
  * 确认
@@ -85,6 +104,8 @@ const confirm = async (formEl: FormInstance | undefined) => {
 const setFormData = async (row: any = null) => {
     Object.assign(formData, initialFormData)
     loading.value = true
+    // 加载插件列表
+    await loadAddonList()
     if (row) {
         title.value = t('updateServe')
         const data = await (await getServeInfo(row.service_id)).data

@@ -75,4 +75,6 @@ public class SiteShopBasicInfoParam implements Serializable {
     private String backgroundH5;
 
     private String contactName;
+    private String storePhoto;
+
 }

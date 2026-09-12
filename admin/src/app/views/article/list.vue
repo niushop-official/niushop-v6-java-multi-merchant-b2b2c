@@ -8,13 +8,13 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="articleTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true"  label-width="70px" :model="articleTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('title')" prop="title">
-                        <el-input v-model="articleTableData.searchParam.title" :placeholder="t('titlePlaceholder')" />
+                        <el-input v-model="articleTableData.searchParam.title" :placeholder="t('titlePlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('categoryName')" prop="category_id">
                         <el-select v-model="articleTableData.searchParam.category_id" clearable :placeholder="t('categoryIdPlaceholder')" class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item['name']" :value="item['category_id']" v-for="(item, index) in categoryList" :key="index" />
                         </el-select>
                     </el-form-item>

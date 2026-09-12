@@ -1,6 +1,7 @@
 package com.niu.mall.service.site.goods.param;
 
 import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import jakarta.validation.constraints.NotEmpty;
@@ -115,6 +116,12 @@ public class MallVirtualGoodsParam implements Serializable {
     @NotNull(message = "member_discount参数缺失")
     private String memberDiscount;
 
+    /** 付费会员卡折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price */
+    private String vipCardDiscount = "";
+
+    /** 单规格指定会员价，json：{"level_1":"10.00"}（member_discount=fixed_price 时有效） */
+    private JSONObject memberPrice;
+
     private Integer posterId = 0;
 
     private Integer formId = 0;
@@ -174,6 +181,14 @@ public class MallVirtualGoodsParam implements Serializable {
         private Integer isDefault = 0;
 
         private Integer isSell = 1;
+
+        private String sourceGoodsId;
+        private String sourceSkuId;
+        private String sourceFlatform;
+        private String sourceParty;
+
+        /** 多规格指定会员价，json：{"level_1":"10.00"} */
+        private JSONObject memberPrice;
     }
 
     //	定时上架状态
@@ -198,4 +213,18 @@ public class MallVirtualGoodsParam implements Serializable {
     private Integer virtualRefund;
     //虚拟商品退款有效天数
     private Integer virtualRefundDay;
+
+    /** 关联推荐商品id集合 */
+    private Integer[] recommendGoodsIds;
+
+    /** 商品来源 0本地 1导入 2采集 */
+    private Integer sourceType;
+    /** 导入/采集商品关联 goods_id/spu_id */
+    private String sourceGoodsId;
+    /** 单规格导入/采集关联 sku_id */
+    private String sourceSkuId;
+    /** 采集商品平台标识 */
+    private String sourceFlatform;
+    /** 采集商品第三方标识 */
+    private String sourceParty;
 }

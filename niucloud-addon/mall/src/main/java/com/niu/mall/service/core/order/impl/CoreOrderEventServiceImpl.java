@@ -38,8 +38,11 @@ import com.niu.mall.entity.order.MallOrderGoods;
 import com.niu.mall.entity.order.config.MallOrderDelaySpear;
 import com.niu.mall.entity.order.config.MallOrderEvaluate;
 import com.niu.mall.entity.order.config.MallOrderFinish;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.*;
+import com.niu.core.event.fenxiao.FenxiaoOrderSettlementEvent;
+import com.niu.core.event.fenxiao.FenxiaoOrderEventUtil;
+import com.niu.core.enums.fenxiao.FenxiaoTradeTypeEnum;
 import com.niu.mall.event.order.MallOrderSettlementEvent;
 import com.niu.mall.event.order.MallOrderSettlementFinishEvent;
 import com.niu.mall.event.order.OrderCloseStockEvent;
@@ -53,11 +56,14 @@ import com.niu.mall.service.core.goods.ICoreGoodsService;
 import com.niu.mall.service.core.goods.ICoreGoodsStatNumService;
 import com.niu.mall.service.core.goods.ICoreGoodsStatService;
 import com.niu.mall.service.core.goods.param.GoodsAddStatParam;
-import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
+import com.niu.core.service.core.marketing.ICoreCouponMemberService;
 import com.niu.mall.service.core.order.*;
 import com.niu.mall.service.core.order.helper.OrderPointDeductHelper;
 import com.niu.mall.service.core.order.param.*;
-import com.niu.mall.service.core.order.vo.*;
+import com.niu.mall.service.core.order.vo.CheckMallOrderDiscountVo;
+import com.niu.mall.service.core.order.vo.InvoiceInfoVo;
+import com.niu.mall.service.core.order.vo.OrderConfigVo;
+import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
 import com.niu.mall.service.site.marketing.IMallDiscountService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -355,6 +361,12 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
             log.error("订单AfterShopOrderCreate失败 - orderId: {}, 错误: {}", vo.getOrderId(), e.getMessage(), e);
             e.printStackTrace();
         }
+
+//        // 订单催付通知
+//        Map<String, Object> noticeParam = new HashMap<>();
+//        noticeParam.put("order_id", vo.getOrderId());
+//        NoticeUtils.send(vo.getSiteId(), "mall_order_pay_remind", noticeParam);
+
     }
 
     /**
@@ -420,12 +432,15 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         financeService.orderPay(financeParam);
 
         //修改店铺卖家消费时间
-        coreShopMemberService.setConsum(order.getSiteId(), order.getMemberId(), 1, order.getOrderMoney());
+        coreShopMemberService.setConsum(order.getSiteId(), order.getMemberId(), "mall", 1, order.getOrderMoney());
 
         // 发送消息
         Map<String, Object> noticeParam = new HashMap<String, Object>();
         noticeParam.put("order", order);
         NoticeUtils.send(order.getSiteId(), "mall_order_pay", noticeParam);
+        Map<String, Object> siteNoticeParam = new HashMap<>();
+        siteNoticeParam.put("order_id", order.getOrderId());
+        NoticeUtils.send(order.getSiteId(), "mall_order_pay_remind_site", siteNoticeParam);
 
 
         //商品支付数量 金额统计数据
@@ -484,7 +499,10 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
                     if (virtualVerifyType == 0) {
                         expireTime = 0L;
                     } else if (virtualVerifyType == 1) {
-                        expireTime = System.currentTimeMillis() / 1000 + goodsConfig.getLong("virtual_indate", 0L) * 86400;
+                        long baseTime = ObjectUtil.defaultIfNull(order.getPayTime(), 0L) > 0
+                                ? order.getPayTime()
+                                : System.currentTimeMillis() / 1000;
+                        expireTime = baseTime + goodsConfig.getLong("virtual_indate", 0L) * 86400;
                     } else {
                         expireTime = goodsConfig.getLong("virtual_indate", 0L);
                     }
@@ -536,53 +554,53 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
     @Override
     @Async
     public void orderDeliveryAfter(MallOrder order, OrderDeliveryParam orderDeliveryDataParam) {
-
-        MallOrderFinish orderFinish = coreOrderConfigService.getConfig().getConfirm();
-        if (orderFinish.getIsFinishEr()) {
-            if (orderFinish.getFinishLength() > 0) {
-                Long timeout = order.getDeliveryTime() + orderFinish.getFinishLength() * 86400;
-                mallOrderMapper.update(new MallOrder(), new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
-                        .set("timeout", timeout));
+        try {
+            MallOrderFinish orderFinish = coreOrderConfigService.getConfig().getConfirm();
+            if (orderFinish.getIsFinishEr()) {
+                if (orderFinish.getFinishLength() > 0) {
+                    Long timeout = order.getDeliveryTime() + orderFinish.getFinishLength() * 86400;
+                    mallOrderMapper.update(new MallOrder(), new UpdateWrapper<MallOrder>().eq("order_id", order.getOrderId())
+                            .set("timeout", timeout));
+                }
             }
-        }
-        // 订单定时收货任务
-        Long timeout = 0L;
-        List<MallOrderGoods> orderGoods = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().eq("order_id", order.getOrderId()));
-        if (orderGoods.size() == 1 && orderGoods.get(0).getIsVerify() == 1) {
-            if (orderGoods.get(0).getVerifyExpireTime() > 0) {
-                timeout = orderGoods.get(0).getVerifyExpireTime();
+            // 订单定时收货任务
+            Long timeout = 0L;
+            List<MallOrderGoods> orderGoods = mallOrderGoodsMapper.selectList(new QueryWrapper<MallOrderGoods>().eq("order_id", order.getOrderId()));
+            if (orderGoods.size() == 1 && orderGoods.get(0).getIsVerify() == 1) {
+                if (orderGoods.get(0).getVerifyExpireTime() > 0) {
+                    timeout = orderGoods.get(0).getVerifyExpireTime();
+                }
+            } else {
+                OrderConfigVo orderConfig = coreOrderConfigService.getConfig();
+                if (orderConfig.getConfirm().getIsFinishEr() && orderConfig.getConfirm().getFinishLength() > 0) {
+                    timeout = order.getDeliveryTime() + orderConfig.getConfirm().getFinishLength() * 86400;
+                }
             }
-        } else {
-            OrderConfigVo orderConfig = coreOrderConfigService.getConfig();
-            if (orderConfig.getConfirm().getIsFinishEr() && orderConfig.getConfirm().getFinishLength() > 0) {
-                timeout = order.getDeliveryTime() + orderConfig.getConfirm().getFinishLength() * 86400;
+            if (timeout > 0) {
+                MallOrder orderUpdate = new MallOrder();
+                orderUpdate.setOrderId(order.getOrderId());
+                orderUpdate.setTimeout(timeout);
+                mallOrderMapper.updateById(orderUpdate);
             }
-        }
-        if (timeout > 0) {
-            MallOrder orderUpdate = new MallOrder();
-            orderUpdate.setOrderId(order.getOrderId());
-            orderUpdate.setTimeout(timeout);
-            mallOrderMapper.updateById(orderUpdate);
-        }
 
-        // 添加订单日志
-        AddOrderLogParam logParam = new AddOrderLogParam();
-        logParam.setOrderId(order.getOrderId());
-        logParam.setStatus(OrderStatusEnum.WAIT_TAKE.getStatus());
-        logParam.setMainType(ObjectUtil.defaultIfNull(orderDeliveryDataParam.getMainType(), OrderLogMainTypeEnum.SYSTEM.getType()));
-        logParam.setMainId(ObjectUtil.defaultIfNull(orderDeliveryDataParam.getMainId(), 0));
-        logParam.setType(OrderLogActionEnum.ORDER_DELIVERY_ACTION.getAction());
-        coreOrderLogService.add(logParam);
+            // 添加订单日志
+            AddOrderLogParam logParam = new AddOrderLogParam();
+            logParam.setOrderId(order.getOrderId());
+            logParam.setStatus(OrderStatusEnum.WAIT_TAKE.getStatus());
+            logParam.setMainType(ObjectUtil.defaultIfNull(orderDeliveryDataParam.getMainType(), OrderLogMainTypeEnum.SYSTEM.getType()));
+            logParam.setMainId(ObjectUtil.defaultIfNull(orderDeliveryDataParam.getMainId(), 0));
+            logParam.setType(OrderLogActionEnum.ORDER_DELIVERY_ACTION.getAction());
+            coreOrderLogService.add(logParam);
 
-        // 物流信息上传
-        String str = coreOrderWeappDeliveryService.orderShippingUploadShippingInfo(order.getOrderId(), order.getSiteId());
-        if (StringUtils.isNotEmpty(str)) {
-            throw new CommonException(str);
+            // 发送消息（对齐 PHP AfterMallOrderDelivery：先通知，再上传微信物流）
+            Map<String, Object> noticeParam = new HashMap<String, Object>();
+            noticeParam.put("order", order);
+            NoticeUtils.send(order.getSiteId(), "mall_order_delivery", noticeParam);
+
+            coreOrderWeappDeliveryService.orderShippingUploadShippingInfo(order.getOrderId(), order.getSiteId());
+        } catch (Exception e) {
+            log.error("订单orderDeliveryAfter失败, orderId: {}", order.getOrderId(), e);
         }
-        // 发送消息
-        Map<String, Object> noticeParam = new HashMap<String, Object>();
-        noticeParam.put("order", order);
-        NoticeUtils.send(order.getSiteId(), "mall_order_delivery", noticeParam);
     }
 
 
@@ -671,6 +689,12 @@ public class CoreOrderEventServiceImpl implements ICoreOrderEventService {
         event.setName("MallOrderSettlement");
         event.setOrder(order);
         EventAndSubscribeOfPublisher.publishAll(event);
+
+        FenxiaoOrderSettlementEvent fenxiaoEvent = FenxiaoOrderEventUtil.buildSettlementEvent(
+                FenxiaoTradeTypeEnum.MALL.getType(),
+                FenxiaoOrderEventUtil.buildOrderData(order.getSiteId(), order.getOrderId(), order.getOrderNo(),
+                        order.getMemberId(), order.getOrderMoney()));
+        EventAndSubscribeOfPublisher.publishAll(fenxiaoEvent);
     }
 
     /**

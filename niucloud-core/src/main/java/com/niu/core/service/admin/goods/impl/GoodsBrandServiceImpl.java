@@ -23,6 +23,8 @@ import com.niu.core.service.admin.goods.IGoodsBrandService;
 import com.niu.core.service.admin.goods.vo.GoodsBrandInfoVo;
 import com.niu.core.service.admin.goods.vo.GoodsBrandInitVo;
 import com.niu.core.service.admin.goods.vo.GoodsBrandListVo;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
+import com.niu.core.event.goods.BeforeBrandDeleteEvent;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -64,19 +66,27 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
 
         MPJQueryWrapper<GoodsBrand> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("ngb")
-                .leftJoin("?_site ns ON ngb.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix))
-                .select("ngb.brand_id, ngb.site_id, ngb.brand_name, ngb.logo, ngb.color_json, ngb.`desc`, ngb.sort, ngb.create_time, ngb.update_time, ngb.delete_time, ngb.brand_type, ns.site_name, ns.front_end_logo,ngb.status,ngb.is_hot");
+                // Platform brands use site_id=0 and must not be associated with the platform site record.
+                .leftJoin("?_site ns ON ngb.site_id = ns.site_id AND ns.site_id > 0".replace("?_", GlobalConfig.tablePrefix))
+                .select("ngb.brand_id, ngb.site_id, ngb.brand_name, ngb.logo, ngb.color_json, ngb.`desc`, ngb.sort, ngb.create_time, ngb.update_time, ngb.delete_time, ngb.brand_type, ns.site_name, ns.front_end_logo, ngb.status, ngb.is_hot, ngb.addon");
 
         queryWrapper.eq("ngb.audit_status", BrandAuditEnum.AUDIT_PASS.getStatus());
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus()))   queryWrapper.eq("ngb.status", searchParam.getStatus());
-        if (ObjectUtil.isNotEmpty(searchParam.getIsHot()))   queryWrapper.eq("ngb.is_hot", searchParam.getIsHot());
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus()) && !"all".equals(String.valueOf(searchParam.getStatus())))   queryWrapper.eq("ngb.status", searchParam.getStatus());
+        if (ObjectUtil.isNotEmpty(searchParam.getIsHot()) && !"all".equals(String.valueOf(searchParam.getIsHot())))   queryWrapper.eq("ngb.is_hot", searchParam.getIsHot());
         if (ObjectUtil.isNotEmpty(searchParam.getBrandName())) queryWrapper.like("ngb.brand_name", searchParam.getBrandName());
+        if (ObjectUtil.isNotEmpty(searchParam.getAddon())) queryWrapper.eq("ngb.addon", searchParam.getAddon());
         queryWrapper.orderByDesc("ngb.brand_id");
         if (ObjectUtil.isNotEmpty(searchParam.getOrder())){
             queryWrapper.orderBy(true, searchParam.getSort().equals("asc"), searchParam.getOrder());
         }
         IPage<GoodsBrandListVo> iPage = goodsBrandMapper.selectJoinPage(new Page<>(page, limit), GoodsBrandListVo.class, queryWrapper);
         for (GoodsBrandListVo item : iPage.getRecords()) {
+            if (ObjectUtil.defaultIfNull(item.getSiteId(), 0) <= 0) {
+                item.setSiteName("");
+                item.setFrontEndLogo("");
+                item.setSite(null);
+                continue;
+            }
             GoodsBrandListVo.SiteInfoVO siteInfoVO = new GoodsBrandListVo.SiteInfoVO();
             siteInfoVO.setSiteId(item.getSiteId());
             siteInfoVO.setSiteName(item.getSiteName());
@@ -93,13 +103,14 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
 
         MPJQueryWrapper<GoodsBrand> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("ngb")
-                .leftJoin("?_site ns ON ngb.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix))
-                .select("ngb.brand_id, ngb.site_id, ngb.brand_name, ngb.logo, ngb.color_json, ngb.`desc`, ngb.sort, ngb.create_time, ngb.update_time, ngb.delete_time, ngb.brand_type, ns.site_name, ns.front_end_logo,ngb.status,ngb.is_hot,ngb.audit_status,ngb.audit_reason,ngb.audit_time");
+                .leftJoin("?_site ns ON ngb.site_id = ns.site_id AND ns.site_id > 0".replace("?_", GlobalConfig.tablePrefix))
+                .select("ngb.brand_id, ngb.site_id, ngb.brand_name, ngb.logo, ngb.color_json, ngb.`desc`, ngb.sort, ngb.create_time, ngb.update_time, ngb.delete_time, ngb.brand_type, ns.site_name, ns.front_end_logo, ngb.status, ngb.is_hot, ngb.audit_status, ngb.audit_reason, ngb.audit_time, ngb.addon");
         queryWrapper.gt("ngb.site_id", 0);
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus()))   queryWrapper.eq("ngb.status", searchParam.getStatus());
-        if (ObjectUtil.isNotEmpty(searchParam.getAuditStatus()))   queryWrapper.eq("ngb.audit_status", searchParam.getAuditStatus());
-        if (ObjectUtil.isNotEmpty(searchParam.getIsHot()))   queryWrapper.eq("ngb.is_hot", searchParam.getIsHot());
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus()) && !"all".equals(String.valueOf(searchParam.getStatus())))   queryWrapper.eq("ngb.status", searchParam.getStatus());
+        if (ObjectUtil.isNotEmpty(searchParam.getAuditStatus()) && !"all".equals(String.valueOf(searchParam.getAuditStatus())))   queryWrapper.eq("ngb.audit_status", searchParam.getAuditStatus());
+        if (ObjectUtil.isNotEmpty(searchParam.getIsHot()) && !"all".equals(String.valueOf(searchParam.getIsHot())))   queryWrapper.eq("ngb.is_hot", searchParam.getIsHot());
         if (ObjectUtil.isNotEmpty(searchParam.getBrandName())) queryWrapper.like("ngb.brand_name", searchParam.getBrandName());
+        if (ObjectUtil.isNotEmpty(searchParam.getAddon())) queryWrapper.eq("ngb.addon", searchParam.getAddon());
         queryWrapper.orderByDesc("ngb.brand_id");
         if (ObjectUtil.isNotEmpty(searchParam.getOrder())){
             queryWrapper.orderBy(true, searchParam.getSort().equals("asc"), searchParam.getOrder());
@@ -125,6 +136,7 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
     public List<GoodsBrandListVo> list(GoodsBrandSearchParam searchParam) {
         QueryWrapper<GoodsBrand> queryWrapper = new QueryWrapper<>();
         if (ObjectUtil.isNotEmpty(searchParam.getBrandName())) queryWrapper.like("brand_name", searchParam.getBrandName());
+        if (ObjectUtil.isNotEmpty(searchParam.getAddon())) queryWrapper.eq("addon", searchParam.getAddon());
         queryWrapper.orderByDesc("create_time");
 
         List<GoodsBrand> record = goodsBrandMapper.selectList(queryWrapper);
@@ -175,6 +187,7 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
         model.setAuditStatus(BrandAuditEnum.AUDIT_PASS.getStatus());
         model.setLogo(addParam.getLogo());
         model.setDesc(addParam.getDesc());
+        model.setAddon(ObjectUtil.defaultIfNull(addParam.getAddon(), ""));
         model.setSort(ObjectUtil.isNotEmpty(addParam.getSort()) ? Integer.parseInt(addParam.getSort()) : 0);
         model.setCreateTime(System.currentTimeMillis() / 1000);
         model.setColorJson(JSONUtil.toJsonStr(ObjectUtil.defaultIfNull(addParam.getColorJson(), new JSONObject())));
@@ -202,6 +215,9 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
         model.setBrandName(editParam.getBrandName());
         model.setLogo(editParam.getLogo());
         model.setDesc(editParam.getDesc());
+        if (editParam.getAddon() != null) {
+            model.setAddon(editParam.getAddon());
+        }
         model.setSort(ObjectUtil.isNotEmpty(editParam.getSort()) ? Integer.parseInt(editParam.getSort()) : 0);
         model.setUpdateTime(System.currentTimeMillis() / 1000);
         model.setAuditStatus(BrandAuditEnum.AUDIT_PASS.getStatus());
@@ -216,6 +232,9 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
      */
     @Override
     public void del(Integer id) {
+        BeforeBrandDeleteEvent event = new BeforeBrandDeleteEvent();
+        event.setBrandId(id);
+        EventAndSubscribeOfPublisher.publishAll(event);
         goodsBrandMapper.delete(new QueryWrapper<GoodsBrand>().eq("brand_id", id));
     }
 

@@ -5,6 +5,7 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.event.shop.MallShopGoodsListEventDefiner;
 import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
+import com.niu.core.service.api.vip_card.card.vo.ApiVipCardGoodsVo;
 import com.niu.mall.service.api.goods.param.MallGoodsComponentsSearchParam;
 import com.niu.mall.service.api.goods.param.MallGoodsDetailParam;
 import com.niu.mall.service.api.goods.param.MallGoodsSearchParam;
@@ -117,5 +118,7 @@ public interface IGoodsService {
 
     List<String> getSkuPromotionList(Integer skuId);
 
-    SkuPromotionDetailVo getSkuPromotionDetail(Integer skuId);
+    List<ApiVipCardGoodsVo> getVipCardGoodsList(Integer num);
+
+    SkuPromotionDetailVo getSkuPromotionDetail(Integer skuId, Integer num);
 }

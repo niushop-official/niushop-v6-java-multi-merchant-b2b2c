@@ -10,5 +10,29 @@
     "kid_list": [7, 2, 8, 4],
     "scene_desc": "充值后提醒",
     "tips": "使用该消息请在小程序的服务类目中添加类目：一级类目：商业服务 二级类目：软件/建站/技术开发"
+  },
+  "vip_card_open_success": {
+    "tid": "2592",
+    "content": [
+      ["会员名称", "{card_name}", "name1"],
+      ["支付金额", "{order_money}", "amount2"],
+      ["会员期限", "{time}", "thing5"],
+      ["会员类型", "{item_name}", "thing4"],
+      ["开通日期", "{create_time}", "time7"]
+    ],
+    "kid_list": [1, 2, 5, 4, 7],
+    "scene_desc": "付费会员卡开通成功通知",
+    "tips": "使用该消息请在小程序的服务类目中添加类目：一级类目：商业服务 二级类目：软件/建站/技术开发"
+  },
+  "vip_card_buy_expire_remind": {
+    "tid": "3572",
+    "content": [
+      ["会员卡名称", "{card_name}", "phrase2"],
+      ["到期日期", "{expire_time}", "date3"],
+      ["开通日期", "{create_time}", "time4"]
+    ],
+    "kid_list": [2, 3, 4],
+    "scene_desc": "付费会员卡到期提醒",
+    "tips": "使用该消息请在小程序的服务类目中添加类目：一级类目：商业服务 二级类目：软件/建站/技术开发"
   }
 }

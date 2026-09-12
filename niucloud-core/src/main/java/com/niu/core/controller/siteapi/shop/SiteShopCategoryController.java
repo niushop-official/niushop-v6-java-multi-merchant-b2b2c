@@ -13,9 +13,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 站点分类控制器
+ * 站点分类控制器（兼容层，底层已迁移至 site_category）
+ *
+ * @deprecated 请使用 {@link com.niu.core.controller.siteapi.site.SiteCategoryController} 行业类目接口
  */
-
+@Deprecated
 @RestController
 @RequestMapping("adminapi/shop/site/site_shop_category")
 public class SiteShopCategoryController {

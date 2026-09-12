@@ -1,6 +1,7 @@
 package com.niu.core.service.site.goods.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -13,12 +14,16 @@ import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.entity.goods.GoodsBrand;
+import com.niu.core.entity.site.Site;
 import com.niu.core.enums.goods.BrandAuditEnum;
 import com.niu.core.enums.goods.BrandStatusEnum;
 import com.niu.core.enums.goods.BrandTypeEnum;
 import com.niu.core.mapper.goods.GoodsBrandMapper;
+import com.niu.core.mapper.site.SiteMapper;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.goods.ICoreGoodsConfigService;
 import com.niu.core.service.core.goods.vo.CoreGoodsConfigVo;
+import com.niu.core.event.goods.BeforeBrandDeleteEvent;
 import com.niu.core.service.site.goods.IGoodsBrandService;
 import com.niu.core.service.site.goods.param.EditGoodsBrandSortParam;
 import com.niu.core.service.site.goods.param.EditGoodsBrandStatusParam;
@@ -46,6 +51,8 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
     GoodsBrandMapper goodsBrandMapper;
     @Resource
     ICoreGoodsConfigService coreGoodsConfigService;
+    @Resource
+    SiteMapper siteMapper;
 
 
     @Override
@@ -130,6 +137,7 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
         model.setAuditTime(System.currentTimeMillis() / 1000);
         model.setLogo(addParam.getLogo());
         model.setDesc(addParam.getDesc());
+        model.setAddon(resolveSiteAppAddon(RequestUtils.siteId()));
         model.setSort(ObjectUtil.isNotEmpty(addParam.getSort()) ? Integer.parseInt(addParam.getSort()) : 0);
         model.setCreateTime(System.currentTimeMillis() / 1000);
         model.setColorJson(JSONUtil.toJsonStr(ObjectUtil.defaultIfNull(addParam.getColorJson(), new JSONObject())));
@@ -163,6 +171,10 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
 
     @Override
     public void del(Integer id) {
+        BeforeBrandDeleteEvent event = new BeforeBrandDeleteEvent();
+        event.setBrandId(id);
+        event.setSiteId(RequestUtils.siteId());
+        EventAndSubscribeOfPublisher.publishAll(event);
         goodsBrandMapper.delete(new QueryWrapper<GoodsBrand>().eq("brand_id", id).eq("site_id", RequestUtils.siteId()));
     }
 
@@ -205,5 +217,18 @@ public class GoodsBrandServiceImpl implements IGoodsBrandService {
         vo.setStatusList(JSONUtil.parseObj(BrandStatusEnum.getMap()));
         vo.setAuditStatusList(JSONUtil.parseObj(BrandAuditEnum.getMap()));
         return vo;
+    }
+
+    private String resolveSiteAppAddon(Integer siteId) {
+        Site site = siteMapper.selectById(siteId);
+        if (site == null || !org.springframework.util.StringUtils.hasText(site.getApp())) {
+            return "";
+        }
+        try {
+            JSONArray appArray = JSONUtil.parseArray(site.getApp());
+            return appArray.isEmpty() ? "" : appArray.getStr(0);
+        } catch (Exception ignored) {
+            return "";
+        }
     }
 }

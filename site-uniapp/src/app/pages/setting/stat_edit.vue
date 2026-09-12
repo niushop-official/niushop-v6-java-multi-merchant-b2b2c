@@ -3,7 +3,7 @@
         <view class="bg-[#fff] py-[var(--pad-top-m)] px-[var(--pad-sidebar-m)] border-box mb-[20rpx]">
             <view class="flex items-center mb-[40rpx]">
                 <text class="text-[30rpx] font-500 mr-[20rpx]">已添加</text>
-                <text class="text-[24rpx] text-[#999]">最多可添加6项</text>
+                <text class="text-[24rpx] text-[#999]">最多可添加{{statAll.length}}项</text>
             </view>
             <dragsort-list ref="dragSortRef" v-model:list.sync="statList" :cols="3" :padding="10"  :itemHeight="80" :isAWait="isAWait">
                 <template #default="{ item, index }">
@@ -93,8 +93,9 @@ const delStat = (data: any, index: any) => {
 }
 
 const addStat = (data: any) => {
-    if(statList.value.length >= 6){
-        uni.showToast({ title: '最多添加6项', icon: 'none' })
+    const len = statAll.value.length
+    if(statList.value.length >= len){
+        uni.showToast({ title: `最多添加${len}项`, icon: 'none' })
         return false
     }
     statList.value.push(data)

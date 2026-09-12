@@ -60,16 +60,16 @@ public class SeparServiceImpl implements ISeparService {
         if (ObjectUtil.isNotEmpty(searchParam.getOutTradeNo())) {
             queryWrapper.like("out_trade_no", searchParam.getOutTradeNo());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getPayType())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getPayType()) && !"all".equals(searchParam.getPayType())) {
             queryWrapper.eq("pay_type", searchParam.getPayType());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getTradeNo())) {
             queryWrapper.like("trade_no", searchParam.getTradeNo());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getTradeType())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getTradeType()) && !"all".equals(searchParam.getTradeType())) {
             queryWrapper.eq("trade_type", searchParam.getTradeType());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus()) && !"all".equals(String.valueOf(searchParam.getStatus()))) {
             queryWrapper.eq("status", searchParam.getStatus());
         }
         queryWrapper.orderByDesc("id");

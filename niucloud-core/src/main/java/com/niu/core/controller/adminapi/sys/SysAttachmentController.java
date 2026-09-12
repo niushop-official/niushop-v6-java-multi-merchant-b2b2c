@@ -9,6 +9,7 @@ import com.niu.core.common.utils.StringUtils;
 import com.niu.core.service.admin.sys.ISysAttachmentService;
 import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.service.admin.sys.vo.AttachmentUploadVo;
+import com.niu.core.service.admin.sys.vo.IconCategoryVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentCategoryListVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentConfigVo;
 import com.niu.core.service.admin.sys.vo.SysAttachmentListVo;
@@ -213,14 +214,17 @@ public class SysAttachmentController {
     }
 
     @GetMapping("attachment/icon_category")
-    public Result<Object> getIconCategoryList() {
-        return Result.success(new ArrayList<>());
+    public Result<List<IconCategoryVo>> getIconCategoryList(@RequestParam(value = "name", required = false) String name) {
+        return Result.success(sysAttachmentService.getIconCategoryList(name));
     }
 
 
     @GetMapping("attachment/icon")
-    public Result<Object> getIconList() {
-        return Result.success(new ArrayList<>());
+    public Result<Object> getIconList(@RequestParam(value = "page", defaultValue = "1") Integer page,
+                                      @RequestParam(value = "limit", defaultValue = "20") Integer limit,
+                                      @RequestParam(value = "cate_id", required = false) String cateId,
+                                      @RequestParam(value = "real_name", required = false) String realName) {
+        return Result.success(sysAttachmentService.getIconList(page, limit, cateId, realName));
     }
 
     @GetMapping("/attachment/config")

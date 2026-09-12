@@ -7,7 +7,7 @@ import com.niu.core.common.component.job.IJobProvider;
 import com.niu.core.common.component.job.annotation.JobProvider;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.mall.entity.order.MallOrderGoods;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.OrderLogMainTypeEnum;
 import com.niu.mall.enums.order.OrderRefundSourceEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;

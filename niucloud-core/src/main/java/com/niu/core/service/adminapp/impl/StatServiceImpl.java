@@ -32,9 +32,10 @@ public class StatServiceImpl implements IStatService {
 
     @Override
     public List<StatItemVo> getStatList() {
-        JSONArray list = StatAppEnum.getStat();
-        Integer uid = RequestUtils.uid();
         Integer siteId = RequestUtils.siteId();
+        JSONArray list = StatAppEnum.getStat(siteId);
+        Integer uid = RequestUtils.uid();
+
         JSONArray keys = coreAdminAppService.getValue(uid, siteId, "stat");
         int statLimit = 6;
         List<JSONObject> statList;
@@ -58,18 +59,19 @@ public class StatServiceImpl implements IStatService {
         List<JSONObject> sortedList = statList.stream()
                 .sorted(Comparator.comparingInt(item -> item.getInt("sort", 0)))
                 .collect(Collectors.toList());
-        
+
         return convertToVoList(sortedList);
     }
 
     @Override
     public List<StatItemVo> getAllStatList() {
-        JSONArray list = StatAppEnum.getStat();
+        Integer siteId = RequestUtils.siteId();
+        JSONArray list = StatAppEnum.getStat(siteId);
         List<JSONObject> sortedList = JSONUtil.toList(list, JSONObject.class)
                 .stream()
                 .sorted(Comparator.comparingInt(item -> item.getInt("sort", 0)))
                 .collect(Collectors.toList());
-        
+
         return convertToVoList(sortedList);
     }
 
@@ -78,11 +80,11 @@ public class StatServiceImpl implements IStatService {
         Integer uid = RequestUtils.uid();
         Integer siteId = RequestUtils.siteId();
         JSONArray valueArray = new JSONArray();
-        
+
         if (param != null && param.getValue() != null) {
             valueArray = new JSONArray(param.getValue());
         }
-        
+
         return coreAdminAppService.setValue(uid, siteId, "stat", valueArray);
     }
 

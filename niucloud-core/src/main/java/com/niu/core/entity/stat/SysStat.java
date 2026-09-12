@@ -81,4 +81,10 @@ public class SysStat  {
     /** 供应商退款分账 */
     private BigDecimal supplyRefundSeparateMoney;
 
+    /** 商圈佣金 */
+    private BigDecimal circleCommission;
+
+    /** 商圈退还佣金 */
+    private BigDecimal circleRefundCommission;
+
 }

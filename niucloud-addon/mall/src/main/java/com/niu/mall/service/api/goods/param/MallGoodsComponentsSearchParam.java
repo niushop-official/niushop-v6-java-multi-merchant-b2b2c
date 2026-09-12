@@ -25,4 +25,10 @@ public class MallGoodsComponentsSearchParam implements Serializable {
     private Integer isLocalDelivery = 0;
 
     private Integer isLocation = 0;
+
+    private String sort = "desc";
+
+    private Integer labelIds = 0;
+
+    private Integer serviceIds = 0;
 }

@@ -2,8 +2,9 @@ package com.niu.core.controller.adminapi.sys;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.hutool.core.util.ObjectUtil;
-import com.niu.core.common.domain.Result;
+import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
+import com.niu.core.common.domain.Result;
 import com.niu.core.common.utils.CommonUtils;
 import com.niu.core.common.utils.RequestParamUtils;
 import com.niu.core.common.utils.RequestUtils;
@@ -12,15 +13,12 @@ import com.niu.core.service.admin.sys.ISysPosterService;
 import com.niu.core.service.admin.sys.param.*;
 import com.niu.core.service.admin.sys.vo.SysPosterInfoVo;
 import com.niu.core.service.admin.sys.vo.SysPosterListVo;
-import com.niu.core.common.domain.PageParam;
-import com.niu.core.service.admin.sys.param.SysPosterTemplateSearchParam;
 import com.niu.core.service.core.poster.ICorePosterService;
 import com.niu.core.service.core.poster.param.GetPosterParam;
-import com.niu.core.service.admin.sys.param.PreviewPosterParam;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -169,7 +167,11 @@ public class SysPosterController {
     @GetMapping("/generate")
     public Result<?> poster(HttpServletRequest request) {
         GetPosterParam param = RequestParamUtils.buildGetPosterParam(request);
-        param.setSiteId(RequestUtils.siteId());
+        Integer siteId = RequestUtils.siteId();
+        if (param.getParam() != null && param.getParam().get("site_id") != null) {
+            siteId = RequestParamUtils.parseInt(param.getParam().get("site_id"), siteId);
+        }
+        param.setSiteId(siteId);
         param.setChannel(ObjectUtil.defaultIfNull(param.getChannel(), "h5"));
         return Result.success("", corePosterService.get(param));
     }
@@ -178,7 +180,7 @@ public class SysPosterController {
      * 预览海报
      * 对应PHP: Poster::preview()
      * PHP路径: adminapi/sys/poster/preview
-     * 
+     *
      * @param param 预览参数，包含id(默认0)、type、param(默认包含mode=>preview)、channel(默认h5)
      * @return Result 返回预览结果
      */

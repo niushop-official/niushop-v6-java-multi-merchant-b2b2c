@@ -19,10 +19,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed} from 'vue'
 import { t } from '@/lang'
 import type { FormInstance } from 'element-plus'
 import { editShopMemberDetail, getShopMemberLabelAll ,batchModifyMemberDetail } from '@/app/api/shop_site'
+import userStore from '@/stores/modules/user'
+
+const siteInfo = computed(() => {
+    return userStore().siteInfo
+})
 
 // 修改类型
 const type = ref('')
@@ -58,6 +63,7 @@ const emit = defineEmits(['complete'])
  * @param formEl
  */
 const confirm = async (formEl: FormInstance | undefined) => {
+    const addon = siteInfo.value?.app?.[0]
     loading.value = true
     if(isBatch.value){
         const data = ref({
@@ -66,7 +72,7 @@ const confirm = async (formEl: FormInstance | undefined) => {
             value: saveData[type.value]
         })
 
-        batchModifyMemberDetail(data.value).then(res => {
+        batchModifyMemberDetail(data.value, addon).then(res => {
             loading.value = false
             showDialog.value = false
             emit('complete')
@@ -81,7 +87,7 @@ const confirm = async (formEl: FormInstance | undefined) => {
             value: saveData[type.value]
         })
 
-        editShopMemberDetail(data.value).then(res => {
+        editShopMemberDetail(data.value, addon).then(res => {
             loading.value = false
             showDialog.value = false
             emit('complete')

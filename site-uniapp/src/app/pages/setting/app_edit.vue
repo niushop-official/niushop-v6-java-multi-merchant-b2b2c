@@ -21,8 +21,8 @@
             </dragsort-list>
         </view>
         <view class="bg-[#fff] mb-[20rpx]">
-            <view class="py-[var(--pad-top-m)] mx-[var(--pad-sidebar-m)] border-box mb-[20rpx]" :class="{'border-bottom': (index + 1) != menuList.length }" v-for="(item,index) in menuList" :key="index">
-                <template  v-if="item.childs && item.childs.length">
+            <template v-for="(item,index) in menuList" :key="index">
+                <view class="py-[var(--pad-top-m)] mx-[var(--pad-sidebar-m)] border-box mb-[20rpx]" :class="{'border-bottom': (index + 1) != menuList.length }"  v-if="item.childs && item.childs.length">
                     <view class="text-[30rpx] font-500 mb-[40rpx]">{{ item.name }}</view>
                     <view class="grid grid-cols-5 gap-x-[10rpx] gap-y-[40rpx]">
                         <view class="flex flex-col items-center" v-for="(subItem,subIndex) in item.childs" :key="subIndex" >
@@ -34,8 +34,8 @@
                             <view class="text-[24rpx] mt-[22rpx]">{{ subItem.name }}</view>
                         </view>
                     </view>
-                </template>
-            </view>
+                </view>
+            </template>
         </view>
         <view class="w-full footer">
             <view class="py-[var(--top-m)] px-[var(--sidebar-m)] fixed bottom-0 left-0 right-0 border-box bg-[#fff] flex items-center justify-between">
@@ -69,14 +69,16 @@ const getAppFn = () => {
     getApp().then((res: any) => {
         menuList.value = res.data
         menuList.value.forEach((item: any) => {
-            item.childs.forEach((subItem: any) => {
-                let index = appList.value.findIndex((appItem: any) => appItem.key == subItem.key)
-                if(index != -1){
-                    subItem.is_add = true
-                }else{
-                    subItem.is_add = false
-                }
-            })
+            if (item.childs) {
+                item.childs.forEach((subItem: any) => {
+                    let index = appList.value.findIndex((appItem: any) => appItem.key == subItem.key)
+                    if(index != -1){
+                        subItem.is_add = true
+                    }else{
+                        subItem.is_add = false
+                    }
+                })
+            }
         })
         
     })
@@ -84,11 +86,14 @@ const getAppFn = () => {
 const delApp = (data: any, index: number) => {
     appList.value.splice(index, 1)
     menuList.value.forEach((item: any) => {
-        item.childs.forEach((subItem: any) => {
-            if (subItem.key === data.key) {
-                subItem.is_add = false
-            }
-        })
+        if(item.childs) {
+            item.childs.forEach((subItem: any) => {
+                if (subItem.key === data.key) {
+                    subItem.is_add = false
+                }
+            })
+        }
+        
     })
     // 调用组件的refresh方法刷新数据
     if (dragSortRef.value) {

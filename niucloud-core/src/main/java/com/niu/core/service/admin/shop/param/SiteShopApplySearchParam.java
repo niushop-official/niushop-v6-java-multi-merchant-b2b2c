@@ -22,6 +22,9 @@ public class SiteShopApplySearchParam implements Serializable {
     /** 申请分类id */
     private Integer categoryId;
 
+    /** 子级行业id */
+    private Integer childCategoryId;
+
     /** 申请状态（1待审核，2已通过，-1已拒绝） */
     private Integer status;
 

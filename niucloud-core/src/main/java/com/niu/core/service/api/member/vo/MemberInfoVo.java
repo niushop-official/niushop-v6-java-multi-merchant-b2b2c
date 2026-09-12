@@ -1,6 +1,7 @@
 package com.niu.core.service.api.member.vo;
 
-import com.niu.core.entity.member.MemberLevel;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.niu.core.common.domain.BeanJsonSerializer;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -71,22 +72,26 @@ public class MemberInfoVo {
     /**
      * 当前登录时间
      */
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long loginTime;
 
     /**
      * 注册时间
      */
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long createTime;
 
     /**
      * 最后访问时间
      */
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long lastVisitTime;
 
     /**
      * 最后消费时间
      */
-    private Integer lastConsumTime;
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long lastConsumTime;
 
     /**
      * 性别 0保密 1男 2女
@@ -126,7 +131,8 @@ public class MemberInfoVo {
     /**
      * 成为会员时间
      */
-    private Integer memberTime;
+    @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
+    private Long memberTime;
 
     /**
      * 0正常  1已删除
@@ -167,6 +173,8 @@ public class MemberInfoVo {
      * 累计获取余额（可提现）
      */
     private BigDecimal moneyGet;
+
+    private Integer isNewcomerGift;
 
     /**
      * 微信用户openid
@@ -216,4 +224,11 @@ public class MemberInfoVo {
         return "保密";
     }
 
+    private MemberVipCardInfo vipCardBuy;
+
+    @Data
+    public static class MemberVipCardInfo {
+        private Integer isOpen;
+        private String cardName;
+    }
 }

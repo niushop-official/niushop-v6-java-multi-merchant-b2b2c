@@ -57,7 +57,8 @@ public class SysExportServiceImpl implements ISysExportService {
         Integer limit = pageParam.getLimit();
 
         QueryWrapper<SysExport> queryWrapper = new QueryWrapper<>();
-        queryWrapper.orderByDesc("id");
+        queryWrapper.orderByDesc("id")
+                .eq("site_id", RequestUtils.siteId());
         if (ObjectUtil.isNotEmpty(searchParam.getExportKey())) {
             queryWrapper.eq("export_key", searchParam.getExportKey());
         }
@@ -146,14 +147,14 @@ public class SysExportServiceImpl implements ISysExportService {
 
         JSONArray jsonArray = coreExportService.getExportData(RequestUtils.siteId(), type, JSONUtil.parseObj(whereConditions), pageParam);
 
-        if (jsonArray == null) {
-            throw new CommonException("列表为空");
+        if (jsonArray == null || jsonArray.isEmpty()) {
+            throw new CommonException("暂无可导出数据");
         }
-        if (jsonArray.isEmpty()) {
-            if ("site_diy_form_records".equals(type) || "admin_diy_form_records".equals(type)) {
-                throw new CommonException("暂无填写记录，无法导出");
-            }
-        }
+//        if (jsonArray.isEmpty()) {
+//            if ("site_diy_form_records".equals(type) || "admin_diy_form_records".equals(type)) {
+//                throw new CommonException("暂无填写记录，无法导出");
+//            }
+//        }
         return !jsonArray.isEmpty();
     }
 
@@ -222,13 +223,7 @@ public class SysExportServiceImpl implements ISysExportService {
         // 保存导出字段列
         JSONArray exportColumn = new JSONArray();
         if (whereConditions.containsKey("export_column")) {
-            JSONObject exportColumnObj = whereConditions.getJSONObject("export_column");
-            for (String key : exportColumnObj.keySet()) {
-                JSONObject column = new JSONObject();
-                column.set(key, exportColumnObj.get(key));
-                exportColumn.add(column);
-            }
-            export.setDataColumn(exportColumn.toString());
+            exportColumn = whereConditions.getJSONArray("export_column");
         }
         coreExportService.add(export);
 
@@ -261,13 +256,20 @@ public class SysExportServiceImpl implements ISysExportService {
 
         // 从searchCondition和dataColumn中恢复导出参数
         JSONObject whereConditions = JSONUtil.parseObj(exportInfo.getSearchCondition());
+        JSONArray exportColumn = new JSONArray();
         if (ObjectUtil.isNotEmpty(exportInfo.getDataColumn())) {
-            JSONArray exportColumn = JSONUtil.parseArray(exportInfo.getDataColumn());
+            exportColumn = JSONUtil.parseArray(exportInfo.getDataColumn());
             whereConditions.set("export_column", exportColumn);
         }
 
         // 重新执行导出
-        asyncExportData(exportInfo.getSiteId(), exportInfo.getExportKey(), whereConditions, pageParam);
+//        asyncExportData(exportInfo.getSiteId(), exportInfo.getExportKey(), whereConditions, pageParam);
+
+        // 获取导出数据
+        JSONArray dataArray = coreExportService.getExportData(exportInfo.getSiteId(), exportInfo.getExportKey(), whereConditions, pageParam);
+
+        // 复用原记录重新执行导出（对齐 PHP againExportData 行为）
+        coreExportService.export(exportInfo.getSiteId(), id, exportInfo.getExportKey(), exportColumn, dataArray);
     }
 
 }

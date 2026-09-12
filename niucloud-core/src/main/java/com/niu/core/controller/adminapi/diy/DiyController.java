@@ -2,6 +2,7 @@ package com.niu.core.controller.adminapi.diy;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.hutool.json.JSONObject;
+import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
 import com.niu.core.enums.diy.PagesEnum;
@@ -9,15 +10,14 @@ import com.niu.core.service.admin.diy.IDiyService;
 import com.niu.core.service.admin.diy.param.*;
 import com.niu.core.service.admin.diy.vo.DiyPageInfoVo;
 import com.niu.core.service.admin.diy.vo.DiyPageListVo;
-import com.niu.core.common.domain.PageParam;
 import com.niu.core.service.core.addon.ICoreAddonService;
 import com.niu.core.service.core.addon.vo.InstallAddonListVo;
 import com.niu.core.service.core.diy.param.StartUpPageConfigParam;
+import jakarta.annotation.Resource;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +38,7 @@ public class DiyController {
     /**
      * 自定义页面分页列表
      *
-     * @param pageParam 分页参数
+     * @param pageParam   分页参数
      * @param searchParam 搜索参数
      * @return Result<Object>
      */
@@ -50,6 +50,7 @@ public class DiyController {
 
     /**
      * 获取自定义页面列表
+     *
      * @param searchParam
      * @return
      */
@@ -108,6 +109,7 @@ public class DiyController {
 
     /**
      * 页面初始化数据
+     *
      * @param
      * @return
      */
@@ -128,6 +130,7 @@ public class DiyController {
 
     /**
      * 获取自定义链接列表
+     *
      * @return
      */
     @GetMapping("/link")
@@ -154,6 +157,7 @@ public class DiyController {
 
     /**
      * 获取页面模板
+     *
      * @return
      */
     @GetMapping("/template")
@@ -163,6 +167,7 @@ public class DiyController {
 
     /**
      * 获取模板页面
+     *
      * @param type
      * @param mode
      * @return
@@ -172,8 +177,14 @@ public class DiyController {
         return Result.success(PagesEnum.getPages(type, mode));
     }
 
+    @GetMapping("/site_index/template")
+    public Result<JSONObject> getSiteIndexTemplateList() {
+        return Result.success(diyPageService.getSiteIndexTemplateList());
+    }
+
     /**
      * 切换模板
+     *
      * @param param
      * @return
      */
@@ -185,6 +196,7 @@ public class DiyController {
 
     /**
      * 获取页面装修列表
+     *
      * @param searchParam
      * @return
      */
@@ -195,6 +207,7 @@ public class DiyController {
 
     /**
      * 自定义页面分页列表，轮播搜索组件用
+     *
      * @return
      */
     @GetMapping("/carousel_search")
@@ -204,6 +217,7 @@ public class DiyController {
 
     /**
      * 复制
+     *
      * @param id
      * @return
      */

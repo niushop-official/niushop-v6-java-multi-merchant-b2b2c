@@ -48,6 +48,7 @@ public class MallOrderListVo implements Serializable {
     private BigDecimal goodsMoney;  // 商品金额
     private BigDecimal deliveryMoney;  // 配送金额
     private BigDecimal discountMoney;  // 优惠金额
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
     private BigDecimal orderMoney;  // 订单金额
     private BigDecimal payMoney;  // 支付金额
     private Integer invoiceId;  // 发票id，0表示不开发票
@@ -107,9 +108,11 @@ public class MallOrderListVo implements Serializable {
      * 闫钰琦新增
      */
     private BigDecimal mallDiscountMoney; //平台优惠金额
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
     private BigDecimal mallMoney; // 平台手续费
     private BigDecimal mallRefundMoney; // 平台退款手续费
     private BigDecimal refundMoney; // 累计退款金额
+    @JsonSerialize(using = BeanJsonSerializer.BigDecimalFormatSerializer.class)
     private BigDecimal shopMoney; // 店铺结算金额
     private BigDecimal shopRefundMoney; // 店铺退款结算金额
     private String siteName;//店铺名称

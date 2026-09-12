@@ -1,5 +1,7 @@
 package com.niu.core.service.core.verify;
 
+import com.niu.core.service.core.verify.vo.CoreVerifyCreateCodeVo;
+
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +23,6 @@ public interface ICoreVerifyService {
 
     Boolean verify(Integer memberId, String code);
 
-    List<String> create(Integer siteId, Integer memberId, String type, Map<String, Object> data);
+    List<CoreVerifyCreateCodeVo> create(Integer siteId, Integer memberId, String type, Map<String, Object> data);
 }
 

@@ -19,6 +19,7 @@ public class SysUserLogInfoVo implements Serializable {
     private Integer siteId;  // 站点id
     private Integer uid;  // 管理员id
     private String username;  // 管理员姓名
+    private String operation; // 操作描述
     private String url;  // 链接
     private String params;  // 参数
     private String type;  // 请求方式

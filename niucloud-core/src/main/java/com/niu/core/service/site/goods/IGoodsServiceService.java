@@ -58,4 +58,12 @@ public interface IGoodsServiceService {
      */
     void del(Integer id);
 
+    /**
+     * 获取符合条件的插件多个数据
+     *
+     * @param addon 插件标识
+     * @return 商品服务列表
+     */
+    List<GoodsServiceListVo> getAddonServiceList(String addon);
+
 }

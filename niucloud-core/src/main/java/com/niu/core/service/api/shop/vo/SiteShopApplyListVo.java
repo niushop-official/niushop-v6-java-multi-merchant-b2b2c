@@ -6,6 +6,7 @@ import com.niu.core.enums.shop.ShopApplyEnum;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
 * 商户入驻申请表列表
@@ -72,6 +73,12 @@ private static final long serialVersionUID = 1L;
 
         /** 用户姓名 */
         private String userName;
+
+        /** 子级行业id */
+        private Integer childCategoryId;
+
+        /** 子级行业名称 */
+        private String childCategoryName;
 
         public String getStatusName() {
                 return ShopApplyEnum.getNameByStatus(status);

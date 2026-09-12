@@ -38,8 +38,8 @@ public class CorePrinterServiceImpl implements ICorePrinterService {
     }
 
     @Override
-    public JSONObject getYlyTokenConfig() {
-        CoreSysConfigVo config = coreConfigService.getConfig(RequestUtils.siteId(), "PRINTER_YLY_TOKEN");
+    public JSONObject getYlyTokenConfig(Integer siteId) {
+        CoreSysConfigVo config = coreConfigService.getConfig(siteId, "PRINTER_YLY_TOKEN");
         if (ObjectUtil.isEmpty(config)) {
             JSONObject valueJsonObject = new JSONObject();
             valueJsonObject.set("access_token", "")
@@ -52,7 +52,7 @@ public class CorePrinterServiceImpl implements ICorePrinterService {
 
     @Override
     public String getYlyToken(String id, String secret) {
-        return getYlyToken(id, secret, false);
+        return getYlyToken(RequestUtils.siteId(), id, secret, false);
     }
 
     /**
@@ -63,14 +63,15 @@ public class CorePrinterServiceImpl implements ICorePrinterService {
      */
     @Override
     public void addPrinterYly(SysPrinterAddPrinterYlyParam param) {
+        Integer siteId = Objects.isNull(param.getSiteId()) || param.getSiteId() == 0 ? RequestUtils.siteId() : param.getSiteId();
         // 强制刷新token，避免使用其他打印机的token
-        getSdk(param.getOpenId(), param.getApikey(), true)
+        getSdk(siteId, param.getOpenId(), param.getApikey(), true)
                 .addPrinter(param.getPrinterCode(), param.getPrinterKey());
     }
 
     @Override
     public void deletePrinterYly(SysPrinter printer) {
-        getSdk(printer.getOpenId(), printer.getApikey())
+        getSdk(printer.getSiteId(), printer.getOpenId(), printer.getApikey())
                 .printerDeletePrinter(printer.getPrinterCode());
     }
 
@@ -116,7 +117,7 @@ public class CorePrinterServiceImpl implements ICorePrinterService {
                 }
 
                 if (Objects.requireNonNull(SysPrinterBrandEnum.getEnumByBrand(printer.getBrand())) == SysPrinterBrandEnum.YI_LIAN_YUN) {
-                    YlyPrinterSdk sdk = getSdk(printer.getOpenId(), printer.getApikey());
+                    YlyPrinterSdk sdk = getSdk(printer.getSiteId(), printer.getOpenId(), printer.getApikey());
                     sdk.printIndex(printer.getPrinterCode(), item.getContent(), String.valueOf(item.getOriginId()));
                 }
             }
@@ -131,17 +132,18 @@ public class CorePrinterServiceImpl implements ICorePrinterService {
 
     @Override
     public String refreshToken(SysPrinter printer) {
-        return getYlyToken(printer.getOpenId(), printer.getPrinterKey(), true);
+        // The YLY OAuth signature uses the application secret, not the printer msign.
+        return getYlyToken(printer.getSiteId(), printer.getOpenId(), printer.getApikey(), true);
     }
 
     @Override
     public void printIndex(SysPrinter printer, String content, String originId) {
-        YlyPrinterSdk sdk = getSdk(printer.getOpenId(), printer.getApikey());
+        YlyPrinterSdk sdk = getSdk(printer.getSiteId(), printer.getOpenId(), printer.getApikey());
         sdk.printIndex(printer.getPrinterCode(), content, originId);
     }
 
-    private String getYlyToken(String id, String secret, boolean refresh) {
-        YlyPrinterSdk sdk = getSdk(id, secret, refresh);
+    private String getYlyToken(Integer siteId, String id, String secret, boolean refresh) {
+        YlyPrinterSdk sdk = getSdk(siteId, id, secret, refresh);
         JSONObject tokenData = new JSONObject()
                 .set("access_token", sdk.getToken())
                 .set("end_time", -1);
@@ -149,8 +151,8 @@ public class CorePrinterServiceImpl implements ICorePrinterService {
         return sdk.getToken();
     }
 
-    private YlyPrinterSdk getSdk(String id, String secret) {
-        return getSdk(id, secret, false);
+    private YlyPrinterSdk getSdk(Integer siteId, String id, String secret) {
+        return getSdk(siteId, id, secret, false);
     }
 
     /**
@@ -161,9 +163,9 @@ public class CorePrinterServiceImpl implements ICorePrinterService {
      * @param refresh 是否强制刷新token
      * @return YlyPrinterSdk
      */
-    private YlyPrinterSdk getSdk(String id, String secret, boolean refresh) {
+    private YlyPrinterSdk getSdk(Integer siteId, String id, String secret, boolean refresh) {
         YlyPrinterSdk sdk;
-        String accessToken = getYlyTokenConfig().getStr("access_token");
+        String accessToken = getYlyTokenConfig(siteId).getStr("access_token");
         
         if (refresh || ObjectUtil.isEmpty(accessToken)) {
             // 需要重新获取token

@@ -3,6 +3,7 @@ package com.niu.core.service.admin.home.vo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.entity.addon.Addon;
+import com.niu.core.enums.shop.ShopStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -50,5 +51,14 @@ public class SiteInfoVo implements Serializable {
     private String initalledAddon;  // 站点已执行初始化方法的插件
     private String siteDomain;  // 站点域名
 
+    private Integer businessStatus;  // 营业状态
+
+    public Integer getBusinessState() {
+        return this.businessStatus;
+    }
+
+    public String getBusinessStateName() {
+        return ShopStatusEnum.getNameByKey(this.businessStatus);
+    }
 
 }

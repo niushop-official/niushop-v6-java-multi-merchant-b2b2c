@@ -51,4 +51,9 @@ public interface ISiteUserService {
      */
     void unlock(Integer uid);
 
+    /**
+     * 修改单个字段
+     */
+    void modify(Integer uid, String field, String value);
+
 }

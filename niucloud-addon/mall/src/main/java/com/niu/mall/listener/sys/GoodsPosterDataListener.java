@@ -8,10 +8,11 @@ import com.niu.core.entity.member.Member;
 import com.niu.core.event.sys.GetPosterDataEventDefiner;
 import com.niu.core.mapper.member.MemberMapper;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.goods.MallGoodsSku;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoodsSku;
+import com.niu.core.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
+import com.niu.mall.service.core.goods.helper.PosterShowPriceHelper;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.Resource;
@@ -34,6 +35,9 @@ public class GoodsPosterDataListener extends GetPosterDataEventDefiner {
     @Resource
     private MemberMapper memberMapper;
 
+    @Resource
+    private PosterShowPriceHelper posterShowPriceHelper;
+
 
     public GetPosterDataResult handleCallback(GetPosterDataEvent event) {
         if (event.getType().equals("shop_goods")) {
@@ -54,17 +58,21 @@ public class GoodsPosterDataListener extends GetPosterDataEventDefiner {
                 data.put("goods_market_price", "￥369.00");
                 data.put("goods_img", "addon/mall/goods_template.png");
             } else {
-                MallGoodsSku sku = skuMapper.selectOne(new QueryWrapper<MallGoodsSku>().select("goods_id,sku_name,sku_image,sale_price,market_price").eq("sku_id", skuId));
+                MallGoodsSku sku = skuMapper.selectOne(new QueryWrapper<MallGoodsSku>()
+                        .select("goods_id,sku_id,sku_name,sku_image,price,sale_price,market_price,member_price,svip_price,svip_discount")
+                        .eq("sku_id", skuId));
                 if (sku == null) return null;
 
-                MallGoods goods = goodsMapper.selectOne(new QueryWrapper<MallGoods>().select("goods_name,goods_cover").eq("goods_id", sku.getGoodsId()));
+                MallGoods goods = goodsMapper.selectOne(new QueryWrapper<MallGoods>()
+                        .select("goods_name,goods_cover,member_discount,vip_card_discount")
+                        .eq("goods_id", sku.getGoodsId()));
                 if (goods == null) return null;
 
                 String goodsImg = ObjectUtil.defaultIfEmpty(sku.getSkuImage(), goods.getGoodsCover());
 
                 data.put("goods_name", goods.getGoodsName() + sku.getSkuName());
                 data.put("goods_img", ObjectUtil.defaultIfEmpty(goodsImg, "addon/mall/goods_template.png"));
-                data.put("goods_price", "￥" + sku.getSalePrice());
+                data.put("goods_price", posterShowPriceHelper.formatGoodsPrice(sku, goods, memberId));
                 data.put("goods_market_price", sku.getMarketPrice().doubleValue() > 0 ? "￥" + sku.getMarketPrice().toString() : "");
 
                 if (memberId > 0) {

@@ -22,7 +22,7 @@ public interface IGoodsCategoryService {
      *
      * @return
      */
-    JSONArray tree(Integer siteId);
+    JSONArray tree(GoodsCategorySearchParam searchParam);
 
 
 }

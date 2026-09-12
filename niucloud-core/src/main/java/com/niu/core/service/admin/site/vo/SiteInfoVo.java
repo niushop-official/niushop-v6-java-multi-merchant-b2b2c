@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.entity.addon.Addon;
 import com.niu.core.entity.site.SiteGroup;
+import com.niu.core.enums.shop.ShopStatusEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
 import lombok.Data;
 
@@ -62,6 +63,14 @@ public class SiteInfoVo implements Serializable {
 
     public String getStatusName() {
         return SiteStatusEnum.getNameByCode(this.status);
+    }
+
+    public Integer getBusinessState() {
+        return this.businessStatus;
+    }
+
+    public String getBusinessStateName() {
+        return ShopStatusEnum.getNameByKey(this.businessStatus);
     }
 
 }

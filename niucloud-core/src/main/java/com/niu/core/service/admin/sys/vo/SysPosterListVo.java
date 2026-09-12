@@ -1,10 +1,7 @@
 package com.niu.core.service.admin.sys.vo;
 
-import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONObject;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
-import com.niu.core.enums.poster.PosterTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -31,10 +28,5 @@ public class SysPosterListVo implements Serializable {
     @JsonSerialize(using = BeanJsonSerializer.LongDateToStringSerializer.class)
     private Long updateTime; // 修改时间
     private String typeName;
-
-    public String getTypeName() {
-        JSONObject posterType = PosterTypeEnum.getType(this.type);
-        return posterType != null ? posterType.getStr("name", "") : "";
-    }
 
 }

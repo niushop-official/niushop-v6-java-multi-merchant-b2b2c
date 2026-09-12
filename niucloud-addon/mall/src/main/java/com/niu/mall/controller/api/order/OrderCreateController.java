@@ -2,16 +2,14 @@ package com.niu.mall.controller.api.order;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.niu.core.common.domain.Result;
+import com.niu.core.common.utils.ParamHelper;
 import com.niu.mall.service.api.order.IOrderCreateService;
 import com.niu.mall.service.core.order.param.MallOrderCalculateParam;
 import com.niu.mall.service.core.order.param.MallOrderCreateParam;
 import com.niu.mall.service.core.order.vo.MallOrderCreateDataVo;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -49,7 +47,16 @@ public class OrderCreateController {
     }
 
     /**
-     * 查询平台优惠券
+     * 查询平台优惠券（对齐 PHP GET）
+     */
+    @GetMapping("/platform_coupon")
+    public Result getPlatformCouponGet(@RequestParam Map<String, String> allParams) {
+        MallOrderCalculateParam param = ParamHelper.mapToBean(allParams, MallOrderCalculateParam.class);
+        return Result.success(orderCreateService.getPlatformCoupon(param));
+    }
+
+    /**
+     * 查询平台优惠券（兼容 POST JSON）
      */
     @PostMapping("/platform_coupon")
     public Result getPlatformCoupon(@RequestBody Map<String, Object> map) {

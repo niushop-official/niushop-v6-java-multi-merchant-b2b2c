@@ -5,9 +5,9 @@
                 <span class="text-page-title">{{pageName}}</span>
             </div>
             <div class="flex justify-between items-center mt-[16px]">
-                <el-form :inline="true" :model="userTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="userTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('accountNumber')" prop="search">
-                        <el-input v-model="userTableData.searchParam.search" class="input-width" :placeholder="t('accountNumberPlaceholder')" />
+                        <el-input v-model="userTableData.searchParam.search" :placeholder="t('accountNumberPlaceholder')" class="search-input" clearable />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadUserList()">{{ t('search') }}</el-button>

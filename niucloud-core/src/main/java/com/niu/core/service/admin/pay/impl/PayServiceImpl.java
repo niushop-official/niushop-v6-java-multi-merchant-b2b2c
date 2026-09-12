@@ -86,23 +86,24 @@ public class PayServiceImpl implements IPayService {
         if (ObjectUtil.isNotEmpty(searchParam.getOutTradeNo())) {
             queryWrapper.eq("out_trade_no", searchParam.getOutTradeNo());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getTradeType())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getTradeType()) && !"all".equals(searchParam.getTradeType())) {
             queryWrapper.eq("trade_type", searchParam.getTradeType());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus()) && !"all".equals(String.valueOf(searchParam.getStatus()))) {
             queryWrapper.eq("status", searchParam.getStatus());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
             QueryMapperUtils.buildByTime(queryWrapper, "create_time", searchParam.getCreateTime());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getType())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getType()) && !"all".equals(searchParam.getType())) {
             queryWrapper.eq("type", searchParam.getType());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getChannel())) {
             queryWrapper.eq("channel", searchParam.getChannel());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getMainId())) {
-            queryWrapper.eq("member_id", searchParam.getMainId());
+        Integer memberId = ObjectUtil.isNotEmpty(searchParam.getMemberId()) ? searchParam.getMemberId() : searchParam.getMainId();
+        if (ObjectUtil.isNotEmpty(memberId)) {
+            queryWrapper.eq("main_id", memberId);
         }
         IPage<Pay> iPage = payMapper.selectPage(new Page<>(page, limit), queryWrapper);
         List<PayListVo> list = new LinkedList<>();

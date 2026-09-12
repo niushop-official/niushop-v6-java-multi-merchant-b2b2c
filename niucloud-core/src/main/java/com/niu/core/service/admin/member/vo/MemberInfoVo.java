@@ -1,19 +1,16 @@
 package com.niu.core.service.admin.member.vo;
+
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.enums.common.ChannelEnum;
 import com.niu.core.enums.common.SexEnum;
-import com.niu.core.enums.member.*;
+import com.niu.core.enums.member.MemberLoginTypeEnum;
+import com.niu.core.enums.member.MemberRegisterChannelEnum;
+import com.niu.core.enums.member.MemberRegisterTypeEnum;
+import com.niu.core.enums.member.StatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.BigDecimal;
-import java.math.BigDecimal;
-import java.math.BigDecimal;
-import java.math.BigDecimal;
-import java.math.BigDecimal;
-import java.math.BigDecimal;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -89,6 +86,7 @@ public class MemberInfoVo implements Serializable {
 
     /**
      * 注册渠道名称
+     *
      * @return
      */
     public String getRegisterChannelName() {
@@ -97,6 +95,7 @@ public class MemberInfoVo implements Serializable {
 
     /**
      * 登录渠道名称
+     *
      * @return
      */
     public String getLoginChannelName() {
@@ -105,6 +104,7 @@ public class MemberInfoVo implements Serializable {
 
     /**
      * 注册渠道名称
+     *
      * @return
      */
     public String getRegisterTypeName() {
@@ -113,6 +113,7 @@ public class MemberInfoVo implements Serializable {
 
     /**
      * 登录方式名称
+     *
      * @return
      */
     public String getLoginTypeName() {
@@ -121,6 +122,7 @@ public class MemberInfoVo implements Serializable {
 
     /**
      * 获取性别
+     *
      * @return
      */
     public String getSexName() {
@@ -129,9 +131,19 @@ public class MemberInfoVo implements Serializable {
 
     /**
      * 获取状态
+     *
      * @return
      */
     public String getStatusName() {
         return StatusEnum.getNameByStatus(this.status);
+    }
+
+    private AdminMemberVipCardInfo vipCardInfo;
+
+    @Data
+    public static class AdminMemberVipCardInfo {
+        private Integer cardId;
+        private String cardName;
+        private Long expireTime;
     }
 }

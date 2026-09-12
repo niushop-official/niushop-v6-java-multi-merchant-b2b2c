@@ -3,6 +3,7 @@ import useDiyStore from '@/app/stores/diy'
 import useUserStore from '@/stores/user'
 import useSystemStore from '@/stores/system'
 import useConfigStore from '@/stores/config'
+import manifestJson from "@/manifest.json";
 import { getNeedLoginPages } from '@/utils/pages'
 
 /**
@@ -666,4 +667,34 @@ export function	filterDigit(e){
         e.detail.value = `${decimalParts[0]}.${decimalParts[1].slice(0, 2)}`;
     }
     return e.detail.value
+}
+
+
+/**
+ * 打开地图选择器
+ * @param backurl 回调URL
+ * @param params 参数
+ */
+export function openMapSelector(backurl: string, params = '') {
+    const configStore = useSystemStore();
+    const mapType = configStore.mapConfig?.map_type || 'tencent';
+    if (mapType === 'tencent') {
+        const url = `https://apis.map.qq.com/tools/locpicker?search=1&type=0&backurl=${ encodeURIComponent(backurl) }&key=${ manifestJson.h5.sdkConfigs.maps.qqmap.key }&referer=myapp`;
+        window.location.href = url;
+    } else if (mapType === 'tianditu') {
+        // 打开天地图选择器
+        const tiandituKey = configStore.mapConfig?.tianditu_map_web_key || '';
+        if (!tiandituKey) {
+            uni.showToast({
+                title: '天地图密钥未配置',
+                icon: 'none'
+            });
+            return;
+        }
+        // 天地图的位置选择器URL
+        // 注意：天地图的位置选择器API可能与腾讯地图不同，需要根据实际API文档调整
+        const baseUrl = (import.meta.env.VITE_APP_BASE_URL || `${ location.origin }`).replace(/\/api\/$/, '')
+        const url = baseUrl + `/tianmap/index.html?search=1&type=0&backurl=${ encodeURIComponent(backurl) }&key=${ tiandituKey }` + (params ? '&' + params : '')
+        window.location.href = url;
+    }
 }

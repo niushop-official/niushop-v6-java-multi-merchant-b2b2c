@@ -21,20 +21,32 @@ import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.entity.shop.*;
 import com.niu.core.entity.site.Site;
+import com.niu.core.entity.site.SiteApply;
+import com.niu.core.entity.site.SiteCategory;
 import com.niu.core.entity.site.SiteGroup;
+import com.niu.core.entity.site.SiteSettAccount;
+import com.niu.core.enums.site.SiteSettAccountTypeEnum;
 import com.niu.core.entity.sys.SysUser;
 import com.niu.core.entity.sys.SysUserRole;
 import com.niu.core.enums.addon.AddonActionEnum;
+import com.niu.core.enums.shop.ShopStatusEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
 import com.niu.core.enums.sys.AppTypeEnum;
 import com.niu.core.event.site.SiteAddAfterEvent;
+import com.niu.core.event.site.SiteCloseAfterEvent;
+import com.niu.core.event.site.SiteDelAfterEvent;
 import com.niu.core.event.site.SiteEditAfterEvent;
+import com.niu.core.event.site.SiteOpenAfterEvent;
 import com.niu.core.mapper.shop.*;
+import com.niu.core.mapper.site.SiteApplyMapper;
+import com.niu.core.mapper.site.SiteCategoryMapper;
 import com.niu.core.mapper.site.SiteMapper;
+import com.niu.core.mapper.site.SiteSettAccountMapper;
 import com.niu.core.mapper.sys.SysUserMapper;
 import com.niu.core.mapper.sys.SysUserRoleMapper;
 import com.niu.core.service.admin.addon.IAddonService;
 import com.niu.core.service.admin.shop.IShopSiteGroupService;
+import com.niu.core.service.admin.site.ISiteService;
 import com.niu.core.service.admin.shop.ISiteShopService;
 import com.niu.core.service.admin.shop.param.*;
 import com.niu.core.service.admin.shop.vo.*;
@@ -46,6 +58,7 @@ import com.niu.core.service.admin.sys.ISysUserRoleService;
 import com.niu.core.service.admin.sys.ISysUserService;
 import com.niu.core.service.admin.sys.param.SysUserRoleParam;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
+import com.niu.core.service.core.site.ICoreSiteCategoryService;
 import com.niu.core.service.core.site.ICoreSiteService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -73,10 +86,13 @@ public class SiteShopServiceImpl implements ISiteShopService {
     SiteShopMapper siteShopMapper;
 
     @Resource
-    SiteShopCategoryMapper siteShopCategoryMapper;
+    SiteCategoryMapper siteCategoryMapper;
 
     @Resource
-    SiteShopApplyMapper siteShopApplyMapper;
+    SiteApplyMapper siteApplyMapper;
+
+    @Resource
+    SiteSettAccountMapper siteSettAccountMapper;
 
     @Resource
     SysUserMapper sysUserMapper;
@@ -111,7 +127,25 @@ public class SiteShopServiceImpl implements ISiteShopService {
     IShopSiteGroupService shopSiteGroupService;
 
     @Resource
+    ISiteService siteService;
+
+    @Resource
+    SiteSupplyMapper siteSupplyMapper;
+
+    @Resource
+    SiteO2oMapper siteO2oMapper;
+
+    @Resource
     private Cached cached;
+
+    @Resource
+    ICoreSiteCategoryService siteCategoryService;
+
+    private static final String SITE_SHOP_JOIN_SELECT =
+            "ns.site_id, ns.site_name, ns.group_id, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.business_state, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.icon, ns.member_no, " +
+            "ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, ns.contact_name, ns.contact_mobile, ns.money, ns.money_get, ns.money_cash_outing, ns.business_license, nsg.group_name, " +
+            "nss.id, nssc.name as category_name, nss.is_recommend, nss.is_self, nss.service_rate, nss.category_id, nss.circle_id, nss.child_category_id, nss.keywords, nss.shop_deposit, nss.follow_number, nss.business_status, nss.mall_up_num, nss.mall_sale_num, nss.quality_score, nss.service_score, nss.logistics_score, nss.evaluate_num, nss.background_h5, " +
+            "nsp.service_rate as supply_service_rate, nsp.supply_sale_num, nsp.supply_up_num, nsp.supply_follow_num, nsp.supply_goods_num";
 
     @Override
     public PageResult<SiteShopListVo> page(PageParam pageParam, SiteShopSearchParam searchParam) {
@@ -119,12 +153,12 @@ public class SiteShopServiceImpl implements ISiteShopService {
         Integer limit = pageParam.getLimit();
 
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, " +
-                        "ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license, nss.supply_service_rate,nss.business_status")
+        queryWrapper.select(SITE_SHOP_JOIN_SELECT)
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix))
+                .leftJoin("?_site_supply nsp ON ns.site_id = nsp.site_id".replace("?_", GlobalConfig.tablePrefix));
 
         queryWrapper.ne("ns.app_type", "admin");
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
@@ -135,22 +169,21 @@ public class SiteShopServiceImpl implements ISiteShopService {
             QueryMapperUtils.buildByTime(queryWrapper, "ns.expire_time", searchParam.getExpireTime());
         }
 
-        if (ObjectUtil.isNotEmpty(searchParam.getGroupId())) {
-//        queryWrapper.eq("nss.group_id", searchParam.getGroupId());
+        if (ObjectUtil.isNotEmpty(searchParam.getGroupId()) && !"all".equals(String.valueOf(searchParam.getGroupId()))) {
             queryWrapper.eq("nsg.group_id", searchParam.getGroupId());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId()) && !"all".equals(String.valueOf(searchParam.getCategoryId()))) {
             queryWrapper.eq("nss.category_id", searchParam.getCategoryId());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus()) && !"all".equals(String.valueOf(searchParam.getStatus()))) {
             queryWrapper.eq("ns.status", searchParam.getStatus());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getIsSelf())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getIsSelf()) && !"all".equals(String.valueOf(searchParam.getIsSelf()))) {
             queryWrapper.eq("nss.is_self", searchParam.getIsSelf());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) {
             queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", searchParam.getKeyword()))
-                    .or(j -> j.like("ns.keywords", searchParam.getKeyword()))
+                    .or(j -> j.like("nss.keywords", searchParam.getKeyword()))
             );
         }
         if (ObjectUtil.isNotEmpty(searchParam.getApp())) {
@@ -179,6 +212,8 @@ public class SiteShopServiceImpl implements ISiteShopService {
             }
             // 格式化百分比字段
             formatPercentageFields(item);
+            item.setStatusName(SiteStatusEnum.getNameByCode(item.getStatus()));
+            item.setBusinessStatusName(ShopStatusEnum.getNameByKey(item.getBusinessStatus()));
             SiteShop shop = new SiteShop();
             BeanUtils.copyProperties(item, shop);
             item.setShop(shop);
@@ -190,11 +225,12 @@ public class SiteShopServiceImpl implements ISiteShopService {
     public List<SiteShopListVo> list(SiteShopSearchParam searchParam) {
 
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license")
+        queryWrapper.select(SITE_SHOP_JOIN_SELECT)
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix))
+                .leftJoin("?_site_supply nsp ON ns.site_id = nsp.site_id".replace("?_", GlobalConfig.tablePrefix));
 
         queryWrapper.ne("ns.app_type", "admin");
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
@@ -205,21 +241,21 @@ public class SiteShopServiceImpl implements ISiteShopService {
             QueryMapperUtils.buildByTime(queryWrapper, "ns.expire_time", searchParam.getExpireTime());
         }
 
-        if (ObjectUtil.isNotEmpty(searchParam.getGroupId())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getGroupId()) && !"all".equals(String.valueOf(searchParam.getGroupId()))) {
             queryWrapper.eq("ns.group_id", searchParam.getGroupId());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId()) && !"all".equals(String.valueOf(searchParam.getCategoryId()))) {
             queryWrapper.eq("nss.category_id", searchParam.getCategoryId());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus()) && !"all".equals(String.valueOf(searchParam.getStatus()))) {
             queryWrapper.eq("ns.status", searchParam.getStatus());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getIsSelf())) {
-            queryWrapper.eq("ns.is_self", searchParam.getIsSelf());
+        if (ObjectUtil.isNotEmpty(searchParam.getIsSelf()) && !"all".equals(String.valueOf(searchParam.getIsSelf()))) {
+            queryWrapper.eq("nss.is_self", searchParam.getIsSelf());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) {
             queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", searchParam.getKeyword()))
-                    .or(j -> j.like("ns.keywords", searchParam.getKeyword()))
+                    .or(j -> j.like("nss.keywords", searchParam.getKeyword()))
             );
         }
         queryWrapper.orderByDesc("ns.create_time");
@@ -237,6 +273,8 @@ public class SiteShopServiceImpl implements ISiteShopService {
                 user.setUsername("--");
             }
             item.setAdmin(user);
+            item.setStatusName(SiteStatusEnum.getNameByCode(item.getStatus()));
+            item.setBusinessStatusName(ShopStatusEnum.getNameByKey(item.getBusinessStatus()));
             SiteShop shop = new SiteShop();
             BeanUtils.copyProperties(item, shop);
             item.setShop(shop);
@@ -248,32 +286,40 @@ public class SiteShopServiceImpl implements ISiteShopService {
     @Override
     public SiteShopInfoVo info(Integer id) {
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude," +
-                        " ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours," +
-                        " ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app, ns.addons," +
-                        " ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, " +
-                        "nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, " +
-                        "nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, " +
-                        "nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license, " +
-                        "nss.business_status, nss.supply_service_rate,nss.contact_name, nss.background_h5")
+        queryWrapper.select(SITE_SHOP_JOIN_SELECT)
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix))
+                .leftJoin("?_site_supply nsp ON ns.site_id = nsp.site_id".replace("?_", GlobalConfig.tablePrefix));
 
         queryWrapper.eq("ns.site_id", id);
         SiteShopInfoVo model = siteMapper.selectJoinOne(SiteShopInfoVo.class, queryWrapper);
         if (ObjectUtil.isNull(model)) {
             throw new AdminException("店铺扩展不存在");
         }
+        if (model.getServiceRate() != null) {
+            model.setCommissionRate(model.getServiceRate());
+        }
+        fillSettAccountFields(model, id);
         SiteShopInfoVo.SiteShop shop = new SiteShopInfoVo.SiteShop();
         BeanUtils.copyProperties(model, shop);
+        if (model.getServiceRate() != null) {
+            shop.setCommissionRate(model.getServiceRate());
+        }
         model.setShop(shop);
         List<String> addonKeys = coreSiteService.getAddonKeysBySiteId(model.getSiteId());
         if (addonKeys.size() != 0) {
             model.setSiteAddons(addonService.getAddonListByKeys(addonKeys, AddonActionEnum.ADDON.getCode()));
         } else {
             model.setSiteAddons(new ArrayList<>());
+        }
+        BigDecimal moneyGet = ObjectUtil.defaultIfNull(model.getMoneyGet(), BigDecimal.ZERO);
+        BigDecimal money = ObjectUtil.defaultIfNull(model.getMoney(), BigDecimal.ZERO);
+        BigDecimal moneyCashOuting = ObjectUtil.defaultIfNull(model.getMoneyCashOuting(), BigDecimal.ZERO);
+        model.setWithdrawalMoney(moneyGet.subtract(money).subtract(moneyCashOuting));
+        if (model.getCategoryId() != null && model.getCategoryId() > 0) {
+            model.setChildCategoryList(siteCategoryService.getChildList(model.getCategoryId()));
         }
         return model;
     }
@@ -294,6 +340,9 @@ public class SiteShopServiceImpl implements ISiteShopService {
         List<String> addonsList = new ArrayList<>();
         Integer groupId = addParam.getGroupId();
 
+        // 注释说明：原逻辑需要前端传入 selectType 和 group_id，否则报错"请选择套餐"
+        // 现参考 PHP 版本，改为通过 category_id 自动获取关联的套餐信息，前端无需传入 group_id
+        /* 原代码开始
         if ("group".equals(addParam.getSelectType())) {
             if (ObjectUtil.isEmpty(addParam.getGroupId())) {
                 throw new AdminException("请选择套餐");
@@ -311,6 +360,15 @@ public class SiteShopServiceImpl implements ISiteShopService {
             }
             addonsList = addParam.getAddonsList();
             groupId = 0;
+        }
+        原代码结束 */
+
+        // 新代码：参考 PHP 版本 CoreSiteService.php 的 add 方法，通过 category_id 自动获取套餐信息
+        SiteGroup siteGroup = siteCategoryService.getGroupInfoByCategoryId(addParam.getCategoryId());
+        if (ObjectUtil.isNotNull(siteGroup)) {
+            groupId = siteGroup.getGroupId();
+            appList = JSONUtil.toList(siteGroup.getApp(), String.class);
+            addonsList = JSONUtil.toList(siteGroup.getAddon(), String.class);
         }
 
         Site model = new Site();
@@ -331,18 +389,18 @@ public class SiteShopServiceImpl implements ISiteShopService {
         String contactMobile = null;
         String phone = null;
         if (ObjectUtil.isNotEmpty(addParam.getApplyId())) {
-            SiteShopApply siteShopApply = siteShopApplyMapper.selectById(addParam.getApplyId());
-            if (ObjectUtil.isEmpty(siteShopApply)) {
+            SiteApply siteApply = siteApplyMapper.selectById(addParam.getApplyId());
+            if (ObjectUtil.isEmpty(siteApply)) {
                 throw new CommonException("店铺分类信息不存在");
             }
-            String userMobile = siteShopApply.getUserMobile();
+            String userMobile = siteApply.getUserMobile();
             contactMobile = userMobile;
             phone = userMobile;
         }
         contactMobile = addParam.getPhone();
         phone = addParam.getPhone();
         if (ObjectUtil.isNotEmpty(addParam.getPhone())) {
-            siteShop.setContactMobile(contactMobile);
+            model.setContactMobile(contactMobile);
             model.setPhone(phone);
         }
         siteMapper.insert(model);
@@ -351,23 +409,34 @@ public class SiteShopServiceImpl implements ISiteShopService {
         siteShop.setSiteId(siteId);
         siteShop.setCategoryId(addParam.getCategoryId());
         siteShop.setIsSelf(addParam.getIsSelf());
-        siteShop.setBusinessLicense(addParam.getBusinessLicense());
-        siteShop.setContactMobile(addParam.getPhone());
+        if (ObjectUtil.isNotEmpty(addParam.getBusinessLicense())) {
+            model.setBusinessLicense(addParam.getBusinessLicense());
+            siteMapper.updateById(model);
+        }
+        // 保存子分类id
+        if (ObjectUtil.isNotEmpty(addParam.getChildCategoryId())) {
+            siteShop.setChildCategoryId(addParam.getChildCategoryId());
+        }
+        // 保存商圈id
+        if (ObjectUtil.isNotEmpty(addParam.getCircleId())) {
+            siteShop.setCircleId(addParam.getCircleId());
+        }
         //查询佣金比率
-        SiteShopCategory siteShopCategory = siteShopCategoryMapper.selectById(addParam.getCategoryId());
-        if (ObjectUtil.isEmpty(siteShopCategory)) {
+        SiteCategory siteCategory = siteCategoryMapper.selectById(addParam.getCategoryId());
+        if (ObjectUtil.isEmpty(siteCategory)) {
             throw new AdminException("店铺分类信息不存在");
         }
-        siteShop.setCommissionRate(siteShopCategory.getCommissionRate());
-        siteShop.setSupplyServiceRate(addParam.getSupplyServiceRate());
+        if (ObjectUtil.isNotNull(siteCategory.getServiceRate())) {
+            siteShop.setServiceRate(siteCategory.getServiceRate());
+        }
         siteShopMapper.insert(siteShop);
 
         // 更新店铺申请状态
         if (ObjectUtil.isNotEmpty(addParam.getApplyId())) {
-            siteShopApplyMapper.update(null, Wrappers.<SiteShopApply>lambdaUpdate()
-                    .eq(SiteShopApply::getApplyId, addParam.getApplyId())
-                    .set(SiteShopApply::getOpenStatus, 2)
-                    .set(SiteShopApply::getSiteId, siteId));
+            siteApplyMapper.update(null, Wrappers.<SiteApply>lambdaUpdate()
+                    .eq(SiteApply::getApplyId, addParam.getApplyId())
+                    .set(SiteApply::getOpenStatus, 2)
+                    .set(SiteApply::getSiteId, siteId));
         }
         if (ObjectUtil.isNull(addParam.getUid()) || addParam.getUid() == 0) {
             SiteUserParam siteUserParam = new SiteUserParam();
@@ -410,17 +479,17 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
         Site site = siteMapper.selectJoinOne(Site.class, queryWrapper);
         if (ObjectUtil.isNull(site)) {
-            throw new AdminException("SITE_NOT_EXIST");
+            throw new AdminException("店铺不存在");
         }
 
         if ("group".equals(editParam.getSelectType())) {
             if (ObjectUtil.isEmpty(editParam.getGroupId())) {
-                throw new AdminException("GROUP_NOT_SELECT");
+                throw new AdminException("请选择套餐");
             }
             if (!editParam.getGroupId().equals(site.getGroupId())) {
                 SiteGroup siteGroup = siteGroupService.info(editParam.getGroupId());
                 if (ObjectUtil.isNull(siteGroup) || ObjectUtil.isEmpty(siteGroup)) {
-                    throw new AdminException("SITE_GROUP_NOT_EXIST");
+                    throw new AdminException("套餐不存在");
                 }
                 // 从分组获取app和addons，直接设置为Object类型
                 if (ObjectUtil.isNotEmpty(siteGroup.getApp())) {
@@ -449,7 +518,7 @@ public class SiteShopServiceImpl implements ISiteShopService {
             editParam.setGroupId(0);
         }
         // 查询店铺分类的手续费比率
-        SiteShopCategory shopCategory = siteShopCategoryMapper.selectById(editParam.getCategoryId());
+        SiteCategory shopCategory = siteCategoryMapper.selectById(editParam.getCategoryId());
         if (ObjectUtil.isNull(shopCategory) || ObjectUtil.isEmpty(shopCategory)) {
             throw new AdminException("SHOP_CATEGORY_NOT_EXIST");
         }
@@ -556,21 +625,20 @@ public class SiteShopServiceImpl implements ISiteShopService {
             SiteShop dataShop = new SiteShop();
             dataShop.setIsSelf(editParam.getIsSelf());
             dataShop.setCategoryId(editParam.getCategoryId());
-            dataShop.setBusinessLicense(editParam.getBusinessLicense());
-
-            // 店铺抽成随之改变
-//            if (editParam.getCommissionRate() != null && editParam.getCommissionRate() > 0) {
-//                dataShop.setCommissionRate(new BigDecimal(editParam.getCommissionRate()));
-//            } else {
-//                dataShop.setCommissionRate(shopCategory.getCommissionRate());
-//            }
-//            dataShop.setCommissionRate(new BigDecimal(ObjectUtil.defaultIfNull(shopCategory.getCommissionRate(), 0).toString()));
-            dataShop.setCommissionRate(editParam.getCommissionRate().compareTo(BigDecimal.ZERO) > 0 ? editParam.getCommissionRate() : shopCategory.getCommissionRate());
-            // 供应商手续费
-            if (editParam.getSupplyServiceRate() != null) {
-                dataShop.setSupplyServiceRate(new BigDecimal(editParam.getSupplyServiceRate()));
+            if (ObjectUtil.isNotEmpty(editParam.getBusinessLicense())) {
+                site.setBusinessLicense(editParam.getBusinessLicense());
             }
-
+            // 保存子分类id
+            if (ObjectUtil.isNotEmpty(editParam.getChildCategoryId())) {
+                dataShop.setChildCategoryId(editParam.getChildCategoryId());
+            }
+            // 保存商圈id
+            if (ObjectUtil.isNotEmpty(editParam.getCircleId())) {
+                dataShop.setCircleId(editParam.getCircleId());
+            }
+            if (ObjectUtil.isNotNull(shopCategory.getServiceRate())) {
+                dataShop.setServiceRate(shopCategory.getServiceRate());
+            }
             // 更新店铺扩展信息
             if (ObjectUtil.isNotEmpty(dataShop)) {
                 siteShopMapper.update(dataShop, new QueryWrapper<SiteShop>().eq("site_id", id));
@@ -636,7 +704,6 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
     @Override
     public void editBasicInfo(Integer id, SiteShopBasicInfoParam editParam) {
-        // 检查site_id是否有效
         if (id == null || id <= 0) {
             throw new AdminException("站点ID无效，请检查登录状态");
         }
@@ -650,16 +717,31 @@ public class SiteShopServiceImpl implements ISiteShopService {
             throw new AdminException("站点不存在，site_id: " + id);
         }
 
-        BeanUtils.copyProperties(editParam, model);
+        model.setSiteName(editParam.getSiteName());
+        model.setPhone(editParam.getPhone());
+        model.setLogo(editParam.getLogo());
+        model.setIcon(editParam.getIcon());
+        model.setDesc(editParam.getDesc());
+        model.setFrontEndName(editParam.getFrontEndName());
+        model.setFrontEndLogo(editParam.getFrontEndLogo());
+        model.setLatitude(editParam.getLatitude());
+        model.setLongitude(editParam.getLongitude());
+        model.setProvinceId(editParam.getProvinceId());
+        model.setCityId(editParam.getCityId());
+        model.setDistrictId(editParam.getDistrictId());
+        model.setAddress(editParam.getAddress());
+        model.setFullAddress(editParam.getFullAddress());
+        model.setBusinessHours(editParam.getBusinessHours());
+        model.setContactName(editParam.getContactName());
         siteMapper.updateById(model);
 
         SiteGroup siteGroup = siteGroupService.info(model.getGroupId());
 
-        //修改店铺数据
         SiteShop siteShop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", model.getSiteId()).last("Limit 1"));
         if (ObjectUtil.isNotEmpty(siteShop)) {
             siteShop.setBusinessStatus(editParam.getBusinessStatus());
-            siteShop.setContactName(editParam.getContactName());
+            siteShop.setBackgroundH5(editParam.getBackgroundH5());
+            siteShop.setKeywords(editParam.getKeywords());
             siteShopMapper.updateById(siteShop);
         }
 
@@ -671,22 +753,54 @@ public class SiteShopServiceImpl implements ISiteShopService {
         event.setSiteGroup(siteGroup);
         EventAndSubscribeOfPublisher.publishAll(event);
 
-        //删除站点缓存
         coreSiteService.clearSiteCache(id);
     }
 
     @Override
     public void del(Integer id) {
-        siteShopMapper.delete(new QueryWrapper<SiteShop>().eq("id", id).eq("site_id", RequestUtils.siteId()));
+        siteService.del(id);
+        Map<String, Object> logData = new HashMap<>();
+        logData.put("site_id", id);
+        SiteDelAfterEvent event = new SiteDelAfterEvent(
+                this,
+                id,
+                "app_shop_del",
+                "system",
+                RequestUtils.uid(),
+                JSONUtil.toJsonStr(logData)
+        );
+        EventAndSubscribeOfPublisher.publishAll(event);
     }
 
     @Override
     public void closeShop(Integer siteId) {
+        Site site = siteMapper.selectById(siteId);
+        if (ObjectUtil.isNull(site)) {
+            throw new AdminException("店铺不存在");
+        }
+        if (SiteStatusEnum.EXPIRE.getCode().equals(site.getStatus())) {
+            throw new AdminException("店铺已过期");
+        }
+        if (SiteStatusEnum.CLOSE.getCode().equals(site.getStatus())) {
+            throw new AdminException("店铺已停止");
+        }
         Site model = new Site();
         model.setSiteId(siteId);
         model.setStatus(SiteStatusEnum.CLOSE.getCode());
         siteMapper.updateById(model);
         coreSiteService.clearSiteCache(siteId);
+
+        Map<String, Object> logData = new HashMap<>();
+        logData.put("site_id", siteId);
+        SiteCloseAfterEvent event = new SiteCloseAfterEvent(
+                this,
+                siteId,
+                "app_shop_close",
+                "system",
+                RequestUtils.uid(),
+                JSONUtil.toJsonStr(logData)
+        );
+        EventAndSubscribeOfPublisher.publishAll(event);
     }
 
     @Override
@@ -741,29 +855,128 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
     @Override
     public SiteShopInShopVo getShopAccountInfo(Integer siteId) {
-        SiteShop model = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", siteId));
-        if (ObjectUtil.isEmpty(model)) throw new AdminException("店铺信息不存在");
+        Site site = siteMapper.selectById(siteId);
+        if (ObjectUtil.isEmpty(site)) {
+            throw new AdminException("店铺信息不存在");
+        }
+
         SiteShopInShopVo vo = new SiteShopInShopVo();
-        BeanUtils.copyProperties(model, vo);
-        vo.setMoney(model.getMoney().setScale(2, RoundingMode.HALF_UP).toString());
-        vo.setMoneyGet(model.getMoneyGet().setScale(2, RoundingMode.HALF_UP).toString());
-        vo.setMoneyCashOuting(model.getMoneyCashOuting().setScale(2, RoundingMode.HALF_UP).toString());
-        vo.setShopDeposit(model.getShopDeposit().setScale(2, RoundingMode.HALF_UP).toString());
-        vo.setWithdrawalMoney((model.getMoneyGet().subtract(model.getMoney()).subtract(model.getMoneyCashOuting())).setScale(2, RoundingMode.HALF_UP).toString());
-        vo.setSupplyServiceRate(model.getSupplyServiceRate().toString());
+        vo.setSiteId(siteId);
+
+        SiteShop shop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", siteId));
+        if (ObjectUtil.isNotEmpty(shop)) {
+            BeanUtils.copyProperties(shop, vo);
+            vo.setShopDeposit(shop.getShopDeposit() != null ? shop.getShopDeposit().setScale(2, RoundingMode.HALF_UP).toString() : "0.00");
+            if (shop.getServiceRate() != null) {
+                vo.setCommissionRate(shop.getServiceRate());
+            }
+        } else {
+            SiteSupply supply = siteSupplyMapper.selectOne(new QueryWrapper<SiteSupply>().eq("site_id", siteId));
+            if (ObjectUtil.isNotEmpty(supply)) {
+                vo.setCategoryId(supply.getCategoryId());
+                if (supply.getServiceRate() != null) {
+                    vo.setCommissionRate(supply.getServiceRate());
+                    vo.setSupplyServiceRate(supply.getServiceRate().toPlainString());
+                }
+            } else {
+                SiteO2o o2oShop = siteO2oMapper.selectOne(new QueryWrapper<SiteO2o>().eq("site_id", siteId));
+                if (ObjectUtil.isNotEmpty(o2oShop)) {
+                    vo.setCategoryId(o2oShop.getCategoryId());
+                    if (o2oShop.getServiceRate() != null) {
+                        vo.setCommissionRate(o2oShop.getServiceRate());
+                        vo.setSupplyServiceRate(o2oShop.getServiceRate().toPlainString());
+                    }
+                }
+            }
+            vo.setShopDeposit("0.00");
+        }
+
+        BigDecimal money = site.getMoney() != null ? site.getMoney() : BigDecimal.ZERO;
+        BigDecimal moneyGet = site.getMoneyGet() != null ? site.getMoneyGet() : BigDecimal.ZERO;
+        BigDecimal moneyCashOuting = site.getMoneyCashOuting() != null ? site.getMoneyCashOuting() : BigDecimal.ZERO;
+        vo.setMoney(money.setScale(2, RoundingMode.HALF_UP).toString());
+        vo.setMoneyGet(moneyGet.setScale(2, RoundingMode.HALF_UP).toString());
+        vo.setMoneyCashOuting(moneyCashOuting.setScale(2, RoundingMode.HALF_UP).toString());
+        vo.setWithdrawalMoney((moneyGet.subtract(money).subtract(moneyCashOuting)).setScale(2, RoundingMode.HALF_UP).toString());
+        vo.setBusinessLicense(site.getBusinessLicense());
         return vo;
     }
 
     @Override
-    public void editShopAccount(Integer siteId, SiteShopAccountInfoParam siteShopAccountInfoParam) {
-        SiteShop shop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>()
-                .eq("site_id", siteId));
-        if (ObjectUtil.isEmpty(shop)) {
-            throw new AdminException("店铺信息不存在");
+    @Transactional
+    public void editShopAccount(Integer siteId, SiteShopAccountInfoParam param) {
+        if (ObjectUtil.isEmpty(param) || ObjectUtil.isEmpty(param.getBankType())) {
+            throw new AdminException("请选择账户类型");
         }
-        BeanUtils.copyProperties(siteShopAccountInfoParam, shop);
-        siteShopMapper.update(shop, new QueryWrapper<SiteShop>()
-                .eq("site_id", siteId));
+        upsertSettAccount(siteId, param);
+    }
+
+    private void upsertSettAccount(Integer siteId, SiteShopAccountInfoParam param) {
+        SiteSettAccount account = siteSettAccountMapper.selectOne(new QueryWrapper<SiteSettAccount>()
+                .eq("main_id", siteId)
+                .eq("main_type", "site")
+                .eq("type", param.getBankType())
+                .last("limit 1"));
+        if (account == null) {
+            account = new SiteSettAccount();
+            account.setMainId(siteId);
+            account.setMainType("site");
+            account.setType(param.getBankType());
+            account.setCreateTime(System.currentTimeMillis() / 1000);
+        }
+        applySettAccountParam(account, param);
+        account.setUpdateTime(System.currentTimeMillis() / 1000);
+        if (account.getId() == null) {
+            siteSettAccountMapper.insert(account);
+        } else {
+            siteSettAccountMapper.updateById(account);
+        }
+    }
+
+    private void applySettAccountParam(SiteSettAccount account, SiteShopAccountInfoParam param) {
+        Integer type = param.getBankType();
+        if (SiteSettAccountTypeEnum.BANK.getType().equals(type)) {
+            account.setName(param.getBankAccountName());
+            account.setAccountNo(param.getBankAccountNo());
+            account.setBankName(param.getBankName());
+            account.setBankAddress(param.getBankAddress());
+            account.setAccountImg("");
+        } else if (SiteSettAccountTypeEnum.ALIPAY.getType().equals(type)) {
+            account.setName(param.getAlipayName());
+            account.setAccountNo(param.getAlipayAccountNo());
+            account.setAccountImg(param.getAlipayPaymentCode());
+            account.setBankName("");
+            account.setBankAddress("");
+        } else if (SiteSettAccountTypeEnum.WECHAT.getType().equals(type)) {
+            account.setName(param.getWechatName());
+            account.setAccountNo(param.getWechatAccountNo());
+            account.setAccountImg(param.getWechatPaymentCode());
+            account.setBankName("");
+            account.setBankAddress("");
+        }
+    }
+
+    private void fillSettAccountFields(SiteShopInfoVo vo, Integer siteId) {
+        List<SiteSettAccount> accounts = siteSettAccountMapper.selectList(new QueryWrapper<SiteSettAccount>()
+                .eq("main_id", siteId)
+                .eq("main_type", "site"));
+        for (SiteSettAccount account : accounts) {
+            if (SiteSettAccountTypeEnum.BANK.getType().equals(account.getType())) {
+                vo.setBankType(account.getType());
+                vo.setBankAccountName(account.getName());
+                vo.setBankAccountNo(account.getAccountNo());
+                vo.setBankName(account.getBankName());
+                vo.setBankAddress(account.getBankAddress());
+            } else if (SiteSettAccountTypeEnum.ALIPAY.getType().equals(account.getType())) {
+                vo.setAlipayName(account.getName());
+                vo.setAlipayAccountNo(account.getAccountNo());
+                vo.setAlipayPaymentCode(account.getAccountImg());
+            } else if (SiteSettAccountTypeEnum.WECHAT.getType().equals(account.getType())) {
+                vo.setWechatName(account.getName());
+                vo.setWechatAccountNo(account.getAccountNo());
+                vo.setWechatPaymentCode(account.getAccountImg());
+            }
+        }
     }
 
     @Override
@@ -777,26 +990,28 @@ public class SiteShopServiceImpl implements ISiteShopService {
         if (ObjectUtil.isNotEmpty(siteShopSelectParam.getVerifySiteIds())) {
             List<Integer> verifySiteIdList = Arrays.asList(siteShopSelectParam.getVerifySiteIds());
             if (!verifySiteIdList.isEmpty()) {
-                // 使用简单查询，只验证站点是否存在且状态正常
-                QueryWrapper<Site> simpleWrapper = new QueryWrapper<>();
-                simpleWrapper.select("site_id").in("site_id", verifySiteIdList).eq("status", SiteStatusEnum.ON.getCode());
-                List<Site> simpleSites = siteMapper.selectList(simpleWrapper);
-
-                // 直接使用简单查询的结果，不再要求必须有shop记录
-                verifySiteIds = simpleSites.stream().map(Site::getSiteId).collect(Collectors.toList());
+                MPJQueryWrapper<SiteShop> verifyWrapper = new MPJQueryWrapper<>();
+                verifyWrapper.setAlias("nss")
+                        .select("ns.site_id")
+                        .leftJoin("?_site ns ON nss.site_id = ns.site_id".replace("?_", GlobalConfig.tablePrefix))
+                        .in("ns.site_id", verifySiteIdList)
+                        .eq("ns.status", SiteStatusEnum.ON.getCode())
+                        .eq("nss.business_status", ShopStatusEnum.ON.getCode());
+                verifySiteIds = siteShopMapper.selectJoinList(Integer.class, verifyWrapper);
             }
         }
 
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.logo, ns.status, ns.create_time, ns.expire_time, ns.group_id, nss.is_recommend, nss.is_self, nss.category_id,nssc.category_name")
+        queryWrapper.select("ns.site_id, ns.site_name, ns.logo, ns.status, ns.create_time, ns.expire_time, ns.group_id, nss.is_recommend, nss.is_self, nss.category_id,nssc.name as category_name")
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
 
         queryWrapper.ne("ns.app_type", "admin");
         queryWrapper.like("ns.app", "\"mall\"");
-        queryWrapper.eq("nss.business_status", SiteStatusEnum.ON.getCode());
+        queryWrapper.eq("ns.status", SiteStatusEnum.ON.getCode());
+        queryWrapper.eq("nss.business_status", ShopStatusEnum.ON.getCode());
 
         if (ObjectUtil.isNotEmpty(siteShopSelectParam.getSiteIds())) {
             if (siteShopSelectParam.getSiteIds() instanceof Integer) {
@@ -814,21 +1029,21 @@ public class SiteShopServiceImpl implements ISiteShopService {
             QueryMapperUtils.buildByTime(queryWrapper, "ns.expire_time", siteShopSelectParam.getExpireTime());
         }
 
-        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getGroupId())) {
+        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getGroupId()) && !"all".equals(String.valueOf(siteShopSelectParam.getGroupId()))) {
             queryWrapper.eq("ns.group_id", siteShopSelectParam.getGroupId());
         }
 
-        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getCategoryId())) {
+        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getCategoryId()) && !"all".equals(String.valueOf(siteShopSelectParam.getCategoryId()))) {
             queryWrapper.eq("nss.category_id", siteShopSelectParam.getCategoryId());
         }
 
-        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getIsSelf())) {
+        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getIsSelf()) && !"all".equals(String.valueOf(siteShopSelectParam.getIsSelf()))) {
             queryWrapper.eq("nss.is_self", siteShopSelectParam.getIsSelf());
         }
 
         if (ObjectUtil.isNotEmpty(siteShopSelectParam.getKeyword())) {
             queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", siteShopSelectParam.getKeyword()))
-                    .or(j -> j.like("ns.keywords", siteShopSelectParam.getKeyword())));
+                    .or(j -> j.like("nss.keywords", siteShopSelectParam.getKeyword())));
         }
 
         queryWrapper.orderByDesc("ns.create_time");
@@ -850,10 +1065,10 @@ public class SiteShopServiceImpl implements ISiteShopService {
     @Override
     public Map<String, BigDecimal> getShopStatMoney() {
 
-        QueryWrapper<SiteShop> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<Site> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("SUM(money) AS money, SUM(money_get) AS money_get, SUM(money_cash_outing) AS money_cash_outing");
         queryWrapper.ne("site_id", 0);
-        List<Map<String, Object>> shopStatMap = siteShopMapper.selectMaps(queryWrapper);
+        List<Map<String, Object>> shopStatMap = siteMapper.selectMaps(queryWrapper);
         Map<String, Object> map = ObjectUtil.defaultIfNull(shopStatMap.get(0), new HashMap<>());
         Map<String, BigDecimal> statMap = new HashMap<>();
 
@@ -865,10 +1080,10 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
     @Override
     public Map<String, BigDecimal> getAdminStatMoney() {
-        QueryWrapper<SiteShop> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<Site> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("SUM(money_get) AS money_get");
         queryWrapper.eq("site_id", 0);
-        List<Map<String, Object>> shopStatMap = siteShopMapper.selectMaps(queryWrapper);
+        List<Map<String, Object>> shopStatMap = siteMapper.selectMaps(queryWrapper);
         Map<String, Object> map = ObjectUtil.defaultIfNull(shopStatMap.get(0), new HashMap<>());
         Map<String, BigDecimal> statMap = new HashMap<>();
 
@@ -878,11 +1093,33 @@ public class SiteShopServiceImpl implements ISiteShopService {
 
     @Override
     public void openShop(Integer siteId) {
+        Site site = siteMapper.selectById(siteId);
+        if (ObjectUtil.isNull(site)) {
+            throw new AdminException("店铺不存在");
+        }
+        if (SiteStatusEnum.EXPIRE.getCode().equals(site.getStatus())) {
+            throw new AdminException("店铺已过期");
+        }
+        if (SiteStatusEnum.ON.getCode().equals(site.getStatus())) {
+            throw new AdminException("店铺已开启");
+        }
         Site model = new Site();
         model.setSiteId(siteId);
         model.setStatus(SiteStatusEnum.ON.getCode());
         siteMapper.updateById(model);
         coreSiteService.clearSiteCache(siteId);
+
+        Map<String, Object> logData = new HashMap<>();
+        logData.put("site_id", siteId);
+        SiteOpenAfterEvent event = new SiteOpenAfterEvent(
+                this,
+                siteId,
+                "app_shop_open",
+                "system",
+                RequestUtils.uid(),
+                JSONUtil.toJsonStr(logData)
+        );
+        EventAndSubscribeOfPublisher.publishAll(event);
     }
 
     /**
@@ -892,30 +1129,8 @@ public class SiteShopServiceImpl implements ISiteShopService {
      */
     @Override
     public boolean check() {
-        Integer siteId = RequestUtils.siteId();
-        SiteShop shopInfo = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", siteId));
-
-        if (ObjectUtil.isEmpty(shopInfo)) {
-            return false;
-        } else {
-            if (shopInfo.getBankType() == 1) {
-                // 判断银行卡类型
-                if (ObjectUtil.isEmpty(shopInfo.getBankAccountName()) ||
-                        ObjectUtil.isEmpty(shopInfo.getBankAccountNo()) ||
-                        ObjectUtil.isEmpty(shopInfo.getBankName()) ||
-                        ObjectUtil.isEmpty(shopInfo.getBankAddress())) {
-                    return false;
-                }
-            }
-            if (shopInfo.getBankType() == 2) {
-                // 判断支付宝类型
-                if (ObjectUtil.isEmpty(shopInfo.getAlipayName()) ||
-                        ObjectUtil.isEmpty(shopInfo.getAlipayAccountNo())) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        SiteShop shopInfo = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", RequestUtils.siteId()));
+        return ObjectUtil.isNotEmpty(shopInfo);
     }
 
     /**
@@ -924,16 +1139,10 @@ public class SiteShopServiceImpl implements ISiteShopService {
      * @param item 店铺列表项
      */
     private void formatPercentageFields(SiteShopListVo item) {
-        // 处理佣金比率的null值
-        if (item.getCommissionRate() == null) {
-            item.setCommissionRate(new BigDecimal("0.00"));
+        if (item.getServiceRate() == null) {
+            item.setServiceRate(new BigDecimal("0.00"));
         }
-
-        // 处理供货商平台手续费比率的null值
-        if (item.getSupplyServiceRate() == null) {
-            item.setSupplyServiceRate(new BigDecimal("0.00"));
-        }
-
+        item.setCommissionRate(item.getServiceRate());
     }
 
 }

@@ -18,9 +18,9 @@
                         <el-option label="已选店铺" value="selected" />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="店铺分类" prop="category_id" class="form-item-wrap">
-                    <el-select v-model="shopTable.searchParam.category_id" placeholder="请选择分类" clearable>
-                        <el-option v-for="(item,index) in shopCategory" :key="index" :label="item.category_name" :value="item.category_id" />
+                <el-form-item label="所属行业" prop="category_id" class="form-item-wrap">
+                    <el-select v-model="shopTable.searchParam.category_id" placeholder="请选择所属行业" clearable>
+                        <el-option v-for="(item,index) in shopCategory" :key="index" :label="item.name" :value="item.category_id" />
                     </el-select>
                 </el-form-item>
                 <el-form-item class="form-item-wrap">
@@ -36,7 +36,7 @@
                     </template>
                     <el-table-column type="selection" width="55" />
                     <el-table-column prop="site_name" label="店铺名称" min-width="120"/>
-                    <el-table-column prop="category_name" label="店铺分类" min-width="120"/>
+                    <el-table-column prop="category_name" label="所属行业" min-width="120"/>
                 </el-table>
                 <div class="mt-[16px] flex">
                     <div class="flex items-center flex-1">
@@ -66,7 +66,8 @@ import { t } from '@/lang'
 import { ref, reactive, computed, nextTick } from 'vue'
 import { cloneDeep } from 'lodash-es'
 import { ElMessage, FormInstance } from 'element-plus'
-import { getShopSelect, getShopCategoryAll } from '@/app/api/shop_admin'
+import { getShopSelect } from '@/app/api/shop_admin'
+import { getSiteCategoryAll } from '@/app/api/site_category'
 
 const prop = defineProps({
     modelValue: {
@@ -107,7 +108,7 @@ const selectShopNum: any = computed(() => {
 // 初始化数据
 const shopCategory = ref<any>([])
 const initData = () => {
-    getShopCategoryAll().then((res: any) => {
+    getSiteCategoryAll({addon: 'mall'}).then((res: any) => {
         shopCategory.value = res.data
     })
 }

@@ -54,6 +54,8 @@ const editorConfig = ref({
     UEDITOR_CORS_URL: import.meta.env.MODE == 'development' ? location.origin + '/ueditor/' : location.origin + '/admin/ueditor/',
     serverUrl: `${baseUrl}sys/ueditor`,
     serverHeaders,
+    // 弹框内使用时需高于 el-dialog 默认层级（2000+），否则下拉菜单无法点击
+    zIndex: 9999,
     // 编辑器不自动被内容撑高
     autoHeightEnabled: false,
     // 初始容器高度
@@ -75,6 +77,13 @@ const editorConfig = ref({
 })
 // 监听编辑器准备就绪事件
 const handleEditorReady = (editor) => {
+    // 确保下拉菜单浮层高于 el-dialog，避免在弹框内无法选择标题/段落/字号
+    const fixedLayer = document.getElementById('edui_fixedlayer')
+    if (fixedLayer) {
+        const editorZIndex = parseInt(editor.container?.style?.zIndex, 10) || editorConfig.value.zIndex || 9999
+        fixedLayer.style.zIndex = String(editorZIndex + 100)
+    }
+
     // 方案一：通过内容变化事件手动统计（推荐）
     // editorInstance.addListener('contentChange', () => {
     //     const rawContent = editorInstance.getContent()

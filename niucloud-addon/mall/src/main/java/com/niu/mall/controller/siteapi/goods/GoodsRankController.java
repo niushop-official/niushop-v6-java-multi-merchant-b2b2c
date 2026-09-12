@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 商品排行榜控制器
  */
@@ -39,8 +41,7 @@ class GoodsRankController {
 
     @PostMapping("/good/rank")
     Result<?> add(@Validated @RequestBody MallGoodsRankParam addParam) {
-        ShopGoodsRankService.add(addParam);
-        return Result.success();
+        return Result.success(Map.of("id", ShopGoodsRankService.add(addParam)));
     }
 
     @PutMapping("/good/rank/{id}")

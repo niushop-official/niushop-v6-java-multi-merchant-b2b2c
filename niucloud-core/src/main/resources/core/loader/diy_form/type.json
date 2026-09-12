@@ -15,7 +15,7 @@
     "app_type": ["admin"],
     "show_submit": true
   },
-  "DIY_FORM_MERCHANT_INFO": {
+  "DIY_FORM_MERCHANT_INFO":{
     "title": "商户入驻申请资料",
     "preview": "static/resource/images/diy_form/diy_form_merchant_info_preview.jpg",
     "sort": 10002,

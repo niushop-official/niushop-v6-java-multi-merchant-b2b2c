@@ -4,17 +4,17 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
 import com.niu.core.enums.shop.ShopApplyEnum;
-import com.niu.core.enums.site.SiteStatusEnum;
+import com.niu.core.service.admin.shop.IShopConfigService;
 import com.niu.core.service.admin.shop.ISiteShopApplyService;
-import com.niu.core.service.admin.shop.param.SiteShopApplyParam;
 import com.niu.core.service.admin.shop.param.SiteShopApplySearchParam;
 import com.niu.core.service.admin.shop.param.SiteShopApplyVerifyParam;
 import com.niu.core.service.admin.shop.vo.SiteShopApplyInfoVo;
 import com.niu.core.service.admin.shop.vo.SiteShopApplyListVo;
+import com.niu.core.service.core.shop.param.ShopApplyConfigParam;
+import com.niu.core.service.core.shop.vo.ShopApplyConfigInfoVo;
+import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.annotation.Resource;
 
 import java.util.Map;
 
@@ -23,16 +23,19 @@ import java.util.Map;
  */
 
 @RestController
-@RequestMapping("adminapi/shop/admin/shop_apply")
+//@RequestMapping("adminapi/mall/admin/shop_apply")
 public class SiteShopApplyController {
 
     @Resource
     ISiteShopApplyService siteShopApplyService;
 
+    @Resource
+    IShopConfigService shopConfigService;
+
     /**
      * 商户入驻申请表分页列表
      *
-     * @param pageParam 分页
+     * @param pageParam   分页
      * @param searchParam 搜索条件
      * @return Result<PageResult<SiteShopApplyListVo>>
      */
@@ -64,6 +67,7 @@ public class SiteShopApplyController {
         siteShopApplyService.verify(id, verifyParam);
         return Result.success();
     }
+
     /**
      * 商户入驻申请表删除
      *
@@ -78,11 +82,30 @@ public class SiteShopApplyController {
 
     /**
      * 站点状态列表
+     *
      * @return
      */
     @GetMapping("/statuslist")
-    public Result<Map<Integer, String>> statusList(){
+    public Result<Map<Integer, String>> statusList() {
         return Result.success(ShopApplyEnum.getStatus());
+    }
+
+    /**
+     * 获取商户入驻配置
+     */
+    @GetMapping("/config")
+    public Result<ShopApplyConfigInfoVo> getShopApplyConfig() {
+        var info = shopConfigService.getShopApplyConfig();
+        return Result.success(info);
+    }
+
+    /**
+     * 设置商户入驻配置
+     */
+    @PostMapping("/config")
+    public Result<Object> setShopApplyConfig(@Validated @RequestBody ShopApplyConfigParam addParam) {
+        shopConfigService.setShopApplyConfig(addParam);
+        return Result.success();
     }
 
 }

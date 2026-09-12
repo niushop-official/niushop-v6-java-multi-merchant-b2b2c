@@ -23,12 +23,12 @@
                         
                     </view>
                     <view class="flex items-center">
-                        <view class="flex items-center bg-primary text-[#fff] px-[8rpx] h-[34rpx] rounded-[6rpx]" v-if="siteInfo.business_status"  @click="changeBusinessStatus">
-                            <text class="text-[20rpx]">营业中</text>
+                        <view class="flex items-center bg-primary text-[#fff] px-[8rpx] h-[34rpx] rounded-[6rpx]" v-if="siteInfo.business_state == 1"  @click="changeBusinessStatus">
+                            <text class="text-[20rpx]">{{ siteInfo.business_state_name }}</text>
                             <text class="nc-iconfont nc-icon-qiehuanV6xx text-[20rpx] ml-[8rpx]"></text>
                         </view>
                         <view class="flex items-center bg-[#9098A3] text-[#fff] px-[8rpx] h-[34rpx] rounded-[6rpx]" v-else  @click="changeBusinessStatus">
-                            <text class="text-[20rpx]">已打烊</text>
+                            <text class="text-[20rpx]">{{ siteInfo.business_state_name }}</text>
                             <text class="nc-iconfont nc-icon-qiehuanV6xx text-[#fff] text-[20rpx] ml-[8rpx]"></text>
                         </view>
                     </view>
@@ -116,7 +116,7 @@ onShow(() => {
 
 const changeBusinessStatus = () => {
     const data = {
-        business_status: siteInfo.value.business_status ? 0 : 1
+        business_status: siteInfo.value.business_state == 1 ? 0 : 1
     }
     updateBusinessStatus(data).then((res: any) => {
         useUserStore().getSiteInfo()

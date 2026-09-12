@@ -27,4 +27,7 @@ public class GoodsCategoryParam implements Serializable {
     @NotNull(message = "sort参数缺失")
     private Integer sort = 0;
 
+    /** 所属应用，对齐 PHP addon */
+    private String addon;
+
 }

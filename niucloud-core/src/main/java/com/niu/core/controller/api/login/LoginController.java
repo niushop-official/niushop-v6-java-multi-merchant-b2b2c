@@ -11,10 +11,13 @@ import com.niu.core.service.api.login.param.MobileLoginParam;
 import com.niu.core.service.api.login.param.ResetPasswordParam;
 import com.niu.core.service.api.login.param.SendMobileCodeParam;
 import com.niu.core.service.api.login.vo.LoginVo;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "前台登录")
 @RestController
 @RequestMapping("/api")
 public class LoginController {
@@ -31,6 +34,7 @@ public class LoginController {
      * @param param
      * @return
      */
+    @Operation(summary = "账号登录")
     @GetMapping("/login")
     public Result<LoginVo> account(@Validated AccountLoginParam param) {
         registerService.checkLoginConfig(MemberLoginTypeEnum.USERNAME.getType());
@@ -43,6 +47,7 @@ public class LoginController {
      * @param param
      * @return
      */
+    @Operation(summary = "手机号登录")
     @PostMapping("/login/mobile")
     public Result<LoginVo> mobile(@Validated @RequestBody MobileLoginParam param) {
         //registerService.checkLoginConfig(MemberLoginTypeEnum.MOBILE.getType());
@@ -56,6 +61,7 @@ public class LoginController {
      * @param param
      * @return
      */
+    @Operation(summary = "重置密码")
     @PostMapping("/password/reset")
     public Result<?> resetPassword(@Validated @RequestBody ResetPasswordParam param) {
         registerService.checkMobileCode(param.getMobile(), param.getMobileKey(), param.getMobileCode());
@@ -68,6 +74,7 @@ public class LoginController {
      *
      * @return
      */
+    @Operation(summary = "获取登录配置")
     @GetMapping("/login/config")
     public Result<LoginConfigVo> getLoginConfig() {
         return Result.success(loginService.getLoginConfig());
@@ -78,10 +85,10 @@ public class LoginController {
      *
      * @return
      */
+    @Operation(summary = "发送手机验证码")
     @PostMapping("/send/mobile/{type}")
     public Result<?> sendMobileCode(@PathVariable("type") String type, @Validated @RequestBody SendMobileCodeParam param) {
         param.setType(type);
-        //CaptchaUtils.check(param.getCaptchaKey(), param.getCaptchaCode());
         return Result.success(loginService.sendMobileCode(param));
     }
 
@@ -90,6 +97,7 @@ public class LoginController {
      *
      * @return
      */
+    @Operation(summary = "退出登录")
     @PutMapping("/auth/logout")
     @SaIgnore
     public Result logout() {

@@ -17,10 +17,10 @@ import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.core.sys.ICoreUploadService;
-import com.niu.mall.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsStat;
 import com.niu.mall.enums.goods.GoodsStatisticTypeEnum;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.goods.MallGoodsStatMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsBrowseStatService;
 import com.niu.mall.service.site.goods.IMallGoodsStatService;
@@ -292,8 +292,9 @@ public class MallGoodsStatServiceImpl implements IMallGoodsStatService {
                 .select("stat.site_id,stat.goods_id,sum(stat.cart_num) as cart_num,sum(stat.sale_num) as sale_num,sum(stat.pay_num) as pay_num,sum(stat.pay_money) as pay_money,sum(stat.refund_num) as refund_num,sum(stat.refund_money) as refund_money,sum(stat.collect_num) as collect_num,sum(stat.evaluate_num) as evaluate_num,sum(stat.access_num) as access_num,"
                         + visitCountSql + ",goods_name,goods_cover");
 
-        if (ObjectUtil.isNotEmpty(param.getType())) {
-            queryWrapper.orderByDesc("goods." + param.getType());
+        String orderColumn = resolveRankOrderColumn(param.getType());
+        if (ObjectUtil.isNotEmpty(orderColumn)) {
+            queryWrapper.orderByDesc(orderColumn);
         }
         queryWrapper.orderByDesc("goods.sort")
                 .orderByDesc("goods.create_time");
@@ -326,6 +327,18 @@ public class MallGoodsStatServiceImpl implements IMallGoodsStatService {
             map.put(value.getValue(), value.getName());
         }
         return map;
+    }
+
+    private String resolveRankOrderColumn(String type) {
+        if (ObjectUtil.isEmpty(type)) {
+            return null;
+        }
+        for (GoodsStatisticTypeEnum item : GoodsStatisticTypeEnum.values()) {
+            if (item.getValue().equals(type)) {
+                return item.getValue();
+            }
+        }
+        return null;
     }
 
     private List<String> getDatesBetween(String startDate, String endDate) {

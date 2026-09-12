@@ -1,6 +1,7 @@
 package com.niu.core.service.core.delivery.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -12,21 +13,23 @@ import com.niu.core.entity.delivery.DeliveryStore;
 import com.niu.core.entity.site.Site;
 import com.niu.core.entity.site.SiteAddress;
 import com.niu.core.enums.local_delivery.LocalDeliveryStoreTypeEnum;
+import com.niu.core.event.trade.TradeTypeEventDefiner;
 import com.niu.core.mapper.delivery.DeliveryLocalDeliveryMapper;
 import com.niu.core.mapper.delivery.DeliveryStoreMapper;
 import com.niu.core.mapper.site.SiteAddressMapper;
 import com.niu.core.mapper.site.SiteMapper;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.delivery.ICoreDeliveryConfigService;
 import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
 import com.niu.core.service.core.delivery.vo.DeliverySearchConfigVo;
 import com.niu.core.service.core.delivery.vo.DeliveryConfigVo;
+import com.niu.core.service.core.site.ICoreSiteService;
 import com.niu.core.service.core.sys.ICoreConfigService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 商品分类实现
@@ -44,6 +47,8 @@ public class CoreDeliveryConfigServiceImpl implements ICoreDeliveryConfigService
     DeliveryLocalDeliveryMapper deliveryLocalDeliveryMapper;
     @Resource
     SiteAddressMapper siteAddressMapper;
+    @Resource
+    ICoreSiteService coreSiteService;
     @Autowired
     private DeliveryStoreMapper deliveryStoreMapper;
 
@@ -92,74 +97,38 @@ public class CoreDeliveryConfigServiceImpl implements ICoreDeliveryConfigService
                 .select("is_express", "is_local_delivery", "is_store", "delivery_config");
         Site site = siteMapper.selectOne(siteQueryWrapper);
 
-        List<DeliveryConfigVo> defaultList = new ArrayList<>();
         List<DeliveryConfigVo> data = new ArrayList<>();
         if (site == null) {
             return data;
         }
 
-        // 如果delivery_config为空，使用默认配置
+        Map<String, DeliveryConfigVo> defaultMap = new LinkedHashMap<>();
         DeliveryConfigVo express = new DeliveryConfigVo();
         express.setName("物流配送");
         express.setStatus(site.getIsExpress());
         express.setKey("express");
-        defaultList.add(express);
+        defaultMap.put("express", express);
 
         DeliveryConfigVo localDelivery = new DeliveryConfigVo();
         localDelivery.setName("同城配送");
         localDelivery.setStatus(site.getIsLocalDelivery());
         localDelivery.setKey("local_delivery");
-        defaultList.add(localDelivery);
+        defaultMap.put("local_delivery", localDelivery);
 
         DeliveryConfigVo storeDelivery = new DeliveryConfigVo();
         storeDelivery.setName("门店自提");
         storeDelivery.setStatus(site.getIsStore());
         storeDelivery.setKey("store");
-        defaultList.add(storeDelivery);
+        defaultMap.put("store", storeDelivery);
+
+        // 对齐 PHP：按业务类型 hidden_delivery_type 过滤（如 FDS 隐藏 express）
+        defaultMap = getDeliveryTypeBySiteId(defaultMap, siteId);
 
         Map<String, DeliveryConfigVo> list = new LinkedHashMap<>();
-
         if (StringUtils.isNotEmpty(site.getDeliveryConfig())) {
-            // 获取默认列表和配置列表的key集合
-            Set<String> defaultListKeys = defaultList.stream().map(DeliveryConfigVo::getKey).collect(Collectors.toSet());
-            JSONObject deliveryConfig = JSONUtil.parseObj(site.getDeliveryConfig());
-            Set<String> deliveryConfigKeys = deliveryConfig.keySet();
-
-            // 计算差异的key（在默认列表中但不在配置列表中）
-            Set<String> diffKeys = new HashSet<>(defaultListKeys);
-            diffKeys.removeAll(deliveryConfigKeys);
-
-            // 处理配置列表中的有效项
-            for (String value : deliveryConfig.keySet()) {
-                if (StringUtils.isNotEmpty(value) && defaultListKeys.contains(value)) {
-                    // 从data中获取对应的状态值
-                    DeliveryConfigVo vo = new DeliveryConfigVo();
-                    vo.setName(deliveryConfig.getJSONObject(value).getStr("name"));
-                    Integer status = 0;
-                    if ("express".equals(value)) {
-                        status = site.getIsExpress();
-                    } else if ("local_delivery".equals(value)) {
-                        status = site.getIsLocalDelivery();
-                    } else if ("store".equals(value)) {
-                        status = site.getIsStore();
-                    }
-                    vo.setStatus(status);
-                    vo.setKey(value);
-                    list.put(value, vo);
-                }
-            }
-
-            // 处理差异项，使用默认配置
-            for (String key : diffKeys) {
-                List<DeliveryConfigVo> valueThis = defaultList.stream().filter(vo -> vo.getKey().equals(key)).toList();
-                if(!valueThis.isEmpty()){
-                    list.put(key, valueThis.get(0));
-                }
-            }
+            applyDeliveryConfig(site, defaultMap, list);
         } else {
-            for (DeliveryConfigVo value : defaultList) {
-                list.put(value.getKey(), value);
-            }
+            list.putAll(defaultMap);
         }
 
         // 根据平台配置更新状态
@@ -170,13 +139,117 @@ public class CoreDeliveryConfigServiceImpl implements ICoreDeliveryConfigService
                 list.get(key).setStatus(status);
             }
         }
-        //根据默认进行排序
-        for (DeliveryConfigVo obj : defaultList) {
-            if(ObjectUtil.isNotEmpty(list.get(obj.getKey())) ){
-                data.add(list.get(obj.getKey()));
+        // 按默认顺序输出
+        for (String key : defaultMap.keySet()) {
+            if (ObjectUtil.isNotEmpty(list.get(key))) {
+                data.add(list.get(key));
             }
         }
         return data;
+    }
+
+    /**
+     * 对齐 PHP：delivery_config 为 [{key,name}, ...] 数组；同时兼容 {key: {name}} 对象格式
+     */
+    private void applyDeliveryConfig(Site site, Map<String, DeliveryConfigVo> defaultMap, Map<String, DeliveryConfigVo> list) {
+        Set<String> defaultListKeys = defaultMap.keySet();
+        Object parsed = JSONUtil.parse(site.getDeliveryConfig());
+        List<JSONObject> configItems = new ArrayList<>();
+        if (parsed instanceof cn.hutool.json.JSONArray jsonArray) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                Object item = jsonArray.get(i);
+                if (item instanceof JSONObject jsonObject) {
+                    configItems.add(jsonObject);
+                } else if (item != null) {
+                    configItems.add(JSONUtil.parseObj(item));
+                }
+            }
+        } else if (parsed instanceof JSONObject jsonObject) {
+            // 兼容对象格式：{ local_delivery: {name, key}, store: {...} }
+            for (String key : jsonObject.keySet()) {
+                if (!defaultListKeys.contains(key)) {
+                    continue;
+                }
+                Object value = jsonObject.get(key);
+                JSONObject item = value instanceof JSONObject jo ? jo : JSONUtil.parseObj(value);
+                if (StrUtil.isBlank(item.getStr("key"))) {
+                    item.set("key", key);
+                }
+                configItems.add(item);
+            }
+        }
+
+        Set<String> deliveryConfigKeys = new HashSet<>();
+        for (JSONObject value : configItems) {
+            String key = value.getStr("key");
+            if (StrUtil.isBlank(key) || !defaultListKeys.contains(key)) {
+                continue;
+            }
+            deliveryConfigKeys.add(key);
+            DeliveryConfigVo vo = new DeliveryConfigVo();
+            vo.setKey(key);
+            vo.setName(StrUtil.blankToDefault(value.getStr("name"), defaultMap.get(key).getName()));
+            vo.setStatus(resolveDeliveryStatus(site, key));
+            list.put(key, vo);
+        }
+        for (String key : defaultListKeys) {
+            if (!deliveryConfigKeys.contains(key)) {
+                list.put(key, defaultMap.get(key));
+            }
+        }
+    }
+
+    private Integer resolveDeliveryStatus(Site site, String key) {
+        return switch (key) {
+            case "express" -> site.getIsExpress();
+            case "local_delivery" -> site.getIsLocalDelivery();
+            case "store" -> site.getIsStore();
+            default -> 0;
+        };
+    }
+
+    /**
+     * 对齐 PHP CoreDeliveryService::getDeliveryTypeBySiteId
+     */
+    @Override
+    public <T> Map<String, T> getDeliveryTypeBySiteId(Map<String, T> deliveryTypeList, Integer siteId) {
+        if (deliveryTypeList == null || deliveryTypeList.isEmpty() || siteId == null || siteId <= 0) {
+            return deliveryTypeList == null ? new LinkedHashMap<>() : deliveryTypeList;
+        }
+        Map<String, T> originalDeliveryTypes = new LinkedHashMap<>(deliveryTypeList);
+        Map<String, T> result = new LinkedHashMap<>(originalDeliveryTypes);
+        List<String> tradeTypes = coreSiteService.getSiteTradeType(siteId);
+        if (ObjectUtil.isEmpty(tradeTypes)) {
+            return result;
+        }
+        for (String tradeType : tradeTypes) {
+            if (StrUtil.isBlank(tradeType)) {
+                continue;
+            }
+            TradeTypeEventDefiner.TradeTypeEvent event = new TradeTypeEventDefiner.TradeTypeEvent();
+            event.setTradeType(tradeType);
+            List<TradeTypeEventDefiner.TradeTypeResult> results = EventAndSubscribeOfPublisher.publishAndCallback(event);
+            if (ObjectUtil.isEmpty(results)) {
+                continue;
+            }
+            for (TradeTypeEventDefiner.TradeTypeResult tradeResult : results) {
+                if (tradeResult == null || tradeResult.getConfig() == null) {
+                    continue;
+                }
+                Object hiddenObj = tradeResult.getConfig().get("hidden_delivery_type");
+                Collection<?> hiddenList = hiddenObj instanceof Collection<?> values ? values : List.of();
+                // Match PHP: an unrestricted trade type restores all delivery types.
+                if (hiddenList.isEmpty()) {
+                    return originalDeliveryTypes;
+                }
+                for (Object item : hiddenList) {
+                    if (item != null) {
+                        result.remove(item.toString());
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     @Override

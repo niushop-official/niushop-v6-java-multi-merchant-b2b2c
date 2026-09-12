@@ -100,10 +100,10 @@ public class ProcessManager {
             this.start();
             ThreadUtils.sleepSeconds(5);
         } else if (pipeContent.startsWith("install,")) {
-            // ============================================================================//
-            // 正常安装情况，进程也在运行中
-            // ============================================================================//
-            if (getAtomicStatus().get() == 3) {
+            int status = getAtomicStatus().get();
+            BootLogUtils.log("[install] 状态码:" + status + "(" + getStatusMessage() + "), pipe=" + pipeContent);
+            // 状态 2(进程运行成功)/3(服务正常运行)：进程存活中，先停后重启
+            if (status == 2 || status == 3) {
                 String upgradingCommand = pipeContent.replaceAll("install,", "installing,");
                 this.writePipe(upgradingCommand);
                 this.upgradeCount = 1;
@@ -117,54 +117,67 @@ public class ProcessManager {
                 this.start();
                 ThreadUtils.sleepSeconds(10);
             }
-            // ============================================================================//
-            // 正常安装情况，进程已经处于停止状态，这时候也需要启动起来继续安装任务
-            // ============================================================================//
-            if (getAtomicStatus().get() == 5 || getAtomicStatus().get() == 6) {
+            // 状态 4(正常结束)/5(异常结束)/6(手动停止)：已停止，清理由启动
+            else if (status == 4 || status == 5 || status == 6) {
                 String upgradingCommand = pipeContent.replaceAll("install,", "installing,");
                 this.writePipe(upgradingCommand);
                 this.upgradeCount = 1;
                 this.upgradeTime = System.currentTimeMillis();
                 this.upgradeCommand = upgradingCommand;
-                this.stopForcibly();
                 if (this.process != null) {
                     this.process = null;
                     ThreadUtils.sleepSeconds(1);
                 }
                 this.start();
                 ThreadUtils.sleepSeconds(10);
+            }
+            // 状态 0(初始化)/1(启动中)：子进程尚未启动，直接以安装模式启动
+            else if (status == 0 || status == 1) {
+                String upgradingCommand = pipeContent.replaceAll("install,", "installing,");
+                this.writePipe(upgradingCommand);
+                this.upgradeCount = 1;
+                this.upgradeTime = System.currentTimeMillis();
+                this.upgradeCommand = upgradingCommand;
+                this.start();
+                ThreadUtils.sleepSeconds(10);
+            } else {
+                BootLogUtils.log("[install] 未知状态码:" + status + "，指令被忽略！");
             }
         } else if (pipeContent.startsWith("installing,")) {
-            // ============================================================================//
-            // 执行安装情况，可以正常启动，进入安装完成，同时做出通知
-            // ============================================================================//
-            if (getAtomicStatus().get() == 3) {
+            int status = getAtomicStatus().get();
+            BootLogUtils.log("[installing] 状态码:" + status + "(" + getStatusMessage() + "), pipe=" + pipeContent);
+            // 状态 2(进程运行成功)：Spring 未就绪，等待下次轮询
+            if (status == 2) {
+                // 不做操作，等待进程到达状态 3 或 5
+            }
+            // 状态 3(服务正常运行)：安装成功
+            else if (status == 3) {
                 long currentTime = System.currentTimeMillis();
-                BootLogUtils.log("插件安装成功, 耗时：" + ((currentTime - upgradeTime) / 60) + " s.");
+                BootLogUtils.log("插件安装成功, 耗时：" + ((currentTime - upgradeTime) / 1000) + " s.");
                 String upgradedCommand = pipeContent.replaceAll("installing,", "installed,");
                 this.writePipe(upgradedCommand);
                 this.upgradeCommand = "";
                 this.upgradeTime = 0;
             }
-            // ============================================================================//
-            // 执行安装情况，不能正常启动，进入重启或者回滚后重启，同时做出通知
-            // ============================================================================//
-            if (getAtomicStatus().get() == 5) {
+            // 状态 4(正常结束)/5(异常结束)：进程退出，重试或回滚
+            else if (status == 4 || status == 5) {
                 if (this.upgradeCount < this.bootConfig.failedRestartCount()) {
                     this.upgradeCount = this.upgradeCount + 1;
                     getAtomicStatus().set(0);
                     this.restartWait();
                     long currentTime = System.currentTimeMillis();
-                    BootLogUtils.log("第" + this.upgradeCount + "次启动, 耗时：" + ((currentTime - upgradeTime) / 60) + " s.");
+                    BootLogUtils.log("第" + this.upgradeCount + "次重试启动, 耗时：" + ((currentTime - upgradeTime) / 1000) + " s.");
                 } else {
                     String rollbackCommand = this.upgradeCommand.replaceAll("installing,", "rollback,");
                     this.writePipe(rollbackCommand);
                     AddonRollback.execute(rollbackCommand, this.bootConfig.getJarDir());
                     long currentTime = System.currentTimeMillis();
-                    BootLogUtils.log("插件安装失败, 耗时：" + ((currentTime - upgradeTime) / 60) + " s, 进入回滚操作.");
+                    BootLogUtils.log("插件安装失败, 耗时：" + ((currentTime - upgradeTime) / 1000) + " s, 进入回滚操作.");
                     this.upgradeCommand = "";
                     this.restartWait();
                 }
+            } else {
+                BootLogUtils.log("[installing] 未处理状态码:" + status);
             }
         } else if (pipeContent.startsWith("installed,")) {
             BootLogUtils.log("安装成功后, 已正常启动服务.");
@@ -405,13 +418,19 @@ public class ProcessManager {
                 String javaCmd = bootConfig.getJavaExec();
                 String jarPath = this.getJarExecPath();
                 ProcessBuilder processBuilder = null;
+                // 子进程编码：file.encoding 控制 Charset.defaultCharset()，
+                // sun.stdout/stderr.encoding 控制 System.out/err 输出编码（Java 17 关键！）
                 if ("prod".equals(bootConfig.environment())) {
                     String jvmArg1 = "--spring.profiles.active=prod";
                     String jvmArg2 = "--spring.config.location=file:" + bootConfig.getApplicationYml() + "," + bootConfig.getApplicationYmlBoot();
-                    processBuilder = new ProcessBuilder(javaCmd, "-Dfile.encoding=UTF-8", "-jar", jarPath, jvmArg1, jvmArg2);
+                    processBuilder = new ProcessBuilder(javaCmd,
+                            "-Dfile.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8",
+                            "-jar", jarPath, jvmArg1, jvmArg2);
                 } else {
                     String jvmArgs = "--spring.profiles.active=dev";
-                    processBuilder = new ProcessBuilder(javaCmd, "-Dfile.encoding=UTF-8", "-jar", jarPath, jvmArgs);
+                    processBuilder = new ProcessBuilder(javaCmd,
+                            "-Dfile.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8",
+                            "-jar", jarPath, jvmArgs);
                 }
                 processBuilder.redirectErrorStream(true);
                 processBuilder.environment().put("JAVA_OPTS", bootConfig.getJvmOpts(applicationName));

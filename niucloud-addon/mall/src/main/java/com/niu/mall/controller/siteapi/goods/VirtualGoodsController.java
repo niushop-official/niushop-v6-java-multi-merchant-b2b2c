@@ -7,6 +7,8 @@ import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("adminapi/mall/site/goods/virtual")
 public class VirtualGoodsController {
@@ -22,8 +24,8 @@ public class VirtualGoodsController {
      */
     @PostMapping("")
     public Result<Object> add(@Validated @RequestBody MallVirtualGoodsParam addParam) {
-        goodsService.add(addParam);
-        return Result.success();
+        Integer id = goodsService.add(addParam);
+        return Result.success(Map.of("id", id));
     }
 
     /**

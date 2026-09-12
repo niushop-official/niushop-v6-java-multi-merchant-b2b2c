@@ -49,6 +49,7 @@ const usePosterStore = defineStore('poster', {
                 bgType: 'url',
                 bgColor: "#ffffff", // 背景颜色
                 bgUrl: '', // 背景图片
+                isDiyWidthHeight: 0
             },
             // 组件类型，文本：text，image：图片，qrcode：二维码
             template: {
@@ -105,7 +106,8 @@ const usePosterStore = defineStore('poster', {
                 height: 1280, //  海报高度
                 bgType: 'url',
                 bgColor: "#ffffff", // 页面背景颜色（开始）
-                bgUrl: '' // 页面背景图片
+                bgUrl: '', // 页面背景图片
+                isDiyWidthHeight: 0
             };
             this.value = [];
         },

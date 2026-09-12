@@ -13,44 +13,41 @@ import com.niu.core.common.utils.StringUtils;
 import com.niu.core.entity.diy_form.DiyForm;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.member.MemberAddress;
-import com.niu.core.entity.shop.SiteShop;
-import com.niu.core.entity.site.Site;
 import com.niu.core.enums.shop.ShopStatusEnum;
 import com.niu.core.mapper.diy_form.DiyFormMapper;
 import com.niu.core.mapper.member.MemberMapper;
-import com.niu.core.mapper.shop.SiteShopMapper;
-import com.niu.core.mapper.site.SiteMapper;
 import com.niu.core.service.api.member.IMemberLevelService;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.diy_form.ICoreDiyFormRecordsService;
 import com.niu.core.service.core.diy_form.param.DiyFormRecordsParam;
 import com.niu.mall.constant.MallConstant;
 import com.niu.mall.entity.cart.MallCart;
-import com.niu.mall.entity.coupon.MallCouponGoods;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.coupon.MallCouponGoods;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoodsSku;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.entity.order.MallOrderGiftGoods;
 import com.niu.mall.entity.order.MallOrderGoods;
-import com.niu.mall.enums.coupon.CouponStatusEnum;
-import com.niu.mall.enums.coupon.CouponTypeEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.coupon.CouponStatusEnum;
+import com.niu.core.enums.coupon.CouponTypeEnum;
+import com.niu.core.enums.goods.GoodsAuditStatusEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.OrderStatusEnum;
 import com.niu.mall.enums.trade.SettlementEnum;
 import com.niu.mall.event.marketing.GoodsMarketCalculateEventDefiner;
 import com.niu.mall.event.order.CheckOrderOfCreateEventDefiner;
 import com.niu.mall.mapper.cart.MallCartMapper;
-import com.niu.mall.mapper.coupon.MallCouponGoodsMapper;
-import com.niu.mall.mapper.coupon.MallCouponMemberMapper;
-import com.niu.mall.mapper.exchange.MallPointExchangeMapper;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import com.niu.mall.service.api.goods.IGoodsService;
+import com.niu.mall.service.core.goods.ICoreGoodsActivePriceService;
 import com.niu.mall.service.core.goods.ICoreGoodsLimitBuyService;
-import com.niu.mall.service.core.marketing.ICoreCouponMemberService;
-import com.niu.mall.service.core.marketing.vo.MallMemberCouponListVo;
+import com.niu.core.service.core.marketing.ICoreCouponMemberService;
+import com.niu.core.service.core.marketing.vo.MallMemberCouponListVo;
 import com.niu.mall.service.core.order.ICoreOrderCreateService;
 import com.niu.mall.service.core.order.ICoreSiteOrderConfigService;
+import com.niu.mall.service.core.shop.ICoreShopService;
+import com.niu.mall.service.core.shop.vo.ShopInfoOfOrderCreateVo;
 import com.niu.mall.service.core.order.helper.OrderCreateHelper;
 import com.niu.mall.service.core.order.helper.OrderPointDeductHelper;
 import com.niu.mall.service.core.order.param.OrderCalculateParam;
@@ -87,15 +84,6 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
     IGoodsService goodsService;
 
     @Resource
-    MallCouponMemberMapper mallCouponMemberMapper;
-
-    @Resource
-    MallCouponGoodsMapper mallCouponGoodsMapper;
-
-    @Resource
-    MallPointExchangeMapper mallPointExchangeMapper;
-
-    @Resource
     ICoreGoodsLimitBuyService coreGoodsLimitBuyService;
 
     @Resource
@@ -108,18 +96,20 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
     DiyFormMapper diyFormMapper;
 
     @Resource
-    SiteMapper siteMapper;
-
-    @Resource
-    SiteShopMapper siteShopMapper;
+    ICoreShopService coreShopService;
 
     @Resource
     ICoreCouponMemberService coreCouponMemberService;
 
+    @Resource
+    ICoreGoodsActivePriceService coreGoodsActivePriceService;
+
     /**
-     * 缓存加载后补全优惠券开关默认值（对齐 PHP Trait 默认 is_plat_coupon=1）
+     * 缓存加载后补全优惠券开关默认值（JSON 缺字段时为 null，默认开启）
+     * 仅对 null 补默认，不覆盖已存在的 0。
      */
     private void ensureCouponFlags(OrderCreateDataVo vo) {
+        // 缓存 JSON 反序列化后 isPlatCoupon/isShopCoupon 可能为 null，null 才补 1，已有 0 不覆盖
         if (vo.getIsPlatCoupon() == null) {
             vo.setIsPlatCoupon(1);
         }
@@ -130,8 +120,10 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
 
     /**
      * 缓存反序列化后补全满减/满赠开关默认值（JSON 缺字段时为 null，会导致满减被跳过）
+     * 仅对 null 补默认，不覆盖已存在的 0。
      */
     private void ensureFullActiveFlags(OrderCreateDataVo vo) {
+        // 缓存 JSON 反序列化后 isJoinFullReduction/isJoinFullGift 可能为 null，null 才补 1，已有 0 不覆盖
         if (vo.getIsJoinFullReduction() == null) {
             vo.setIsJoinFullReduction(1);
         }
@@ -141,13 +133,64 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
     }
 
     /**
-     * 计算
-     *
-     * @param param
+     * 缓存反序列化后补全积分抵扣开关默认值；仅对 null 补默认，不覆盖已存在的 0。
+     */
+    private void ensureCanUsePointFlag(OrderCreateDataVo vo) {
+        // 缓存 JSON 反序列化后 isCanUsePoint 可能为 null，null 才补 1，已有 0 不覆盖
+        if (vo.getIsCanUsePoint() == null) {
+            vo.setIsCanUsePoint(1);
+        }
+    }
+
+    /**
+     * 订单类型解析：优先请求参数，其次 vo.orderType，最后 basic.orderType。
+     */
+    private void resolveOrderType(OrderCreateDataVo vo, String orderTypeFromParam) {
+        // 【分支】orderTypeFromParam 非空：请求显式指定，写入 vo.orderType
+        if (StringUtils.isNotEmpty(orderTypeFromParam)) {
+            vo.setOrderType(orderTypeFromParam);
+        // 【分支】vo.orderType 为空且 basic.orderType 有值：从 _basic 快照回填
+        } else if (StringUtils.isEmpty(vo.getOrderType())
+                && vo.getBasic() != null
+                && StringUtils.isNotEmpty(vo.getBasic().getOrderType())) {
+            vo.setOrderType(vo.getBasic().getOrderType());
+        }
+    }
+
+    /**
+     * 二次 calculate 从 _basic 缓存加载时，按 orderType 重放营销活动开关（与 GoodsMarketCalculateEvent 一致）。
+     */
+    private void ensureMarketingFlagsByOrderType(OrderCreateDataVo vo, String orderType) {
+        // 【分支】orderType=seckill：活动单关闭平台券/店铺券/积分/满减/满赠
+        if ("seckill".equals(orderType)) {
+            vo.setIsPlatCoupon(0);
+            vo.setIsShopCoupon(0);
+            vo.setIsCanUsePoint(0);
+            vo.setIsJoinFullReduction(0);
+            vo.setIsJoinFullGift(0);
+        // 【分支】orderType=friend_help：助力单同秒杀，全部营销关闭
+        } else if ("friend_help".equals(orderType)) {
+            vo.setIsPlatCoupon(0);
+            vo.setIsShopCoupon(0);
+            vo.setIsCanUsePoint(0);
+            vo.setIsJoinFullReduction(0);
+            vo.setIsJoinFullGift(0);
+        // 【分支】orderType=pintuan：拼团单仅保留积分抵扣，其余营销关闭
+        } else if ("pintuan".equals(orderType)) {
+            vo.setIsPlatCoupon(0);
+            vo.setIsShopCoupon(0);
+            vo.setIsCanUsePoint(1);
+            vo.setIsJoinFullReduction(0);
+            vo.setIsJoinFullGift(0);
+        }
+    }
+
+    /**
+     * 单站点订单计算：加载/确认订单数据 → 算优惠满赠 → 算运费 → 重算应付金额 → 写缓存。
      */
     public OrderCreateDataVo calculate(OrderCalculateParam param, MallOrderCreateDataVo mallOrderCreateDataVo) {
         OrderCreateDataVo vo;
-        // 与 CoreOrderCreateService::calculate 一致：无 order_key 则 confirm；否则 getOrderCache(order_key + "_basic")
+        // 【分支】按 orderKey 决定数据来源：无 key 首次 confirm；有 key 读 _basic 快照续算
         if (StringUtils.isEmpty(param.getOrderKey())) {
             vo = this.confirm(param);
             vo.setOrderFrom(param.getOrderFrom());
@@ -158,6 +201,8 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
                 vo = this.loadOrderVo(param.getOrderKey() + "_basic", OrderCreateDataVo.class);
                 vo.setOrderFrom(param.getOrderFrom());
                 vo.setOrderKey(param.getOrderKey());
+                resolveOrderType(vo, param.getOrderType());
+                ensureMarketingFlagsByOrderType(vo, vo.getOrderType());
             } catch (CommonException e) {
                 if ("订单数据已失效".equals(e.getMessage())) {
                     param.setOrderKey("");
@@ -170,29 +215,30 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
                 }
             }
         }
+        // 缓存反序列化后补全营销开关默认值（null 才补，不覆盖 0）
         ensureCouponFlags(vo);
         ensureFullActiveFlags(vo);
+        ensureCanUsePointFlag(vo);
 
-        // 计算优惠
         calculateDiscount(vo, param);
-
-        //优惠券和满减计算完成后根据实付金额计算满赠
         calculateFullGift(vo, param);
-        // 与 CoreOrderCreateService::calculate 中 calculateFullGift 之后的 setOrderCache 一致（快照再算运费）
         this.cacheOrderVo(vo);
-        this.cacheOrderVoBasic(vo);
 
-        // 计算运费
-        calculateDelivery(vo, param, mallOrderCreateDataVo);
+        // 正式下单才算运费；购物车预览（orderType 为空）跳过
+        if (StringUtils.isNotEmpty(param.getOrderType())) {
+            calculateDelivery(vo, param, mallOrderCreateDataVo);
+        }
 
-        //检测限购
-        checkGoodsLimitBuy(vo);
+        checkGoodsLimitBuySoft(vo);
 
-
-        // 金额格式化并回写 basic（含 mall_discount_money，与 refreshBasicOrderMoney 公式一致）
-        refreshBasicOrderMoney(vo);
+        // 子单 calculate 不含平台 mall_discount：order_money = goods - discount + delivery
+        refreshShopOrderMoney(vo);
         OrderCreateDataVo.Basic basic = vo.getBasic();
         basic.setPointDeductMoney(moneyFormat(basic.getPointDeductMoney()));
+        basic.setDiscountMoney(moneyFormat(basic.getDiscountMoney()));
+        basic.setDeliveryMoney(moneyFormat(basic.getDeliveryMoney()));
+        basic.setGoodsMoney(moneyFormat(basic.getGoodsMoney()));
+        basic.setFullReductionMoney(moneyFormat(basic.getFullReductionMoney()));
         cacheOrderVo(vo);
         vo.setMemberRemark(param.getMemberRemark());
         return vo;
@@ -200,22 +246,24 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
 
     @Override
     public void recheckFullActiveBeforeCreate(OrderCreateDataVo vo) {
+        // 委托父类按当前时间重算 vo.basic 满减/满赠，create 前校验活动仍有效
         super.recheckFullActiveBeforeCreate(vo);
     }
 
     /**
-     * 订单创建
-     *
-     * @return
+     * 单站点订单创建：校验 → 组装 MallOrder/MallOrderGoods → 调用 createOrder 落库。
      */
     @Override
     public OrderCreateResultVo create(OrderCreateDataVo vo) {
-        // 判断有没有错误信息
         if (!vo.getError().isEmpty()) throw new CommonException(vo.getError().get(0));
-        recheckFullActiveBeforeCreate(vo);
-        //校验店铺
+        checkGoodsLimitBuyHard(vo);
+        // 多站点订单组子单：对齐 PHP，使用 calculate 缓存金额，不在 create 再次重算满减/平台优惠
+        boolean isMallGroupSubOrder = vo.getGroupId() != null && vo.getGroupId() > 0;
+        if (!isMallGroupSubOrder) {
+            recheckFullActiveBeforeCreate(vo);
+        }
         checkSite(vo);
-        //校验商品售价是否低于供货价 和 拼团组
+        // 扩展点：供货价/拼团等创建前校验
         CheckOrderOfCreateEventDefiner.CheckOrderOfCreateEvent event = new CheckOrderOfCreateEventDefiner.CheckOrderOfCreateEvent();
         event.setSiteId(RequestUtils.siteId());
         event.setVo(vo);
@@ -229,28 +277,31 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
             }
         }
 
-        // 检测库存（秒杀订单由秒杀模块校验 seckill_stock）
         boolean isSeckillOrder = "seckill".equals(vo.getOrderType());
+        // 【循环】goodsData 每个 SKU：校验开售状态与库存（秒杀单库存由秒杀模块校验）
         for (OrderCreateDataVo.Sku sku : vo.getGoodsData().values()) {
             MallGoodsSku goodsSku = mallGoodsSkuMapper.selectOne(new QueryWrapper<MallGoodsSku>().select("stock,is_sell").eq("sku_id", sku.getSkuId()));
             if (!(ObjectUtil.isNotEmpty(goodsSku.getIsSell()) && goodsSku.getIsSell().equals(1))) {
                 throw new CommonException("商品" + sku.getGoods().getGoodsName() + " " + sku.getSkuName() + "暂未开售");
             }
-            if (!isSeckillOrder && goodsSku.getStock().compareTo(sku.getNum()) == -1) {
+            if (!isSeckillOrder && goodsSku.getStock().compareTo(sku.getNum()) < 0) {
                 throw new CommonException("商品" + sku.getGoods().getGoodsName() + " " + sku.getSkuName() + "库存不足");
             }
         }
 
-        Integer needTakerMobile = 0;
+        // 实物或需核销手机号的虚拟商品，落库时需收货人手机号
+        int needTakerMobile = 0;
         if ((ObjectUtil.isNotEmpty(vo.getBasic().getVirtualVerifyMobile()) && vo.getBasic().getVirtualVerifyMobile().equals(1)) ||
                 (ObjectUtil.isNotEmpty(vo.getBasic().getHasGoodsTypes()) && vo.getBasic().getHasGoodsTypes().contains(GoodsTypeEnum.REAL.getType()))) {
             needTakerMobile = 1;
         }
 
-        refreshBasicOrderMoney(vo);
-        assertOrderMoneyConsistency(vo);
+        if (!isMallGroupSubOrder) {
+            refreshBasicOrderMoney(vo);
+            assertOrderMoneyConsistency(vo);
+        }
 
-        // 订单
+        // --- 组装 mall_order 主表 ---
         MallOrder order = new MallOrder();
         order.setOrderNo(createOrderNo());
         order.setGroupId(vo.getGroupId());
@@ -273,12 +324,15 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
         order.setOrderMoney(vo.getBasic().getOrderMoney());
         order.setHasGoodsTypes(JSONUtil.parseArray(vo.getBasic().getHasGoodsTypes()).toString());
         order.setDeliveryType(vo.getDelivery().getDeliveryType());
+        if (StringUtils.isNotEmpty(vo.getDelivery().getSubDeliveryType())) {
+            order.setSubDeliveryType(vo.getDelivery().getSubDeliveryType());
+        }
         order.setMemberRemark(vo.getMemberRemark());
         order.setSupplyId(vo.getSupplyId());
         order.setIsSyncSupply(vo.getSupplyId() > 0 ? 2 : 1);
         order.setSupplyDeliveryMoney(vo.getSupplyId() > 0 ? vo.getBasic().getDeliveryMoney() : BigDecimal.ZERO);
         order.setFullReductionMoney(vo.getBasic().getFullReductionMoney());
-        order.setUsePoint(vo.getBasic().getUsePoint() != null ? vo.getBasic().getUsePoint() : 0);
+        order.setUsePoint(BigDecimal.valueOf(vo.getBasic().getUsePoint() != null ? vo.getBasic().getUsePoint() : 0));
         order.setPointDeductMoney(vo.getBasic().getPointDeductMoney() != null
                 ? vo.getBasic().getPointDeductMoney() : BigDecimal.ZERO);
 
@@ -303,13 +357,17 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
             OrderCreateDataVo.TakeStore takeStore = JSONUtil.toBean(JSONUtil.parseObj(vo.getDelivery().getTakeStore()), OrderCreateDataVo.TakeStore.class);
             order.setTakeStoreId(takeStore.getStoreId());
         }
+        order.setExtendData(JSONUtil.toJsonStr(vo.getExtendData()));
         order.setCreateTime(System.currentTimeMillis() / 1000);
         order.setWeappVersion(vo.getWeappVersion());
-        // 订单项
-
+        if (vo.getSiteInfo() != null && vo.getSiteInfo().getShop() != null
+                && vo.getSiteInfo().getShop().getCircleId() != null) {
+            order.setCircleId(vo.getSiteInfo().getShop().getCircleId());
+        }
+        // --- 组装 mall_order_goods 行项列表 ---
         List<MallOrderGoods> orderGoods = new LinkedList<>();
 
-
+        // 【循环】goodsData 每个 SKU → 转 MallOrderGoods 实体（含积分/虚拟商品配置快照）
         for (OrderCreateDataVo.Sku sku : vo.getGoodsData().values()) {
             MallOrderGoods item = new MallOrderGoods();
             item.setSiteId(vo.getSiteId());
@@ -367,7 +425,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
             orderGoods.add(item);
         }
 
-        order.setUsePoint(OrderPointDeductHelper.resolveOrderUsePoint(order.getUsePoint(), orderGoods));
+        order.setUsePoint(BigDecimal.valueOf(OrderPointDeductHelper.resolveOrderUsePoint(order.getUsePoint(), orderGoods)));
         if (order.getPointDeductMoney() == null || order.getPointDeductMoney().compareTo(BigDecimal.ZERO) <= 0) {
             BigDecimal pointDeductFromGoods = orderGoods.stream()
                     .map(g -> g.getPointDeductMoney() != null ? g.getPointDeductMoney() : BigDecimal.ZERO)
@@ -384,10 +442,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
     }
 
     /**
-     * 订单确认
-     *
-     * @param param
-     * @return
+     * 首次进入 calculate：初始化 vo，加载站点/买家/商品/配送/发票配置。
      */
     private OrderCreateDataVo confirm(OrderCalculateParam param) {
         OrderCreateDataVo vo = new OrderCreateDataVo();
@@ -397,10 +452,8 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
         vo.setMemberRemark(param.getMemberRemark());
         vo.setOrderFrom(param.getOrderFrom());
         vo.setExtendData(param.getExtendData());
-        //查询配送配置
         this.getConfig(vo, "delivery_type", null, param);
         initSite(vo);
-        // 查询会员信息
         OrderCreateDataVo.Buyer buyer = new OrderCreateDataVo.Buyer();
         Member member = memberMapper.selectOne(new QueryWrapper<Member>().select("nickname, point").eq("member_id", param.getMemberId()));
         if (member == null) throw new CommonException("找不到买家");
@@ -410,61 +463,71 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
         SiteOrderConfigVo orderConfig = coreOrderConfigService.getConfig(param.getSiteId());
         if (ObjectUtil.isNotEmpty(orderConfig.getFormId())) {
             DiyForm diyForm = diyFormMapper.selectOne(new QueryWrapper<DiyForm>().select("form_id").eq("form_id", orderConfig.getFormId()).eq("status", 1));
-            if (diyForm != null) vo.setFormId(Integer.valueOf(orderConfig.getFormId()));
+            if (diyForm != null) vo.setFormId(orderConfig.getFormId());
         }
-        // 查询商品信息
         this.getGoodsData(vo, param);
-
-        // 查询配送方式
         this.getDelivery(vo, param);
-
-        //查询发票配置
         this.getConfig(vo, "invoice", null, param);
-
-        // 查询配送方式
-        //this.selectTakeAddress(vo, param);
         return vo;
     }
 
     private void initSite(OrderCreateDataVo vo) {
-
-        Site site = siteMapper.selectById(vo.getSiteId());
-        BeanUtil.copyProperties(site, vo.getSiteInfo());
-        SiteShop shop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", vo.getSiteId()));
-        if (ObjectUtil.isNotEmpty(shop)) {
-            BeanUtil.copyProperties(shop, vo.getSiteInfo().getShop());
-        }
-
+        // 按 vo.siteId 查店铺信息，写入 vo.siteInfo（confirm 阶段初始化站点上下文）
+        applySiteInfo(vo, coreShopService.getShopInfoOfOrderCreate(vo.getSiteId()));
     }
 
     /**
      * 校验店铺
      */
     private void checkSite(OrderCreateDataVo vo) {
-        Site site = siteMapper.selectById(vo.getSiteId());
-        BeanUtil.copyProperties(site, vo.getSiteInfo());
-        SiteShop shop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", vo.getSiteId()));
-        if (ObjectUtil.isNotEmpty(shop) && ObjectUtil.isNotEmpty(site) && ShopStatusEnum.CLOSE.getCode().equals(shop.getBusinessStatus())) {
-            BeanUtil.copyProperties(shop, vo.getSiteInfo().getShop());
-            throw new CommonException("店铺" + site.getSiteName() + ShopStatusEnum.CLOSE.getName());
+        // 查店铺营业状态，business_status=打烊则 create 阶段拒绝下单
+        ShopInfoOfOrderCreateVo siteInfo = coreShopService.getShopInfoOfOrderCreate(vo.getSiteId());
+        // 【分支】shop.businessStatus=CLOSE：抛出「店铺已打烊」
+        if (siteInfo.getSiteId() != null && siteInfo.getShop() != null
+                && ShopStatusEnum.CLOSE.getCode().equals(siteInfo.getShop().getBusinessStatus())) {
+            throw new CommonException("店铺\"" + siteInfo.getSiteName() + "\"已打烊");
+        }
+    }
+
+    private void applySiteInfo(OrderCreateDataVo vo, ShopInfoOfOrderCreateVo siteInfo) {
+        // 【分支】siteInfo.siteId 为空：无有效店铺，跳过写入
+        if (siteInfo.getSiteId() == null) {
+            return;
+        }
+        // 写入站点 id/名称；shop 非空时复制店铺扩展字段到 vo.siteInfo.shop
+        vo.getSiteInfo().setSiteId(siteInfo.getSiteId());
+        vo.getSiteInfo().setSiteName(siteInfo.getSiteName());
+        if (siteInfo.getShop() != null) {
+            BeanUtil.copyProperties(siteInfo.getShop(), vo.getSiteInfo().getShop());
         }
     }
 
     /**
-     * 检测限购
-     *
-     * @param vo
+     * calculate 阶段限购软校验：异常捕获后不抛出，由 error 列表反馈。
      */
-    private void checkGoodsLimitBuy(OrderCreateDataVo vo) {
-        String res = coreGoodsLimitBuyService.checkGoodsLimitBuy(vo.getMemberId(), vo);
-        if (!res.equals("")) throw new CommonException(res);
+    private void checkGoodsLimitBuySoft(OrderCreateDataVo vo) {
+        // calculate 阶段限购软校验：异常捕获后不抛出，错误写入 vo.error 供前端展示
+        try {
+            String res = coreGoodsLimitBuyService.checkGoodsLimitBuy(vo.getMemberId(), vo);
+            // 【分支】res 非空：限购不通过，追加到 error 列表
+            if (!res.isEmpty()) {
+                vo.getError().add(res);
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     /**
-     * 查询商品信息
-     *
-     * @param vo
-     * @param param
+     * create 阶段限购硬校验
+     */
+    private void checkGoodsLimitBuyHard(OrderCreateDataVo vo) {
+        // create 阶段限购硬校验：不通过直接抛 CommonException 阻断落库
+        String res = coreGoodsLimitBuyService.checkGoodsLimitBuy(vo.getMemberId(), vo);
+        if (!res.isEmpty()) throw new CommonException(res);
+    }
+
+    /**
+     * 加载商品行：cartIds 或 skuData → 查 SKU/商品 → 算会员价/活动价 → 写入 vo.goodsData 与 basic 汇总。
      */
     private void getGoodsData(OrderCreateDataVo vo, OrderCalculateParam param) {
         Map<Integer, OrderCreateDataVo.Sku> goodsData = new HashMap<>();
@@ -491,16 +554,14 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
         List<MallGoodsSku> skuSumList = mallGoodsSkuMapper.selectList(new QueryWrapper<MallGoodsSku>().in("sku_id", skuIds));
         Map<Integer, MallGoodsSku> skuList = skuSumList.stream().collect(Collectors.toMap(MallGoodsSku::getSkuId, v -> v));
 
-        //订单中包含的商品形式
         Set<String> hasGoodsTypes = new HashSet<>();
-        //订单中包含的配送形式
         Set<String> hasDeliveryTypes = new HashSet<>();
         Integer virtualVerifyMobile = 0;
         Integer totalNum = 0;
         BigDecimal orderMoney = BigDecimal.ZERO, goodsMoney = BigDecimal.ZERO, deliveryMoney = BigDecimal.ZERO, costGoodsMoney = BigDecimal.ZERO;
         String body = "";
+        // 【循环】param.skuData 每个下单 SKU → 组装 Sku/Goods、算价、累加 basic 汇总字段
         for (OrderHelperParam.SkuItem item : param.getSkuData()) {
-            // 查询规格数据
             OrderCreateDataVo.Sku skuInfo = new OrderCreateDataVo.Sku();
             Integer skuId = item.getSkuId();
             Integer num = item.getNum();
@@ -517,7 +578,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
 
             // 查询商品数据
             OrderCreateDataVo.Goods goodsVo = new OrderCreateDataVo.Goods();
-            MallGoods goods = mallGoodsMapper.selectOne(new QueryWrapper<MallGoods>().eq("site_id", param.getSiteId()).eq("goods_id", skuInfo.getGoodsId()).eq("status", 1).eq("delete_time", 0));
+            MallGoods goods = mallGoodsMapper.selectOne(new QueryWrapper<MallGoods>().eq("site_id", param.getSiteId()).eq("goods_id", skuInfo.getGoodsId()).eq("status", 1).eq("audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus()).eq("delete_time", 0));
             Assert.notNull(goods, "购物车数据已过期");
             BeanUtil.copyProperties(goods, goodsVo);
 
@@ -547,15 +608,27 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
                 skuInfo.setShowType(MallConstant.MEMBER_PRICE);
             }
 
+            // 付费会员卡折扣（优先于普通会员价）
+            BigDecimal vipCardPrice = coreGoodsActivePriceService.calculateVipCardPrice(
+                    param.getMemberId(),
+                    goods.getVipCardDiscount(),
+                    sku.getSvipDiscount(),
+                    sku.getSvipPrice(),
+                    sku.getPrice()
+            );
+            if (vipCardPrice != null) {
+                skuInfo.setMemberPrice(vipCardPrice);
+                skuInfo.setPrice(vipCardPrice);
+                skuInfo.setShowType(MallConstant.SVIP_PRICE);
+            }
+
             //默认金额填充
             skuInfo.setDiscountMoney(BigDecimal.ZERO);
-            Integer itemVirtualVerifyMobile = ObjectUtil.isNotEmpty(skuInfo.getGoods().getVirtualVerifyMobile()) ? skuInfo.getGoods().getVirtualVerifyMobile() : 0;
+            int itemVirtualVerifyMobile = ObjectUtil.isNotEmpty(skuInfo.getGoods().getVirtualVerifyMobile()) ? skuInfo.getGoods().getVirtualVerifyMobile() : 0;
             hasGoodsTypes.add(goodsVo.getGoodsType());
             if (StringUtils.isNotEmpty(goodsVo.getDeliveryType()) && JSONUtil.isTypeJSON(goodsVo.getDeliveryType())) {
                 JSONArray deliveryTypes = JSONUtil.parseArray(goodsVo.getDeliveryType());
-                deliveryTypes.forEach(info -> {
-                    hasDeliveryTypes.add(info.toString());
-                });
+                deliveryTypes.forEach(info -> hasDeliveryTypes.add(info.toString()));
             }
             if (itemVirtualVerifyMobile > 0) {
                 virtualVerifyMobile = goodsVo.getVirtualVerifyMobile();
@@ -574,16 +647,17 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
             event.setSkuInfo(skuInfo);
             event.setSkuData(param.getSkuData());
             List<GoodsMarketCalculateEventDefiner.GoodsMarketCalculateResult> marketData = EventAndSubscribeOfPublisher.publishAndCallback(event);
-            Boolean er = false;
+            boolean marketApplied = false;
             if (!marketData.isEmpty()) {
                 for (GoodsMarketCalculateEventDefiner.GoodsMarketCalculateResult result : marketData) {
                     if (ObjectUtil.isNotEmpty(result) && ObjectUtil.isNotEmpty(result.getSkuInfo())) {
                         skuInfo = result.getSkuInfo();
-                        er = true;
+                        marketApplied = true;
+                        break;
                     }
                 }
             }
-            if (!er) {
+            if (!marketApplied) {
                 BigDecimal price = skuInfo.getPrice();
                 skuInfo.setGoodsMoney(price.multiply(BigDecimal.valueOf(item.getNum())));
             }
@@ -611,18 +685,26 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
     /**
      * 查询订单可用优惠券
      *
-     * @param orderKey
+     * @param orderKey 订单缓存key
      */
     @Override
     public List<OrderCouponListVo> getCoupon(String orderKey) {
+        // orderKey 定位 Redis 订单快照，补全 orderType 与营销开关后再匹配可用券
         OrderCreateDataVo vo = loadOrderVo(orderKey, OrderCreateDataVo.class);
+        resolveOrderType(vo, null);
+        ensureMarketingFlagsByOrderType(vo, vo.getOrderType());
         ensureCouponFlags(vo);
+        ensureFullActiveFlags(vo);
+        ensureCanUsePointFlag(vo);
 
+        // memberCouponList：会员在该站点下 status=待使用的优惠券
         List<MallMemberCouponListVo> memberCouponList = coreCouponMemberService.getUseCouponListByMemberId(vo.getMemberId(), vo.getSiteId());
         List<OrderCouponListVo> couponList = new LinkedList<>();
 
         if (ObjectUtil.isNotEmpty(memberCouponList)) {
+            // 【循环】memberCouponList 每张券 item：按 type 匹配 goodsData 并标记 isNormal/error
             for (MallMemberCouponListVo item : memberCouponList) {
+                // 【分支】券模板缺失或非 NORMAL 状态：跳过
                 if (item.getCoupon() == null || !CouponStatusEnum.NORMAL.getStatus().equals(item.getCoupon().getStatus())) {
                     continue;
                 }
@@ -632,12 +714,14 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
 
                 CouponTypeEnum typeEnum = CouponTypeEnum.getEnumByType(Integer.valueOf(item.getType()));
                 boolean matchGoods = false;
-                BigDecimal matchGoodsMoney = BigDecimal.ZERO;
+                BigDecimal matchGoodsMoney = BigDecimal.ZERO; // 适用商品金额合计，用于比对 minConditionMoney
                 List<MallCouponGoods> goodsData = item.getGoods() != null ? item.getGoods() : Collections.emptyList();
 
+                // 【分支】type=ALL：全店商品适用，matchGoodsMoney=整单 goodsMoney
                 if (typeEnum == CouponTypeEnum.ALL) {
                     matchGoods = true;
                     matchGoodsMoney = vo.getBasic().getGoodsMoney();
+                // 【分支】type=CATEGORY：券指定分类，遍历 SKU 累加命中分类的 goodsMoney
                 } else if (typeEnum == CouponTypeEnum.CATEGORY) {
                     List<Integer> categoryIds = goodsData.stream()
                             .map(MallCouponGoods::getCategoryId)
@@ -650,6 +734,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
                             matchGoodsMoney = matchGoodsMoney.add(sku.getGoodsMoney());
                         }
                     }
+                // 【分支】type=GOODS：券指定商品，遍历 SKU 累加命中 goodsId 的 goodsMoney
                 } else if (typeEnum == CouponTypeEnum.GOODS) {
                     List<Integer> goodsIds = goodsData.stream()
                             .map(MallCouponGoods::getGoodsId)
@@ -663,6 +748,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
                     }
                 }
 
+                // 【分支】无适用商品 → isNormal=false；金额未达门槛 → 同上；否则可用
                 if (!matchGoods) {
                     couponVo.setIsNormal(false);
                     couponVo.setError("没有适用的商品");
@@ -680,15 +766,17 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
     }
 
     /**
-     * 对应 CoreOrderCreateService::create 中 foreach basic.full_gift_sku_list 组 gift_goods_data。
+     * 将 basic.full_gift_sku_list 转为 MallOrderGiftGoods 落库列表。
      */
     private List<MallOrderGiftGoods> buildOrderGiftGoodsList(OrderCreateDataVo vo) {
+        // src：basic.full_gift_sku_list，每项 Map 含 goods_id/sku_id/num 等赠品字段
         List<Map<String, Object>> src = resolveFullGiftSkuListForInsert(vo);
         if (src.isEmpty()) {
             return Collections.emptyList();
         }
-        int supplyId = vo.getSupplyId() != null ? vo.getSupplyId() : 0;
+        int supplyId = vo.getSupplyId() != null ? vo.getSupplyId() : 0; // 供货拆单时继承子单 supplyId
         List<MallOrderGiftGoods> out = new ArrayList<>(src.size());
+        // 【循环】src 每条赠品 Map m → 组装 MallOrderGiftGoods 落库实体
         for (Map<String, Object> m : src) {
             Object gobj = m.get("goods");
             @SuppressWarnings("unchecked")
@@ -698,6 +786,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
             MallOrderGiftGoods g = new MallOrderGiftGoods();
             g.setSiteId(vo.getSiteId());
             g.setMemberId(vo.getMemberId());
+            // goods_id：Map 直取 → goodsEntity → goodsMap 三级回退
             int goodsId = toInt(m.get("goods_id"));
             if (goodsId == 0 && goodsEntity != null && goodsEntity.getGoodsId() != null) {
                 goodsId = goodsEntity.getGoodsId();
@@ -728,7 +817,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
             g.setGoodsImage(goodsImage);
             g.setSkuImage(toStr(m.get("sku_image")));
 
-            g.setPrice(BigDecimal.ZERO);
+            g.setPrice(BigDecimal.ZERO); // 赠品售价为 0
             g.setNum(toInt(m.get("num")));
             g.setGoodsMoney(BigDecimal.ZERO);
             g.setOriginalPrice(toBigDecimal(m.get("original_price")));
@@ -759,19 +848,24 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
     }
 
     private static List<Map<String, Object>> resolveFullGiftSkuListForInsert(OrderCreateDataVo vo) {
+        // 【分支】basic 或 fullGiftSkuList 为空：无满赠，返回空列表
         if (vo.getBasic() == null || ObjectUtil.isEmpty(vo.getBasic().getFullGiftSkuList())) {
             return Collections.emptyList();
         }
+        // 直接返回 basic.fullGiftSkuList（calculate 阶段已写入的赠品快照）
         return vo.getBasic().getFullGiftSkuList();
     }
 
     private static int toInt(Object o) {
+        // 【分支】null → 0
         if (o == null) {
             return 0;
         }
+        // 【分支】Number 直接 intValue
         if (o instanceof Number n) {
             return n.intValue();
         }
+        // 【分支】非空 String 尝试 parseInt，失败返回 0
         if (o instanceof String s && !s.isEmpty()) {
             try {
                 return Integer.parseInt(s);
@@ -783,19 +877,24 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
     }
 
     private static String toStr(Object o) {
+        // 赠品 Map 字段安全转 String：null → ""，否则 toString()
         return o == null ? "" : o.toString();
     }
 
     private static BigDecimal toBigDecimal(Object o) {
+        // 【分支】null → BigDecimal.ZERO
         if (o == null) {
             return BigDecimal.ZERO;
         }
+        // 【分支】已是 BigDecimal 直接返回
         if (o instanceof BigDecimal bd) {
             return bd;
         }
+        // 【分支】Number 转 double 再构造 BigDecimal
         if (o instanceof Number n) {
             return BigDecimal.valueOf(n.doubleValue());
         }
+        // 【分支】非空 String 尝试 new BigDecimal，失败返回 ZERO
         if (o instanceof String s && !s.isEmpty()) {
             try {
                 return new BigDecimal(s);
@@ -810,6 +909,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
      * 落库前校验 order_money 与 goods/delivery/discount/mall_discount 一致，防止积分抵扣后金额异常。
      */
     private void assertOrderMoneyConsistency(OrderCreateDataVo vo) {
+        // 落库前校验 basic.order_money 与 goods/delivery/discount/mall_discount 分项一致
         OrderCreateDataVo.Basic basic = vo.getBasic();
         if (basic == null) {
             return;
@@ -818,14 +918,17 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
         BigDecimal delivery = ObjectUtil.defaultIfNull(basic.getDeliveryMoney(), BigDecimal.ZERO);
         BigDecimal discount = ObjectUtil.defaultIfNull(basic.getDiscountMoney(), BigDecimal.ZERO);
         BigDecimal mallDiscount = ObjectUtil.defaultIfNull(basic.getMallDiscountMoney(), BigDecimal.ZERO);
+        // expected = goods + delivery - discount - mallDiscount（最低 0，保留 2 位）
         BigDecimal expected = goods.add(delivery).subtract(discount).subtract(mallDiscount).max(BigDecimal.ZERO)
                 .setScale(2, RoundingMode.HALF_UP);
         BigDecimal actual = ObjectUtil.defaultIfNull(basic.getOrderMoney(), BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+        // 【分支】expected 与 actual 差值 >0.01：金额计算异常
         if (expected.subtract(actual).abs().compareTo(new BigDecimal("0.01")) > 0) {
             throw new CommonException("订单金额计算异常，请重新下单");
         }
-        Integer usePoint = basic.getUsePoint() != null ? basic.getUsePoint() : 0;
+        int usePoint = basic.getUsePoint() != null ? basic.getUsePoint() : 0;
         BigDecimal pointDeduct = ObjectUtil.defaultIfNull(basic.getPointDeductMoney(), BigDecimal.ZERO);
+        // 【分支】有积分抵扣时：actual 不得超过 goods+delivery-discount-pointDeduct
         if (usePoint > 0 && pointDeduct.compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal maxPay = goods.add(delivery).subtract(discount).subtract(pointDeduct).max(BigDecimal.ZERO)
                     .setScale(2, RoundingMode.HALF_UP);
@@ -843,15 +946,16 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
      * @return 计算后的金额
      */
     public static BigDecimal moneyCalculate(BigDecimal... amounts) {
+        // 各金额先乘 100 转分再累加，最后除 100 还原为元，避免 double 精度丢失
         BigDecimal totalInCents = BigDecimal.ZERO;
 
+        // 【循环】amounts 每个 amount：转分后累加到 totalInCents
         for (BigDecimal amount : amounts) {
-            // 将金额转换为分（乘以100）
             BigDecimal amountInCents = amount.multiply(new BigDecimal("100"));
             totalInCents = totalInCents.add(amountInCents);
         }
 
-        // 将总分转换回元（除以100），并保留2位小数
+        // 总分 ÷100，HALF_UP 保留 2 位小数
         return totalInCents.divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
     }
 
@@ -859,6 +963,7 @@ public class CoreOrderCreateServiceImpl extends OrderCreateHelper implements ICo
      * 金额按「分」向下取整再还原为元（两位小数），与参考 trait 中 floor(strval(money*100))/100 一致。
      */
     private static BigDecimal moneyFormat(BigDecimal money) {
+        // 金额 ×100 后 FLOOR 取整到分，再 ÷100 还原为元（向下取整到分位）
         if (money == null) {
             return BigDecimal.ZERO;
         }

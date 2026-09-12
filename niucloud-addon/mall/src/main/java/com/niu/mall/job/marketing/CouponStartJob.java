@@ -6,9 +6,9 @@ import com.niu.core.common.component.context.SpringContext;
 import com.niu.core.common.component.job.AbstractJobProvider;
 import com.niu.core.common.component.job.IJobProvider;
 import com.niu.core.common.component.job.annotation.JobProvider;
-import com.niu.mall.entity.coupon.MallCoupon;
-import com.niu.mall.enums.coupon.CouponStatusEnum;
-import com.niu.mall.mapper.coupon.MallCouponMapper;
+import com.niu.core.entity.coupon.MallCoupon;
+import com.niu.core.enums.coupon.CouponStatusEnum;
+import com.niu.core.mapper.coupon.MallCouponMapper;
 import com.niu.mall.service.core.marketing.ICoreCouponService;
 import org.quartz.JobExecutionContext;
 

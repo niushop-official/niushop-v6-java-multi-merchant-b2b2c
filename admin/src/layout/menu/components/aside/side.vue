@@ -1,12 +1,12 @@
 <template>
     <el-container class="w-100 h-[100%]">
         <el-main class="p-0 flex">
-            <el-scrollbar v-if="twoMenuData.length" class="two-menu box-border" :class="{'w-[236px] px-[10px]': !isCollapse}">
-                <div class="h-[44px] flex items-center border-0 border-b-[1px] border-solid border-[#e6e6e6] mb-[10px]" v-if="!isCollapse">
-                    <span class="text-[14px] font-bold">{{ route.matched[1].meta.title }}</span>
+            <el-scrollbar v-if="twoMenuData.length" :class="['two-menu box-border', {'w-[236px] px-[10px]': !systemStore.menuIsCollapse,'w-[48px]': systemStore.menuIsCollapse}]">
+                <div :class="['h-[44px] flex items-center border-0 border-b-[1px] border-solid border-[#e6e6e6] mb-[10px]', {'justify-center': systemStore.menuIsCollapse}]">
+                    <span class="text-[14px] font-bold">{{ route.matched[1].meta.short_title }}</span>
                 </div>
-                <el-menu :key="route.name" :default-active="route.name" :router="true" class="aside-menu" :collapse="isCollapse" :default-openeds="defaultOpeneds">
-                    <menu-item v-for="(route, index) in twoMenuData" :routes="route" :key="index" :collapse="isCollapse" />
+                <el-menu :key="route.name" :default-active="route.name" :router="true" class="aside-menu" :collapse="systemStore.menuIsCollapse" :collapse-transition="false" :default-openeds="defaultOpeneds">
+                    <menu-item v-for="(route, index) in twoMenuData" :routes="route" :key="index" :collapse="systemStore.menuIsCollapse" />
                 </el-menu>
                 <div class="h-[48px]"></div>
             </el-scrollbar>
@@ -18,9 +18,11 @@
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import menuItem from './menu-item.vue'
+import useSystemStore from '@/stores/modules/system'
+
+const systemStore = useSystemStore()
 
 const route = useRoute()
-const isCollapse = ref(false)
 
 const twoMenuData = ref<Record<string, any>[]>([])
 const defaultOpeneds = ref<string[]>([])
@@ -33,18 +35,6 @@ watch(route, () => {
     })
 }, { immediate: true })
 
-// 控制是否展开/合并
-const isCollapseFn = () => {
-    isCollapse.value = !isCollapse.value
-    if (!isCollapse.value) {
-        defaultOpeneds.value = []
-        setTimeout(() => {
-            twoMenuData.value.forEach((route, index) => {
-                defaultOpeneds.value.push(String(route.name))
-            })
-        }, 100)
-    }
-}
 </script>
 
 <style>
@@ -60,7 +50,7 @@ body {
     .aside-menu:not(.el-menu--collapse) {
         border: 0;
         .el-menu-item{
-            height:35px !important;
+            height:40px !important;
             line-height: 1;
             &.is-active{
                 color: var(--layout-side-active-text) !important;
@@ -95,7 +85,9 @@ body {
                 text-indent: 10px;
                 line-height: 1;
                 color: #333;
-                white-space: break-spaces;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 &:hover{
                     background-color: transparent;
                     color: var(--layout-side-active-text);
@@ -110,6 +102,7 @@ body {
 
     .el-menu-item{
         height: 40px;
+        line-height: 1;
         padding: 0 !important;
         color: #999;
         &:hover{
@@ -122,23 +115,51 @@ body {
         width: auto;
         border: 0;
         .el-menu-item{
-            margin: 5px !important;
             min-height: 40px;
+            justify-content: center;
             &:hover{
                 background-color: var(--layout-side-hover-bg);
             }
-        }
-        .el-sub-menu{
-            min-height: auto;
-            overflow: hidden;
+            &.is-active{
+                .el-sub-menu__title, .el-tooltip__trigger{
+                    background-color:var(--layout-side-active-bg);
+                    color: var(--layout-side-active-text) !important;
+                    border-radius: 8px;
+                }
+            }
             .el-menu-tooltip__trigger, .el-tooltip__trigger{
                 padding: 0;
-                margin: 5px !important;
                 width: 40px;
                 height: 40px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                color: #333;
+                position: relative;
+                margin: 0 auto !important;
+            }
+        }
+        .el-sub-menu{
+            min-height: auto;
+            display: flex;
+            justify-content: center;
+            &.is-active{
+                .el-sub-menu__title,
+                .el-tooltip__trigger{
+                    background-color:var(--layout-side-active-bg);
+                    color: var(--layout-side-active-text) !important;
+                    border-radius: 8px;
+                }
+            }
+            .el-sub-menu__title, .el-menu-tooltip__trigger, .el-tooltip__trigger{
+                padding: 0 !important;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: #333;
+                margin: 0 auto !important;
             }
         }
     }
@@ -150,7 +171,7 @@ body {
         min-width: auto;
     }
     .el-menu-item, .el-sub-menu, .el-sub-menu{
-        height: auto!important;
+        height: auto !important;
         padding: 10px;
         line-height: 1;
         color: #999;

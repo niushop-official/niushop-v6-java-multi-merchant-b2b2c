@@ -46,4 +46,6 @@ public class SysDataDecParam implements Serializable {
     private BigDecimal supplyRefundMoney;
     private BigDecimal supplySeparateMoney;
     private BigDecimal supplyRefundSeparateMoney;
+    private BigDecimal circleCommission;
+    private BigDecimal circleRefundCommission;
 }

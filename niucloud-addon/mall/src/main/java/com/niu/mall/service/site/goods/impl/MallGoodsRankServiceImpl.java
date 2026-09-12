@@ -12,16 +12,17 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.date.DateUtils;
-import com.niu.mall.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsRank;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoodsSku;
+import com.niu.core.enums.goods.GoodsAuditStatusEnum;
 import com.niu.mall.enums.goods.GoodsRankTypeEnum;
 import com.niu.mall.enums.goods.GoodsRuleTypeEnum;
 import com.niu.mall.enums.goods.GoodsSourceTypeEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.enums.goods.GoodsTypeEnum;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.mapper.goods.MallGoodsRankMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import com.niu.mall.service.site.goods.IMallGoodsRankService;
 import com.niu.mall.service.site.goods.param.*;
 import com.niu.mall.service.site.goods.vo.*;
@@ -94,7 +95,7 @@ public class MallGoodsRankServiceImpl implements IMallGoodsRankService {
     }
 
     @Override
-    public void add(MallGoodsRankParam addParam) {
+    public Integer add(MallGoodsRankParam addParam) {
         QueryWrapper<MallGoodsRank> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("site_id", RequestUtils.siteId());
         if (ObjectUtil.isNotEmpty(addParam.getName())) {
@@ -108,6 +109,7 @@ public class MallGoodsRankServiceImpl implements IMallGoodsRankService {
         model.setCreateTime(System.currentTimeMillis() / 1000);
         model.setSiteId(RequestUtils.siteId());
         mallGoodsRankMapper.insert(model);
+        return model.getRankId();
     }
 
     @Override
@@ -145,6 +147,8 @@ public class MallGoodsRankServiceImpl implements IMallGoodsRankService {
         BeanUtils.copyProperties(model, vo);
         vo.setCreateTime(DateUtils.timestampToString(model.getCreateTime()));
         vo.setUpdateTime(DateUtils.timestampToString(model.getUpdateTime()));
+        vo.setIsShowSearch(model.getIsShowSearch());
+        vo.setConfig(ObjectUtil.isEmpty(model.getConfig()) ? new JSONObject() : JSONUtil.parseObj(model.getConfig()));
         vo.setGoodsJson(ObjectUtil.isEmpty(model.getGoodsJson()) ? Collections.emptyList() : JSONUtil.toList(JSONUtil.parseArray(model.getGoodsJson()), MallGoodsRankInfoVo.GoodsJson.class));
         vo.setGoodsList(ObjectUtil.isEmpty(model.getGoodsJson()) ? Collections.emptyList() : JSONUtil.parseArray(model.getGoodsJson()));
         vo.setCategoryIds(ObjectUtil.isEmpty(model.getCategoryIds())  || !model.getCategoryIds().startsWith("[") ? Collections.emptyList() : JSONUtil.parseArray(model.getCategoryIds()));
@@ -317,9 +321,16 @@ public class MallGoodsRankServiceImpl implements IMallGoodsRankService {
         QueryWrapper<MallGoods> goodsQueryWrapper = new QueryWrapper<>();
         goodsQueryWrapper.eq("site_id", RequestUtils.siteId())
                 .eq("delete_time", 0)
-                .eq("status", 1);
+                .eq("status", 1)
+                .eq("audit_status", GoodsAuditStatusEnum.AUDIT_ADOPT.getStatus());
 
-        switch (GoodsSourceTypeEnum.getEnumByValue(item.getGoodsSource())) {
+        GoodsSourceTypeEnum sourceType = GoodsSourceTypeEnum.getEnumByValue(item.getGoodsSource());
+        if (sourceType == null) {
+            return mallGoodsMapper.selectCount(goodsQueryWrapper);
+        }
+
+        switch (sourceType) {
+            case ALL -> { }
             case GOODS -> {
                 JSONArray goodsJson = JSONUtil.parseArray(item.getGoodsJson());
                 List<Integer> goodsId = goodsJson.stream()
@@ -333,19 +344,19 @@ public class MallGoodsRankServiceImpl implements IMallGoodsRankService {
             case CATEGORY -> {
                 JSONArray categoryIds = JSONUtil.parseArray(item.getCategoryIds());
                 if (ObjectUtil.isNotEmpty(categoryIds)) {
-                    goodsQueryWrapper.and(wrapper -> categoryIds.forEach(id -> wrapper.like("category_ids", id)));
+                    goodsQueryWrapper.in("goods_mall_category", categoryIds);
                 }
             }
             case BRAND -> {
                 JSONArray brandIds = JSONUtil.parseArray(item.getBrandIds());
                 if (ObjectUtil.isNotEmpty(brandIds)) {
-                    goodsQueryWrapper.in("brand_ids", brandIds);
+                    goodsQueryWrapper.in("brand_id", brandIds);
                 }
             }
             case LABEL -> {
                 JSONArray labels = JSONUtil.parseArray(item.getLabelIds());
                 if (ObjectUtil.isNotEmpty(labels)) {
-                    goodsQueryWrapper.and(wrapper -> labels.forEach(id -> wrapper.like("label_ids", id)));
+                    goodsQueryWrapper.and(wrapper -> labels.forEach(id -> wrapper.or().like("label_ids", id)));
                 }
             }
         }
@@ -355,6 +366,14 @@ public class MallGoodsRankServiceImpl implements IMallGoodsRankService {
 
     private MallGoodsRank checkRankData(MallGoodsRankParam param, MallGoodsRank model) {
         BeanUtils.copyProperties(param, model);
+        if (ObjectUtil.isNotEmpty(param.getConfig())) {
+            model.setConfig(JSONUtil.toJsonStr(param.getConfig()));
+        } else {
+            model.setConfig("");
+        }
+        if (param.getIsShowSearch() != null) {
+            model.setIsShowSearch(param.getIsShowSearch());
+        }
         switch (GoodsSourceTypeEnum.getEnumByValue(param.getGoodsSource())) {
             case GOODS -> {
                 model.setGoodsJson(ObjectUtil.isEmpty(param.getGoodsJson()) ? "" : JSONUtil.toJsonStr(param.getGoodsJson()));

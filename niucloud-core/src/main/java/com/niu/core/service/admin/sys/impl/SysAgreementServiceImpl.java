@@ -61,6 +61,7 @@ public class SysAgreementServiceImpl implements ISysAgreementService {
         SysAgreement sysAgreement = coreAgreementService.getAgreement(RequestUtils.siteId(), key);
         SysAgreementInfoVo vo = new SysAgreementInfoVo();
         BeanUtils.copyProperties(sysAgreement, vo);
+        vo.setAgreementKeyName(AgreementEnum.getTypeName(key));
         return vo;
     }
 

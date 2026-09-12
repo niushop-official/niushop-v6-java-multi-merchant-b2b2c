@@ -61,8 +61,8 @@ public class RechargeOrderServiceImpl implements IRechargeOrderService {
         queryWrapper.orderByDesc("create_time");
 
         if (ObjectUtil.isNotEmpty(searchParam.getOrderNo())) queryWrapper.eq("order_no", searchParam.getOrderNo());
-        if (ObjectUtil.isNotEmpty(searchParam.getOrderStatus())) queryWrapper.eq("order_status", searchParam.getOrderStatus());
-        if (ObjectUtil.isNotEmpty(searchParam.getOrderFrom())) queryWrapper.eq("order_from", searchParam.getOrderFrom());
+        if (ObjectUtil.isNotEmpty(searchParam.getOrderStatus()) && !"all".equals(String.valueOf(searchParam.getOrderStatus()))) queryWrapper.eq("order_status", searchParam.getOrderStatus());
+        if (ObjectUtil.isNotEmpty(searchParam.getOrderFrom()) && !"all".equals(searchParam.getOrderFrom())) queryWrapper.eq("order_from", searchParam.getOrderFrom());
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) QueryMapperUtils.buildByTime(queryWrapper, "create_time", searchParam.getCreateTime());
         if (ObjectUtil.isNotEmpty(searchParam.getPayTime())) QueryMapperUtils.buildByTime(queryWrapper, "pay_time", searchParam.getPayTime());
         if (searchParam.getStartMoney().compareTo(BigDecimal.ZERO) > 0) queryWrapper.ge("order_money", searchParam.getStartMoney());

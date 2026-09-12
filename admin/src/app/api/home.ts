@@ -8,3 +8,8 @@ export function getHomeSite(params: Record<string, any>) {
 export function getHomeSiteList() {
     return request.get(`home/site/list`)
 }
+
+// 查询应用
+export function getAddon() {
+    return request.get(`addon/app/with_site_num`)
+}

@@ -92,6 +92,17 @@ public class RefundController {
     }
 
     /**
+     * 获取订单项可退款金额
+     *
+     * @param orderGoodsIds
+     * @return
+     */
+    @GetMapping("/refund_money")
+    public Result getOrderRefundMoney(@RequestParam("order_goods_ids") Integer[] orderGoodsIds) {
+        return Result.success(refundActionService.getOrderRefundMoney(orderGoodsIds));
+    }
+
+    /**
      * 退款地址列表
      *
      * @return

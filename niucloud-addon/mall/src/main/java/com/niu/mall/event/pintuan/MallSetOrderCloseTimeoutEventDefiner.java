@@ -7,6 +7,7 @@ import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.event.order.ShopOrderDiscountCreateEventDefiner;
 import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 public abstract class MallSetOrderCloseTimeoutEventDefiner extends CallbackListener<MallSetOrderCloseTimeoutEventDefiner.MallSetOrderCloseTimeoutEvent> {
@@ -24,6 +25,7 @@ public abstract class MallSetOrderCloseTimeoutEventDefiner extends CallbackListe
         * 事件结果定义
         */
         @Data
+        @EqualsAndHashCode(callSuper=false)
         public static class MallSetOrderCloseTimeoutResult extends EventResult {
                 private Boolean er;
         }

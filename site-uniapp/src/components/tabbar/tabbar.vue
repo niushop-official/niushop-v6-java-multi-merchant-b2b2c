@@ -102,12 +102,12 @@ nextTick(() => {
 
 /* #ifdef MP */
 .u-tabbar {
-    ::v-deep .u-tabbar-item__icon .u-icon .u-icon__img {
+    :deep(.u-tabbar-item__icon .u-icon .u-icon__img) {
         width: 19px !important;
         height: 19px !important;
     }
 
-    ::v-deep .u-tabbar-item__text {
+    :deep(.u-tabbar-item__text) {
         font-size: 20rpx !important;
     }
 }

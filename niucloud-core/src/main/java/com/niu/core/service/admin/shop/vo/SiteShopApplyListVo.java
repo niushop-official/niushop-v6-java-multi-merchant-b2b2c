@@ -81,6 +81,21 @@ private static final long serialVersionUID = 1L;
         /** 用户ID */
         private Integer uid;
 
+        /** 子级行业id */
+        private Integer childCategoryId;
+
+        /** 子级行业名称 */
+        private String childCategoryName;
+
+        /** 所属应用 */
+        private String addon;
+
+        /** 申请方式 */
+        private String applyType;
+
+        /** 商圈id */
+        private Integer circleId;
+
         public String getStatusName() {
                 return ShopApplyEnum.getNameByStatus(status);
         }

@@ -2,8 +2,11 @@ package com.niu.core.service.core.shop.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.utils.RequestUtils;
+import com.niu.core.entity.diy_form.DiyForm;
 import com.niu.core.enums.sys.ConfigKeyEnum;
+import com.niu.core.mapper.diy_form.DiyFormMapper;
 import com.niu.core.service.core.shop.ICoreShopConfigService;
 import com.niu.core.service.core.shop.param.ShopApplyConfigParam;
 import com.niu.core.service.core.shop.param.ShopCashOutConfigParam;
@@ -19,6 +22,9 @@ public class CoreShopConfigServiceImpl implements ICoreShopConfigService {
 
     @Resource
     ICoreConfigService coreConfigService;
+
+    @Resource
+    DiyFormMapper diyFormMapper;
 
 
     @Override
@@ -42,9 +48,22 @@ public class CoreShopConfigServiceImpl implements ICoreShopConfigService {
         ShopApplyConfigInfoVo vo = new ShopApplyConfigInfoVo();
         vo.setApplyTitle("");
         vo.setApplyBanner("addon/mall/member/merchant_bg.png");
+        vo.setFormId(0);
         if (ObjectUtil.isNotNull(coreSysConfigVo.getValueJson())) {
             vo = JSONUtil.toBean(coreSysConfigVo.getValueJson(), ShopApplyConfigInfoVo.class);
         }
+        
+        // 验证 form_id 对应的表单是否存在
+        if (vo.getFormId() != null && vo.getFormId() > 0) {
+            QueryWrapper<DiyForm> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("site_id", RequestUtils.defaultSiteId());
+            queryWrapper.eq("form_id", vo.getFormId());
+            Long count = diyFormMapper.selectCount(queryWrapper);
+            if (count == null || count == 0) {
+                vo.setFormId(0);
+            }
+        }
+        
         return vo;
     }
 

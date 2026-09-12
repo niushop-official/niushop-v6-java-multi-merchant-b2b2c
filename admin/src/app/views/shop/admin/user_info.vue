@@ -55,6 +55,7 @@
                 <el-table :data="detail.roles" size="large">
                     <el-table-column prop="site_id" :label="t('siteId')" width="100px" />
                     <el-table-column prop="site_name" :label="t('siteName')" />
+                    <el-table-column prop="create_time" :label="t('addTime')" min-width="160" />
                     <el-table-column prop="is_admin" :label="t('isAdmin')" min-width="180" align="center">
                         <template #default="{ row }">
                             {{ row.is_admin ? t('yes') : t('no') }}
@@ -71,10 +72,10 @@
                             </el-tag>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="expire_time" :label="t('expireTime')" />
                     <el-table-column :label="t('operation')" align="right" fixed="right">
                             <template #default="{ row }">
-                                <el-button type="primary" link @click="siteInfo(row)">{{ t('info') }}</el-button>
+                                <el-button v-if="getSiteInfoPath(row)" type="primary" link @click="siteInfo(row)">{{ t('info') }}</el-button>
+                                <span v-else>--</span>
                             </template>
                         </el-table-column>
                 </el-table>
@@ -96,18 +97,54 @@ const pageName = route.meta.title
 const uid: number = parseInt(route.query.uid || 0)
 const loading = ref(true)
 const detail = ref({})
+const siteInfoPathMap: Record<string, string> = {
+    mall: '/mall/shop/info',
+    o2o: '/o2o/shop/info',
+    waimai: '/waimai/shop/info',
+    supply: '/supply/shop/info',
+    front_warehouse: '/front_warehouse/shop/info'
+}
 
 getUserInfo(uid).then(({ data }) => {
     detail.value = data
     loading.value = false
 }).catch()
 
+const normalizeAppList = (app: any): any[] => {
+    if (!app) return []
+    if (Array.isArray(app)) return app
+    if (typeof app === 'string') {
+        try {
+            return normalizeAppList(JSON.parse(app))
+        } catch (e) {
+            return app.split(',').map((item: string) => item.trim()).filter(Boolean)
+        }
+    }
+    if (typeof app === 'object') {
+        return [...Object.keys(app), ...Object.values(app)]
+    }
+    return []
+}
+
+const getAppKey = (item: any) => {
+    if (typeof item === 'string') return item
+    return item?.key || item?.addon_key || item?.app || ''
+}
+
+const getSiteInfoPath = (data: any) => {
+    const appKey = normalizeAppList(data?.app).map(getAppKey).find((key: string) => siteInfoPathMap[key])
+    return appKey ? siteInfoPathMap[appKey] : ''
+}
+
 /**
  * 站点详情
  * @param data
  */
- const siteInfo = (data: any) => {
-    router.push({ path: '/shop/info', query: { id: data.site_id } })
+const siteInfo = (data: any) => {
+    const path = getSiteInfoPath(data)
+    if (path) {
+        router.push({ path, query: { id: data.site_id } })
+    }
 }
 
 </script>

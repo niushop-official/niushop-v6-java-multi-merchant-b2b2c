@@ -25,6 +25,7 @@ public class SiteAddAfterListener extends AbstractListener {
     private IDiyService diyService() {
         return SpringContext.bean(IDiyService.class);
     }
+
     private ICoreDeliveryStoreService coreDeliveryStoreService() {
         return SpringContext.bean(ICoreDeliveryStoreService.class);
     }
@@ -36,36 +37,51 @@ public class SiteAddAfterListener extends AbstractListener {
     private SiteMapper siteMapper() {
         return SpringContext.bean(SiteMapper.class);
     }
+
     /**
      * 监听事件
-     *
-     * @param event
      */
     public void handleEvent(SiteAddAfterEvent event) {
         SiteGroup siteGroup = event.getSiteGroup();
-        JSONArray app = JSONUtil.parseArray(siteGroup.getApp());
+        JSONArray mainApp = JSONUtil.parseArray(siteGroup.getApp());
+        handleDiyData(mainApp);
 
-        SetDiyDataParam setParam = new SetDiyDataParam();
-        setParam.setSiteId(event.getSiteId());
-        setParam.setType("index");
-        setParam.setKey("DIY_SITE_INDEX");
-        setParam.setIsStart(app.size() > 1 ? 1 : 0);
-        setParam.setMainApp(app);
-        diyService().setDiyData(setParam);
-
-        setParam.setType("member_index");
-        setParam.setKey("DIY_MEMBER_INDEX");
-        diyService().setDiyData(setParam);
-
-        //初始化电子面单
         coreElectronicSheetService().initDefaultElectronicSheet(event.getSiteId());
-        //初始化配送门店
         Site site = siteMapper().selectById(event.getSiteId());
-        if(ObjectUtil.isNotEmpty(site)){
+        if (ObjectUtil.isNotEmpty(site)) {
             DeliverySysStoreAddParam param = new DeliverySysStoreAddParam();
-            BeanUtils.copyProperties(site,param);
+            BeanUtils.copyProperties(site, param);
             coreDeliveryStoreService().createSysStore(param);
         }
     }
 
+    private void handleDiyData(JSONArray mainApp) {
+        int count = mainApp.size();
+        JSONArray addonList = new JSONArray();
+        addonList.add("");
+        addonList.addAll(mainApp);
+
+        for (int i = 0; i < addonList.size(); i++) {
+            int isStart;
+            if (count > 1) {
+                isStart = i == 0 ? 1 : 0;
+            } else {
+                isStart = i == 0 ? 0 : 1;
+            }
+
+            String addon = addonList.getStr(i);
+            setDiyData("DIY_INDEX", "index", addon, isStart);
+            setDiyData("DIY_MEMBER_INDEX", "member_index", addon, isStart);
+        }
+    }
+
+    private void setDiyData(String key, String type, String addon, int isStart) {
+        SetDiyDataParam setParam = new SetDiyDataParam();
+        setParam.setSiteId(0);
+        setParam.setKey(key);
+        setParam.setType(type);
+        setParam.setAddon(addon);
+        setParam.setIsStart(isStart);
+        diyService().setDiyData(setParam);
+    }
 }

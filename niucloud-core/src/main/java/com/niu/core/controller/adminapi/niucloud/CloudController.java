@@ -4,10 +4,9 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.niu.core.common.domain.Result;
 import com.niu.core.service.admin.niucloud.ICloudBuildService;
 import com.niu.core.service.admin.niucloud.INiucloudService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.niu.core.service.admin.niucloud.param.ConnectTestParam;
+import jdk.jfr.Description;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
 
@@ -66,5 +65,33 @@ public class CloudController {
     @GetMapping("/build/check")
     public Result buildPreCheck(){
         return Result.success(cloudBuildService.buildPreCheck());
+    }
+
+    /**
+     * 获取本地地址
+     */
+    @Description("获取本地地址")
+    @GetMapping("/build/get_local_url")
+    public Result<?> getLocalCloudCompileConfig(){
+        return Result.success(cloudBuildService.getLocalCloudCompileConfig());
+    }
+
+    /**
+     * 设置本地地址
+     */
+    @Description("设置本地地址")
+    @PostMapping("/build/set_local_url")
+    public Result<?> setLocalCloudCompileConfig(@RequestBody ConnectTestParam param){
+        cloudBuildService.setLocalCloudCompileConfig(param);
+        return Result.success(1,"操作成功",1);
+    }
+
+    /**
+     * 连通测试
+     */
+    @Description("连通测试")
+    @PostMapping("/build/connect_test")
+    public Result<?> connectTest(@RequestBody ConnectTestParam param){
+        return Result.success(cloudBuildService.connectTest(true, param.getUrl()));
     }
 }

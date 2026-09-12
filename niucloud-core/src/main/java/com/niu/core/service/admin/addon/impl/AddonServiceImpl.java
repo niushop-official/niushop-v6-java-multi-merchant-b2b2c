@@ -1,5 +1,6 @@
 package com.niu.core.service.admin.addon.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ZipUtil;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.Method;
@@ -117,8 +118,17 @@ public class AddonServiceImpl implements IAddonService {
 
             for (File file : localAddons) {
                 if (new File(file, "info.json").exists()) {
-                    JSONObject info = JSONUtil.parseObj(JsonLoadUtils.loadJsonString(new File(file, "info.json")));
-                    String addon = info.getStr("key");
+                    JSONObject info;
+                    String addon;
+                    try {
+                        info = JSONUtil.parseObj(JsonLoadUtils.loadJsonString(new File(file, "info.json")));
+                        addon = info.getStr("key");
+                    } catch (Exception e) {
+                        // 单个插件 info.json 为空或格式错误时跳过，不阻断整个列表
+                        e.printStackTrace();
+                        System.err.println("插件 info.json 解析失败，已跳过: " + file.getAbsolutePath() + "/info.json");
+                        continue;
+                    }
                     if (list.get(addon) != null) {
                         LocalAddonInfoVo addonInfoVo = list.get(addon);
                         addonInfoVo.setIsDownload(true);
@@ -243,7 +253,7 @@ public class AddonServiceImpl implements IAddonService {
      * @param addon
      */
     @Override
-    public JSONObject install(String addon, String mode) {
+    public Object install(String addon, String mode) {
         return iCoreAddonInstallService.install(addon, mode);
     }
 
@@ -305,17 +315,25 @@ public class AddonServiceImpl implements IAddonService {
      */
     @Override
     public String getTitleListByKey(String keys) {
+        return String.join(",", getTitleArrayByKey(keys));
+    }
 
-        JSONArray jsonKey=JSONUtil.parseArray(keys);
+    @Override
+    public List<String> getTitleArrayByKey(String keys) {
         List<String> titleList = new ArrayList<>();
-        if(jsonKey.size()>0){
-            List<String> keyList=jsonKey.toList(String.class);
-            List<Addon> addonList=addonMapper.selectList(new QueryWrapper<Addon>().in("`key`", keyList));
-            for (Addon addon:addonList) {
-                titleList.add(addon.getTitle());
-            }
+        if (ObjectUtil.isEmpty(keys)) {
+            return titleList;
         }
-        return String.join(",", titleList);
+        JSONArray jsonKey = JSONUtil.parseArray(keys);
+        if (jsonKey.isEmpty()) {
+            return titleList;
+        }
+        List<String> keyList = jsonKey.toList(String.class);
+        List<Addon> addonList = addonMapper.selectList(new QueryWrapper<Addon>().in("`key`", keyList));
+        for (Addon addon : addonList) {
+            titleList.add(addon.getTitle());
+        }
+        return titleList;
     }
 
     @Override

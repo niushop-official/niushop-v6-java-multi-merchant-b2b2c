@@ -3,7 +3,9 @@ package com.niu.boot.utils;
 import com.niu.boot.config.BootConfig;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 
 public class BootLogUtils {
 
@@ -82,7 +84,8 @@ public class BootLogUtils {
      * @param append
      */
     public static void record(String filePath, String content, boolean append) {
-        try (FileWriter writer = new FileWriter(filePath, append)) {
+        try (FileOutputStream fos = new FileOutputStream(filePath, append);
+             OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8)) {
             writer.write(content);
             writer.flush();
         } catch (Exception e) {

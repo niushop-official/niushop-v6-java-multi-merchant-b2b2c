@@ -5,27 +5,29 @@
                 <span class="right">{{ pageName }}</span>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="shopRecordTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="shopRecordTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('deliveryNo')" prop="delivery_no">
-                        <el-input v-model.trim="shopRecordTable.searchParam.delivery_no" :placeholder="t('deliveryNoPlaceholder')" />
+                        <el-input v-model.trim="shopRecordTable.searchParam.delivery_no" :placeholder="t('deliveryNoPlaceholder')" clearable class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('tradeNo')" prop="trade_no">
-                        <el-input v-model.trim="shopRecordTable.searchParam.trade_no" :placeholder="t('tradeNoPlaceholder')" />
+                        <el-input v-model.trim="shopRecordTable.searchParam.trade_no" :placeholder="t('tradeNoPlaceholder')" clearable class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('交易类型')" prop="trade_type">
-                        <el-select v-model="shopRecordTable.searchParam.trade_type" :placeholder="t('请选择交易类型')" clearable>
+                        <el-select v-model="shopRecordTable.searchParam.trade_type" :placeholder="t('请选择交易类型')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,key) in tradeType" :key="key" :label="item" :value="key" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('deliveryStatus')" prop="status">
-                        <el-select v-model="shopRecordTable.searchParam.status" :placeholder="t('deliveryStatusPlaceholder')" clearable>
+                        <el-select v-model="shopRecordTable.searchParam.status" :placeholder="t('deliveryStatusPlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,key) in statusList" :key="key" :label="item" :value="key" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
                         <el-date-picker v-model="shopRecordTable.searchParam.create_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadShopDeliveryList()">{{ t('search') }}</el-button>

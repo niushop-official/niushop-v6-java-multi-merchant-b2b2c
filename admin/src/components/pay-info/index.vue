@@ -49,7 +49,7 @@ const loading = ref(false)
 
 const setFormData = (data: any) => {
     loading.value = true
-    const api = getAppType() === 'admin' ? getAdminPayInfo : getSitePayInfo
+    const api = ['admin', 'circle'].includes(getAppType()) ? getAdminPayInfo : getSitePayInfo
     api(data).then((res: any) => {
         payInfoData.value = res.data
         if (payInfoData.value.json) {

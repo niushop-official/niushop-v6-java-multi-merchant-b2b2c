@@ -40,22 +40,24 @@ public class SysScheduleController {
     }
 
     /**
-     * 系统任务详情
+     * 系统任务详情（对齐 PHP 路由 schedule/:id）
      *
      * @param id 主键ID
      * @return Result<SysScheduleInfoVo>
      */
-    @GetMapping("/info/{id}")
-    public Result<SysScheduleInfoVo> info(@Validated @RequestParam("id") Integer id) {
+    @GetMapping("/{id}")
+    public Result<SysScheduleInfoVo> info(@Validated @PathVariable("id") Integer id) {
         SysScheduleInfoVo info = sysScheduleService.info(id);
         return Result.success(info);
     }
 
     /**
+     * 修改任务状态（对齐 PHP 路由 schedule/modify/status/:id）
+     *
      * @return
      */
     @PutMapping("/modify/status/{id}")
-    public Result status(@Validated @RequestParam("id") Integer id, SysScheduleStatusParam sysScheduleStatusParam) {
+    public Result status(@Validated @PathVariable("id") Integer id, SysScheduleStatusParam sysScheduleStatusParam) {
         sysScheduleStatusParam.setId(id);
         sysScheduleService.modifyStatus(sysScheduleStatusParam);
         return Result.success();

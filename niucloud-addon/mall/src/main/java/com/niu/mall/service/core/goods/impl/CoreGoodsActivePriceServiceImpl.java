@@ -1,20 +1,21 @@
 package com.niu.mall.service.core.goods.impl;
 
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.niu.core.entity.vip_card.MemberVipCardBuy;
+import com.niu.core.common.utils.GoodsPriceUtils;
 import com.niu.core.service.api.member.IMemberLevelService;
 import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
-import com.niu.mall.entity.active.MallActiveGoods;
+import com.niu.core.service.core.vip_card.card.ICoreVipCardBuyService;
+import com.niu.core.entity.active.MallActiveGoods;
 import com.niu.mall.enums.active.ActiveClassEnum;
-import com.niu.mall.enums.active.ActiveGoodsTypeEnum;
 import com.niu.mall.enums.active.ActiveStatusEnum;
 import com.niu.mall.enums.goods.GoodsPriceTypeEnum;
-import com.niu.mall.mapper.active.MallActiveGoodsMapper;
+import com.niu.core.mapper.active.MallActiveGoodsMapper;
 import com.niu.mall.service.core.goods.ICoreGoodsActivePriceService;
 import com.niu.mall.service.core.goods.param.GetShowPriceParam;
 import com.niu.mall.service.core.goods.vo.ShowPriceVo;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class CoreGoodsActivePriceServiceImpl implements ICoreGoodsActivePriceService {
@@ -32,37 +32,53 @@ public class CoreGoodsActivePriceServiceImpl implements ICoreGoodsActivePriceSer
     private IMemberLevelService memberLevelService;
     @Resource
     private MallActiveGoodsMapper mallActiveGoodsMapper;
+    @Resource
+    private ICoreVipCardBuyService coreVipCardBuyService;
 
     @Override
     public ShowPriceVo getShowPrice(GetShowPriceParam param) {
-        List<ShowPriceVo> showPriceList =  new ArrayList<>();
+        List<ShowPriceVo> showPriceList = new ArrayList<>();
 
         showPriceList.add(ShowPriceVo.builder()
-            .showPrice(param.getPrice())
-            .showType(GoodsPriceTypeEnum.ORIGINAL_PRICE.getType())
-            .build());
-        // 会员价
-        if (param.getMemberId() != null && param.getMemberId() > 0) {
-            MemberLevelInfoVo memberLevel = memberLevelService.findMemberLevel(param.getMemberId());
-            JSONObject memberPriceConfig = ObjectUtil.isNotEmpty(param.getMemberPrice()) ? JSONUtil.parseObj(param.getMemberPrice()) : new JSONObject();
-
-            showPriceList.add(ShowPriceVo.builder()
-                .showPrice(calculateMemberPrice(memberLevel, param.getMemberDiscount(), memberPriceConfig, param.getPrice()))
-                .showType(GoodsPriceTypeEnum.MEMBER_PRICE.getType())
+                .showPrice(param.getPrice())
+                .showType(GoodsPriceTypeEnum.ORIGINAL_PRICE.getType())
                 .build());
+        // 会员价 / 付费会员价（互斥：有付费会员价则用 svip_price，否则用 member_price）
+        if (param.getMemberId() != null && param.getMemberId() > 0) {
+            BigDecimal vipCardPrice = calculateVipCardPrice(
+                    param.getMemberId(),
+                    param.getVipCardDiscount(),
+                    param.getSvipDiscount(),
+                    param.getSvipPrice(),
+                    param.getPrice()
+            );
+            if (vipCardPrice != null) {
+                showPriceList.add(ShowPriceVo.builder()
+                        .showPrice(vipCardPrice)
+                        .showType(GoodsPriceTypeEnum.SVIP_PRICE.getType())
+                        .build());
+            } else {
+                MemberLevelInfoVo memberLevel = memberLevelService.findMemberLevel(param.getMemberId());
+                JSONObject memberPriceConfig = ObjectUtil.isNotEmpty(param.getMemberPrice()) ? JSONUtil.parseObj(param.getMemberPrice()) : new JSONObject();
+                showPriceList.add(ShowPriceVo.builder()
+                        .showPrice(calculateMemberPrice(memberLevel, param.getMemberDiscount(), memberPriceConfig, param.getPrice()))
+                        .showType(GoodsPriceTypeEnum.MEMBER_PRICE.getType())
+                        .build());
+            }
         }
 
         //查询活动
         List<MallActiveGoods> goodsActiveList = mallActiveGoodsMapper.selectList(new QueryWrapper<MallActiveGoods>()
                 .eq("goods_id", param.getGoodsId()).eq("active_class", ActiveClassEnum.DISCOUNT.getType())
                 .eq("active_goods_status", ActiveStatusEnum.ACTIVE.getStatus()).isNotNull("active_goods_value"));
-        if(!goodsActiveList.isEmpty()){
+        if (!goodsActiveList.isEmpty()) {
             ObjectMapper mapper = new ObjectMapper();
             try {
                 // 将JSON数组字符串转换为List<Map<String, String>>
                 List<Map<String, Object>> list = mapper.readValue(
                         goodsActiveList.get(0).getActiveGoodsValue(),
-                        new TypeReference<List<Map<String, Object>>>(){}
+                        new TypeReference<List<Map<String, Object>>>() {
+                        }
                 );
                 Map<Integer, Map<String, Object>> map = new HashMap<>();
                 for (Map<String, Object> item : list) {
@@ -70,17 +86,17 @@ public class CoreGoodsActivePriceServiceImpl implements ICoreGoodsActivePriceSer
                     // 第二个参数为null，表示返回整个数组元素
                     map.put(skuId, item);
                 }
-                if(!map.isEmpty()){
-                    if(ObjectUtil.isNotEmpty(map.get(param.getSkuId()))
-                            &&  ObjectUtil.isNotEmpty(map.get(param.getSkuId()).get("is_enabled"))
-                            && map.get(param.getSkuId()).get("is_enabled").equals(1)){
+                if (!map.isEmpty()) {
+                    if (ObjectUtil.isNotEmpty(map.get(param.getSkuId()))
+                            && ObjectUtil.isNotEmpty(map.get(param.getSkuId()).get("is_enabled"))
+                            && map.get(param.getSkuId()).get("is_enabled").equals(1)) {
                         showPriceList.add(ShowPriceVo.builder()
                                 .showPrice(param.getSalePrice())
                                 .showType(GoodsPriceTypeEnum.DISCOUNT_PRICE.getType())
                                 .build());
                     }
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
 
             }
 
@@ -92,7 +108,7 @@ public class CoreGoodsActivePriceServiceImpl implements ICoreGoodsActivePriceSer
     @Override
     public BigDecimal calculateMemberPrice(MemberLevelInfoVo memberLevel, String calculateType, JSONObject config, BigDecimal price) {
         if (ObjectUtil.hasEmpty(memberLevel, calculateType)) {
-            return price;
+            return GoodsPriceUtils.ensureMinMemberPrice(price);
         }
 
         // 按会员等级折扣
@@ -102,36 +118,74 @@ public class CoreGoodsActivePriceServiceImpl implements ICoreGoodsActivePriceSer
                 Integer isUse = ObjectUtil.defaultIfNull(benefits.getByPath("discount.is_use", Integer.class), 0);
                 Double discount = ObjectUtil.defaultIfNull(benefits.getByPath("discount.discount", Double.class), 0.0);
                 if (isUse > 0 && discount > 0) {
-                    return price.multiply(new BigDecimal(discount / 10));
+                    return GoodsPriceUtils.ensureMinMemberPrice(price.multiply(new BigDecimal(discount / 10)));
                 }
             }
         } else if (calculateType.equals("fixed_price") && config != null) {
             // 按指定价格
             if (config.getStr("level_" + memberLevel.getLevelId()) != null) {
-                return BigDecimal.valueOf(Double.parseDouble(config.getStr("level_" + memberLevel.getLevelId())));
+                return GoodsPriceUtils.ensureMinMemberPrice(
+                        BigDecimal.valueOf(Double.parseDouble(config.getStr("level_" + memberLevel.getLevelId()))));
             }
         }
-        return price;
+        return GoodsPriceUtils.ensureMinMemberPrice(price);
+    }
+
+    @Override
+    public BigDecimal calculateVipCardPrice(Integer memberId, String vipCardDiscount, String svipDiscount, String svipPrice, BigDecimal price) {
+        if (ObjectUtil.isEmpty(vipCardDiscount) || memberId == null || memberId <= 0) {
+            return null;
+        }
+
+        MemberVipCardBuy vipCardBuy = coreVipCardBuyService.getMemberBuy(memberId);
+        if (vipCardBuy == null || ObjectUtil.isEmpty(vipCardBuy.getBenefitsConfig())) {
+            return null;
+        }
+
+        JSONObject benefitsConfig = JSONUtil.parseObj(vipCardBuy.getBenefitsConfig());
+        if (!benefitsConfig.containsKey("mall_buy_goods_discount")) {
+            return null;
+        }
+
+        String cardKey = "card_" + vipCardBuy.getCardId();
+        if ("discount".equals(vipCardDiscount) && ObjectUtil.isNotEmpty(svipDiscount)) {
+            JSONObject discountConfig = JSONUtil.parseObj(svipDiscount);
+            String discountStr = discountConfig.getStr(cardKey);
+            if (ObjectUtil.isNotEmpty(discountStr)) {
+                double discount = Double.parseDouble(discountStr);
+                if (discount > 0) {
+                    return GoodsPriceUtils.ensureMinMemberPrice(price.multiply(BigDecimal.valueOf(discount / 10)));
+                }
+            }
+        } else if ("fixed_price".equals(vipCardDiscount) && ObjectUtil.isNotEmpty(svipPrice)) {
+            JSONObject priceConfig = JSONUtil.parseObj(svipPrice);
+            String fixedPriceStr = priceConfig.getStr(cardKey);
+            if (ObjectUtil.isNotEmpty(fixedPriceStr)) {
+                return GoodsPriceUtils.ensureMinMemberPrice(new BigDecimal(fixedPriceStr));
+            }
+        }
+        return null;
     }
 
     /**
      * 提取最低价格（优先考虑原价）
-     * @param priceData 价格数据列表
+     *
+     * @param priceData     价格数据列表
      * @param originalPrice 原价
      * @return 最低价格信息
      */
     private ShowPriceVo getMinShowPrice(List<ShowPriceVo> priceData, BigDecimal originalPrice) {
         // 按价格和优先级排序
         priceData.sort(Comparator.comparing(ShowPriceVo::getShowPrice)
-            .thenComparing(vo -> {
-                // 根据价格类型获取排序值
-                for (GoodsPriceTypeEnum typeEnum : GoodsPriceTypeEnum.values()) {
-                    if (typeEnum.getType().equals(vo.getShowType())) {
-                        return typeEnum.getSort();
+                .thenComparing(vo -> {
+                    // 根据价格类型获取排序值
+                    for (GoodsPriceTypeEnum typeEnum : GoodsPriceTypeEnum.values()) {
+                        if (typeEnum.getType().equals(vo.getShowType())) {
+                            return typeEnum.getSort();
+                        }
                     }
-                }
-                return Integer.MAX_VALUE; // 未知类型放在最后
-            }));
+                    return Integer.MAX_VALUE; // 未知类型放在最后
+                }));
 
         // 获取排序后的第一个元素（最低价格）
         Optional<ShowPriceVo> minPriceOpt = priceData.stream().findFirst();
@@ -140,7 +194,7 @@ public class CoreGoodsActivePriceServiceImpl implements ICoreGoodsActivePriceSer
 
             // 如果最低价格与原价相同但类型不是原价，则修正为原价类型
             if (!GoodsPriceTypeEnum.ORIGINAL_PRICE.getType().equals(minPrice.getShowType())
-                && originalPrice.compareTo(minPrice.getShowPrice()) == 0) {
+                    && originalPrice.compareTo(minPrice.getShowPrice()) == 0) {
                 minPrice.setShowType(GoodsPriceTypeEnum.ORIGINAL_PRICE.getType());
             }
 
@@ -149,8 +203,8 @@ public class CoreGoodsActivePriceServiceImpl implements ICoreGoodsActivePriceSer
 
         // 如果没有价格数据，返回原价
         return ShowPriceVo.builder()
-            .showPrice(originalPrice)
-            .showType(GoodsPriceTypeEnum.ORIGINAL_PRICE.getType())
-            .build();
+                .showPrice(originalPrice)
+                .showType(GoodsPriceTypeEnum.ORIGINAL_PRICE.getType())
+                .build();
     }
 }

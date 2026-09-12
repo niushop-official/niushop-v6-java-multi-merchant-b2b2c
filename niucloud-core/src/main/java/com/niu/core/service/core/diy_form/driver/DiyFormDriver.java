@@ -7,7 +7,6 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.niu.core.common.utils.RequestUtils;
 import org.springframework.stereotype.Component;
-import springfox.documentation.spring.web.json.Json;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,7 +17,7 @@ import java.util.List;
 public class DiyFormDriver {
 
     public Object convert(String fieldValue, String scene) {
-        if(ObjectUtil.isEmpty(fieldValue))  return new Json("");
+        if(ObjectUtil.isEmpty(fieldValue))  return "";
         switch (scene) {
             case "FormRadio" -> {
                 return JSONUtil.parseArray(fieldValue);

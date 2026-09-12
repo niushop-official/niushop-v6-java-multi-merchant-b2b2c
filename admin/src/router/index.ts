@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, RouteLocationRaw, RouteLocationNormalizedLoaded } from 'vue-router'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
-import { STATIC_ROUTES, NO_LOGIN_ROUTES, ROOT_ROUTER, ADMIN_ROUTE, SITE_ROUTE, findFirstValidRoute } from './routers'
+import { STATIC_ROUTES, NO_LOGIN_ROUTES, ROOT_ROUTER, ADMIN_ROUTE, SITE_ROUTE, CIRCLE_ROUTE, findFirstValidRoute } from './routers'
 import { language } from '@/lang'
 import useSystemStore from '@/stores/modules/system'
 import useUserStore from '@/stores/modules/user'
@@ -10,7 +10,7 @@ import storage from '@/utils/storage'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
-    routes: [ADMIN_ROUTE, SITE_ROUTE, ...STATIC_ROUTES]
+    routes: [ADMIN_ROUTE, SITE_ROUTE, CIRCLE_ROUTE, ...STATIC_ROUTES]
 })
 
 /**
@@ -21,7 +21,10 @@ router.push = (to: RouteLocationRaw) => {
     const route = typeof to == 'string' ? urlToRouteRaw(to) : to
     if (route.path) {
         const paths = route.path.split('/').filter((item: string) => { return item })
-        route.path = ['admin', 'site', 'home'].indexOf(paths[0]) == -1 ? `/${getAppType()}${route.path}` : route.path
+        const app_type = getAppType()
+        if (['admin', 'site', 'home'].indexOf(paths[0]) == -1 && paths[0] != app_type) {
+            route.path = `/${app_type}${route.path}`
+        }
     }
     return originPush(route)
 }
@@ -34,7 +37,10 @@ router.resolve = (to: RouteLocationRaw, currentLocation?: RouteLocationNormalize
     const route = typeof to == 'string' ? urlToRouteRaw(to) : to
     if (route.path) {
         const paths = route.path.split('/').filter((item: string) => { return item })
-        route.path = ['admin', 'site', 'home'].indexOf(paths[0]) == -1 ? `/${getAppType()}${route.path}` : route.path
+        const app_type = getAppType()
+        if (['admin', 'site', 'home'].indexOf(paths[0]) == -1 && paths[0] != app_type) {
+            route.path = `/${app_type}${route.path}`
+        }
     }
     return originResolve(route, currentLocation)
 }
@@ -68,8 +74,14 @@ router.beforeEach(async (to: any, from, next) => {
         matched = '/' + appType
     }
 
-    const loginPath = to.path == '/' ? '/admin/login' : `/${matched == '/admin' ? 'admin' : 'site'}/login`
-
+    let tempLoginPath = '';
+    if(to.path == '/'){
+        tempLoginPath = '/admin/login' 
+    }else{
+        let temp_matched = matched.replace(/\//g, '');
+        tempLoginPath = `/${temp_matched}/login`
+    }
+    const loginPath = tempLoginPath;
     if (appType != 'site' || to.path === loginPath) {
         systemStore.website.site_name && title.push(systemStore.website.site_name)
     } else {
@@ -104,6 +116,9 @@ router.beforeEach(async (to: any, from, next) => {
                 if (getAppType() == 'admin') {
                     ADMIN_ROUTE.children[0].redirect = { name: firstRoute }
                     router.addRoute(ADMIN_ROUTE)
+                } else if (getAppType() == 'circle') {
+                    CIRCLE_ROUTE.children[0].redirect = { name: firstRoute }
+                    router.addRoute(CIRCLE_ROUTE)
                 } else {
                     SITE_ROUTE.children[0].redirect = { name: firstRoute }
                     router.addRoute(SITE_ROUTE)
@@ -114,8 +129,10 @@ router.beforeEach(async (to: any, from, next) => {
                     if (!route.children) {
                         if (route.meta.app == 'admin') {
                             router.addRoute(ADMIN_ROUTE.children[0].name, route)
-                        } else {
+                        } else if (route.meta.app == 'site'){
                             router.addRoute(SITE_ROUTE.children[0].name, route)
+                        }else if (route.meta.app == 'circle'){
+                            router.addRoute(CIRCLE_ROUTE.children[0].name, route)
                         }
                         return
                     }
@@ -123,8 +140,10 @@ router.beforeEach(async (to: any, from, next) => {
                     // 动态添加可访问路由表
                     if (route.meta.app == 'admin') {
                         router.addRoute(ADMIN_ROUTE.name, route)
-                    } else {
+                    }else if (route.meta.app == 'site'){
                         router.addRoute(SITE_ROUTE.name, route)
+                    }else if (route.meta.app == 'circle'){
+                        router.addRoute(CIRCLE_ROUTE.name, route)
                     }
                 })
                 next(to)

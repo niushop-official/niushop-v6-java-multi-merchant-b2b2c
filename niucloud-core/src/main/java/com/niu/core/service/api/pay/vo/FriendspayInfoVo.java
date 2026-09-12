@@ -33,7 +33,7 @@ public class FriendspayInfoVo {
     private int posterId;
     private Member member;
     private boolean isSelf;
-    private Object tradeInfo;
+    private PayTradeInfoVo tradeInfo;
     private JSONObject config;
     private List<PayTypeVo> payTypeList;
 }

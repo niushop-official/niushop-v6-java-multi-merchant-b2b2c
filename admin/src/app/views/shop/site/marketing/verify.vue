@@ -8,35 +8,36 @@
             </div>
 
             <el-card class="box-card mt-[10px] !border-none table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="recordTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="90px" :model="recordTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('verifyCode')" prop="code">
-                        <el-input v-model="recordTable.searchParam.code" :placeholder="t('verifyCodePlaceholder')" />
+                        <el-input v-model="recordTable.searchParam.code" :placeholder="t('verifyCodePlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('verifyType')" prop="type">
-                        <el-select v-model="recordTable.searchParam.type" clearable :placeholder="t('verifyTypePlaceholder')" class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="recordTable.searchParam.type" clearable :placeholder="t('verifyTypePlaceholder')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item.name" :value="key" v-for="(item, key) in verifyTypeList" :key="key" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('核销员类型')" prop="verifier_type">
-                        <el-select v-model="recordTable.searchParam.verifier_type" clearable :placeholder="t('请选择核销员类型')" class="input-width" @change="verifierTypeChange">
+                        <el-select v-model="recordTable.searchParam.verifier_type" clearable :placeholder="t('请选择核销员类型')" class="search-input" @change="verifierTypeChange">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item" :value="key" v-for="(item, key) in verifyerTypeList" :key="key" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('verifyer')" prop="verifier_member_id" v-if="recordTable.searchParam.verifier_type == 'member'">
-                        <el-select v-model="recordTable.searchParam.verifier_member_id" clearable :placeholder="t('verifierPlaceholder')" class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="recordTable.searchParam.verifier_member_id" clearable :placeholder="t('verifierPlaceholder')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item.member.nickname" :value="item.member_id" v-for="(item, key) in verifierList" :key="key" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('verifyer')" prop="verifier_member_id" v-if="recordTable.searchParam.verifier_type == 'site'">
-                        <el-select v-model="recordTable.searchParam.verifier_member_id" clearable :placeholder="t('verifierPlaceholder')" class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="recordTable.searchParam.verifier_member_id" clearable :placeholder="t('verifierPlaceholder')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item.username" :value="item.uid" v-for="(item, key) in userList" :key="key" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('verifyTime')" prop="create_time">
-                        <el-date-picker v-model="recordTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+                        <el-date-picker v-model="recordTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadRecordList()">{{ t('search') }}</el-button>

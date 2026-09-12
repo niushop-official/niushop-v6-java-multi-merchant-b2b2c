@@ -15,12 +15,12 @@ import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
 import com.niu.core.service.api.member.IMemberLevelService;
 import com.niu.core.service.api.member.vo.MemberLevelInfoVo;
-import com.niu.mall.entity.goods.MallGoods;
+import com.niu.core.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsBrowse;
-import com.niu.mall.entity.goods.MallGoodsSku;
+import com.niu.core.entity.goods.MallGoodsSku;
 import com.niu.mall.mapper.goods.MallGoodsBrowseMapper;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
-import com.niu.mall.mapper.goods.MallGoodsSkuMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsSkuMapper;
 import com.niu.mall.service.api.goods.IGoodsBrowseService;
 import com.niu.mall.service.api.goods.param.GoodsBrowseParam;
 import com.niu.mall.service.api.goods.param.GoodsBrowseSearchParam;
@@ -72,7 +72,7 @@ public class GoodsBrowseServiceImpl implements IGoodsBrowseService {
         queryWrapper.setAlias("b")
                 .leftJoin("?_mall_goods g ON b.goods_id = g.goods_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_mall_goods_sku gs ON b.sku_id = gs.sku_id".replace("?_", GlobalConfig.tablePrefix));
-        queryWrapper.select("b.*,gs.price,gs.sale_price,gs.market_price,gs.member_price,g.member_discount,g.status,g.delete_time");
+        queryWrapper.select("b.*,gs.price,gs.sale_price,gs.market_price,gs.member_price,gs.svip_discount,gs.svip_price,g.member_discount,g.vip_card_discount,g.status,g.delete_time");
         queryWrapper.eq("b.member_id", RequestUtils.memberId());
         queryWrapper.eq("g.delete_time", 0);
         if (ObjectUtil.isNotEmpty(searchParam.getDate()))
@@ -88,6 +88,9 @@ public class GoodsBrowseServiceImpl implements IGoodsBrowseService {
                     .price(vo.getPrice())
                     .memberDiscount(vo.getMemberDiscount())
                     .memberPrice(vo.getMemberPrice())
+                    .vipCardDiscount(vo.getVipCardDiscount())
+                    .svipDiscount(vo.getSvipDiscount())
+                    .svipPrice(vo.getSvipPrice())
                     .memberId(RequestUtils.memberId())
                     .build());
             vo.setShowPrice(skuShowPrice.getShowPrice());
@@ -103,7 +106,7 @@ public class GoodsBrowseServiceImpl implements IGoodsBrowseService {
 
     @Override
     public void add(GoodsBrowseParam addParam) {
-        MallGoods goods = mallGoodsMapper.selectOne(new QueryWrapper<MallGoods>().select("goods_name,goods_cover").eq("goods_id", addParam.getGoodsId()));
+        MallGoods goods = mallGoodsMapper.selectOne(new QueryWrapper<MallGoods>().select("site_id", "goods_name", "goods_cover").eq("goods_id", addParam.getGoodsId()));
         Assert.notNull(goods, "商品不存在");
 
         MallGoodsSku sku = mallGoodsSkuMapper.selectOne(new QueryWrapper<MallGoodsSku>().eq("goods_id", addParam.getGoodsId()).eq("is_default", 1));
@@ -122,8 +125,7 @@ public class GoodsBrowseServiceImpl implements IGoodsBrowseService {
         model.setGoodsCover(goods.getGoodsCover());
         model.setSkuId(sku.getSkuId());
 
-        long todayStart = DateUtils.StringToTimestamp(DateUtils.currInitDate());
-        boolean isFirstVisitToday = browse == null || browse.getBrowseTime() < todayStart;
+        boolean isFirstBrowse = browse == null;
 
         if (browse == null) {
             mallGoodsBrowseMapper.insert(model);
@@ -132,9 +134,9 @@ public class GoodsBrowseServiceImpl implements IGoodsBrowseService {
             mallGoodsBrowseMapper.updateById(model);
         }
 
-        if (isFirstVisitToday) {
+        if (isFirstBrowse) {
             GoodsAddStatParam param = new GoodsAddStatParam();
-            param.setSiteId(model.getSiteId());
+            param.setSiteId(goods.getSiteId());
             param.setGoodsId(addParam.getGoodsId());
             param.setGoodsVisitMemberCount(1);
             coreGoodsStatService.addStat(param);

@@ -73,6 +73,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import { openMapSelector } from '@/utils/common'
 import { getShopBaseInfo, setShopBaseInfo } from '@/app/api/site'
 import manifestJson from '@/manifest.json';
 import { getAddressByLatlng } from '@/app/api/system';
@@ -170,7 +171,11 @@ const chooseLocation = () => {
     const urlencode = formData;
     uni.setStorageSync('siteAddressInfo', urlencode);
     let backurl = location.origin + location.pathname;
-    window.location.href = 'https://apis.map.qq.com/tools/locpicker?search=1&type=0&backurl=' + encodeURIComponent(backurl) + '&key=' + manifestJson.h5.sdkConfigs.maps.qqmap.key + '&referer=myapp';
+    let params = ''
+    if (formData.latitude && formData.longitude) {
+        params = `latng=${ formData.latitude },${ formData.longitude }`
+    }
+    openMapSelector(backurl, params);
     // #endif
 }
 

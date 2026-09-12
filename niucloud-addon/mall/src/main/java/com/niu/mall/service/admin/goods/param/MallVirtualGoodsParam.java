@@ -110,6 +110,9 @@ public class MallVirtualGoodsParam implements Serializable {
     @NotNull(message = "member_discount参数缺失")
     private String memberDiscount;
 
+    /** 付费会员卡折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price */
+    private String vipCardDiscount = "";
+
     private Integer posterId = 0;
 
     private Integer formId = 0;
@@ -124,6 +127,9 @@ public class MallVirtualGoodsParam implements Serializable {
 
     /** 自定义详情 */
     private Integer diyDetailId;
+
+    /** 关联推荐商品id集合 */
+    private String recommendGoodsIds;
 
     @Data
     public static class SkuData {

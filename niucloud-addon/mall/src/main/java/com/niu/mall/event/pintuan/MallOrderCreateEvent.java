@@ -4,8 +4,10 @@ import com.niu.core.common.component.context.event.Event;
 import com.niu.mall.entity.order.MallOrder;
 import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class MallOrderCreateEvent extends Event {
 
     private OrderCreateDataVo vo;

@@ -11,6 +11,7 @@ import com.niu.core.common.utils.CollectUtils;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.WechatUtils;
+import com.niu.core.common.utils.json.JsonViewUtils;
 import com.niu.core.entity.member.Member;
 import com.niu.core.entity.member.MemberLevel;
 import com.niu.core.enums.member.MemberLevelStyleEnum;
@@ -83,9 +84,13 @@ public class MemberLevelServiceImpl implements IMemberLevelService {
             BeanUtils.copyProperties(level, vo);
 
             if (ObjectUtil.isNotEmpty(level.getLevelBenefits())) {
-                JSONObject benefits = JSONUtil.parseObj(level.getLevelBenefits());
-                benefits = coreMemberService.getBenefitsContent(param.siteId(), benefits, "member_level");
-                vo.setLevelBenefits(benefits);
+                JSONObject benefits = JsonViewUtils.parseJsonObject(level.getLevelBenefits());
+                if (benefits != null) {
+                    benefits = coreMemberService.getBenefitsContent(param.siteId(), benefits, "member_level");
+                    vo.setLevelBenefits(benefits);
+                } else {
+                    vo.setLevelBenefits(filling);
+                }
             } else {
                 vo.setLevelBenefits(filling);
             }
@@ -98,9 +103,11 @@ public class MemberLevelServiceImpl implements IMemberLevelService {
             }
 
             if (!level.getLevelGifts().isEmpty()) {
-                JSONObject gifts = JSONUtil.parseObj(level.getLevelGifts());
-                gifts = coreMemberService.getGiftContent(param.siteId(), gifts, "member_level");
-                vo.setLevelGifts(gifts);
+                JSONObject gifts = JsonViewUtils.parseJsonObject(level.getLevelGifts());
+                if (gifts != null) {
+                    gifts = coreMemberService.getGiftContent(param.siteId(), gifts, "member_level");
+                    vo.setLevelGifts(gifts);
+                }
             }
             Integer levelKey = index % 7 + 1;
             vo.setLevelBg("/static/resource/images/member/level/bg_" + levelKey + ".png");
@@ -135,8 +142,14 @@ public class MemberLevelServiceImpl implements IMemberLevelService {
         MemberLevelInfoVo vo = new MemberLevelInfoVo();
         BeanUtils.copyProperties(level, vo);
 
-        if (ObjectUtil.isNotEmpty(level.getLevelBenefits()) && JSONUtil.isJson(level.getLevelBenefits())) vo.setLevelBenefits(JSONUtil.parseObj(level.getLevelBenefits()));
-        if (ObjectUtil.isNotEmpty(level.getLevelGifts()) && JSONUtil.isJson(level.getLevelGifts())) vo.setLevelGifts(JSONUtil.parseObj(level.getLevelGifts()));
+        JSONObject levelBenefits = JsonViewUtils.parseJsonObject(level.getLevelBenefits());
+        if (levelBenefits != null) {
+            vo.setLevelBenefits(levelBenefits);
+        }
+        JSONObject levelGifts = JsonViewUtils.parseJsonObject(level.getLevelGifts());
+        if (levelGifts != null) {
+            vo.setLevelGifts(levelGifts);
+        }
 
         return vo;
     }

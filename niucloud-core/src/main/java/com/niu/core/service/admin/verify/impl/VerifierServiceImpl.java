@@ -24,6 +24,7 @@ import com.niu.core.service.admin.verify.param.VerifierSearchParam;
 import com.niu.core.service.admin.verify.vo.VerifierDetailVo;
 import com.niu.core.service.admin.verify.vo.VerifierListVo;
 import com.niu.core.service.admin.verify.vo.VerifierVo;
+import com.niu.core.service.core.shop.ICoreShopMemberService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -38,23 +39,26 @@ import java.util.List;
  */
 @Service
 public class VerifierServiceImpl implements IVerifierService {
-        
+
     @Resource
     VerifierMapper verifierMapper;
 
     @Resource
     MemberMapper memberMapper;
+    @Resource
+    private ICoreShopMemberService coreShopMemberService;
 
     /**
      * 核销员列表
-     * @param pageParam 分页参数
+     *
+     * @param pageParam   分页参数
      * @param searchParam 搜索参数
      * @return PageResult<VerifierListVo>
      */
     @Override
     public PageResult<VerifierListVo> list(PageParam pageParam, VerifierSearchParam searchParam) {
-        Integer page  = pageParam.getPage();
-        Integer limit =pageParam.getLimit();
+        Integer page = pageParam.getPage();
+        Integer limit = pageParam.getLimit();
 
         MPJQueryWrapper<Verifier> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("v").innerJoin("?_member m ON v.member_id = m.member_id".replace("?_", GlobalConfig.tablePrefix));
@@ -79,6 +83,7 @@ public class VerifierServiceImpl implements IVerifierService {
 
     /**
      * 获取核销员列表
+     *
      * @return
      */
     public List<VerifierListVo> all() {
@@ -106,12 +111,15 @@ public class VerifierServiceImpl implements IVerifierService {
 
     /**
      * 核销员添加
+     *
      * @param addParam 参数
      */
     @Override
     public void add(VerifierParam addParam) {
         Member member = memberMapper.selectOne(new QueryWrapper<Member>().select("member_id").eq("member_id", addParam.getMemberId()));
         Assert.notNull(member, "会员不存在");
+
+        coreShopMemberService.batchFindShopMemberCreateIfcNotExist(RequestUtils.siteId(), member.getMemberId());
 
         Verifier verifier = verifierMapper.selectOne(new QueryWrapper<Verifier>().select("id")
                 .eq("site_id", RequestUtils.siteId()).eq("member_id", addParam.getMemberId()));
@@ -127,7 +135,7 @@ public class VerifierServiceImpl implements IVerifierService {
     }
 
     @Override
-    public void edit(Integer id,VerifierParam addParam) {
+    public void edit(Integer id, VerifierParam addParam) {
         verifierMapper.update(new Verifier(), new UpdateWrapper<Verifier>().eq("id", id).eq("site_id", RequestUtils.siteId())
                 .set("verify_type", JSONUtil.parseArray(addParam.getVerifyType()).toString())
         );
@@ -135,6 +143,7 @@ public class VerifierServiceImpl implements IVerifierService {
 
     /**
      * 核销员删除
+     *
      * @param id 主键ID
      */
     @Override

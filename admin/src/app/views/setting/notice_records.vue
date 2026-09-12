@@ -2,19 +2,20 @@
     <!--发送记录-->
     <div class="main-container">
         <el-card class="box-card !border-none" shadow="never">
-            
+
             <div class="flex justify-between items-center">
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="recordsTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="recordsTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('searchReceiver')" prop="receiver">
-                        <el-input v-model="recordsTableData.searchParam.receiver" :placeholder="t('receiverPlaceholder')" />
+                        <el-input v-model="recordsTableData.searchParam.receiver" :placeholder="t('receiverPlaceholder')" clearable  class="search-input" />
                     </el-form-item>
 
                     <el-form-item :label="t('noticeKey')" prop="key">
-                        <el-select v-model="recordsTableData.searchParam.key" clearable :placeholder="t('noticeKeyPlaceholder')" class="input-width" popper-class="notice">
+                        <el-select v-model="recordsTableData.searchParam.key" clearable :placeholder="t('noticeKeyPlaceholder')" class="search-input" popper-class="notice">
+                            <el-option  label="全部" value="all" />
                             <el-option-group v-for="(group, gindex) in templateList" :key="gindex" :label="group.label">
                                 <el-option :label="item.name" :value="item.value" :disabled="item.disabled ?? false" v-for="(item, index) in group.list" :key="index" />
                             </el-option-group>
@@ -22,7 +23,7 @@
                     </el-form-item>
 
                     <el-form-item :label="t('createTime')" prop="create_time">
-                        <el-date-picker v-model="recordsTableData.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+                        <el-date-picker v-model="recordsTableData.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
 
                     <el-form-item>

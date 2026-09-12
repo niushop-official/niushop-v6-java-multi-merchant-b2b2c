@@ -21,9 +21,6 @@ private static final long serialVersionUID = 1L;
         /**  */
         private Integer id;
 
-        /** 站点id */
-        private Integer siteId;
-
         /** 所属万能表单id */
         private Integer formId;
 
@@ -32,9 +29,6 @@ private static final long serialVersionUID = 1L;
 
         /** 关联表单填写记录id */
         private Integer recordId;
-
-        /** 填写会员id */
-        private Integer memberId;
 
         /** 字段唯一标识 */
         private String fieldKey;
@@ -51,9 +45,6 @@ private static final long serialVersionUID = 1L;
         /** 字段是否必填 0:否 1:是 */
         private Integer fieldRequired;
 
-        /** 字段是否隐藏 0:否 1:是 */
-        private Integer fieldHidden;
-
         /** 字段内容防重复 0:否 1:是 */
         private Integer fieldUnique;
 
@@ -62,6 +53,9 @@ private static final long serialVersionUID = 1L;
 
         /** 字段修改次数 */
         private Integer updateNum;
+
+        /** 修改时间 */
+        private Long updateTime;
 
         private Object handleFieldValue;
 
@@ -125,12 +119,19 @@ private static final long serialVersionUID = 1L;
         public String getDetailComponent(){
                 DiyFormComponentEnum diyFormComponentEnum = new DiyFormComponentEnum();
                 JSONObject component = diyFormComponentEnum.getComponent(this.fieldType);
-                if(ObjectUtil.isNotEmpty(component) && component.containsKey("value") && component.containsKey("field") && component.containsKey("detailComponent"))
-                {
-                        return component.getStr("detailComponent");
-                }else{
-                        return "/src/app/views/diy_form/components/detail-form-render.vue";
+                if(ObjectUtil.isNotEmpty(component)){
+                        // 优先检查 component 根级别是否有 detailComponent
+                        if(component.containsKey("detailComponent")){
+                                return component.getStr("detailComponent");
+                        }
+                        // 然后检查 value.field 下是否有 detailComponent
+                        if(component.containsKey("value") && component.getJSONObject("value").containsKey("field") 
+                           && component.getJSONObject("value").getJSONObject("field").containsKey("detailComponent")){
+                                return component.getJSONObject("value").getJSONObject("field").getStr("detailComponent");
+                        }
                 }
+                // 默认返回通用渲染组件
+                return "/src/app/views/diy_form/components/detail-form-render.vue";
         }
 
 

@@ -117,6 +117,30 @@
                     </u-form-item>
                 </view>
                 <template v-if="spread">
+                    <view class="status-wrap">
+                        <u-form-item label="积分抵扣">
+                            <view class="flex-1 flex justify-end">
+                                <u-radio-group v-model="formData.point_deduct_type" placement="row"  iconPlacement="left">
+                                    <u-radio activeColor="var(--primary-color)" size="32rpx"  :labelSize="'28rpx'" labelColor="#333" label="单独设置" name="custom"></u-radio>
+                                    <u-radio activeColor="var(--primary-color)" size="32rpx" :labelSize="'28rpx'" labelColor="#333" label="默认设置" name="site"></u-radio>
+                                </u-radio-group>
+                            </view>
+                        </u-form-item>
+                    </view>
+                    <view v-if="formData.point_deduct_type === 'custom'">
+                        <u-form-item label="积分抵扣比例" prop="point_deduct_rate" labelWidth="200rpx" required>
+                            <u-input fontSize="28rpx" v-model.trim="formData.point_deduct_rate" border="none"  maxlength="80" placeholder="请输入积分抵扣比例" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" />%
+                        </u-form-item>
+                    </view>
+                    <view>
+                        <u-form-item label="关联推荐">
+                            <view class="flex items-center justify-end flex-1" @click="handleRecommend">
+                                <text v-if="formData.recommend_goods_ids.length">已选{{ formData.recommend_goods_ids.length }}个</text>
+                                <text v-else class="text-[#999]">请选择关联推荐商品</text>
+                                <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
+                            </view>
+                        </u-form-item>
+                    </view>
                     <view>
                         <u-form-item label="单位" prop="unit">
                             <u-input fontSize="28rpx" v-model.trim="formData.unit" border="none"  maxlength="80" placeholder="请输入单位，默认为：件" placeholderClass="!text-[var(--text-color-light9)] text-[28rpx]" inputAlign="right" />
@@ -287,14 +311,30 @@
                     </view>
                 </template>
                 <template v-if="spread">
-                    <view>
+                    <!-- <view>
                         <u-form-item label="会员等级折扣">
                             <view class="flex items-center flex-1" @click="showMemberDiscountPopup = true">
-                                <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.member_discount }" >{{ formData.member_discount_name ? formData.member_discount_name : '请选择会员等级折扣' }}</view>
+                                <view class="flex-1 text-right" :class="{'text-[var(--text-color-light9)]': !formData.member_discount_name }" >{{ formData.member_discount_name ? formData.member_discount_name : '请选择会员等级折扣' }}</view>
                                 <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
                             </view>
                         </u-form-item>
                     </view>
+                    <view v-if="formData.member_discount == 'discount'">
+                        <u-form-item label="会员折扣">
+                            <view class="flex items-center justify-end flex-1" @click="redirect({ url: '/addon/mall/pages/goods/discount' })">
+                                查看
+                                <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
+                            </view>
+                        </u-form-item>
+                    </view>
+                    <view v-if="formData.member_discount == 'fixed_price'">
+                        <u-form-item label="指定会员价">
+                            <view class="flex items-center justify-end flex-1" @click="redirect({ url: '/addon/mall/pages/goods/fixed_price' })">
+                                查看
+                                <text class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
+                            </view>
+                        </u-form-item>
+                    </view> -->
                     <view>
                         <u-form-item label="是否限购" prop="is_limit">
                             <view class="flex-1 flex justify-end">
@@ -589,6 +629,7 @@
             </view>
         </u-popup>
         <loading-page :loading="loading"></loading-page>
+        <goods-select-popup ref="goodsSelectPopupRef" v-model="formData.recommend_goods_ids" :exclude_goods_id="formData.goods_id"  :min="1" :max="6"></goods-select-popup>
     </view>
 </template>
 
@@ -602,6 +643,7 @@ import { getBrandList, getServeList, getCategoryTree } from '@/app/api/base_site
 import { getShopDeliveryList, getShippingTemplateList } from '@/app/api/delivery_site'
 import goodsCategoryPopup from './components/goods-category-popup.vue'
 import ShmilyDragImage from '@/components/shmily-drag-image/shmily-drag-image.vue'
+import goodsSelectPopup from './components/goods-select-popup.vue'
 
 const loading = ref(true)
 const repeat = ref(false)
@@ -627,7 +669,9 @@ const formData = reactive<any>({
     status: 1,
     unit: '',
     shop_sort: '',
-
+    point_deduct_rate: '',
+    point_deduct_type: 'site',
+    recommend_goods_ids: [],
     spec_type: 'single',
     price: '',
     market_price: '',
@@ -776,7 +820,10 @@ const handleGoodsInit = (data: any) => {
             formData.status = 0
         }
 
-
+        // 初始化积分抵扣比例
+        formData.point_deduct_rate = data.goods_info.point_deduct_rate || ''
+        formData.point_deduct_type = data.goods_info.point_deduct_type || 'site'
+        formData.recommend_goods_ids = data.goods_info.recommend_goods_ids || []
         // 价格库存
         formData.spec_type = data.goods_info.spec_type
         formData.stock = data.goods_info.stock      
@@ -1293,6 +1340,27 @@ const rules = computed(() => {
                 validator: (rule: any, value: any, callback: any) => {
                     if (isNaN(value) || !regExp.number.test(value)) {
                         callback(new Error('请输入正确的排序值'))
+                    } else {
+                        callback()
+                    }
+                }
+            }
+        ],
+        // 新增：积分抵扣比例验证规则
+        'point_deduct_rate': [
+            {
+                trigger: 'blur',
+                validator: (rule: any, value: any, callback: any) => {
+                    if (formData.point_deduct_type === 'custom') {
+                        if (!value) {
+                            callback(new Error('请输入积分抵扣比例'))
+                        } else if (isNaN(Number(value))) {
+                            callback(new Error('积分抵扣比例必须为数字'))
+                        } else if (Number(value) < 0 || Number(value) > 100) {
+                            callback(new Error('积分抵扣比例必须在0-100之间'))
+                        } else {
+                            callback()
+                        }
                     } else {
                         callback()
                     }
@@ -1834,6 +1902,11 @@ const showVirtualRefundPicker = ref(false)
 const changeVirtualRefund = () => {
     formData.virtual_refund_name = formData.virtual_refund === '1'? '付款成功后指定天数内有效' : '不允许退款'
     showVirtualRefundPicker.value = false
+}
+// 关联推荐
+const goodsSelectPopupRef = ref()
+const handleRecommend = () => {
+    goodsSelectPopupRef.value.open()
 }
 </script>
 

@@ -23,10 +23,9 @@
 					<view class="mb-[var(--top-m)] card-template">
 						<view @click.stop="toLink(item)">
 							<view class="flex justify-between items-center mb-[20rpx]">
-								<view class="flex items-center" v-if="item.member" @click.stop="redirect({url: '/app/pages/member/detail', param: {member_id: item.member_id}})">
+								<view class="flex items-center" v-if="item.member">
 									<u-avatar :default-url="img('static/resource/images/default_headimg.png')" :src="img(item.member.headimg)" :size="'30rpx'" leftIcon="none" />
 									<text  class="text-[28rpx] leading-[30rpx] ml-[10rpx]">{{ item.member.nickname }}</text>
-									<text class="nc-iconfont nc-icon-youV6xx text-[26rpx] text-[#999] relative top-[1rpx]"></text>
 								</view>
 								<view class="flex items-center">
 									<text class="text-[26rpx] font-400 text-[#999]">{{ item.create_time  }}</text>

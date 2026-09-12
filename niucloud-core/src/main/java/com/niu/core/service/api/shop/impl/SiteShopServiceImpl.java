@@ -3,26 +3,21 @@ package com.niu.core.service.api.shop.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
-import com.niu.core.service.api.shop.vo.*;
-import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
-import com.niu.core.event.shop.MallShopGoodsListEventDefiner;
 import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
-import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.QrcodeUtils;
 import com.niu.core.common.utils.RequestUtils;
 import com.niu.core.common.utils.mapper.QueryMapperUtils;
-import com.niu.core.entity.shop.SiteShop;
 import com.niu.core.entity.shop.SiteShopMember;
 import com.niu.core.entity.site.Site;
+import com.niu.core.enums.shop.ShopStatusEnum;
 import com.niu.core.enums.site.SiteStatusEnum;
+import com.niu.core.event.shop.MallShopGoodsListEventDefiner;
 import com.niu.core.mapper.shop.SiteShopMapper;
 import com.niu.core.mapper.shop.SiteShopMemberMapper;
 import com.niu.core.mapper.site.SiteMapper;
@@ -31,8 +26,11 @@ import com.niu.core.service.admin.web.vo.WebConfigVo;
 import com.niu.core.service.api.shop.ISiteShopService;
 import com.niu.core.service.api.shop.param.SiteShopSearchParam;
 import com.niu.core.service.api.shop.param.SiteShopSelectParam;
+import com.niu.core.service.api.shop.vo.*;
+import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.delivery.ICoreDeliveryConfigService;
 import com.niu.core.service.core.delivery.vo.AdminDeliveryConfigVo;
+import com.niu.core.service.core.diy.ICoreDiyConfigService;
 import com.niu.core.service.core.sys.ICoreConfigService;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import jakarta.annotation.Resource;
@@ -40,7 +38,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -49,7 +50,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class SiteShopServiceImpl implements ISiteShopService {
-        
+
     @Resource
     SiteMapper siteMapper;
 
@@ -70,36 +71,44 @@ public class SiteShopServiceImpl implements ISiteShopService {
     @Resource
     ICoreDeliveryConfigService coreDeliveryConfigService;
 
+    @Resource
+    ICoreDiyConfigService coreDiyConfigService;
+
+    private static final String SITE_SHOP_JOIN_SELECT =
+            "ns.site_id, ns.site_name, ns.group_id, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.business_state, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.icon, ns.member_no, " +
+            "ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, ns.contact_name, ns.contact_mobile, ns.money, ns.money_get, ns.money_cash_outing, nsg.group_name, " +
+            "nss.id, nssc.name as category_name, nss.is_recommend, nss.is_self, nss.service_rate, nss.category_id, nss.circle_id, nss.child_category_id, nss.keywords, nss.shop_deposit, nss.follow_number, nss.business_status, nss.mall_up_num, nss.mall_sale_num, nss.quality_score, nss.service_score, nss.logistics_score, nss.evaluate_num, nss.background_h5";
+
     @Override
     public PageResult<SiteShopListVo> page(PageParam pageParam, SiteShopSearchParam searchParam) {
         Integer page  = pageParam.getPage();
         Integer limit =pageParam.getLimit();
 
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license")
+        queryWrapper.select(SITE_SHOP_JOIN_SELECT)
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
 
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
             QueryMapperUtils.buildByTime(queryWrapper, "ns.create_time", searchParam.getCreateTime());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getGroupId())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getGroupId()) && !"all".equals(String.valueOf(searchParam.getGroupId()))) {
         queryWrapper.eq("nss.group_id", searchParam.getGroupId());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId()) && !"all".equals(String.valueOf(searchParam.getCategoryId()))) {
         queryWrapper.eq("nss.category_id", searchParam.getCategoryId());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus()) && !"all".equals(String.valueOf(searchParam.getStatus()))) {
         queryWrapper.eq("ns.status", searchParam.getStatus());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getIsSelf())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getIsSelf()) && !"all".equals(String.valueOf(searchParam.getIsSelf()))) {
         queryWrapper.eq("nss.is_self", searchParam.getIsSelf());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) {
             queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", searchParam.getKeyword()))
-                    .or(j-> j.like("ns.keywords", searchParam.getKeyword()))
+                    .or(j-> j.like("nss.keywords", searchParam.getKeyword()))
             );
         }
         queryWrapper.orderByDesc("ns.create_time");
@@ -114,14 +123,56 @@ public class SiteShopServiceImpl implements ISiteShopService {
     }
 
     @Override
-    public List<SiteShopListVo> list(SiteShopSearchParam searchParam) {
+    public PageResult<SiteShopListVo> webPage(PageParam pageParam, SiteShopSearchParam searchParam) {
+        Integer page = pageParam.getPage();
+        Integer limit = pageParam.getLimit();
 
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license")
+        queryWrapper.select(SITE_SHOP_JOIN_SELECT)
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+
+        queryWrapper.ne("ns.app_type", "admin");
+        queryWrapper.eq("ns.status", SiteStatusEnum.ON.getCode());
+        queryWrapper.like("ns.app", "mall");
+        queryWrapper.eq("nss.business_status", ShopStatusEnum.ON.getCode());
+
+        if (ObjectUtil.isNotEmpty(searchParam.getGroupId()) && !"all".equals(String.valueOf(searchParam.getGroupId()))) {
+            queryWrapper.eq("ns.group_id", searchParam.getGroupId());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getCategoryId()) && !"all".equals(String.valueOf(searchParam.getCategoryId()))) {
+            queryWrapper.eq("nss.category_id", searchParam.getCategoryId());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getIsSelf()) && !"all".equals(String.valueOf(searchParam.getIsSelf()))) {
+            queryWrapper.eq("nss.is_self", searchParam.getIsSelf());
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) {
+            queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", searchParam.getKeyword()))
+                    .or(j -> j.like("nss.keywords", searchParam.getKeyword()))
+            );
+        }
+        queryWrapper.orderByDesc("nss.mall_up_num", "nss.follow_number");
+
+        IPage<SiteShopListVo> iPage = siteMapper.selectJoinPage(new Page<>(page, limit), SiteShopListVo.class, queryWrapper);
+        for (SiteShopListVo item : iPage.getRecords()) {
+            SiteShopListVo.SiteShop shop = new SiteShopListVo.SiteShop();
+            BeanUtils.copyProperties(item, shop);
+            item.setShop(shop);
+        }
+        return PageResult.build(iPage);
+    }
+
+    @Override
+    public List<SiteShopListVo> list(SiteShopSearchParam searchParam) {
+
+        MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
+        queryWrapper.select(SITE_SHOP_JOIN_SELECT)
+                .setAlias("ns")
+                .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
+                .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
 
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
             QueryMapperUtils.buildByTime(queryWrapper, "ns.create_time", searchParam.getCreateTime());
@@ -132,15 +183,15 @@ public class SiteShopServiceImpl implements ISiteShopService {
         if (ObjectUtil.isNotEmpty(searchParam.getCategoryId())) {
             queryWrapper.eq("nss.category_id", searchParam.getCategoryId());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getStatus())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getStatus()) && !"all".equals(String.valueOf(searchParam.getStatus()))) {
             queryWrapper.eq("ns.status", searchParam.getStatus());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getIsSelf())) {
-            queryWrapper.eq("ns.is_self", searchParam.getIsSelf());
+            queryWrapper.eq("nss.is_self", searchParam.getIsSelf());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getKeyword())) {
             queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", searchParam.getKeyword()))
-                    .or(j-> j.like("ns.keywords", searchParam.getKeyword()))
+                    .or(j-> j.like("nss.keywords", searchParam.getKeyword()))
             );
         }
         queryWrapper.orderByDesc("ns.create_time");
@@ -167,11 +218,11 @@ public class SiteShopServiceImpl implements ISiteShopService {
             siteIds = siteList.stream().map(Site::getSiteId).collect(Collectors.toList());
         }
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude, ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours, ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app, ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend, nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no, nss.wechat_payment_code, nss.business_license")
+        queryWrapper.select(SITE_SHOP_JOIN_SELECT)
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
         queryWrapper.ne("ns.app_type", "admin");
         if (ObjectUtil.isNotEmpty(siteShopSelectParam.getCreateTime())) {
             QueryMapperUtils.buildByTime(queryWrapper, "ns.create_time", siteShopSelectParam.getCreateTime());
@@ -179,21 +230,21 @@ public class SiteShopServiceImpl implements ISiteShopService {
         if (ObjectUtil.isNotEmpty(siteShopSelectParam.getExpireTime())) {
             QueryMapperUtils.buildByTime(queryWrapper, "ns.expire_time", siteShopSelectParam.getExpireTime());
         }
-        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getGroupId())) {
+        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getGroupId()) && !"all".equals(String.valueOf(siteShopSelectParam.getGroupId()))) {
             queryWrapper.eq("ns.group_id", siteShopSelectParam.getGroupId());
         }
-        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getCategoryId())) {
-            queryWrapper.eq("ns.category_id", siteShopSelectParam.getCategoryId());
+        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getCategoryId()) && !"all".equals(String.valueOf(siteShopSelectParam.getCategoryId()))) {
+            queryWrapper.eq("nss.category_id", siteShopSelectParam.getCategoryId());
         }
-        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getStatus())) {
+        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getStatus()) && !"all".equals(String.valueOf(siteShopSelectParam.getStatus()))) {
             queryWrapper.eq("ns.status", siteShopSelectParam.getStatus());
         }
-        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getIsSelf())) {
-            queryWrapper.eq("ns.is_self", siteShopSelectParam.getIsSelf());
+        if (ObjectUtil.isNotEmpty(siteShopSelectParam.getIsSelf()) && !"all".equals(String.valueOf(siteShopSelectParam.getIsSelf()))) {
+            queryWrapper.eq("nss.is_self", siteShopSelectParam.getIsSelf());
         }
         if (ObjectUtil.isNotEmpty(siteShopSelectParam.getKeyword())) {
             queryWrapper.and(i -> i.or(j -> j.like("ns.site_name", siteShopSelectParam.getKeyword()))
-                    .or(j-> j.like("ns.keywords", siteShopSelectParam.getKeyword()))
+                    .or(j-> j.like("nss.keywords", siteShopSelectParam.getKeyword()))
             );
         }
         queryWrapper.orderByDesc("ns.create_time");
@@ -211,33 +262,6 @@ public class SiteShopServiceImpl implements ISiteShopService {
     }
 
     @Override
-    public void editFollowNumber(Integer siteId, Integer isFollow) {
-        SiteShop siteShop = siteShopMapper.selectOne(new QueryWrapper<SiteShop>().eq("site_id", siteId));
-        if (siteShop == null) {
-            throw new CommonException("店铺扩展不存在");
-        }
-        if (isFollow.equals(1)) {
-            siteShopMapper.update(null, new UpdateWrapper<SiteShop>().set("follow_number", siteShop.getFollowNumber() + 1).eq("site_id", siteId));
-        } else {
-            siteShopMapper.update(null, new UpdateWrapper<SiteShop>().set("follow_number", siteShop.getFollowNumber() - 1).eq("site_id", siteId));
-        }
-        //关注列表
-        SiteShopMember siteShopMember = siteShopMemberMapper.selectOne(
-                new LambdaQueryWrapper<SiteShopMember>()
-                        .eq(SiteShopMember::getSiteId, siteId)
-                        .eq(SiteShopMember::getMemberId, RequestUtils.memberId())
-        );
-        if (siteShopMember == null) {
-            siteShopMember = new SiteShopMember();
-            siteShopMember.setSiteId(siteId);
-            siteShopMember.setMemberId(RequestUtils.memberId());
-        }
-        siteShopMember.setIsFollow(Objects.equals(isFollow, 1) ? 1 : 0);
-        siteShopMemberMapper.insertOrUpdate(siteShopMember);
-    }
-
-
-    @Override
     public SiteShopInfoVo info(Object id,Map<String, String> allParams) {
         if (ObjectUtil.isNotEmpty( id)) {
             if ("undefined".equals( id.toString())){
@@ -245,18 +269,11 @@ public class SiteShopServiceImpl implements ISiteShopService {
             }
         }
         MPJQueryWrapper<Site> queryWrapper = new MPJQueryWrapper<>();
-        queryWrapper.select("ns.site_id, ns.site_name, ns.group_id, ns.keywords, ns.app_type, ns.logo, ns.`desc`, ns.status, ns.latitude," +
-                        " ns.longitude, ns.province_id, ns.city_id, ns.district_id, ns.address, ns.full_address, ns.phone, ns.business_hours," +
-                        " ns.create_time, ns.expire_time, ns.front_end_name, ns.front_end_logo, ns.front_end_icon, ns.icon, ns.member_no, ns.app," +
-                        " ns.addons, ns.initalled_addon, ns.site_domain, ns.isinit, nsg.group_name, nss.id, nssc.category_name, nss.is_recommend," +
-                        " nss.is_self, nss.contact_mobile, nss.category_id, nss.commission_rate, nss.shop_deposit, nss.money, nss.money_get, " +
-                        "nss.money_cash_outing, nss.bank_type, nss.bank_account_name, nss.bank_account_no, nss.bank_name, nss.bank_address, " +
-                        "nss.follow_number, nss.alipay_name, nss.alipay_account_no, nss.alipay_payment_code, nss.wechat_name, nss.wechat_account_no," +
-                        " nss.wechat_payment_code, nss.business_license,nss.quality_score,nss.service_score,nss.logistics_score,nss.contact_name, nss.background_h5")
+        queryWrapper.select(SITE_SHOP_JOIN_SELECT)
                 .setAlias("ns")
                 .leftJoin("?_site_shop nss ON ns.site_id = nss.site_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_site_group nsg ON ns.group_id = nsg.group_id".replace("?_", GlobalConfig.tablePrefix))
-                .leftJoin("?_site_shop_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
+                .leftJoin("?_site_category nssc ON nss.category_id = nssc.category_id".replace("?_", GlobalConfig.tablePrefix));
 
         queryWrapper.eq("ns.site_id", id);
         //添加距离
@@ -288,12 +305,17 @@ public class SiteShopServiceImpl implements ISiteShopService {
         SiteShopInfoVo.MemberInfo memberInfo = new SiteShopInfoVo.MemberInfo();
         memberInfo.setIsFollow(0);
         if (ObjectUtil.isNotEmpty(RequestUtils.memberId())) {
-            SiteShopMember member = siteShopMemberMapper.selectOne(new QueryWrapper<SiteShopMember>().eq("member_id", RequestUtils.memberId()).eq("site_id", id).last("limit 1"));
+            SiteShopMember member = siteShopMemberMapper.selectOne(new QueryWrapper<SiteShopMember>()
+                    .eq("member_id", RequestUtils.memberId())
+                    .eq("site_id", id)
+                    .eq("addon", "mall")
+                    .last("limit 1"));
             if (ObjectUtil.isNotEmpty(member)) {
                 memberInfo.setIsFollow(member.getIsFollow());
             }
         }
         model.setMemberInfo(memberInfo);
+        model.setQrcodeShopConfig(coreDiyConfigService.getSiteQrcodeConfig(model.getSiteId(), "mall_shop"));
         return model;
     }
 

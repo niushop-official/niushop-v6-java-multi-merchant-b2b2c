@@ -7,6 +7,7 @@ import com.niu.mall.service.core.order.param.OrderCalculateParam;
 import com.niu.mall.service.core.order.param.OrderHelperParam;
 import com.niu.mall.service.core.order.vo.OrderCreateDataVo;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ import java.util.List;
 public abstract class GoodsMarketCalculateEventDefiner extends CallbackListener<GoodsMarketCalculateEventDefiner.GoodsMarketCalculateEvent> {
 
     @Data
+    @EqualsAndHashCode(callSuper=false)
     public static class GoodsMarketCalculateEvent extends Event {
         private OrderCreateDataVo vo;
         private OrderCreateDataVo.Sku skuInfo;

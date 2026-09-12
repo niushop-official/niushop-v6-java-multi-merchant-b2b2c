@@ -9,7 +9,8 @@ public enum AppTypeEnum {
 
     ADMIN("admin"),
     SITE("site"),
-    API("api");
+    API("api"),
+    CIRCLE("circle");
 
     private final String name;//端口名称
 

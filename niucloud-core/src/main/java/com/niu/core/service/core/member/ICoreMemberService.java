@@ -1,6 +1,7 @@
 package com.niu.core.service.core.member;
 
 import cn.hutool.json.JSONObject;
+import com.niu.core.common.component.context.queue.TaskArgument;
 import com.niu.core.entity.member.Member;
 import com.niu.core.service.core.member.dto.MemberInfoDto;
 import com.niu.core.service.core.member.param.MemberStatSearchParam;
@@ -111,6 +112,16 @@ public interface ICoreMemberService {
      * @param gifts
      */
     void memberGiftGrant(Integer siteId, Integer memberId, JSONObject gifts, Map<String, Object> vars);
+
+    /**
+     * 异步发放礼包（队列）
+     */
+    void asyncMemberGiftGrant(Integer siteId, Integer memberId, Object gifts, Map<String, Object> vars);
+
+    /**
+     * 队列任务入口：会员礼包发放
+     */
+    void memberGiftGrantQueueTask(TaskArgument taskArgument);
 
     /**
      * 获取权益字典

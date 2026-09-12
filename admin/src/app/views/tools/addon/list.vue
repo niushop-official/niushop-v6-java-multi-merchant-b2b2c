@@ -8,9 +8,9 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="addonTableData.searchParam" ref="searchFormRef" class="search-form">
+                <el-form :inline="true" label-width="90px" :model="addonTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('title')" prop="search">
-                        <el-input v-model.trim="addonTableData.searchParam.search" :placeholder="t('titlePlaceholder')" />
+                        <el-input v-model.trim="addonTableData.searchParam.search" :placeholder="t('titlePlaceholder')" class="search-input" clearable  />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadAddonList">{{ t('search') }}</el-button>

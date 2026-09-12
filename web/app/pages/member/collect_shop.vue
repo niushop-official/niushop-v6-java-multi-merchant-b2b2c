@@ -40,7 +40,7 @@
 
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import { getShopFollowList , editShopCollect} from '@/addon/mall/api/shop'
+import { getShopFollowList , editShopCollect } from '@/app/api/basic'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -60,6 +60,7 @@ const loadShopList = (page: number = 1) => {
     getShopFollowList({
         page: shopTableData.page,
         limit: shopTableData.limit,
+        addon: 'mall'
     }).then(res => {
         shopTableData.loading = false
         shopTableData.data = res.data.data
@@ -77,7 +78,8 @@ const toShopDetail = (id:any) => {
 const cancelCollectShop = (id:any,is_follow:any) =>{
     editShopCollect({
 		site_id: id,
-		is_follow: is_follow
+		is_follow: is_follow,
+		addon: 'mall'
 	}).then(res => {
         loadShopList()
     })

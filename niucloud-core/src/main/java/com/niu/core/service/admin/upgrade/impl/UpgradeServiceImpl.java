@@ -151,10 +151,12 @@ public class UpgradeServiceImpl implements IUpgradeService {
 
         readableDir.put(new JSONObject().set("dir", runtimePath + "admin").set("status", true));
         readableDir.put(new JSONObject().set("dir", runtimePath + "uni-app").set("status", true));
+        readableDir.put(new JSONObject().set("dir", runtimePath + "site-uniapp").set("status", true));
         readableDir.put(new JSONObject().set("dir", runtimePath + "web").set("status", true));
 
         writeDir.put(new JSONObject().set("dir", runtimePath + "admin").set("status", true));
         writeDir.put(new JSONObject().set("dir", runtimePath + "uni-app").set("status", true));
+        readableDir.put(new JSONObject().set("dir", runtimePath + "site-uniapp").set("status", true));
         writeDir.put(new JSONObject().set("dir", runtimePath + "web").set("status", true));
 
         for (int i = 0; i < readableDir.size(); i++) {
@@ -520,6 +522,7 @@ public class UpgradeServiceImpl implements IUpgradeService {
             copySrc.put("niucloud-core", new String[]{"target"});
             copySrc.put("niucloud-web-app", new String[]{"target"});
             copySrc.put("uni-app", new String[]{"node_modules", "unpackage", "dist"});
+            copySrc.put("site-uniapp", new String[]{"node_modules", "unpackage", "dist"});
             copySrc.put("web", new String[]{"node_modules", ".output", "nuxt", "dist", ".nuxt"});
             copySrc.put("webroot", new String[]{"cloud_build", "upgrade", "weapp_build", "upload", "web-app-boot-exec.jar"});
             copySrc.put("pom.xml", new String[]{});

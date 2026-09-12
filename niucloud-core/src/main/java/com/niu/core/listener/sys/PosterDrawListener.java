@@ -6,7 +6,6 @@ import com.freewayso.image.combiner.ImageCombiner;
 import com.freewayso.image.combiner.element.ImageElement;
 import com.freewayso.image.combiner.element.RectangleElement;
 import com.freewayso.image.combiner.element.TextElement;
-import com.freewayso.image.combiner.enums.BaseLine;
 import com.freewayso.image.combiner.enums.LineAlign;
 import com.freewayso.image.combiner.enums.ZoomMode;
 import com.niu.core.common.annotation.EventListen;
@@ -34,25 +33,33 @@ public class PosterDrawListener extends AbstractListener {
         switch (type) {
             case "image":
                 String imgPath = poster.getStr("value", "");
-                if (imgPath.isEmpty() && !poster.getStr("relate").isEmpty()) {
-                    imgPath = (String) posterData.getOrDefault(poster.getStr("relate"), "");
+                if (ObjectUtil.isEmpty(imgPath) && ObjectUtil.isNotEmpty(poster.getStr("relate"))) {
+                    Object relateValue = posterData.get(poster.getStr("relate"));
+                    imgPath = relateValue != null ? String.valueOf(relateValue) : "";
                 }
                 BufferedImage img = ImageUtils.readImage(imgPath, "static/resource/images/diy/crack_figure.png");
-                
+
                 // 对应PHP: is_file()检查，只有当文件存在时才处理
                 if (img != null) {
-                    ImageElement imgElement = new ImageElement(img, poster.getInt("x"), poster.getInt("y"), poster.getInt("width"), poster.getInt("height"), ZoomMode.Width);
-                    if (poster.getStr("shape", "").equals("circle")) {
-                        imgElement.setRoundCorner(poster.getInt("width"));
-                    }
+                    int targetWidth = poster.getInt("width");
+                    int targetHeight = poster.getInt("height");
+                    String shape = poster.getStr("shape", "");
+                    // 对齐 PHP imagecopyresized：先拉伸到目标尺寸，circle 再裁圆；绘制时不再二次缩放
+                    BufferedImage posterImage = ImageUtils.preparePosterImage(img, targetWidth, targetHeight, shape);
+                    ImageElement imgElement = new ImageElement(
+                            posterImage,
+                            poster.getInt("x"),
+                            poster.getInt("y")
+                    );
                     combiner.addElement(imgElement);
                 }
                 // 如果img为null（文件不存在），则跳过该元素，与PHP逻辑一致
                 break;
             case "text":
-                String testStr = poster.getStr("value");
-                if (testStr.isEmpty() && !poster.getStr("relate").isEmpty()) {
-                    testStr = (String) posterData.getOrDefault(poster.getStr("relate"), "");
+                String testStr = poster.getStr("value", "");
+                if (ObjectUtil.isEmpty(testStr) && ObjectUtil.isNotEmpty(poster.getStr("relate"))) {
+                    Object relateValue = posterData.get(poster.getStr("relate"));
+                    testStr = relateValue != null ? String.valueOf(relateValue) : "";
                 }
 
                 int fontStyle = poster.getBool("weight") ? Font.BOLD : Font.PLAIN;
@@ -68,13 +75,19 @@ public class PosterDrawListener extends AbstractListener {
                     e.printStackTrace();
                 }
 
-                TextElement text = new TextElement(testStr, fontStyle, poster.getInt("fontSize"), poster.getInt("x", 0), poster.getInt("y"));
-                // 设置居中
-                if (poster.getStr("x", "").equals("center")) text.setCenter(true);
-                // 设置字体颜色
-                text.setColor(Color.decode(poster.getStr("fontColor")));
-                // 设置换行
-                text.setAutoBreakLine(poster.getInt("width"), poster.getInt("height") / poster.getInt("fontSize"), LineAlign.Left);
+                boolean centerX = "center".equals(poster.getStr("x"));
+                int textX = centerX ? 0 : poster.getInt("x", 0);
+                TextElement text = new TextElement(testStr, fontStyle, poster.getInt("fontSize"), textX, poster.getInt("y", 0));
+                if (centerX) {
+                    text.setCenter(true);
+                }
+                String fontColor = poster.getStr("fontColor", "#303133");
+                if (ObjectUtil.isNotEmpty(fontColor)) {
+                    text.setColor(Color.decode(fontColor));
+                }
+                int fontSize = poster.getInt("fontSize", 28);
+                int lineCount = fontSize > 0 ? poster.getInt("height", fontSize) / fontSize : 1;
+                text.setAutoBreakLine(poster.getInt("width"), lineCount, LineAlign.Left);
                 if (customFont != null) text.setFont(customFont);
                 combiner.addElement(text);
                 break;
@@ -82,7 +95,7 @@ public class PosterDrawListener extends AbstractListener {
                 // 对应PHP: qrcode类型在CorePosterService中被转换为image类型处理
                 String qrcodePath = (String) posterData.getOrDefault(poster.getStr("relate"), "static/resource/images/diy/qrcode.png");
                 BufferedImage qrcode = ImageUtils.readImage(qrcodePath, "static/resource/images/diy/qrcode.png");
-                
+
                 // 对应PHP: is_file()检查，只有当文件存在时才处理
                 if (qrcode != null) {
                     ImageElement qrcodeElement = new ImageElement(qrcode, poster.getInt("x"), poster.getInt("y"), poster.getInt("width"), poster.getInt("height"), ZoomMode.Width);

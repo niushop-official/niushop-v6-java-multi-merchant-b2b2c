@@ -19,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 配送方式控制器
@@ -75,7 +76,7 @@ public class StoreController {
     @PostMapping("")
     public Result<?> add(@Validated @RequestBody DeliveryStoreAddParam param) {
         Integer id = deliveryStoreService.add(param);
-        return Result.success("添加成功", id);
+        return Result.success("添加成功", Map.of("id", id));
     }
 
     /**

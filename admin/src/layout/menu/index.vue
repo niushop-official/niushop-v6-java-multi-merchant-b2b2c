@@ -1,5 +1,5 @@
 <template>
-    <div class="common-layout min-w-[1500px]">
+    <div class="common-layout min-w-[1300px]">
         <el-header>
             <layout-header></layout-header>
         </el-header>

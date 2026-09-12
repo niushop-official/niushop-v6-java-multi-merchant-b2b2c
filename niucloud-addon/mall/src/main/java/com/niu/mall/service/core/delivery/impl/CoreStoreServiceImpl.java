@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.niu.core.common.utils.CollectUtils;
 import com.niu.core.common.utils.DistanceCalculateUtils;
 import com.niu.core.entity.delivery.DeliveryStore;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.enums.order.OrderDeliveryTypeEnum;
 import com.niu.core.mapper.delivery.DeliveryStoreMapper;
 import com.niu.mall.service.core.delivery.ICoreStoreService;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.List;
 
@@ -58,12 +59,13 @@ public class CoreStoreServiceImpl implements ICoreStoreService {
                 .eq("site_id", siteId)), StoreListVo.class);
         if (ObjectUtil.isNotEmpty(latlng.getLat()) && latlng.getLat().compareTo(BigDecimal.ZERO) == 1 && ObjectUtil.isNotEmpty(latlng.getLng()) && latlng.getLng().compareTo(BigDecimal.ZERO) == 1) {
             for (StoreListVo item : storeList) {
-                item.setDistance(DistanceCalculateUtils.calculateDistance(
+                double distanceMeters = DistanceCalculateUtils.calculateDistance(
                         latlng.getLat().doubleValue(),
                         latlng.getLng().doubleValue(),
                         Double.valueOf(item.getLatitude()),
                         Double.valueOf(item.getLongitude())
-                ));
+                );
+                item.setDistance(BigDecimal.valueOf(distanceMeters).divide(BigDecimal.valueOf(1000), 3, RoundingMode.HALF_UP).doubleValue());
             }
             storeList.sort(Comparator.comparing(StoreListVo::getDistance));
         }

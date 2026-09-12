@@ -1,8 +1,6 @@
 package com.niu.core.service.site.basic.impl;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.niu.core.common.domain.PageParam;
@@ -20,7 +18,7 @@ import com.niu.core.service.site.basic.param.SiteInvoiceSubmitParam;
 import com.niu.core.service.site.basic.param.SiteInvoiceConfigParam;
 import com.niu.core.service.site.basic.vo.SiteInvoiceConfigVo;
 import com.niu.core.service.site.basic.vo.SiteInvoiceListVo;
-import com.niu.core.service.core.sys.ICoreConfigService;
+import com.niu.core.service.core.invoice.ICoreInvoiceConfigService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
@@ -39,7 +37,7 @@ public class SiteInvoiceServiceImpl implements ISiteInvoiceService {
     InvoiceMapper siteInvoiceMapper;
     
     @Resource
-    ICoreConfigService coreConfigService;
+    ICoreInvoiceConfigService coreInvoiceConfigService;
 
 
     @Override
@@ -125,44 +123,12 @@ public class SiteInvoiceServiceImpl implements ISiteInvoiceService {
 
     @Override
     public SiteInvoiceConfigVo getConfig() {
-        Integer siteId = RequestUtils.siteId();
-        // 获取发票配置
-        JSONObject invoiceConfig = coreConfigService.getConfigValue(siteId, "INVOICE");
-
-        SiteInvoiceConfigVo configVo = new SiteInvoiceConfigVo();
-        if (invoiceConfig != null && !invoiceConfig.isEmpty()) {
-            // 获取发票开启状态
-            if (invoiceConfig.containsKey("is_invoice")) {
-                configVo.setIsInvoice(invoiceConfig.getStr("is_invoice"));
-            }
-            // 获取发票类型
-            if (invoiceConfig.containsKey("invoice_type") && !invoiceConfig.getJSONArray("invoice_type").isEmpty()) {
-                configVo.setInvoiceType(JSONUtil.toList(invoiceConfig.getJSONArray("invoice_type"), String.class));
-            }
-            // 获取发票内容
-            if (invoiceConfig.containsKey("invoice_content") && !invoiceConfig.getJSONArray("invoice_content").isEmpty()) {
-                configVo.setInvoiceContent(JSONUtil.toList(invoiceConfig.getJSONArray("invoice_content"), String.class));
-            }
-        }
-        
-        // 返回配置信息
-        return configVo;
+        return coreInvoiceConfigService.getSiteInvoiceConfig(RequestUtils.siteId());
     }
 
     @Override
     public boolean setConfig(SiteInvoiceConfigParam param) {
-        Integer siteId = RequestUtils.siteId();
-        // 构建发票配置信息
-        JSONObject invoiceConfig = new JSONObject();
-        invoiceConfig.set("is_invoice", param.getIsInvoice());
-        invoiceConfig.set("invoice_type", param.getInvoiceType());
-        invoiceConfig.set("invoice_content", param.getInvoiceContent());
-        
-        try {
-            coreConfigService.setConfig(siteId, "INVOICE", invoiceConfig);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        coreInvoiceConfigService.setSiteInvoiceConfig(RequestUtils.siteId(), param);
+        return true;
     }
 }

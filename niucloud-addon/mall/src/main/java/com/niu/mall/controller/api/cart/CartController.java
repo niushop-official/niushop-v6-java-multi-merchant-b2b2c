@@ -3,14 +3,14 @@ package com.niu.mall.controller.api.cart;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.niu.core.common.domain.Result;
 import com.niu.mall.service.api.cart.IMallCartService;
-import com.niu.mall.service.api.cart.param.MallCartCalculateParam;
 import com.niu.mall.service.api.cart.param.MallCartDeleteParam;
 import com.niu.mall.service.api.cart.param.MallCartEditParam;
 import com.niu.mall.service.api.cart.param.MallCartParam;
+import com.niu.mall.service.core.order.param.MallOrderCalculateParam;
+import com.niu.mall.service.core.order.vo.MallOrderCreateDataVo;
+import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.annotation.Resource;
 
 @RestController
 @RequestMapping("api/mall/cart")
@@ -95,5 +95,11 @@ public class CartController {
         return Result.success(cartService.getSum(goodsId));
     }
 
-
+    /**
+     * 计算
+     */
+    @PostMapping("/calculate")
+    public Result<MallOrderCreateDataVo> calculate(@Validated @RequestBody MallOrderCalculateParam param) {
+        return Result.success(cartService.calculate(param));
+    }
 }

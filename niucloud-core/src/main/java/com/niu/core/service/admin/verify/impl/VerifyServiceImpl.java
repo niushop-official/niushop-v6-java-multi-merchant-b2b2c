@@ -24,6 +24,7 @@ import com.niu.core.service.admin.verify.vo.VerifyInfoVo;
 import com.niu.core.service.admin.verify.vo.VerifyListVo;
 import com.niu.core.service.core.app.helper.EventAndSubscribeOfPublisher;
 import com.niu.core.service.core.verify.ICoreVerifyService;
+import com.niu.core.service.core.verify.vo.CoreVerifyCreateCodeVo;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -61,8 +62,8 @@ public class VerifyServiceImpl implements IVerifyService {
         queryWrapper.orderByDesc("create_time");
 
         if (ObjectUtil.isNotEmpty(searchParam.getCode())) queryWrapper.eq("code", searchParam.getCode());
-        if (ObjectUtil.isNotEmpty(searchParam.getType())) queryWrapper.eq("type", searchParam.getType());
-        if (ObjectUtil.isNotEmpty(searchParam.getVerifierType()))
+        if (ObjectUtil.isNotEmpty(searchParam.getType()) && !"all".equals(searchParam.getType())) queryWrapper.eq("type", searchParam.getType());
+        if (ObjectUtil.isNotEmpty(searchParam.getVerifierType()) && !"all".equals(searchParam.getVerifierType()))
             queryWrapper.eq("verifier_type", searchParam.getVerifierType());
         if (ObjectUtil.isNotEmpty(searchParam.getVerifierMemberId()))
             queryWrapper.eq("verifier_member_id", searchParam.getVerifierMemberId());
@@ -138,12 +139,12 @@ public class VerifyServiceImpl implements IVerifyService {
             }
         }
         if(ObjectUtil.isNotEmpty(data) && ObjectUtil.isNotEmpty(memberId) && ObjectUtil.isNotEmpty(type)){
-            List<String> verifyCodeList = coreVerifyService.create(RequestUtils.siteId(), memberId, type, data);
+            List<CoreVerifyCreateCodeVo> verifyCodeList = coreVerifyService.create(RequestUtils.siteId(), memberId, type, data);
             if (ObjectUtil.isNotEmpty(verifyCodeList)){
-                for (String code : verifyCodeList){
+                for (CoreVerifyCreateCodeVo verifyCodeItem : verifyCodeList){
                     VerifyCodeVo verifyCodeVo = new VerifyCodeVo();
-                    verifyCodeVo.setCode(code);
-                    verifyCodeVo.setQrcode(QrcodeUtils.qrcode(RequestUtils.siteId(), "h5", code, "", null));
+                    verifyCodeVo.setCode(verifyCodeItem.getCode());
+                    verifyCodeVo.setQrcode(QrcodeUtils.qrcode(RequestUtils.siteId(), "h5", verifyCodeItem.getCode(), "", null));
                     verifyCodeVoList.add(verifyCodeVo);
                 }
             }

@@ -78,7 +78,7 @@ public class SysPrinterServiceImpl implements ISysPrinterService {
 
         queryWrapper.eq("site_id", RequestUtils.siteId())
                 .orderByDesc("create_time")
-                .select("printer_id, apikey, brand, create_time, open_id, print_width, printer_code, printer_key, printer_name, site_id, status, template_type, 'trigger',  update_time, value");
+                .select("printer_id, apikey, brand, create_time, open_id, print_width, printer_code, printer_key, printer_name, site_id, status, template_type, `trigger`, update_time, value");
 
         if (ObjectUtil.isNotEmpty(param.getPrinterName())) {
             queryWrapper.like("printer_name", param.getPrinterName());
@@ -95,6 +95,26 @@ public class SysPrinterServiceImpl implements ISysPrinterService {
         }
 
         return list;
+    }
+
+    @Override
+    public List<SysPrinterListVo> getUsableList() {
+        List<SysPrinter> printers = sysPrinterMapper.selectList(new QueryWrapper<SysPrinter>()
+                .eq("site_id", RequestUtils.siteId())
+                .eq("status", 1)
+                .select("printer_id", "brand", "printer_name", "printer_code", "printer_key", "open_id",
+                        "apikey", "template_type", "`trigger`", "print_width", "status", "create_time")
+                .orderByDesc("create_time"));
+
+        List<SysPrinterListVo> result = new LinkedList<>();
+        for (SysPrinter printer : printers) {
+            SysPrinterListVo vo = new SysPrinterListVo();
+            BeanUtils.copyProperties(printer, vo);
+            vo.setBrandName(SysPrinterBrandEnum.getNameByBrand(printer.getBrand()));
+            vo.setTrigger(JSONArray.parseArray(printer.getTrigger(), String.class));
+            result.add(vo);
+        }
+        return result;
     }
 
     @Override

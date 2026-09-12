@@ -60,7 +60,14 @@ public class MemberSignServiceImpl implements IMemberSignService {
         queryWrapper.eq("ms.site_id", siteId);
         queryWrapper.orderByDesc("ms.sign_id");
 
-        if (ObjectUtil.isNotEmpty(searchParam.getKeywords())) queryWrapper.like("m.member_no|m.username|m.nickname|m.mobile", searchParam.getKeywords());
+        if (ObjectUtil.isNotEmpty(searchParam.getKeywords())) {
+            String keywords = searchParam.getKeywords();
+            queryWrapper.and(i -> i.like("m.member_no", keywords)
+                    .or().like("m.username", keywords)
+                    .or().like("m.nickname", keywords)
+                    .or().like("m.mobile", keywords));
+        }
+        if (ObjectUtil.isNotEmpty(searchParam.getMemberId())) queryWrapper.eq("ms.member_id", searchParam.getMemberId());
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) QueryMapperUtils.buildByTime(queryWrapper, "ms.create_time", searchParam.getCreateTime());
 
         IPage<MemberSign> iPage = memberSignMapper.selectPage(new Page<>(page, limit), queryWrapper);

@@ -10,13 +10,17 @@ import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.RequestUtils;
-import com.niu.mall.entity.goods.MallGoods;
+import com.niu.core.common.utils.date.DateUtils;
+import com.niu.core.entity.goods.MallGoods;
 import com.niu.mall.entity.goods.MallGoodsCollect;
+import com.niu.mall.entity.goods.MallGoodsStat;
 import com.niu.mall.mapper.goods.MallGoodsCollectMapper;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.mapper.goods.MallGoodsMapper;
+import com.niu.mall.mapper.goods.MallGoodsStatMapper;
 import com.niu.mall.service.api.goods.IGoodsCollectService;
 import com.niu.mall.service.api.goods.vo.MallGoodsCollectVo;
 import com.niu.mall.service.core.goods.ICoreGoodsActivePriceService;
+import com.niu.mall.service.core.goods.ICoreGoodsCollectNumService;
 import com.niu.mall.service.core.goods.ICoreGoodsStatService;
 import com.niu.mall.service.core.goods.param.GetShowPriceParam;
 import com.niu.mall.service.core.goods.param.GoodsAddStatParam;
@@ -30,6 +34,12 @@ public class GoodsCollectServiceImpl implements IGoodsCollectService {
 
     @Resource
     ICoreGoodsStatService coreGoodsStatService;
+
+    @Resource
+    ICoreGoodsCollectNumService coreGoodsCollectNumService;
+
+    @Resource
+    MallGoodsStatMapper mallGoodsStatMapper;
 
     @Resource
     MallGoodsCollectMapper mallGoodsCollectMapper;
@@ -52,7 +62,7 @@ public class GoodsCollectServiceImpl implements IGoodsCollectService {
                 .leftJoin("?_mall_goods ng ON gc.goods_id = ng.goods_id".replace("?_", GlobalConfig.tablePrefix))
                 .leftJoin("?_mall_goods_sku ngs ON gc.goods_id = ngs.goods_id and ngs.is_default = 1".replace("?_", GlobalConfig.tablePrefix));
         queryWrapper.eq("gc.member_id", RequestUtils.memberId());
-        queryWrapper.select("gc.*", "ng.goods_name", "ng.goods_cover", "ng.member_discount", "ng.is_discount", "ng.status", "ngs.sku_name", "ngs.price","ngs.sale_price", "ngs.price", "ngs.sku_id", "ngs.member_price");
+        queryWrapper.select("gc.*", "ng.goods_name", "ng.goods_cover", "ng.member_discount", "ng.vip_card_discount", "ng.is_discount", "ng.status", "ngs.sku_name", "ngs.price","ngs.sale_price", "ngs.price", "ngs.sku_id", "ngs.member_price", "ngs.svip_discount", "ngs.svip_price");
         queryWrapper.orderByDesc("gc.id");
 
         IPage<MallGoodsCollectVo> iPage = mallGoodsCollectMapper.selectJoinPage(new Page<>(page, limit), MallGoodsCollectVo.class, queryWrapper);
@@ -64,6 +74,9 @@ public class GoodsCollectServiceImpl implements IGoodsCollectService {
                     .price(vo.getPrice())
                     .memberDiscount(vo.getMemberDiscount())
                     .memberPrice(vo.getMemberPrice())
+                    .vipCardDiscount(vo.getVipCardDiscount())
+                    .svipDiscount(vo.getSvipDiscount())
+                    .svipPrice(vo.getSvipPrice())
                     .memberId(RequestUtils.memberId())
                     .build());
             vo.setShowPrice(skuShowPrice.getShowPrice());
@@ -75,6 +88,7 @@ public class GoodsCollectServiceImpl implements IGoodsCollectService {
             goodsInfo.setGoodsName(vo.getGoodsName());
             goodsInfo.setGoodsCover(vo.getGoodsCover());
             goodsInfo.setMemberDiscount(vo.getMemberDiscount());
+            goodsInfo.setVipCardDiscount(vo.getVipCardDiscount());
             goodsInfo.setStatus(vo.getStatus());
             // 从查询结果中获取is_discount，如果为null则设置为0
             goodsInfo.setIsDiscount(vo.getIsDiscount() != null ? vo.getIsDiscount() : 0);
@@ -97,6 +111,7 @@ public class GoodsCollectServiceImpl implements IGoodsCollectService {
                 goodsSkuInfo.setMemberPrice(null);
             }
             goodsSkuInfo.setMemberDiscount(vo.getMemberDiscount());
+            goodsSkuInfo.setVipCardDiscount(vo.getVipCardDiscount());
             vo.setGoodsSku(goodsSkuInfo);
         }
 
@@ -120,6 +135,7 @@ public class GoodsCollectServiceImpl implements IGoodsCollectService {
         param.setSiteId(model.getSiteId());
         param.setCollectNum(1);
         coreGoodsStatService.addStat(param);
+        coreGoodsCollectNumService.inc(goodsId, 1);
     }
 
     @Override
@@ -128,11 +144,18 @@ public class GoodsCollectServiceImpl implements IGoodsCollectService {
         MallGoods goods = mallGoodsMapper.selectById(goodsId);
         if (ObjectUtil.isEmpty(goods)) throw new CommonException("商品不存在");
         mallGoodsCollectMapper.delete(new QueryWrapper<MallGoodsCollect>().eq("goods_id", goodsId).eq("member_id", RequestUtils.memberId()));
-        GoodsAddStatParam param = new GoodsAddStatParam();
-        param.setGoodsId(goodsId);
-        param.setSiteId(goods.getSiteId());
-        param.setCollectNum(-1);
-        coreGoodsStatService.addStat(param);
+        MallGoodsStat stat = mallGoodsStatMapper.selectOne(new QueryWrapper<MallGoodsStat>()
+                .eq("site_id", goods.getSiteId())
+                .eq("goods_id", goodsId)
+                .eq("date", DateUtils.currInitDate()));
+        if (stat != null && stat.getCollectNum() != null && stat.getCollectNum() > 0) {
+            GoodsAddStatParam param = new GoodsAddStatParam();
+            param.setGoodsId(goodsId);
+            param.setSiteId(goods.getSiteId());
+            param.setCollectNum(-1);
+            coreGoodsStatService.addStat(param);
+        }
+        coreGoodsCollectNumService.inc(goodsId, -1);
     }
 
     @Override

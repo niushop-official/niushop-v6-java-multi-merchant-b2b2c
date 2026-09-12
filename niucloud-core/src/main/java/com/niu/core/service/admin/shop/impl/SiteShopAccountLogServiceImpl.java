@@ -44,7 +44,7 @@ public class SiteShopAccountLogServiceImpl implements ISiteShopAccountLogService
         if (ObjectUtil.isNotEmpty(searchParam.getCreateTime())) {
             QueryMapperUtils.buildByTime(queryWrapper, "create_time", searchParam.getCreateTime());
         }
-        if (ObjectUtil.isNotEmpty(searchParam.getFromType())) {
+        if (ObjectUtil.isNotEmpty(searchParam.getFromType()) && !"all".equals(searchParam.getFromType())) {
         queryWrapper.eq("from_type", searchParam.getFromType());
         }
         if (ObjectUtil.isNotEmpty(searchParam.getId())) {

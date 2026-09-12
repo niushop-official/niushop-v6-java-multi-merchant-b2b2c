@@ -153,6 +153,8 @@ public class Member implements Serializable {
     private Integer isOld;
 
     /** 省id */
+    private Integer isNewcomerGift;
+
     private Integer provinceId;
 
     /** 市id */

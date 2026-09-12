@@ -170,4 +170,9 @@ public interface ISysUserService {
      */
     SysUser find(Integer uid);
 
+    /**
+     * 重置用户密码
+     */
+    void resetPassword(Integer uid, String password);
+
 }

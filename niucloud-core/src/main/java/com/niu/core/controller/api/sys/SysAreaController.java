@@ -48,4 +48,14 @@ public class SysAreaController {
         return Result.success(sysAreaService.getAddressByLatlng(param));
     }
 
+    /**
+     * 通过客户端 IP 获取经纬度（定位失败降级方案，对齐 PHP area/latlng_by_ip）
+     *
+     * @return 经纬度对象
+     */
+    @GetMapping("/latlng_by_ip")
+    public Result<?> getLatlngByIp() {
+        return Result.success(sysAreaService.getLatlngByIp());
+    }
+
 }

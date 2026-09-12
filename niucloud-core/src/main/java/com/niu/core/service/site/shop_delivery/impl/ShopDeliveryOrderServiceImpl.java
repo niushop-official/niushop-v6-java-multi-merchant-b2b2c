@@ -64,8 +64,8 @@ public class ShopDeliveryOrderServiceImpl implements IShopDeliveryOrderService {
         queryWrapper.eq("site_id", RequestUtils.siteId());
         queryWrapper.like(StringUtils.isNotEmpty(searchParam.getDeliveryNo()),"delivery_no", searchParam.getDeliveryNo());
         queryWrapper.like(StringUtils.isNotEmpty(searchParam.getTradeNo()),"trade_no", searchParam.getTradeNo());
-        queryWrapper.eq(StringUtils.isNotEmpty(searchParam.getTradeType()),"trade_type", searchParam.getTradeType());
-        queryWrapper.eq(StringUtils.isNotEmpty(searchParam.getStatus()),"status", searchParam.getStatus());
+        queryWrapper.eq(StringUtils.isNotEmpty(searchParam.getTradeType()) && !"all".equals(searchParam.getTradeType()),"trade_type", searchParam.getTradeType());
+        queryWrapper.eq(StringUtils.isNotEmpty(searchParam.getStatus()) && !"all".equals(searchParam.getStatus()),"status", searchParam.getStatus());
         if(ObjectUtil.isNotEmpty(searchParam.getCreateTime())){
             QueryMapperUtils.buildByTime(queryWrapper, "create_time", searchParam.getCreateTime());
         }

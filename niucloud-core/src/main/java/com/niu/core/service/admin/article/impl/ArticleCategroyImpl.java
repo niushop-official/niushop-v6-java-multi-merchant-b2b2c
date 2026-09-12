@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.query.MPJQueryWrapper;
+import com.niu.core.common.config.GlobalConfig;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.utils.RequestUtils;
@@ -48,7 +49,7 @@ public class ArticleCategroyImpl implements IArticleCategroyService {
         MPJQueryWrapper<ArticleCategory> queryWrapper = new MPJQueryWrapper<>();
         queryWrapper.setAlias("atc");
         queryWrapper.select("atc.category_id, atc.name, atc.site_id,atc.is_show,atc.sort,atc.create_time,COUNT( at.id ) AS articleNum");
-        queryWrapper.leftJoin("?_article at ON at.`category_id` = atc.category_id".replace("?_", "ns_"));
+        queryWrapper.leftJoin("?_article at ON at.`category_id` = atc.category_id".replace("?_", GlobalConfig.tablePrefix));
 
         if (ObjectUtil.isNotEmpty(searchParam.getName())) {
             queryWrapper.like("atc.name", searchParam.getName());

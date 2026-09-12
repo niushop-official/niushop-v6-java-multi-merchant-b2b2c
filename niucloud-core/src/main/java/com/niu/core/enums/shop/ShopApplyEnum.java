@@ -1,6 +1,5 @@
 package com.niu.core.enums.shop;
 
-import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;

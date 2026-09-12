@@ -38,6 +38,9 @@ public class MallGoodsCollectVo implements Serializable {
     private Integer status;
     private String memberPrice;
     private String memberDiscount;
+    private String vipCardDiscount;
+    private String svipDiscount;
+    private String svipPrice;
     private Integer skuId;
     
     /** 是否参与限时折扣（从查询结果中获取，用于组装嵌套对象） */
@@ -75,6 +78,7 @@ public class MallGoodsCollectVo implements Serializable {
         private String goodsName;
         private String goodsCover;
         private String memberDiscount;
+        private String vipCardDiscount;
         private Integer status;
     }
     
@@ -93,6 +97,7 @@ public class MallGoodsCollectVo implements Serializable {
         private BigDecimal salePrice;
         private BigDecimal memberPrice;
         private String memberDiscount;
+        private String vipCardDiscount;
     }
 
 }

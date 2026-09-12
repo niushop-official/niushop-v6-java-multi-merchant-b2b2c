@@ -2,8 +2,8 @@ package com.niu.mall.service.admin.diy.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.niu.mall.entity.goods.MallGoods;
-import com.niu.mall.mapper.goods.MallGoodsMapper;
+import com.niu.core.entity.goods.MallGoods;
+import com.niu.core.mapper.goods.MallGoodsMapper;
 import com.niu.mall.service.admin.diy.IMallDiyFormService;
 import com.niu.mall.service.admin.order.IOrderConfigService;
 import com.niu.mall.service.core.order.vo.OrderConfigVo;

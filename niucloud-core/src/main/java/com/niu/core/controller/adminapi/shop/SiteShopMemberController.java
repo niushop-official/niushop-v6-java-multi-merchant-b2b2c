@@ -44,7 +44,7 @@ public class SiteShopMemberController {
      */
     @GetMapping("/{id}")
     public Result<SiteShopMemberInfoVo> info(@PathVariable("id") Integer id) {
-        SiteShopMemberInfoVo info = siteShopMemberService.info(id);
+        SiteShopMemberInfoVo info = siteShopMemberService.info(id, null);
         return Result.success(info);
     }
 

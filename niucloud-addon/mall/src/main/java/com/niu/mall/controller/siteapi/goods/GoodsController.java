@@ -3,18 +3,22 @@ package com.niu.mall.controller.siteapi.goods;
 import com.niu.core.common.domain.PageParam;
 import com.niu.core.common.domain.PageResult;
 import com.niu.core.common.domain.Result;
+import com.niu.core.common.utils.language.LanguageUtils;
 import com.niu.core.enums.pay.PayTypeEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import com.niu.mall.service.site.goods.IMallGoodsService;
 import com.niu.mall.service.site.goods.param.*;
 import com.niu.mall.service.site.goods.vo.MallGoodsInfoVo;
 import com.niu.mall.service.site.goods.vo.MallGoodsListVo;
 import com.niu.mall.service.site.goods.vo.MallGoodsSkuListVo;
 import com.niu.mall.service.site.goods.vo.MallSelectGoodsListVo;
+import io.swagger.annotations.ApiOperation;
 import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -62,8 +66,8 @@ public class GoodsController {
      */
     @PostMapping("")
     public Result<Object> add(@Validated @RequestBody MallGoodsParam addParam) {
-        goodsService.add(addParam);
-        return Result.success();
+        Integer id = goodsService.add(addParam);
+        return Result.success(Map.of("id", id));
     }
 
     /**
@@ -198,11 +202,15 @@ public class GoodsController {
             @RequestParam(name = "goods_ids[]", required = false) List<Integer> goodsIds,
             @RequestParam(name = "sku_ids[]", required = false) List<Integer> skuIds,
             @RequestParam(name = "verify_goods_ids[]", required = false) List<Integer> verifyGoodsIds,
-            @RequestParam(name = "verify_sku_ids[]", required = false) List<Integer> verifySkuIds) {
+            @RequestParam(name = "verify_sku_ids[]", required = false) List<Integer> verifySkuIds,
+            @RequestParam(name = "need_supply_goods", required = false, defaultValue = "1") Integer needSupplyGoods,
+            @RequestParam(name = "exclude_goods_id", required = false, defaultValue = "0") Integer excludeGoodsId) {
         searchParam.setGoodsIds(goodsIds);
         searchParam.setSkuIds(skuIds);
         searchParam.setVerifyGoodsIds(verifyGoodsIds);
         searchParam.setVerifySkuIds(verifySkuIds);
+        searchParam.setNeedSupplyGoods(needSupplyGoods);
+        searchParam.setExcludeGoodsId(excludeGoodsId);
         MallSelectGoodsListVo list = goodsService.getSelectPage(pageParam, searchParam);
         return Result.success(list);
     }
@@ -268,6 +276,14 @@ public class GoodsController {
         return Result.success();
     }
 
+    @PutMapping("/sku/vip_card_price")
+    @ApiOperation("编辑商品规格列表付费会员价格")
+    public Result editGoodsListVipCardPrice(@Valid @RequestBody EditGoodsListVipCardPriceParam param) {
+        goodsService.editGoodsListVipCardPrice(param);
+        return Result.success(LanguageUtils.get("EDIT_SUCCESS"));
+    }
+
+
     @GetMapping("/buy/goods/select")
     public Result<?> buyGoodsSelect(PageParam pageParam, BuyGoodsSelectParam param) {
         return Result.success(goodsService.getBuyGoodsSelect(pageParam, param));
@@ -332,6 +348,6 @@ public class GoodsController {
      */
     @GetMapping("/payTypeList")
     public Result getPayType() {
-        return Result.success(PayTypeEnum.getType());
+        return Result.success(new ArrayList<>(PayTypeEnum.getType().values()));
     }
 }

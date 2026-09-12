@@ -28,4 +28,8 @@ public class SiteSearchParam implements Serializable {
 
     private String appType;
 
+    private String searchType;
+
+    private String searchValue;
+
 }

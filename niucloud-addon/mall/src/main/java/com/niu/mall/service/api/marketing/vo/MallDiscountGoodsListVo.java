@@ -7,7 +7,7 @@ import com.niu.core.common.domain.BeanJsonSerializer;
 import com.niu.core.enums.upload.UploadThumbTypeEnum;
 import com.niu.core.service.core.sys.ICoreUploadService;
 import com.niu.mall.enums.active.ActiveStatusEnum;
-import com.niu.mall.enums.goods.GoodsTypeEnum;
+import com.niu.core.enums.goods.GoodsTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;

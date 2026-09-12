@@ -24,61 +24,57 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @Log4j2
 public class Nuiyun extends BaseSms {
 
-    private String username;
-    private String password;
-    private String signature;
+    private static final String SEND_URL = "https://api-shss.zthysms.com/v2/sendSmsTp";
+
+    private final String username;
+    private final String password;
+    private final String signature;
+
+    public Nuiyun(JSONObject config) throws Exception {
+        super(config);
+        this.username = config.getStr("username");
+        this.password = config.getStr("password");
+        this.signature = config.getStr("signature");
+        log.info("牛云短信 init {}", JSONUtil.toJsonStr(config));
+    }
 
     private NiuSmsTemplateMapper niuSmsTemplateMapper() {
         return SpringContext.bean(NiuSmsTemplateMapper.class);
     }
 
-    // 发送URL常量
-    private static final String SEND_URL = "https://api-shss.zthysms.com/v2/sendSmsTp";
-
-
-    public Nuiyun(JSONObject config) throws Exception {
-        super(config);
-        username = config.getStr("username");
-        password = config.getStr("password");
-        signature = config.getStr("signature");
-
-        log.info("牛运短信 init " + JSONUtil.toJsonStr(config));
-    }
-
     @Override
     public SendResultVo send(NoticeInfoVo notice, NoticeDataVo noticeData) {
-        log.info("牛运短信 发送开始 {}" , noticeData.getVars().toString());
+        log.info("牛云短信开始发送, key={}, vars={}", notice.getKey(), JSONUtil.toJsonStr(noticeData.getVars()));
 
-        // 检查签名配置
         if (!StringUtils.hasText(signature)) {
-            throw new CommonException("签名未配置");
+            throw new CommonException("短信签名未配置");
         }
 
-        NiuSmsTemplate templateInfo = niuSmsTemplateMapper().selectOne(new LambdaQueryWrapper<NiuSmsTemplate>()
-                .eq(NiuSmsTemplate::getTemplateKey, notice.getKey()));
-        log.info("牛云短信模板：{}" , templateInfo.toString());
+        NiuSmsTemplate templateInfo = niuSmsTemplateMapper().selectOne(
+                new LambdaQueryWrapper<NiuSmsTemplate>()
+                        .eq(NiuSmsTemplate::getTemplateKey, notice.getKey())
+        );
 
-        // 检查模板是否存在
         if (ObjectUtil.isEmpty(templateInfo)) {
-            throw new CommonException("模版未报备");
+            log.warn("牛云短信模板不存在, templateKey={}", notice.getKey());
+            throw new CommonException("短信模板未配置或未报备: " + notice.getKey());
         }
 
-        // 检查审核状态
+        log.info("牛云短信模板 {}", templateInfo);
+
         String auditStatus = templateInfo.getAuditStatus();
         if (StringUtil.isEmpty(auditStatus) || !"2".equals(auditStatus)) {
-            throw new CommonException("模版审核未通过");
+            throw new CommonException("短信模板审核未通过: " + notice.getKey());
         }
 
-        // 格式化参数
         Map<String, Object> formattedData = formatParams(noticeData.getVars(), templateInfo);
-        // 构建请求参数
-        Map<String, Object> params = new HashMap<>();
 
-        // 构建records数组
+        Map<String, Object> params = new HashMap<>();
         List<Map<String, Object>> records = new ArrayList<>();
         Map<String, Object> record = new HashMap<>();
         record.put("mobile", noticeData.getMobile());
@@ -91,28 +87,22 @@ public class Nuiyun extends BaseSms {
 
         long tKey = System.currentTimeMillis() / 1000;
         params.put("tKey", tKey);
-
-        // 计算密码：md5(md5(password) + tKey)
-        String md5Password = DigestUtils.md5Hex(password);
-        String finalPassword = DigestUtils.md5Hex(md5Password + tKey);
-        params.put("password", finalPassword);
-
+        params.put("password", DigestUtils.md5Hex(DigestUtils.md5Hex(password) + tKey));
         params.put("signature", signature);
 
-        log.info("牛云短信发送参数 params {}" , JSONUtil.toJsonStr(params));
+        log.info("牛云短信发送参数 {}", JSONUtil.toJsonStr(params));
+
         SendResultVo sendResult = new SendResultVo();
         try {
-            // 发送HTTP请求
             String response = HttpRequest.post(SEND_URL)
                     .body(JSONUtil.toJsonStr(params))
                     .execute()
                     .body();
 
-            log.info("牛云短信返回参数 res  {}", response);
+            log.info("牛云短信返回 {}", response);
 
             JSONObject result = JSONUtil.parseObj(response);
             Integer code = result.getInt("code");
-
             if (code != 200) {
                 sendResult.setStatus(SmsStatusEnum.FAIL);
                 sendResult.setFailReason(result.getStr("msg"));
@@ -120,78 +110,76 @@ public class Nuiyun extends BaseSms {
                 sendResult.setStatus(SmsStatusEnum.SUCCESS);
             }
         } catch (Exception e) {
-            log.error("短信发送失败", e);
+            log.error("牛云短信发送失败", e);
             sendResult.setStatus(SmsStatusEnum.FAIL);
             sendResult.setFailReason(e.getMessage());
         }
         return sendResult;
     }
 
-
-    /**
-     * 格式化参数
-     */
     private Map<String, Object> formatParams(Map<String, Object> data, NiuSmsTemplate templateInfo) {
         String paramJson = templateInfo.getParamJson();
         JSONObject paramsJson = JSONUtil.parseObj(paramJson);
         List<Map<String, Object>> paramsTypeArr = TemplateParamsTypeEnum.getApiParamsType();
 
-        // 将参数类型数组转换为map，方便查找
         Map<String, Map<String, Object>> typeMap = new HashMap<>();
         for (Map<String, Object> type : paramsTypeArr) {
             typeMap.put(type.get("type").toString(), type);
         }
 
         Map<String, Object> result = new HashMap<>();
-
         for (String param : paramsJson.keySet()) {
             String validateType = paramsJson.getStr(param);
             Object valueObj = data.get(param);
 
             if (valueObj == null) {
-                log.error("牛运短信 参数缺失 param:{}" , param);
-                throw new CommonException("NY:参数异常，无法发送");
+                log.error("牛云短信缺少参数, param={}", param);
+                throw new CommonException("短信参数异常，无法发送");
             }
 
             String value = valueObj.toString();
-
-            // 获取类型配置
             Map<String, Object> typeConfig = typeMap.get(validateType);
             String pattern = typeConfig != null ? (String) typeConfig.get("rule") : "";
             int max = typeConfig != null ? Integer.parseInt(typeConfig.get("max").toString()) : 35;
             int min = typeConfig != null ? Integer.parseInt(typeConfig.get("min").toString()) : 1;
 
-            // 对中文和其他类型特殊处理
-            if (StringUtils.hasText(pattern) &&
-                    (TemplateParamsTypeEnum.CHINESE.getType().equals(validateType) ||
-                            TemplateParamsTypeEnum.OTHERS.getType().equals(validateType))) {
-
+            if (StringUtils.hasText(pattern)
+                    && (TemplateParamsTypeEnum.CHINESE.getType().equals(validateType)
+                    || TemplateParamsTypeEnum.OTHERS.getType().equals(validateType))) {
                 value = value.replace(" ", "").replace(".", "");
-                value = value.replaceAll(pattern, "");
+                value = filterByValidateType(value, validateType);
 
-                // 检查长度
                 int length = value.length();
-                if (length >= min && length <= max) {
-                    // 长度合法，保留过滤后的字符串
-                } else if (length > max) {
-                    // 长度非法，截取到最大长度
+                if (length > max) {
                     value = value.substring(0, max);
-                } else {
-                    // 长度不足，设置为空
+                } else if (length < min) {
                     value = "";
                 }
             }
 
             if (!StringUtils.hasText(value)) {
-                log.error("牛运短信 参数异常，无法发送 param:{}" , param);
-                throw new CommonException("NY:参数异常，无法发送");
+                log.error("牛云短信参数异常, param={}", param);
+                throw new CommonException("短信参数异常，无法发送");
             }
 
             result.put(param, value);
         }
-
         return result;
     }
 
+    private String filterByValidateType(String value, String validateType) {
+        if (!StringUtils.hasText(value)) {
+            return "";
+        }
 
+        String invalidPattern;
+        if (TemplateParamsTypeEnum.CHINESE.getType().equals(validateType)) {
+            invalidPattern = "[^\\p{IsHan}()\\uFF08\\uFF09]";
+        } else if (TemplateParamsTypeEnum.OTHERS.getType().equals(validateType)) {
+            invalidPattern = "[^\\p{IsHan}\\p{N}\\p{L}\\p{P}\\p{S}\\s]";
+        } else {
+            return value;
+        }
+        return Pattern.compile(invalidPattern).matcher(value).replaceAll("");
+    }
 }

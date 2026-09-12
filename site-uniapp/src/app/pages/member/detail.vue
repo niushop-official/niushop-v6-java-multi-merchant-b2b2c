@@ -53,6 +53,16 @@ onLoad((option: any) => {
 
 const  getShopMemberInfoFn = () => {
     getShopMemberInfo(memberId.value).then((res : any) => {
+        if (!res.data.data || Object.keys(res.data.data).length === 0) {
+            uni.showToast({
+                title: '暂无会员信息',
+                icon: 'none'
+            })
+            setTimeout(() => {
+                uni.navigateBack()
+            }, 1500)
+            return
+        }
         Object.assign(memberInfo, res.data)
     })
 }

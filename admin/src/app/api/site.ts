@@ -184,3 +184,79 @@ export function getSiteApp() {
 export function getAdminApp() {
     return request.get('site/adminapp')
 }
+
+/**
+ * 切换营业状态
+ */
+export function updateBusinessStatus(params: Record<string, any>) {
+    return request.put(`site/business_status`, params, { showSuccessMessage: true })
+}
+
+/***************************************************** 结算账户 **************************************************/
+
+/**
+ * 结算账户列表
+ * @returns
+ */
+export function getSettAccountList() {
+    return request.get('site/sett_account')
+}
+
+/**
+ * 结算账户详情
+ * @param id 结算账户id
+ */
+export function getSettAccountInfo(id: number) {
+    return request.get(`site/sett_account/${id}`)
+}
+
+/**
+ * 结算账户添加
+ * @param params
+ */
+export function addSettAccount(params: Record<string, any>) {
+    return request.post('site/sett_account', params, { showSuccessMessage: true })
+}
+
+/**
+ * 结算账户修改
+ * @param params
+ */
+export function editSettAccount(params: Record<string, any>) {
+    return request.put(`site/sett_account/${params.id}`, params, { showSuccessMessage: true })
+}
+
+/**
+ * 结算账户删除
+ * @param id 结算账户id
+ */
+export function delSettAccount(id: number) {
+    return request.delete(`site/sett_account/${id}`)
+}
+
+/**
+ * 获取店铺列表
+ * @param params
+ * @returns
+ */
+export function getSiteList(params: Record<string, any>) {
+    return request.get(`site/list`, { params })
+}
+
+/**
+ * todo 商圈-获取商圈列表
+ * @param params
+ * @returns
+ */
+export function getCircleList(params: Record<string, any>) {
+    return request.get(`site/circle/list`, { params })
+}
+
+/**
+ * todo 商圈-获取切换商圈列表
+ * @param params
+ * @returns
+ */
+export function getCircleSwitchList(params: Record<string, any>) {
+    return request.get('circle/admin/circle/switch_list', { params, showSuccessMessage: false })
+}

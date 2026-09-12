@@ -6,7 +6,7 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="diyRouteTableData.searchParam" ref="searchFormDiyRouteRef">
+                <el-form :inline="true" :model="diyRouteTableData.searchParam" ref="searchFormDiyRouteRef" @submit.prevent="loadDiyRouteList()">
                     <el-form-item :label="t('title')" prop="title">
                         <el-input v-model="diyRouteTableData.searchParam.title" :placeholder="t('titlePlaceholder')" />
                     </el-form-item>

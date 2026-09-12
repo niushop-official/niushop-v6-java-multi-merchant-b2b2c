@@ -1,5 +1,6 @@
 package com.niu.mall.service.core.order.vo;
 
+import cn.hutool.core.annotation.Alias;
 import cn.hutool.json.JSONObject;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.niu.core.common.component.context.SpringContext;
@@ -10,7 +11,7 @@ import com.niu.core.service.core.delivery.vo.DeliveryConfigVo;
 import com.niu.core.service.core.sys.ICoreUploadService;
 import com.niu.mall.entity.order.MallOrderGiftGoods;
 import com.niu.mall.service.core.marketing.vo.FullGiftCalculateVo;
-import com.niu.mall.service.core.marketing.vo.FullReductionCalculateVo;
+import com.niu.core.service.core.marketing.vo.FullReductionCalculateVo;
 import com.niu.mall.service.core.order.param.InvoiceCreateParam;
 import lombok.Data;
 
@@ -68,7 +69,8 @@ public class OrderCreateDataVo implements Serializable {
 
     protected String memberRemark;
 
-    protected String OrderType;
+    @Alias("OrderType")
+    protected String orderType;
 
 
     protected JSONObject formData;
@@ -264,6 +266,7 @@ public class OrderCreateDataVo implements Serializable {
         protected String attrFormat; // 商品参数内容，json格式
         protected Integer isDiscount; // 是否参与限时折扣
         protected String memberDiscount; // 会员等级折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
+        protected String vipCardDiscount; // 付费会员卡折扣，不参与：空，会员折扣：discount，指定会员价：fixed_price
         private Integer isLimit;
         private Integer limitType;
         private Integer maxBuy;
@@ -308,6 +311,8 @@ public class OrderCreateDataVo implements Serializable {
         protected Map<String, DeliveryConfigVo> deliveryTypeList = new HashMap();
 
         protected String deliveryType = "";
+
+        protected String subDeliveryType = "";
 
         protected Object takeStore;
 
@@ -508,7 +513,9 @@ public class OrderCreateDataVo implements Serializable {
     public static class ShopInfo {
         protected Integer siteId;
         protected Integer isSelf;
-        protected BigDecimal commissionRate;
+        protected Integer circleId;
+        protected BigDecimal serviceRate;
+        protected Integer businessStatus;
     }
 
     @Data

@@ -11,7 +11,9 @@ class Storage {
     private prefix = ''
 
     public constructor() {
-        this.prefix = getAppType() == 'admin' ? 'admin' : 'site'
+        // this.prefix = getAppType() == 'admin' ? 'admin' : 'site'
+        //todo 商圈
+        this.prefix = getAppType()
     }
 
     public setPrefix(prefix: string) {

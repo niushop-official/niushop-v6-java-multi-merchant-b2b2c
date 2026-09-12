@@ -8,6 +8,7 @@ import com.niu.core.entity.site.SiteGroup;
 import com.niu.core.service.admin.site.ISiteGroupService;
 import com.niu.core.service.api.goods.IGoodsServiceService;
 import com.niu.core.service.api.shop.IShopConfigService;
+import com.niu.core.service.api.shop.IShopMemberService;
 import com.niu.core.service.api.shop.ISiteShopApplyService;
 import com.niu.core.service.api.shop.ISiteShopService;
 import com.niu.core.service.api.shop.param.ShopSearchParam;
@@ -50,6 +51,9 @@ public class ShopController {
     @Resource
     IShopConfigService shopConfigService;
 
+    @Resource
+    IShopMemberService shopMemberService;
+
     /**
      * 获取商品列表
      *
@@ -75,7 +79,9 @@ public class ShopController {
 
     /**
      * @return 获取店铺分类列表
+     * @deprecated 请使用 {@code api/mall/shop_apply} 及站点行业类目接口
      */
+    @Deprecated
     @GetMapping("/web/shop_apply/shop_category")
     public Result<List<SiteShopCategoryListVo>> shopCategory() {
         List<SiteShopCategoryListVo> list = goodsService.shopCategory();
@@ -85,17 +91,20 @@ public class ShopController {
 
     /**
      * @return 获取店铺套餐列表
+     * @deprecated 请使用 {@code api/mall/shop_apply} 相关接口
      */
+    @Deprecated
     @GetMapping("/web/shop_apply/site_group")
     public Result<List<SiteGroup>> siteGroup() {
-        List<SiteGroup> all = siteGroupService.getAll();
-        return Result.success(all);
+        return Result.success(siteGroupService.getApplyList());
     }
 
 
     /**
      * @return 获取店铺申请状态列表
+     * @deprecated 请使用 {@code GET api/mall/shop_apply/status}
      */
+    @Deprecated
     @GetMapping("/web/shop_apply/status")
     public Result<List<Map<String, Object>>> statusList() {
         List<Map<String, Object>> map = siteShopApplyService.statusList();
@@ -104,7 +113,9 @@ public class ShopController {
 
     /**
      * @return 获取店铺申请配置
+     * @deprecated 请使用 {@code GET api/mall/shop_apply/config}
      */
+    @Deprecated
     @GetMapping("/web/shop_apply/config")
     public Result<ShopApplyConfigInfoVo> getShopApplyConfig() {
         return Result.success(shopConfigService.getShopApplyConfig());
@@ -113,12 +124,26 @@ public class ShopController {
 
     /**
      * @param addParam 申请参数
-     * @return 商户入驻店铺申请
+     * @return 商户入驻店铺申请（旧版）
+     * @deprecated 请使用 {@code POST api/mall/shop_apply}
      */
+    @Deprecated
     @PostMapping("/web/shop_apply")
     public Result shopApply(@Validated @RequestBody SiteShopApplyParam addParam) {
         siteShopApplyService.shopApply(addParam);
         return Result.success();
+    }
+
+    /**
+     * @param addParam 申请参数
+     * @return 商户入驻店铺申请（新版，支持草稿保存）
+     * @deprecated 请使用 {@code POST api/mall/shop_apply}
+     */
+    @Deprecated
+    @PostMapping("/web/shop_apply/add")
+    public Result<Map<String, Long>> add(@Validated @RequestBody SiteShopApplyParam addParam) {
+        Long applyId = siteShopApplyService.add(addParam);
+        return Result.success(Map.of("id", applyId));
     }
 
 
@@ -126,21 +151,30 @@ public class ShopController {
      * @param pageParam   分页参数
      * @param searchParam 搜索参数
      * @return 获取店铺申请列表
+     * @deprecated 请使用 {@code GET api/mall/shop_apply}
      */
+    @Deprecated
     @GetMapping("/web/shop_apply")
     public Result<PageResult<SiteShopApplyListVo>> shopApply(@Validated PageParam pageParam, @Validated com.niu.core.service.api.shop.param.SiteShopApplySearchParam searchParam) {
         return Result.success(siteShopApplyService.page(pageParam, searchParam));
     }
 
     /**
-     * @param pageParam 分页参数
-     * @return 获取店铺关注、收藏列表
+     * 店铺收藏列表（对齐 PHP shop.ShopMember/lists）
      */
     @GetMapping("/web/follow")
-    public Result<PageResult<SiteShopFollowVo>> followList(@Validated PageParam pageParam) {
-        return Result.success(siteShopMemberService.followList(pageParam));
+    public Result<PageResult<SiteShopFollowVo>> followList(@Validated PageParam pageParam, @RequestParam(required = false) String addon) {
+        return Result.success(shopMemberService.followList(pageParam, addon));
     }
 
+    /**
+     * 当前是否关注店铺（对齐 PHP shop.ShopMember/getFollowBySiteAndAddon）
+     */
+    @GetMapping("/web/follow/get_by_site/{siteId}/{addon}")
+    public Result<Boolean> getFollowBySiteAndAddon(@PathVariable("siteId") Integer siteId,
+                                                   @PathVariable("addon") String addon) {
+        return Result.success(shopMemberService.getFollowBySiteAndAddon(siteId, addon));
+    }
 
     /**
      * @param siteId 店铺ID
@@ -163,13 +197,17 @@ public class ShopController {
 
 
     /**
+     * 关注/取消关注店铺（对齐 PHP shop.ShopMember/follow）
+     *
      * @param siteId   店铺id
      * @param isFollow 1 关注  0取消关注
-     * @return 关注/取消关注店铺
+     * @param addon    所属插件
      */
-    @PutMapping("/web/shop/{siteId}/{isFollow}")
-    public Result editFollowNumber(@PathVariable("siteId") Integer siteId, @PathVariable("isFollow") Integer isFollow) {
-        siteShopService.editFollowNumber(siteId, isFollow);
+    @PutMapping("/web/shop/{siteId}/{isFollow}/{addon}")
+    public Result editFollowNumber(@PathVariable("siteId") Integer siteId,
+                                   @PathVariable("isFollow") Integer isFollow,
+                                   @PathVariable("addon") String addon) {
+        shopMemberService.follow(siteId, isFollow, addon);
         return Result.success();
     }
 
@@ -183,6 +221,10 @@ public class ShopController {
     }
 
 
+    /**
+     * @deprecated 请使用 mall 入驻流程，PHP 无此接口
+     */
+    @Deprecated
     @GetMapping("/web/shop_apply/check")
     public Result<Boolean> applyCheck() {
 
@@ -192,13 +234,18 @@ public class ShopController {
     /**
      * 店铺账号检测
      *
-     * @return Response
+     * @deprecated 请使用 {@code GET api/mall/shop_apply/account_check}
      */
+    @Deprecated
     @GetMapping("/web/shop_apply/account_check")
     public Result<Map<String, Object>> accountCheck(@RequestParam("account") String account) {
         return Result.success(siteShopApplyService.checkAccount(account));
     }
 
+    /**
+     * @deprecated 请使用 {@code GET api/mall/shop_apply/{id}}
+     */
+    @Deprecated
     @GetMapping("/web/shop_apply/{id}")
     public Result<SiteShopApplyInfoVo> info(@PathVariable("id") Integer id) {
         return Result.success(siteShopApplyService.info(id));
@@ -207,10 +254,9 @@ public class ShopController {
     /**
      * 编辑店铺申请
      *
-     * @param id        店铺申请id
-     * @param editParam 编辑参数
-     * @return Result
+     * @deprecated 请使用 {@code PUT api/mall/shop_apply/{id}}
      */
+    @Deprecated
     @PutMapping("/web/shop_apply/{id}")
     public Result edit(@PathVariable("id") Integer id, @Validated @RequestBody SiteShopApplyParam editParam) {
         siteShopApplyService.edit(id, editParam);

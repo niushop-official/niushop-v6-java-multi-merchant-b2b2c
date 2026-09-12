@@ -72,7 +72,9 @@ public class CoreSysStatServiceImpl implements ICoreSysStatService {
             "IFNULL(sum(supply_separate_money), 0) as supply_separate_money",
             "IFNULL(sum(supply_refund_separate_money), 0) as supply_refund_separate_money",
             "IFNULL(sum(supply_money), 0) as supply_money",
-            "IFNULL(sum(supply_refund_money), 0) as supply_refund_money"
+            "IFNULL(sum(supply_refund_money), 0) as supply_refund_money",
+            "IFNULL(sum(circle_commission), 0) as circle_commission",
+            "IFNULL(sum(circle_refund_commission), 0) as circle_refund_commission"
     };
 
     @Override
@@ -138,6 +140,8 @@ public class CoreSysStatServiceImpl implements ICoreSysStatService {
         stat.setSupplyRefundMoney(safeAddDecimal(stat.getSupplyRefundMoney(), param.getSupplyRefundMoney()));
         stat.setSupplySeparateMoney(safeAddDecimal(stat.getSupplySeparateMoney(), param.getSupplySeparateMoney()));
         stat.setSupplyRefundSeparateMoney(safeAddDecimal(stat.getSupplyRefundSeparateMoney(), param.getSupplyRefundSeparateMoney()));
+        stat.setCircleCommission(safeAddDecimal(stat.getCircleCommission(), param.getCircleCommission()));
+        stat.setCircleRefundCommission(safeAddDecimal(stat.getCircleRefundCommission(), param.getCircleRefundCommission()));
         sysStatMapper.updateById(stat);
     }
 
@@ -183,6 +187,8 @@ public class CoreSysStatServiceImpl implements ICoreSysStatService {
         addDecSql(sqlSets, "supply_refund_money", param.getSupplyRefundMoney());
         addDecSql(sqlSets, "supply_separate_money", param.getSupplySeparateMoney());
         addDecSql(sqlSets, "supply_refund_separate_money", param.getSupplyRefundSeparateMoney());
+        addDecSql(sqlSets, "circle_commission", param.getCircleCommission());
+        addDecSql(sqlSets, "circle_refund_commission", param.getCircleRefundCommission());
         if (sqlSets.isEmpty()) {
             return;
         }
