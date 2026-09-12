@@ -17,6 +17,7 @@
     <version>1.0</version>
     <name>niucloud-b2b2c-java</name>
 
+    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
