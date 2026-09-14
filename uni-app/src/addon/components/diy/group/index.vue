@@ -196,9 +196,6 @@
             <template v-if="component.componentName == 'MallGoodsDetailPurchaseService'">
                 <diy-mall-goods-detail-purchase-service :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailPurchaseService" @update:componentIsShow="component.componentIsShow = $event" />
             </template>
-            <template v-if="component.componentName == 'MallGoodsDetailRank'">
-                <diy-mall-goods-detail-rank :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailRank" @update:componentIsShow="component.componentIsShow = $event" />
-            </template>
             <template v-if="component.componentName == 'MallGoodsDetailShopInfo'">
                 <diy-mall-goods-detail-shop-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallGoodsDetailShopInfo" @update:componentIsShow="component.componentIsShow = $event" />
             </template>
@@ -238,7 +235,9 @@
             <template v-if="component.componentName == 'MallShopList'">
                 <diy-mall-shop-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallShopList" @update:componentIsShow="component.componentIsShow = $event" />
             </template>
-
+            <template v-if="component.componentName == 'SingleRecommend'">
+                <diy-single-recommend :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SingleRecommend" @update:componentIsShow="component.componentIsShow = $event" />
+            </template>
                 </view>
             </view>
         </template>
@@ -259,7 +258,6 @@
    import diyMallGoodsDetailDesc from '@/addon/mall/components/diy/mall-goods-detail-desc/index.vue';
    import diyMallGoodsDetailEvaluate from '@/addon/mall/components/diy/mall-goods-detail-evaluate/index.vue';
    import diyMallGoodsDetailPurchaseService from '@/addon/mall/components/diy/mall-goods-detail-purchase-service/index.vue';
-   import diyMallGoodsDetailRank from '@/addon/mall/components/diy/mall-goods-detail-rank/index.vue';
    import diyMallGoodsDetailShopInfo from '@/addon/mall/components/diy/mall-goods-detail-shop-info/index.vue';
    import diyMallGoodsDetailSow from '@/addon/mall/components/diy/mall-goods-detail-sow/index.vue';
    import diyMallGoodsList from '@/addon/mall/components/diy/mall-goods-list/index.vue';
@@ -273,7 +271,7 @@
    import diyMallShopCouponList from '@/addon/mall/components/diy/mall-shop-coupon-list/index.vue';
    import diyMallShopInfo from '@/addon/mall/components/diy/mall-shop-info/index.vue';
    import diyMallShopList from '@/addon/mall/components/diy/mall-shop-list/index.vue';
-
+   import diySingleRecommend from '@/addon/mall/components/diy/single-recommend/index.vue';
     import topTabbar from '@/components/top-tabbar/top-tabbar.vue'
     import popAds from '@/components/pop-ads/pop-ads.vue'
     import { useDiyGroup } from './useDiyGroup'

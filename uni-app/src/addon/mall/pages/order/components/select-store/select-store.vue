@@ -98,7 +98,6 @@ const callFn = (data: any) => {
 
 const open = (data: any) => {
     initParam.value.site_id = data.site_id
-    initParam.value.delivery_type = data.delivery_type
     storeList.value = data.store_list || []
     store.value = data.take_store || storeList.value[0] || null
     loading.value = false
@@ -121,8 +120,7 @@ const emits = defineEmits(['confirm'])
 
 const confirm = () => {
     if (!store.value) {
-        const title = initParam.value.delivery_type == 'local_delivery'? '请选择配送门店' : '请选择自提点'
-        uni.showToast({ title, icon: 'none' })
+        uni.showToast({ title: '请选择自提点', icon: 'none' })
         return
     }
     store.value.site_id = initParam.value.site_id

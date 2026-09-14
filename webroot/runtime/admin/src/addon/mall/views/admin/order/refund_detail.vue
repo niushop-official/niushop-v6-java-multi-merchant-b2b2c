@@ -158,7 +158,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { t } from '@/lang'
-import { orderRefundDetail } from '@/addon/mall/api/admin/order'
+import { orderRefundDetail } from '@/app/lang/zh-cn/api/admin/order'
 import { useRoute, useRouter } from 'vue-router'
 import { img } from '@/utils/common'
 import { ArrowLeft } from '@element-plus/icons-vue'

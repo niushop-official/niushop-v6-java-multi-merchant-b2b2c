@@ -30,25 +30,25 @@
             </el-card>
 
             <el-card class="box-card !border-none mb-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="refundTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px"  :model="refundTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('memberInfo')" prop="keywords">
-                        <el-input v-model="refundTableData.searchParam.keywords" class="w-[240px]" :placeholder="t('memberInfoPlaceholder')" />
+                        <el-input v-model="refundTableData.searchParam.keywords" :placeholder="t('memberInfoPlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('refundNumber')" prop="refund_no">
-                        <el-input v-model="refundTableData.searchParam.refund_no" class="w-[240px]" :placeholder="t('refundNumberPlaceholder')" />
+                        <el-input v-model="refundTableData.searchParam.refund_no" :placeholder="t('refundNumberPlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('orderNumber')" prop="order_no">
-                        <el-input v-model="refundTableData.searchParam.order_no" class="w-[240px]" :placeholder="t('orderNumberPlaceholder')" />
+                        <el-input v-model="refundTableData.searchParam.order_no" :placeholder="t('orderNumberPlaceholder')" clearable  class="search-input" />
                     </el-form-item>
 
                     <el-form-item :label="t('refundStatus')" prop="status">
-                        <el-select v-model="refundTableData.searchParam.status" clearable class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="refundTableData.searchParam.status" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item.name" :value="key" v-for="(item, key) in refundList" :key="key" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('refundTime')" prop="create_time">
-                        <el-date-picker v-model="refundTableData.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" />
+                        <el-date-picker v-model="refundTableData.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadRefundList()">{{ t('search') }}</el-button>

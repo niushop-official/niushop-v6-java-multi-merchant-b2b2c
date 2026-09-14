@@ -6,7 +6,7 @@
                 <scroll-view scroll-x="true" class="coupon-list" :style="{'background-image':'url(' + img('addon/mall/diy/goods_coupon/style1_bg2.png') + ')','background-size':'100%','background-repeat':'no-repeat'}">
                     <view class="coupon-class">
                         <template v-if="couponList.length > 1">
-                            <view v-for="(item,index) in couponList" :key="index" class="coupon-item-style-1" :class="{'margin-right': index != couponList.length-1}" :style="{'background-image':'url(' + img('addon/mall/diy/goods_coupon/coupon_item_bg.png') + ')','background-size':'100%','background-repeat':'no-repeat'}" @click="couponItemLink(item)">
+                            <view v-for="(item,index) in couponList" :key="index" class="rounded-[16rpx] box-border pt-[14rpx] inline-flex flex-col items-center relative w-[150rpx] h-[130rpx]" :class="{'mr-[20rpx]': index != couponList.length-1}" :style="{'background-image':'url(' + img('addon/mall/diy/goods_coupon/coupon_item_bg.png') + ')','background-size':'100%','background-repeat':'no-repeat'}" @click="couponItemLink(item)">
                                 <view class="truncate w-full flex items-baseline justify-center price-font text-[var(--price-text-color)]">
                                     <text class="text-[26rpx] font-500">￥</text>
                                     <text class="text-[36rpx] truncate font-500">{{ parseFloat(item.price) }}</text>
@@ -44,7 +44,7 @@
 
             <view v-else-if="diyComponent.style == 'style-2'" class="coupon-wrap style-2 relative">
                 <scroll-view scroll-x="true" class="coupon-list">
-                    <view v-for="(item,index) in couponList" :key="index" class="coupon-item-style-2" :class="{'margin-right': index != couponList.length-1, 'margin-right-290': index == couponList.length-1}" :style="{'background-image':'url(' + img('addon/mall/diy/goods_coupon/coupon_item_bg.png') + ')','background-size':'100%','background-repeat':'no-repeat'}"  @click="couponItemLink(item)">
+                    <view v-for="(item,index) in couponList" :key="index" class="box-border pt-[14rpx] inline-flex flex-col items-center relative w-[140rpx] h-[130rpx] rounded-[10rpx]" :class="{'mr-[20rpx]': index != couponList.length-1, 'mr-[290rpx]': index == couponList.length-1}" :style="{'background-image':'url(' + img('addon/mall/diy/goods_coupon/coupon_item_bg.png') + ')','background-size':'100%','background-repeat':'no-repeat'}"  @click="couponItemLink(item)">
                         <view class="flex items-baseline justify-center w-full truncate price-font text-[var(--price-text-color)]">
                             <text class="text-[24rpx]">￥</text>
                             <text class="text-[38rpx] font-bold truncate">{{ parseFloat(item.price) }}</text>
@@ -513,37 +513,6 @@ const collecting = (coupon_id: any) => {
                 }
             }
         }
-    }
-}
-.coupon-item-style-1{
-    border-radius: 16rpx;
-    box-sizing: border-box;
-    padding-top: 14rpx;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    width: 150rpx;
-    height: 130rpx;
-    &.margin-right{
-        margin-right: 20rpx;
-    }
-}
-.coupon-item-style-2{
-    box-sizing: border-box;
-    padding-top: 14rpx;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    width: 140rpx;
-    height: 130rpx;
-    border-radius: 10rpx;
-    &.margin-right{
-        margin-right: 20rpx;
-    }
-    &.margin-right-290{
-        margin-right: 290rpx;
     }
 }
 </style>

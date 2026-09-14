@@ -72,7 +72,7 @@
                 </view>
                 <view class="card-template-item" v-if="shopDetail.business_hours">
                     <view class="text-[28rpx] flex-shrink-0 mr-[20rpx]">营业时间</view>
-                    <view class="text-[28rpx] text-[var(--text-color-light6)]">{{ shopDetail.business_hours || '全天营业' }}</view>
+                    <view class="text-[28rpx] text-[var(--text-color-light6)]">{{ shopDetail.business_hours }}</view>
                 </view>
             </view>
             <view class="card-template text-center text-[30rpx] text-primary font-500" @click="redirect({url:'/addon/mall/pages/goods/list',param:{site_id:shopDetail.site_id}, mode: 'navigateTo'})">
@@ -120,7 +120,7 @@
                     <view class="title">店铺资质</view>
                     <view class="flex-center pb-[56rpx]">
                         <view class="w-[400rpx]">
-                            <template v-if="shopDetail.shop?.business_image && shopDetail.shop?.business_image.length">
+                            <template v-if="shopDetail.shop.business_image.length">
                                 <u-swiper :list="shopDetail.shop.business_image" :indicator="shopDetail.shop.business_image.length" :indicatorStyle="{'bottom': '50rpx'}" indicatorMode="dot" :autoplay="true"  height="400rpx" radius="0" @click="swiperClick"></u-swiper>
                             </template>
                             <view v-else class="text-center">暂无店铺资质</view>
@@ -136,8 +136,8 @@
 import { reactive, ref, computed } from 'vue';
 import { onLoad, onShow, onUnload } from '@dcloudio/uni-app';
 import { img, redirect, isWeixinBrowser } from '@/utils/common'
-import { getShopInfo } from '@/addon/mall/api/shop';
-import { getQrcode, editShopCollect } from '@/app/api/shop';
+import { getShopInfo, editShopCollect } from '@/addon/mall/api/shop';
+import { getShopQrcode } from '@/app/api/shop';
 import { useLogin } from '@/hooks/useLogin'
 import useMemberStore from '@/stores/member'
 import QRCode from 'qrcode'
@@ -219,8 +219,7 @@ const collectShop = (site_id:any,is_follow:any) =>{
 	}
     editShopCollect({
         site_id: site_id,
-		is_follow: is_follow,
-        addon: 'mall'
+		is_follow: is_follow
     }).then(res =>{
         isFollow.value = !isFollow.value;
         if (isFollow.value) {
@@ -247,7 +246,7 @@ const wapImage = ref('') //公众号二维码
 const qrcodeImg = ref('') //小程序二维码
 // #ifdef H5 
 const loadQrcode = () => {
-    wapPreview.value = `${ import.meta.env.VITE_IMG_DOMAIN || location.origin }/wap/addon/mall/pages/site/index?site_id=${ siteId.value }`
+    wapPreview.value = `${ import.meta.env.VITE_IMG_DOMAIN || location.origin }/wap/addon/mall/pages/index?site_id=${ siteId.value }`
     // errorCorrectionLevel：密度容错率L（低）H(高)
     QRCode.toDataURL(wapPreview.value, { errorCorrectionLevel: 'L', margin: 0, width: 120 }).then(url => {
         wapImage.value = url
@@ -256,9 +255,7 @@ const loadQrcode = () => {
 // #endif
 
 const loadWeapp = () => {
-	getQrcode({
-        site_id: siteId.value,
-    }).then((res:any) =>{
+	getShopQrcode(siteId.value).then((res:any) =>{
 		qrcodeImg.value = res.data
 	})
 }
@@ -304,7 +301,7 @@ const getAddress = () => {
 }
 const swiperClick = (index:any)=>{
 	if(typeof index == 'number')
-		imgListPreview(shopDetail.value?.shop?.business_image,index)
+		imgListPreview(shopDetail.value.shop.business_image,index)
 }
 //预览图片
 const imgListPreview = (item:any,index:any) => {

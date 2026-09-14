@@ -12,46 +12,50 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="goodsTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="goodsTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('goodsName')" prop="goods_name">
-                        <el-input v-model.trim="goodsTable.searchParam.goods_name" :placeholder="t('goodsNamePlaceholder')" maxlength="60" />
+                        <el-input v-model.trim="goodsTable.searchParam.goods_name" :placeholder="t('goodsNamePlaceholder')" maxlength="60" clearable class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('goodsCategory')" prop="goods_category">
-                        <el-cascader v-model="goodsTable.searchParam.goods_category" :options="goodsCategoryOptions" :placeholder="t('goodsCategoryPlaceholder')" clearable :props="{ value: 'value', label: 'label', emitPath:false }"/>
+                        <el-cascader v-model="goodsTable.searchParam.goods_category" :options="goodsCategoryOptions" :placeholder="t('请选择分类')" clearable :props="{ value: 'value', label: 'label', emitPath:false }" class="search-input"/>
                     </el-form-item>
                     <el-form-item :label="t('goodsType')" prop="goods_type">
-                        <el-select v-model="goodsTable.searchParam.goods_type" :placeholder="t('goodsTypePlaceholder')" clearable>
+                        <el-select v-model="goodsTable.searchParam.goods_type" :placeholder="t('goodsTypePlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="item in goodsType" :key="item.type" :label="item.name" :value="item.type" />
                         </el-select>
                     </el-form-item>
 
                     <el-form-item :label="t('brand')" prop="brand_id">
-                        <el-select v-model="goodsTable.searchParam.brand_id" :placeholder="t('brandPlaceholder')" clearable filterable remote reserve-keyword :remote-method="getBrandListFn">
+                        <el-select v-model="goodsTable.searchParam.brand_id" :placeholder="t('brandPlaceholder')" clearable filterable remote reserve-keyword :remote-method="getBrandListFn" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="item in brandOptions" :key="item.brand_id" :label="item.brand_name" :value="item.brand_id" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('labelIds')" prop="label_ids">
-                        <el-select v-model="goodsTable.searchParam.label_ids" :placeholder="t('labelIdsPlaceholder')" clearable>
+                        <el-select v-model="goodsTable.searchParam.label_ids" :placeholder="t('labelIdsPlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="item in labelOptions" :key="item.label_id" :label="item.label_name" :value="item.label_id" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('goodsSource')" prop="goods_source">
-                        <el-select v-model="goodsTable.searchParam.goods_source" :placeholder="t('goodsSourcePlaceholder')" clearable>
+                        <el-select v-model="goodsTable.searchParam.goods_source" :placeholder="t('goodsSourcePlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,index) in goodsSource" :key="index" :label="item.name" :value="index" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('saleNum')" prop="sale_num">
-                        <div class="region-input">
-                            <input type="text" :placeholder="t('startSaleNumPlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.start_sale_num" @keyup="filterDigit($event)">
+                        <div class="region-input search-input">
+                            <input type="text" :placeholder="t('startSaleNumPlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.start_sale_num" @keyup="filterDigit($event)" class="w-[130px]">
                             <span class="separator">-</span>
-                            <input type="text" :placeholder="t('endSaleNumPlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.end_sale_num" @keyup="filterDigit($event)">
+                            <input type="text" :placeholder="t('endSaleNumPlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.end_sale_num" @keyup="filterDigit($event)" class="w-[130px]">
                         </div>
                     </el-form-item>
                     <el-form-item :label="t('skuPrice')" prop="sku_price">
-                        <div class="region-input">
-                            <input type="text" :placeholder="t('startPricePlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.start_price" @keyup="filterDigit($event)">
+                        <div class="region-input search-input">
+                            <input type="text" :placeholder="t('startPricePlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.start_price" @keyup="filterDigit($event)" class="w-[130px]">
                             <span class="separator">-</span>
-                            <input type="text" :placeholder="t('endPricePlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.end_price" @keyup="filterDigit($event)">
+                            <input type="text" :placeholder="t('endPricePlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.end_price" @keyup="filterDigit($event)" class="w-[130px]">
                         </div>
                     </el-form-item>
 
@@ -207,6 +211,7 @@
                             <el-button type="primary" link @click="editEvent(row)">{{ t('edit') }}</el-button>
                             <el-button type="primary" link @click="spreadEvent(row)">{{ t('spreadGoods') }}</el-button>
                             <el-button type="primary" link @click="memberPriceEvent(row)">{{ t('memberPrice') }}</el-button>
+                            <el-button type="primary" link @click="vipcardPriceEvent(row)">付费会员价</el-button>
                             <el-button type="primary" v-if="row.status == 1" link @click="statusChange(row, 0)">{{ t('statusActionOff') }}</el-button>
                             <el-button type="primary" v-else-if="row.status == 0" link @click="statusChange(row, 1)">{{ t('statusActionOn') }}</el-button>
                             <el-button type="primary" link @click="copyEvent(row)">{{ t('copyGoods') }}</el-button>
@@ -252,6 +257,8 @@
 
         <!-- 会员价弹出框 -->
         <goods-member-price-popup ref="memberPricePopupRef" @load="loadGoodsList" />
+        <!-- 付费会员价弹出框 -->
+        <vipcard-price-popup ref="vipcardPricePopupRef" @load="loadGoodsList" />
         <!-- 供货详情弹出框 -->
         <supply-detail-popup ref="supplyDetailPopupRef" />
 
@@ -270,14 +277,16 @@ import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { cloneDeep } from 'lodash-es'
 import goodsMemberPricePopup from '@/addon/mall/views/site/goods/components/goods-member-price-popup.vue'
+import vipcardPricePopup from '@/addon/mall/views/site/goods/components/vipcard-price-popup.vue'
 import goodsStockEditPopup from '@/addon/mall/views/site/goods/components/goods-stock-edit-popup.vue'
 import goodsPriceEditPopup from '@/addon/mall/views/site/goods/components/goods-price-edit-popup.vue'
 import goodsSpreadPopup from '@/addon/mall/views/site/goods/components/goods-spread-popup.vue'
 import supplyDetailPopup from '@/addon/mall/views/site/goods/components/supply-detail-popup.vue'
 import goodsBatchSettingsPopup from '@/addon/mall/views/site/goods/components/goods-batch-settings-popup.vue'
-import { getCategoryTree, getBrandList } from '@/app/api/basic_site'
-import { getGoodsPageList, getGoodsStatusType, getLabelList, editGoodsSort, editGoodsStatus, copyGoods, deleteGoods, getGoodsType, getGoodsSource } from '@/addon/mall/api/site/goods'
+import { getCategoryTree, getBrandList, getLabelList } from '@/app/api/basic_site'
+import { getGoodsPageList, getGoodsStatusType, editGoodsSort, editGoodsStatus, copyGoods, deleteGoods, getGoodsType, getGoodsSource } from '@/app/lang/zh-cn/api/site/goods'
 import { getMemberLevelAll } from '@/app/api/member'
+import { getVipcardAll } from '@/app/api/vip_card'
 import spreadPopup from '@/components/spread-popup/index.vue'
 import userStore from '@/stores/modules/user'
 
@@ -352,7 +361,9 @@ const getGoodsStatusFn = () => {
 // 初始化数据
 const initData = () => {
     // 查询商品分类树结构
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []
@@ -373,6 +384,11 @@ const initData = () => {
                 })
             })
             goodsCategoryOptions.splice(0, goodsCategoryOptions.length, ...goodsCategoryTree)
+            goodsCategoryOptions.unshift({
+                value: '',
+                label: '全部',
+                children: []
+            })
         }
     })
 
@@ -404,7 +420,7 @@ const initData = () => {
 initData()
 // 商品品牌
 const getBrandListFn = (query = '') => {
-    getBrandList({brand_name: query}).then((res) => {
+    getBrandList({brand_name: query, addon:'mall'}).then((res) => {
         brandOptions.value = res.data
     })
 }
@@ -858,6 +874,23 @@ const memberPriceEvent = (data: any) => {
     memberPricePopupRef.value.show(data, memberLevel.value)
 }
 /** ***************** 会员价-end *************************/
+
+/** ***************** 付费会员价-start *************************/
+const vipcardLevel = ref([])
+const getVipcardAllFn = () => {
+    getVipcardAll().then(res => {
+        vipcardLevel.value = res.data ? res.data : []
+    })
+}
+
+getVipcardAllFn()
+
+const vipcardPricePopupRef: any = ref(null)
+const vipcardPriceEvent = (data: any) => {
+    vipcardPricePopupRef.value.show(data, vipcardLevel.value)
+}
+
+/** ***************** 付费会员价-end *************************/
 
 // 复制商品
 const copyEvent = (data: any) => {

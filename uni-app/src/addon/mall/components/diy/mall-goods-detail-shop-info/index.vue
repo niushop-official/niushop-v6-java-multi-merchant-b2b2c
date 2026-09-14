@@ -32,10 +32,10 @@
                     <text class="text-[26rpx] text-[#FD3B1F]">{{ diyComponent.shop_info.logistics_score }}</text>
                 </view>
             </view>
-            <view class="mt-[30rpx]" v-if="diyComponent.recommend.isShow && diyComponent.recommend_goods_list?.length">
+            <view class="mt-[30rpx]" v-if="diyComponent.recommend.isShow && recommendGoods.length">
                 <view class="text-[30rpx] font-500 mb-[20rpx]">店铺推荐</view>
                 <view class="grid grid-cols-3 gap-x-[22rpx] gap-y-[30rpx]">
-                    <view v-for="(item,index) in diyComponent.recommend_goods_list" :key="index" @click="redirect({ url: '/addon/mall/pages/goods/detail', param: { goods_id: item.goods_id }})">
+                    <view v-for="(item,index) in recommendGoods" :key="index" @click="redirect({ url: '/addon/mall/pages/goods/detail', param: { goods_id: item.goods_id }})">
                         <up-image width="206rpx" height="206rpx" radius="16rpx" :src="img(item.goods_cover_thumb_small || '')" model="aspectFill">
                             <template #error>
                                 <image class="w-[206rpx] h-[206rpx] rounded-[16rpx]"  :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill" />
@@ -64,6 +64,7 @@ import useSystemStore from '@/stores/system'
 import { useShop } from '@/addon/mall/hooks/useShop'
 import useGoodsDetailStore from '@/addon/mall/stores/goodsDetail'
 import { useGoods } from '@/addon/mall/hooks/useGoods'
+import { getShopRecommendComponents } from '@/addon/mall/api/goods'
 
 const props = defineProps(['component', 'index', 'value']);
 const diyStore = useDiyStore();
@@ -119,6 +120,7 @@ onMounted(() => {
             () => diyComponent.value,
             (newValue, oldValue) => {
                 if (newValue && newValue.componentName == 'MallGoodsDetailShopInfo') {
+                    refresh();
                     nextTick(() => {})
                 }
             }
@@ -132,6 +134,7 @@ onMounted(() => {
                         emits('update:componentIsShow', false)   
                     }else{
                         emits('update:componentIsShow', true)
+                        refresh();
                     }
                 }
             },
@@ -139,9 +142,31 @@ onMounted(() => {
         )
     }
 });
+const refresh = () => {
+    // 装修模式下设置默认图
+    if (diyStore.mode == 'decorate') {
+    	let obj = {
+            goods_cover_thumb_small: "",
+            goods_name: "商品名称",
+            goodsSku: { show_price: 100 },
+        };
+        recommendGoods.value = [obj, obj, obj];
+    } else {
+        recommendGoodsFn();
+    }
+}
+
+const recommendGoodsFn = () => {
+    getShopRecommendComponents({ 
+        site_id: diyComponent.value?.shop_info?.site_id,
+        num: diyComponent.value.recommend.num,
+    }).then((res: any) => {
+    	recommendGoods.value = res.data;
+    })
+}
 //进入店铺
 const toShopDetail = (site_id:any) => {
-	redirect({ url: '/addon/mall/pages/site/index', param: { site_id } })
+	redirect({ url: '/addon/mall/pages/index', param: { site_id } })
 }
 </script>
 <style lang="scss" scoped>

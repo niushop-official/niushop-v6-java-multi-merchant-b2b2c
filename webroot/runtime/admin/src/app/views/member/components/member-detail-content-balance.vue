@@ -13,7 +13,7 @@
                             </div>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="account_sum" :label="t('剩余金额')" min-width="110" align="left" />
+                    <el-table-column prop="account_sum" :label="t('变动后金额')" min-width="110" align="left" />
                     <el-table-column prop="account_type_name" :label="t('balanceType')" min-width="150" align="center" />
                     <el-table-column prop="from_type_name" :label="t('fromType')" min-width="120" align="" />
                     <el-table-column prop="create_time" :show-overflow-tooltip="true" :label="t('createTime')" min-width="150" />

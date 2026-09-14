@@ -118,13 +118,10 @@ diyStore.editComponent.verify = (index: number) => {
         }
     })
 
-    if (diyStore.value[index].source == 'custom') {
-        const goodsIds = diyStore.value[index].goods_ids
-        if (!Array.isArray(goodsIds) || goodsIds.length < diyStore.value[index].list.length) {
-            res.code = false
-            res.message = t('goodsPlaceholderTip')
-            return res
-        }
+    if (diyStore.value[index].source == 'custom' && diyStore.value[index].goods_ids.length < diyStore.value[index].list.length) {
+        res.code = false
+        res.message = t('goodsPlaceholderTip')
+        return res
     }
     return res
 }
@@ -136,9 +133,6 @@ diyStore.editComponent.list.forEach((item: any) => {
 const blockBoxRef = ref()
 
 onMounted(() => {
-    if (!Array.isArray(diyStore.editComponent.goods_ids)) {
-        diyStore.editComponent.goods_ids = []
-    }
     nextTick(() => {
         const sortable = Sortable.create(blockBoxRef.value, {
             group: 'item-wrap',

@@ -9,11 +9,12 @@
                                 <image :src="img('addon/mall/site/default_store.png')" class="w-[60rpx] h-[60rpx] rounded-[6rpx] bg-[#fff] align-middle"></image>
                             </template>
                         </up-image>
-                        <view v-if="!item.business_status" class="absolute top-0 left-0 right-0 bottom-0 bg-[rgba(0,0,0,0.7)] text-[#fff] text-[16rpx] flex-center">已打烊</view>
                     </view>
                     
                     <view class="flex-1 flex items-center ml-[16rpx] box-border">
                         <view class="text-[28rpx] max-w-[400rpx] truncate font-500 text-[#333]">{{ item.site_name }}</view>
+                        <view class="bg-primary p-[8rpx] rounded-[6rpx] text-[20rpx] max-w-[400rpx] truncate font-500 text-[#fff] ml-[10rpx]" v-if="item.business_state == 1 || item.business_status == 1">{{ item.business_state_name }}</view>
+                        <view class="bg-[#9098A3] p-[8rpx] rounded-[6rpx] text-[20rpx] max-w-[400rpx] truncate font-500 text-[#fff] ml-[10rpx]" v-else>{{ item.business_state_name }}</view>
                     </view>
                     <view class="iconfont iconxuanze1 text-primary" v-if="siteInfo.site_id == item.site_id"></view>
                 </view>

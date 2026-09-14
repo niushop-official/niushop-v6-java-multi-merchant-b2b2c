@@ -189,20 +189,14 @@ const spreadEvent = (data: any) => {
 </script>
 
 <style lang="scss" scoped>
-:deep(.el-table__row) {
-    > .el-table__cell:nth-child(1) {
-        .cell {
-            display: flex;
-            align-items: center;
+:deep(.el-table__row  > .el-table__cell:nth-child(1) .cell) {
+    display: flex;
+    align-items: center;
 
-            .el-table__expand-icon,
-            .el-table__indent,
-            .el-table__placeholder {
-                order: 1;
-            }
-
-        }
-
+    .el-table__expand-icon,
+    .el-table__indent,
+    .el-table__placeholder {
+        order: 1;
     }
 }
 </style>

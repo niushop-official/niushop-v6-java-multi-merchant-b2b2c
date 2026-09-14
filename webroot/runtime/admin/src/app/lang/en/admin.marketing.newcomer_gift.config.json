@@ -1,0 +1,21 @@
+{
+    "basicInfo": "Basic Info",
+    "isOpen": "Is Open",
+    "isOpenTips": "After opening, newly registered users will automatically receive newcomer gifts",
+    "newcomerGift": "Newcomer Gift",
+    "save": "Save",
+    "receiveList": "Receive List",
+    "newcomerGiftConfig": "Newcomer Gift Config",
+    "searchKeywords": "Please enter member nickname/mobile",
+    "nickname": "Nickname",
+    "mobile": "Mobile",
+    "giftContent": "Gift Content",
+    "receiveTime": "Receive Time",
+    "memberId": "Member ID",
+    "memberInfo": "Member Info",
+    "createTime": "Create Time",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "search": "Search",
+    "reset": "Reset"
+}

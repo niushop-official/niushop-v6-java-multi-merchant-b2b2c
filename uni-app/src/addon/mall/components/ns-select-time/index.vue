@@ -8,9 +8,9 @@
                 <!-- 左侧日期选择 -->
                 <scroll-view :scroll-y="true" class="left bg-[#f8f8f8] shrink-0 w-[230rpx]" scroll-with-animation :scroll-into-view="'id' + (dateActive ? dateActive - 1 : 0)">
                     <template v-for="(item,index) in dateArr" :key="index">
-                        <view class="date-box flex box-border items-center"
+                        <view class="date-box flex px-[30rpx] py-[16rpx] box-border text-[24rpx] items-center"
                               :id="'id' + index" @click="selectDateEvent(index,item)"
-                              :class="{ 'bg-white': index == dateActive }">
+                              :class="{ 'bg-[#fff]': index == dateActive }">
                             <view class="text-[24rpx] leading-[58rpx]">{{ item.md }}</view>
                             <view class="text-[24rpx] leading-[58rpx]">({{ item.week }})</view>
                         </view>
@@ -20,10 +20,10 @@
                 <scroll-view :scroll-y="true" class="right w-[calc(100%-230rpx)] px-[30rpx] box-border" scroll-with-animation :scroll-into-view="'id' + (timeActive ? timeActive - 1 : 0)">
                     <!-- 时间选项 -->
                     <template v-for="(el,key) in dateArr[dateActive].children" :key="key">
-                        <view class="time-box flex justify-between items-center"
+                        <view class=" h-[72rpx] flex  border-0 border-solid border-b-[2rpx] border-[#eee] justify-between items-center"
                             v-if="!el.disable" @click="selectTimeEvent(key,el)"
-                            :class="{'text-primary':key == timeActive}" :id="'id' + key">
-                            <view class="font24" :class="{'text-primary':key == timeActive}">
+                            :class="{'text-[var(--primary-color)]':key == timeActive}" :id="'id' + key">
+                            <view class="text-[24rpx]" :class="{'text-[var(--primary-color)]':key == timeActive}">
 								<text v-if="el.value=='immediate'">{{ el.begin }}{{ el.end }}</text>
                                 <text v-else>{{ el.begin }}-{{ el.end }}</text>
                             </view>
@@ -274,16 +274,3 @@ export default {
     }
 }
 </script>
-<style lang="scss" scoped>
-.date-box{
-    padding: 16rpx 30rpx;
-    font-size: 24rpx;
-}
-.time-box{
-    height: 72rpx;
-    border-bottom: 2rpx solid #eee;
-}
-.font24 {
-    font-size: 24rpx;
-}
-</style>

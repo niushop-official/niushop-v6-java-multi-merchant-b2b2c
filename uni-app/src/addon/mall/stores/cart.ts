@@ -95,9 +95,7 @@ const useCartStore = defineStore('cart', {
 
             // 更新存储数据
             if (data.id) {
-                // this.cartList['goods_' + data.goods_id]['sku_' + data.sku_id].num = updateNum;
-                const goods = this.cartList['goods_' + data.goods_id] || {};
-                (goods['sku_' + data.sku_id] || (goods['sku_' + data.sku_id] = {})).num = updateNum;    
+                this.cartList['goods_' + data.goods_id]['sku_' + data.sku_id].num = updateNum;
             } else {
 
                 // 如果商品第一次添加，则初始化数据

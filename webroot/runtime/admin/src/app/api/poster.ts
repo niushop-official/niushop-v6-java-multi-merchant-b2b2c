@@ -104,3 +104,27 @@ export function initPoster(params: Record<string, any>) {
 export function getPreviewPoster(params: Record<string, any>) {
     return request.get(`sys/poster/preview`, {params})
 }
+
+
+/**
+ * 获取自定义海报下载
+ */
+export function getPreviewGenerate(params: Record<string, any>) {
+    return request.get(`sys/poster/generate`, {params})
+}
+
+
+/**
+ * 店铺二维码配置
+ * @param params
+ */
+export function getQrcodeConfig(params: Record<string, any>) {
+    return request.get(`site/qrcode/config`, {params})
+} 
+/**
+ * 店铺二维码配置
+ * @param params
+ */
+export function updateQrcodeConfig(params: Record<string, any>) {
+    return request.put(`site/qrcode/config`, params, {showSuccessMessage: true})
+}

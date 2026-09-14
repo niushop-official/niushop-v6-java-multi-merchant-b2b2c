@@ -19,6 +19,9 @@ switch (getAppType()) {
     case 'site':
         siteLayout = 'menu'
         break
+    case 'circle':
+        siteLayout = 'admin'
+        break
 }
 
 const layout = ref<any>(null)

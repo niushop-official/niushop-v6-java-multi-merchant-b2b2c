@@ -5,8 +5,8 @@ import request from '@/utils/request'
  * 获取商品分类树结构
  * @returns
  */
-export function getCategoryTree() {
-    return request.get(`basic/site/goods/tree`)
+export function getCategoryTree(params: Record<string, any>) {
+    return request.get(`basic/site/goods/tree`, { params })
 }
 
 /**
@@ -228,6 +228,16 @@ export function modifyAttrValue(params: Record<string, any>) {
     return request.put(`basic/site/goods/attr/attr_value`, params, { showSuccessMessage: true })
 }
 
+/*********************************  商品标签  ***************************************/
+/**
+ * 获取商品标签列表
+ * @param params
+ * @returns
+ */
+export function getLabelList(params: Record<string, any>) {
+    return request.get(`basic/site/goods/label/list`, { params })
+}
+
 /*********************************  业务类型  ***************************************/
 /**
  * 获取支持业务类型
@@ -274,4 +284,20 @@ export function getConfig() {
  */
 export function setConfig(param: any) {
     return request.post('basic/site/invoice/config', param, {showSuccessMessage: true})
+}
+
+/*********************************  积分抵扣配置  ***************************************/
+
+/**
+ * 获取积分抵扣配置
+ */
+export function getShopPointConfig() {
+    return request.get(`basic/site/point_deduct/config`)
+}
+
+/**
+ * 设置积分抵扣配置
+ */
+export function setShopPointConfig(params: Record<string, any>) {
+    return request.post(`basic/site/point_deduct/config`, params, { showSuccessMessage: true })
 }

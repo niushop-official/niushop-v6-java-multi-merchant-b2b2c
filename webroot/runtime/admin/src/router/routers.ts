@@ -57,6 +57,27 @@ export const SITE_ROUTE: RouteRecordRaw = {
     ]
 }
 
+
+export const CIRCLE_ROUTE: RouteRecordRaw = {
+    path: '/circle',
+    name: Symbol('circle'),
+    children: [
+        {
+            path: '',
+            name: Symbol('circleRoot'),
+            component: Default
+        },
+        {
+            path: 'login',
+            component: () => import('@/app/views/login/index.vue'),
+            meta: {
+                addon: '',
+                view: '/login'
+            }
+        }
+    ]
+}
+
 export const DECORATE_ROUTER: RouteRecordRaw = {
     path: '/decorate',
     component: Decorate,
@@ -115,7 +136,11 @@ const createRoute = function (route: Route, parentRoute: RouteRecordRaw | null =
             route.addon = route.view_path.split('://')[0]
             route.view_path = route.view_path.split('://')[1]
         }
-        record.component = route.addon ? addonModules[`/src/addon/${route.addon}/views/${route.view_path}.vue`] : modules[`/src/app/views/${route.view_path}.vue`]
+        // if(route.addon == 'o2o'){
+        //     record.component = addonModules[`/src/addon/views/${route.view_path}.vue`]
+        // }else{
+            record.component = route.addon ? addonModules[`/src/addon/${route.addon}/views/${route.view_path}.vue`] : modules[`/src/app/views/${route.view_path}.vue`]
+        // }   
     }
     return record
 }

@@ -4,20 +4,20 @@
             <template v-if="diyComponent.headStyle == 'style-3'">
                 <template v-if="diyComponent.source == 'custom'">
                     <view v-for="(item,index) in diyComponent.list" :key="index" :class="['flex-col inline-flex items-center justify-center', { 'pr-[40rpx]': (index != diyComponent.list.length-1) }]" @click="changeCateIndex(item,index)">
-                        <image :style="{ borderRadius : (diyComponent.aroundRadius * 2) + 'rpx' }" :class="['tab-item-wrap overflow-hidden', {'border-primary': index == cateIndex }]" v-if="item.imageUrl" :src="img(item.imageUrl)" mode="aspectFit" />
-                        <image :style="{ borderRadius : (diyComponent.aroundRadius * 2) + 'rpx' }" :class="['tab-item-wrap overflow-hidden', {'border-primary': index == cateIndex }]" v-else :src="img('static/resource/images/diy/figure.png')" mode="scaleToFill" />
-                        <text :class="['title-wrap', {'font-500 text-primary' : index == cateIndex  }]">{{ item.title }}</text>
+                        <image :style="{ borderRadius : (diyComponent.aroundRadius * 2) + 'rpx' }" :class="['w-[90rpx] h-[90rpx] overflow-hidden border-[2rpx] border-solid border-transparent', {'border-[var(--primary-color)]': index == cateIndex }]" v-if="item.imageUrl" :src="img(item.imageUrl)" mode="aspectFit" />
+                        <image :style="{ borderRadius : (diyComponent.aroundRadius * 2) + 'rpx' }" :class="['w-[90rpx] h-[90rpx] overflow-hidden border-[2rpx] border-solid border-transparent', {'border-[var(--primary-color)]': index == cateIndex }]" v-else :src="img('static/resource/images/diy/figure.png')" mode="scaleToFill" />
+                        <text :class="['text-[28rpx] mt-[16rpx]', {'font-500 text-[var(--primary-color)]' : index == cateIndex  }]">{{ item.title }}</text>
                     </view>
                 </template>
                 <template v-else-if="diyComponent.source == 'goods_category'">
                     <view class="pr-[40rpx] inline-flex flex-col items-center justify-center" @click="changeGoodsCategory({ category_id : 0 })">
-                        <image :style="{ borderRadius : (diyComponent.aroundRadius * 2) + 'rpx' }" :class="['tab-item-wrap overflow-hidden', {'border-primary': currentCategoryId == 0}]" :src="img('static/resource/images/diy/figure.png')" mode="scaleToFill" />
-                        <text :class="['title-wrap', {'font-500 text-primary': currentCategoryId == 0}]">全部</text>
+                        <image :style="{ borderRadius : (diyComponent.aroundRadius * 2) + 'rpx' }" :class="['w-[90rpx] h-[90rpx] overflow-hidden border-[2rpx] border-solid border-transparent', {'border-[var(--primary-color)]': currentCategoryId == 0}]" :src="img('static/resource/images/diy/figure.png')" mode="scaleToFill" />
+                        <text :class="['text-[28rpx] mt-[16rpx]', {'font-500 text-[var(--primary-color)]': currentCategoryId == 0}]">全部</text>
                     </view>
                     <view v-for="(item,index) in goodsCategoryListData" :key="index" :class="['flex-col inline-flex items-center justify-center', { 'pr-[40rpx]': (index != goodsCategoryListData.length-1) }]" @click="changeGoodsCategory(item)">
-                        <image :style="{ borderRadius : (diyComponent.aroundRadius * 2) + 'rpx' }" :class="['tab-item-wrap overflow-hidden', {'border-primary': currentCategoryId == item.category_id}]" v-if="item.image" :src="img(item.image)" mode="aspectFit" />
-                        <image :style="{ borderRadius : (diyComponent.aroundRadius * 2) + 'rpx' }" :class="['tab-item-wrap overflow-hidden', {'border-primary': currentCategoryId == item.category_id}]" v-else :src="img('static/resource/images/diy/figure.png')" mode="scaleToFill" />
-                        <text :class="['title-wrap', {'font-500 text-primary' : currentCategoryId == item.category_id}]">{{ item.category_name }}</text>
+                        <image :style="{ borderRadius : (diyComponent.aroundRadius * 2) + 'rpx' }" :class="['w-[90rpx] h-[90rpx] overflow-hidden border-[2rpx] border-solid border-transparent', {'border-[var(--primary-color)]': currentCategoryId == item.category_id}]" v-if="item.image" :src="img(item.image)" mode="aspectFit" />
+                        <image :style="{ borderRadius : (diyComponent.aroundRadius * 2) + 'rpx' }" :class="['w-[90rpx] h-[90rpx] overflow-hidden border-[2rpx] border-solid border-transparent', {'border-[var(--primary-color)]': currentCategoryId == item.category_id}]" v-else :src="img('static/resource/images/diy/figure.png')" mode="scaleToFill" />
+                        <text :class="['text-[28rpx] mt-[16rpx]', {'font-500 text-[var(--primary-color)]' : currentCategoryId == item.category_id}]">{{ item.category_name }}</text>
                     </view>
                 </template>
             </template>
@@ -357,16 +357,4 @@ const refreshGoodsList = (obj: any) => {
 
 }
 
-.tab-item-wrap {
-    width: 90rpx;
-    height: 90rpx;
-    border: 2rpx solid transparent;
-    &.border-color {
-        border-color: var(--primary-color);
-    }
-}
-.title-wrap{
-    font-size: 28rpx;
-    margin-top: 16rpx;
-}
 </style>

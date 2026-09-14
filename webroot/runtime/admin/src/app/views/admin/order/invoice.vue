@@ -5,19 +5,19 @@
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="invoiceManagementTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="invoiceManagementTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('headerName')" prop="header_name">
-                        <el-input v-model="invoiceManagementTableData.searchParam.header_name" :placeholder="t('headerNamePlaceholder')" clearable />
+                        <el-input v-model="invoiceManagementTableData.searchParam.header_name" :placeholder="t('headerNamePlaceholder')" clearable  class="search-input"/>
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
                         <el-date-picker v-model="invoiceManagementTableData.searchParam.create_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('invoiceTime')" prop="invoice_time">
                         <el-date-picker v-model="invoiceManagementTableData.searchParam.invoice_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadInvoiceList()">{{ t('search') }}</el-button>
@@ -39,7 +39,7 @@
                     <el-table-column prop="order_no" :show-overflow-tooltip="true" :label="t('shopInfo')" align="left"
                         min-width="160">
                         <template #default="{ row }">
-                            <div class="flex items-center cursor-pointer " @click="toShop(row.site.site_id)">
+                            <div class="flex items-center">
                                 <img class="w-[50px] h-[50px] mr-[10px] flex-shrink-0" v-if="row.site.front_end_logo"
                                     :src="img(row.site.front_end_logo)" alt="">
                                 <img class="w-[50px] h-[50px] mr-[10px] flex-shrink-0" v-else
@@ -165,27 +165,38 @@ const detailEvent = (data: any) => {
 
 // 订单详情
 const checkOrder = (data: any) => {
-    if (data.trade_type === 'mall') {
-        const routeUrl = router.resolve({
-            path: '/mall/order/detail',
-            query: { order_id: data.trade_id }
-        })
-        window.open(routeUrl.href, '_blank')
-    } else {
-        const routeUrl = router.resolve({
-            path: '/supply/order/detail',
-            query: { order_id: data.trade_id }
-        })
-        window.open(routeUrl.href, '_blank')
-    }
+    const addon = getOrderAddon(data)
+    if (!addon) return
+
+    const routeUrl = router.resolve({
+        path: `/${addon}/order/detail`,
+        query: { order_id: data.trade_id }
+    })
+    window.open(routeUrl.href, '_blank')
 }
 
-/**
- * 店铺详情
- */
-const toShop = (id: number) => {
-    router.push(`/admin/shop/info?id=${id}`)
+const getOrderAddon = (data: any) => {
+    const tradeType = data.addon || data.plugin || data.trade_type || data.tradeType || ''
+    const tradeTypeMap: Record<string, string> = {
+        order: 'mall',
+        order_trade: 'mall',
+        mall_order: 'mall',
+        mall_order_trade: 'mall',
+        supply_order: 'supply',
+        supply_order_trade: 'supply',
+        points_mall_order: 'points_mall',
+        points_order_trade: 'points_mall',
+        waimai_order_trade: 'waimai',
+        front_warehouse_order_trade: 'front_warehouse',
+        o2o_order_trade: 'o2o'
+    }
+
+    if (tradeTypeMap[tradeType]) {
+        return tradeTypeMap[tradeType]
+    }
+    return tradeType.replace(/_order_trade$|_order$/, '')
 }
+
 </script>
 
 <style lang="scss" scoped></style>

@@ -11,7 +11,7 @@
                 <el-form-item :label="t('支持业务类型')" >
                     <el-checkbox-group v-model="formData.support_trade">
                         <el-checkbox label="商城" value="mall" />
-                        <el-checkbox label="供货商" value="supply" />
+                        <el-checkbox label="供货商" value="supply" v-if="siteInfo?.app.includes('supply')" />
                     </el-checkbox-group>
                 </el-form-item>
                 <el-form-item :label="t('feeTypeName')" prop="fee_type">
@@ -157,6 +157,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { getAreatree } from '@/app/api/sys'
 import { filterDigit } from '@/utils/common'
 import Test from '@/utils/test'
+import userStore from '@/stores/modules/user'
+
+const siteInfo = computed(() => {
+    return userStore().siteInfo
+})
 
 const showSelectAreaDialog = ref(false)
 const route = useRoute()

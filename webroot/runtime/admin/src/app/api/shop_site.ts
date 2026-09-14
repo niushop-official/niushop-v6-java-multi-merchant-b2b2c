@@ -1,10 +1,5 @@
 import request from '@/utils/request'
-/**
- * 获取收款方式配置校验
- */
-export function getAccountCheck() {
-    return request.get(`shop/site/shop/account/check`)
-}
+
 /**
  * 获取店铺转账方式
  */
@@ -52,13 +47,6 @@ export function getShopAccountTypeList() {
 }
 
 /**
- * 设置店铺收款方式
- */
-export function setShopAccount(params: Record<string, any>) {
-    return request.put(`shop/site/shop/account/set`, params, { showErrorMessage: true, showSuccessMessage: true })
-}
-
-/**
  * 获取店铺账单类型列表
  */
 export function getShopCashOutStatus() {
@@ -78,34 +66,14 @@ export function transferShopCashCancel(id: number) {
     return request.put(`/shop/site/shop/cash_cancel/${id}`, {}, { showSuccessMessage: true })
 }
 
-/**
- * 获取店铺信息
- */
-export function getShopInfo() {
-    return request.get(`shop/site/setting/get_shop`)
-}
-
-/**
- * 获取店铺基础信息
- */
-export function getShopBaseInfo() {
-    return request.get(`shop/site/setting`)
-}
-/**
- * 设置店铺收款方式
- */
-export function setShopBaseInfo(params: Record<string, any>) {
-    return request.put(`shop/site/setting/set`, params, { showErrorMessage: true, showSuccessMessage: true })
-}
-
 /***************************************************** 会员列表 ****************************************************/
 /**
  * 获取店铺会员列表
  * @param params
  * @returns
  */
-export function getShopMember(params: Record<string, any>) {
-    return request.get(`shop/site/member`, { params })
+export function getShopMember(params: Record<string, any>, addon: string) {
+    return request.get(`shop/site/member/${addon}`, { params })
 }
 /**
  * 获取平台会员选择列表
@@ -115,21 +83,7 @@ export function getShopMember(params: Record<string, any>) {
 export function getPlatMemberSelectList(params: Record<string, any>) {
     return request.get(`shop/site/member/plat_select`, {params})
 }
-/**
- * 获取店铺会员编码
- * @returns
- */
-export function gethopMemberNo() {
-    return request.get(`shop/site/member/memberno`);
-}
-/**
- * 添加店铺会员
- * @param params
- * @returns
- */
-export function addShopMember(params: Record<string, any>) {
-    return request.post(`shop/site/member`, params, { showSuccessMessage: true })
-}
+
 /**
  * 获取店铺会员注册来源
  * @param params
@@ -143,54 +97,32 @@ export function getShopRegisterChannel(params: Record<string, any>) {
  * @param params
  * @returns
  */
-export function getShopIsFollow(params: Record<string, any>) {
-    return request.get(`shop/site/member/is_follow`, params)
+export function getShopFollowStatus(params: Record<string, any>) {
+    return request.get(`shop/site/member/follow_status`, params)
 }
 /**
  * 获取店铺会员详情
  * @param member_id 会员id
  * @returns
  */
-export function getShopMemberInfo(member_id: number) {
-    return request.get(`shop/site/member/${member_id}`);
+export function getShopMemberInfo(member_id: number, addon: string) {
+    return request.get(`shop/site/member/${member_id}/${addon}`);
 }
-/**
- * 店铺会员状态变更
- * @param params
- */
-export function editShopMemberStatus(params: Record<string, any>) {
-    return request.put(`shop/site/member/setstatus/${params.status}`, params, { showSuccessMessage: true })
-}
+
 /**
  * 编辑会员详情
  * @param params
  */
-export function editShopMemberDetail(params: Record<string, any>) {
-    return request.put(`shop/site/member/modify/${params.member_id}/${params.field}`, params, { showSuccessMessage: true })
-}
-/**
- * 获取店铺会员优惠券
- * @param member_id 会员id
- * @returns
- */
-export function getShopMemberCoupon(member_id: number,params: Record<string, any>) {
-    return request.get(`mall/site/member/coupon/list/${member_id}`,{params});
+export function editShopMemberDetail(params: Record<string, any>, addon: string) {
+    return request.put(`shop/site/member/modify/${params.member_id}/${addon}/${params.field}`, params, { showSuccessMessage: true })
 }
 
 /**
  * 批量编辑会员详情
  * @param params
  */
-export function batchModifyMemberDetail(params: Record<string, any>) {
-    return request.put(`shop/site/member/batch_modify`, params, { showSuccessMessage: true })
-}
-
-/**
- * 店铺优惠券批量发放
- * @param params
- */
-export function sendCoupon(params: Record<string, any>) {
-    return request.post(`mall/site/goods/coupon/send`, params, { showSuccessMessage: true })
+export function batchModifyMemberDetail(params: Record<string, any>, addon: string) {
+    return request.put(`shop/site/member/batch_modify/${addon}`, params, { showSuccessMessage: true })
 }
 
 /**
@@ -288,9 +220,19 @@ export function setSitePaymentStatus(params: Record<string, any>) {
     return request.put(`shop/site/site_payment/status/${params.id}`, params, { showSuccessMessage: true })
 }
 
+
 /**
- * 切换营业状态
+ * 获取交易配置
+ * @returns
  */
-export function updateBusinessStatus(params: Record<string, any>) {
-    return request.put(`shop/site/shop/business_status`, params, { showSuccessMessage: true })
+export function getConfig() {
+    return request.get('basic/site/config')
+}
+
+/**
+ * 编辑交易配置
+ * @returns
+ */
+export function setConfig(param: any) {
+    return request.post('basic/site/config', param, { showSuccessMessage: true })
 }

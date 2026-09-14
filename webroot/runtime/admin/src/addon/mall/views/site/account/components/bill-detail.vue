@@ -96,6 +96,22 @@
                             </div>
                         </div>
                     </el-col>
+                    <!-- <el-col :span="12">
+                        <div class="my-[30px] flex items-center justify-between">
+                                <span class="text-[14px] text-[#666] font-medium ml-[20px] pl-[8px] select">商圈佣金</span>
+                                <span class="text-[15px] text-[#666] font-semibold">{{ detail.circle_total_commission }}</span>
+                            </div>
+                        <div class="py-[20px] px-[15px] bg-[#f9f9f9]">
+                            <div class="flex items-center justify-between mb-[20px]">
+                                <span class="text-[14px] text-[#999]">支付商圈佣金</span>
+                                <span class="text-[14px] text-[#666]">{{ detail.circle_commission }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-[14px] text-[#999]">退还商圈佣金</span>
+                                <span class="text-[14px] text-[#666]">{{ detail.circle_refund_commission }}</span>
+                            </div>
+                        </div>
+                    </el-col> -->
                 </el-row>
             </div>
             <div class="flex items-center justify-between">

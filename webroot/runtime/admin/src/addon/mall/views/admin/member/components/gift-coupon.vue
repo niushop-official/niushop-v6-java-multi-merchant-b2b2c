@@ -58,8 +58,8 @@
 
 <script lang="ts" setup>
 import { computed, reactive, ref, watch } from 'vue'
-import couponSelectPopup from '@/addon/mall/views/admin/goods/components/coupon-select-popup.vue'
-import { getSelectedCouponList } from '@/addon/mall/api/admin/marketing'
+import couponSelectPopup from '@/app/views/admin/marketing/coupon/components/common-coupon-select-popup.vue'
+import { getSelectedCouponList } from '@/app/api/marketing_admin'
 import { t } from '@/lang'
 import { FormRules } from 'element-plus'
 
@@ -84,19 +84,18 @@ const formRules = reactive<FormRules>({
     coupon_id: [
         {
             validator: (rule: any, value: any, callback: any) => {
-                if (formData.value.is_use) {
-                    if (!formData.value.coupon_id.length) {
-                        callback('请输入选择优惠券')
-                    }
-                    formData.value.coupon_id.forEach(id => {
-                        if (!formData.value.coupon_list['id_' + id]) {
-                            callback('请输入赠券数量')
-                        }
-                    })
-                    callback()
-                } else {
-                    callback()
+                if (!formData.value.is_use) {
+                    return callback()
                 }
+                if (!value?.length) {
+                    return callback(new Error('请选择优惠券'))
+                }
+                for (const id of value) {
+                    if (!formData.value.coupon_list['id_' + id]) {
+                        return callback(new Error('请输入赠券数量'))
+                    }
+                }
+                callback()
             }
         }
     ]

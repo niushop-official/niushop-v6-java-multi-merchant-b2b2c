@@ -18,7 +18,7 @@
 import { ref, reactive, computed } from 'vue'
 import { t } from '@/lang'
 import type { FormInstance } from 'element-plus'
-import { setShopRemark } from '@/addon/mall/api/site/order'
+import { setShopRemark } from '@/app/lang/zh-cn/api/site/order'
 
 const showDialog = ref(false)
 const loading = ref(false)

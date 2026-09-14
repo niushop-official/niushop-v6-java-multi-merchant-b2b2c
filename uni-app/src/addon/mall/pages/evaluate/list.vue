@@ -108,7 +108,7 @@
                         </template>
                         <template v-if="item.image_mid.length > 4">
                             <view class="flex flex-wrap mt-[10rpx]">
-                                <view v-for="(imageItem, imageIndex) in item.image_mid" class="mb10" :class="{'mr10':(imageIndex + 1) % 3 != 0}">
+                                <view v-for="(imageItem, imageIndex) in item.image_mid" class="mb-[10rpx]" :class="{'mr-[10rpx]':(imageIndex + 1) % 3 != 0}">
                                     <up-image width="211rpx" height="211rpx" :src="img(imageItem)" mode="aspectFill" :radius="'var(--goods-rounded-big)'"
                                         @click="imgListPreview(item.images[imageIndex])">
                                         <template #error>
@@ -224,11 +224,5 @@ onUnload(() => {
         left: 50%;
         transform: translateX(-50%);
     }
-}
-.mb10 {
-    margin-bottom: 10rpx;
-}
-.mr10 { 
-    margin-right: 10rpx;
 }
 </style>

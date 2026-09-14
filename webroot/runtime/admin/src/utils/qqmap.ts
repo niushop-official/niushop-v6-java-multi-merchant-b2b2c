@@ -4,8 +4,10 @@ const geometry: any = {}
 
 /**
  * 在地图上创建一个圆形
+ * @param onChange 图形变化时的回调函数
+ * @param onSelect 图形被选中时的回调函数
  */
-export const createCircle = (map: any, geometriesData: any) => {
+export const createCircle = (map: any, geometriesData: any, onChange?: (data: any) => void, onSelect?: (key: string) => void) => {
     const TMap = (window as any).TMap
     const LatLng = TMap.LatLng
 
@@ -57,6 +59,11 @@ export const createCircle = (map: any, geometriesData: any) => {
     editor.on('adjust_complete', (data: any) => {
         geometriesData.center = { lat: data.center.lat, lng: data.center.lng }
         geometriesData.radius = parseInt(data.radius)
+        onChange?.(geometriesData)
+    })
+
+    editor.on('select', () => {
+        onSelect?.(geometriesData.key)
     })
 
     geometry[geometriesData.key] = { graphical: multiCircle, editor }
@@ -64,10 +71,10 @@ export const createCircle = (map: any, geometriesData: any) => {
 
 /**
  * 在地图上创建一个多边形
- * @param map
- * @param geometriesData
+ * @param onChange 图形变化时的回调函数
+ * @param onSelect 图形被选中时的回调函数
  */
-export const createPolygon = (map: any, geometriesData: any) => {
+export const createPolygon = (map: any, geometriesData: any, onChange?: (data: any) => void, onSelect?: (key: string) => void) => {
     const TMap = (window as any).TMap
     const LatLng = TMap.LatLng
 
@@ -124,6 +131,11 @@ export const createPolygon = (map: any, geometriesData: any) => {
         geometriesData.paths = data.paths.map(item => {
             return { lat: item.lat, lng: item.lng}
         })
+        onChange?.(geometriesData)
+    })
+
+    editor.on('select', () => {
+        onSelect?.(geometriesData.key)
     })
 
     geometry[geometriesData.key] = { graphical: multiPolygon, editor }
@@ -146,7 +158,23 @@ export const deleteGeometry = (key: string) => {
  * @param key
  */
 export const selectGeometry = (key: string) => {
+    if (!geometry[key]) {
+        return
+    }
     geometry[key].editor.select([key])
+}
+
+/**
+ * 取消选中所有图形
+ */
+export const deselectAllGeometry = () => {
+    Object.keys(geometry).forEach(key => {
+        try {
+            geometry[key]?.editor?.select([])
+        } catch (e) {
+            // 取消选中失败
+        }
+    })
 }
 
 /**

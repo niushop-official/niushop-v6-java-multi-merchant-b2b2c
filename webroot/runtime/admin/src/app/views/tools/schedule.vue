@@ -7,7 +7,7 @@
                 <el-button type="primary" @click="showEvent">{{ t('addCron') }}</el-button>
             </div>
 
-            <el-alert type="info">
+            <el-alert type="info" v-if="false">
                 <template #default>
                     <div class="flex items-center">
                         <div>
@@ -24,15 +24,15 @@
 
             <el-card class="box-card !border-none mb-[10px] table-search-wrap" shadow="never">
                 <div class="flex justify-between">
-                    <el-form :inline="true" :model="cronTableData.searchParam" ref="searchFormRef">
+                    <el-form :inline="true"  label-width="90px" :model="cronTableData.searchParam" ref="searchFormRef" class="page-form">
                         <el-form-item :label="t('title')" prop="key">
-                            <el-select v-model="cronTableData.searchParam.key" placeholder="全部" filterable remote clearable :remote-method="getAddonDevelopFn">
+                            <el-select v-model="cronTableData.searchParam.key" placeholder="全部" filterable remote clearable :remote-method="getAddonDevelopFn" class="search-input">
                                 <el-option label="全部" value="all" />
                                 <el-option v-for="item in templateList" :key="item.key" :label="item.name" :value="item.key" />
                             </el-select>
                         </el-form-item>
                         <el-form-item :label="t('status')" prop="status">
-                            <el-select v-model="cronTableData.searchParam.status" placeholder="全部" filterable remote clearable :remote-method="getAddonDevelopFn">
+                            <el-select v-model="cronTableData.searchParam.status" placeholder="全部" filterable remote clearable :remote-method="getAddonDevelopFn" class="search-input">
                                 <el-option label="全部" value="all" />
                                 <el-option label="启用" value="1" />
                                 <el-option label="关闭" value="2" />

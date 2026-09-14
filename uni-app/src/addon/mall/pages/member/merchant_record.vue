@@ -1,5 +1,5 @@
 <template>
-    <view class="bg-[var(--page-bg-color)] min-h-screen overflow-hidden record-list" :style="themeColor()">
+    <view class="bg-[var(--page-bg-color)] min-h-screen overflow-hidden record-list" :style="themeColor()" v-if="systemStore.auditFlag">
         <view class="fixed left-0 top-0 right-0 z-10" v-if="statusLoading">
 			<scroll-view :scroll-x="true" class="tab-style-2">
 				<view class="tab-content">
@@ -23,22 +23,22 @@
                         </view>
                         <view class="flex items-center mt-[16rpx]">
                             <view class="flex-1">
-                                <view class="text-[22rpx] text-[#999] leading-[30rpx]">{{ t('shopInfo') }}</view>
-                                <view class="mt-[6rpx] text-[#333] text-[24rpx] leading-[34rpx]">{{ item.user_name }} {{ item.user_mobile }}</view>
-                            </view>
-                            <view class="flex-1">
                                 <view class="text-[22rpx] text-[#999] leading-[30rpx]">{{ t('applyTime') }}</view>
                                 <view class="mt-[6rpx] text-[#333] text-[24rpx] leading-[34rpx]">{{ item.create_time }}</view>
                             </view>
-                        </view>
-                        <view class="flex items-center mt-[20rpx]">
                             <view class="flex-1">
                                 <view class="text-[22rpx] text-[#999] leading-[30rpx]">{{ t('categoryName') }}</view>
                                 <view class="mt-[6rpx] text-[#333] text-[24rpx] leading-[34rpx]">{{ item.category_name }}</view>
                             </view>
-                            <view class="flex-1" v-if="item.child_category_name">
-                                <view class="text-[22rpx] text-[#999] leading-[30rpx]">{{ t('childCategoryName') }}</view>
-                                <view class="mt-[6rpx] text-[#333] text-[24rpx] leading-[34rpx]">{{ item.child_category_name }}</view>
+                        </view>
+                        <view class="flex items-center mt-[20rpx]">
+                            <view class="flex-1">
+                                <view class="text-[22rpx] text-[#999] leading-[30rpx]">{{ t('shopInfo') }}</view>
+                                <view class="mt-[6rpx] text-[#333] text-[24rpx] leading-[34rpx]">{{ item.user_name }} {{ item.user_mobile }}</view>
+                            </view>
+                            <view class="flex-1">
+                                <view class="text-[22rpx] text-[#999] leading-[30rpx]">{{ t('groupName') }}</view>
+                                <view class="mt-[6rpx] text-[#333] text-[24rpx] leading-[34rpx]">{{ item.group_name }}</view>
                             </view>
                         </view>
                         <view class="flex items-center mt-[20rpx]" v-if="item.account">

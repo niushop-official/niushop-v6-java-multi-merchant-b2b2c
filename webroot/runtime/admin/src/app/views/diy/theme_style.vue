@@ -13,7 +13,7 @@
                 <el-table-column label="应用" min-width="120" >
                     <template #default="{ row }">
                         <div class="flex items-center">
-                            <el-image class="w-[40px] h-[40px] rounded-md overflow-hidden" :src="img(row.icon)" fit="contain">
+                            <el-image class="w-[40px] h-[40px] rounded-md overflow-hidden" :src="row.icon.indexOf('data:image') != -1 ? row.icon : img(row.icon)" fit="contain">
                                 <template #error>
                                     <div class="flex items-center w-full h-full">
                                         <img class="w-full h-full" src="@/app/assets/images/icon-addon.png" alt="">
@@ -91,7 +91,7 @@ const editEvent = (data: any) => {
 <!-- 设置弹窗标题 -->
 <style scoped>
 /* 使用深度选择器 */
-::v-deep .custom-theme-dialog .el-dialog__title {
+:deep(.custom-theme-dialog .el-dialog__title) {
   font-size: 16px;
 }
 </style>

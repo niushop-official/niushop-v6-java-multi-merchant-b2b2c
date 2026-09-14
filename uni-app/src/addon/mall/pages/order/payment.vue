@@ -588,7 +588,7 @@ const create = () => {
  * 下单校验
  */
 const verify = () => {
-    if (!orderData.value.delivery.take_address || (orderData.value.basic.has_goods_types.includes('real') && orderData.value.basic.is_need_take_address && JSON.stringify(orderData.value.delivery.take_address) == '[]')) {
+    if (!orderData.value.delivery.take_address) {
         uni.showToast({ title: '请选择收货地址', icon: 'none' })
         return false
     }
@@ -732,7 +732,6 @@ const openSelectStore = (data: any) => {
         site_id: data.site_id,
         take_store: deepClone(data.delivery.take_store),
         store_list: deepClone(data.delivery.take_store_list),
-        delivery_type: data.delivery.delivery_type
     }
     storeRef.value.open(obj)
 }

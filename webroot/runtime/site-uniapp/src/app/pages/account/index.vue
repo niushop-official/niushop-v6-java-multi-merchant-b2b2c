@@ -112,22 +112,8 @@ const getShopinComeOfRangeFn = () => {
 getShopinComeOfRangeFn()
 
 const tipsRef = ref()
-const transfeLoading = ref(false)
 const  transferClick = () => {
-    if (transfeLoading.value) return
-    transfeLoading.value = true
-    getAccountCheck().then((res: any) => {
-        transfeLoading.value = false
-        if (res.data.is_fill) {
-            redirect({ url: '/app/pages/account/cash_out' })
-            return false
-        }
-        tipsRef.value.open('您还未配置提现收款方式，是否前往配置？', () => {
-            redirect({ url: '/app/pages/account/transfer_type' })
-        })
-    }).catch(() => {
-        transfeLoading.value = false
-    })
+    redirect({ url: '/app/pages/account/cash_out' })
 }
 </script>
 

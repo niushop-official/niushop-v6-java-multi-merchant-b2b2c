@@ -131,7 +131,7 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { getFullGiftInfo} from "@/addon/mall/api/admin/marketing";
+import { getFullGiftInfo} from "@/app/lang/zh-cn/api/admin/marketing";
 import { useRouter } from 'vue-router'
 import { img } from '@/utils/common'
 

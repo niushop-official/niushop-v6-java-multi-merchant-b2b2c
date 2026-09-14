@@ -117,7 +117,7 @@
 <script lang="ts" setup>
 import { ref, reactive, computed } from 'vue'
 import { img, moneyFormat } from '@/utils/common'
-import { pickGoods, getGoodsDetail } from '@/addon/mall/api/site/select_goods'
+import { pickGoods, getGoodsDetail } from '@/app/lang/zh-cn/api/site/select_goods'
 import { FormInstance } from 'element-plus'
 
 const showDialog = ref(false)

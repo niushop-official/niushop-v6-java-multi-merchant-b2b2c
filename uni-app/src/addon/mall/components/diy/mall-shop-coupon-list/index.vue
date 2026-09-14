@@ -4,7 +4,7 @@
 			<view :style="warpCss" class="overflow-hidden">
 				<view class="py-[var(--top-m)] sidebar-margin">
 					<template v-for="(item, index) in couponList">
-						<view v-if="item.btnType === 'collected'" class="flex items-center relative coupon-item-wrap  overflow-hidden bg-white  background-size" :class="{'mt20':index}" :style="{ backgroundImage: 'url(' + img('addon/mall/coupon/coupn_loot.png') + ')'}" >
+						<view v-if="item.btnType === 'collected'" class="flex items-center relative w-[100%] rounded-[var(--rounded-big)] overflow-hidden bg-[#fff] py-[20rpx] background-size" :class="{'mt-[var(--top-m)]':index}" :style="{ backgroundImage: 'url(' + img('addon/mall/coupon/coupn_loot.png') + ')'}" >
 							<view class="box-border flex-1 border-0 border-r-[1px] border-[#FFDCDC] border-dashed flex items-center">
 								<view class="w-[164rpx] box-border flex justify-center">
 									<view class="flex items-baseline text-[var(--price-text-color)]">
@@ -33,7 +33,7 @@
 							<view class="absolute top-0 right-[194rpx]  h-[10rpx] w-[20rpx] rounded-br-[20rpx] rounded-bl-[20rpx] bg-[var(--page-bg-color)] "></view>
 							<view class="absolute bottom-0 right-[194rpx] h-[10rpx] w-[20rpx] rounded-tr-[20rpx] rounded-tl-[20rpx] bg-[var(--page-bg-color)]"></view>
 						</view>
-						<view v-else class ="flex items-center relative coupon-item-wrap overflow-hidden bg-white background-size" :class="{'mt20':index}">
+						<view v-else class ="flex items-center relative w-[100%] rounded-[var(--rounded-big)] overflow-hidden bg-[#fff] py-[20rpx] background-size" :class="{'mt-[var(--top-m)]':index}">
 							<view class="relative box-border flex-1 border-0 border-r-[1px] border-[#FFDCDC] border-dashed flex items-center pl-[10rpx]">
 								<view class="w-[164rpx] box-border flex justify-center">
 									<view class="flex items-baseline text-[var(--price-text-color)]">
@@ -81,7 +81,7 @@ import { img, redirect } from '@/utils/common';
 import useDiyStore from '@/app/stores/diy';
 import { useLogin } from '@/hooks/useLogin';
 import useMemberStore from '@/stores/member'
-import { getMallCouponList, getCoupon } from '@/app/api/marketing'
+import { getMallCouponList, getCoupon } from '@/addon/mall/api/coupon'
 import { onLoad, onPageScroll, onReachBottom } from '@dcloudio/uni-app';
 import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue';
 import useMescroll from '@/components/mescroll/hooks/useMescroll.js';
@@ -204,7 +204,7 @@ const refresh = () => {
 const collecting = (coupon_id: any, index: number) => {
     if (diyStore.mode == 'decorate') return;
     if (!userInfo.value) {
-        useLogin().setLoginBack({ url: '/addon/mall/pages/site/index', param: { site_id: diyStore.siteId } })
+        useLogin().setLoginBack({ url: '/addon/mall/pages/index', param: { site_id: diyStore.siteId } })
         return false
     }
     getCoupon({ coupon_id, number: 1, type:'receive' }).then((res: any) => {
@@ -231,12 +231,4 @@ const toLink = (id: any) => {
     background-position: right top;
     background-size: 27%;
 }	
-.coupon-item-wrap {
-	width: 100%;
-	border-radius: var(--rounded-big);
-	padding: 20rpx 0; 
-	&.mt20{
-		margin-top: var(--top-m);
-	}
-}
 </style>

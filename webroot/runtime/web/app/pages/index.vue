@@ -178,6 +178,7 @@
 												<div class="text-[var(--el-price)] flex items-baseline">
 													<span class="text-[12px] price-font">￥</span>
 													<span class="text-[20px] price-font">{{parseFloat(goodsPrice(subItem)).toFixed(2)}}</span>
+													<img  v-if="priceType(subItem) == 'svip_price'" class="h-[12px] mt-auto w-[30px]" src="@/assets/images/addon/SVIP.png" />
 													<img  v-if="priceType(subItem) == 'member_price'" class="h-[14px] ml-[3px] w-[24px]" src="@/assets/images/addon/VIP.png" />
 													<img   v-if="priceType(subItem) == 'discount_price'" class="h-[12px] ml-[3px] w-[36px]" src="@/assets/images/addon/discount.png" />
 												</div>
@@ -202,7 +203,7 @@
 import { ref } from 'vue'
 import { getToken} from '@/utils/common'
 import { useRouter, useRoute } from 'vue-router'
-import { getAdvInfo, getFloor, getCategoryTree, getWebShopList,checkShopStatus } from '@/app/api/index'
+import { getAdvInfo, getFloor, getCategoryTree, getWebShopList } from '@/app/api/index'
 import { getArticleHot } from '@/app/api/article'
 import useMemberStore from '@/stores/member'
 import useConfigStore from '@/stores/config'
@@ -275,18 +276,7 @@ const handleDetail = (data: any) =>{
             return false
         }
     }
-	console.log(data)
-	if(data == '/member/merchant_settled'){
-		checkShopStatus().then((res: any)=>{
-			if(res.data){
-				router.push('/member/merchant_record')
-			}else{
-				router.push(data)
-			}
-		})
-	}else{
-		router.push(data)
-	}
+	router.push(data)
 }
 
 

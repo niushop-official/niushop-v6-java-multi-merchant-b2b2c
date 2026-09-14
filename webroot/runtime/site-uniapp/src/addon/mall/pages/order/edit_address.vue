@@ -74,7 +74,7 @@
 import { ref, reactive, computed, nextTick } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import manifestJson from '@/manifest.json';
-import { redirect } from '@/utils/common'
+import { redirect, openMapSelector } from '@/utils/common'
 import { getDeliveryStoreListAll } from '@/app/api/delivery_site'
 import { getOrderEditAddress, orderEditAddress } from '@/addon/mall/api/order'
 import { getAddressByLatlng } from '@/app/api/system';
@@ -297,7 +297,11 @@ const chooseLocation = () => {
     if (isSelectMap.value) {
         backurl = backurl + '&isSelectMap=' + isSelectMap.value
     }
-    window.location.href = 'https://apis.map.qq.com/tools/locpicker?search=1&type=0&backurl=' + encodeURIComponent(backurl) + '&key=' + manifestJson.h5.sdkConfigs.maps.qqmap.key + '&referer=myapp';
+    let params = ''
+    if (formData.taker_latitude && formData.taker_longitude) {
+        params = `latng=${ formData.taker_latitude },${ formData.taker_longitude }`
+    }
+    openMapSelector(backurl, params);
     // #endif
 }
 

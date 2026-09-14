@@ -28,7 +28,6 @@
 									<text class="text-[32rpx] font-bold price-font">￥</text>
 									<text class="text-[48rpx] price-font">{{ parseFloat(goodsPrice).toFixed(2).split('.')[0] }}</text>
 									<text class="text-[32rpx] mr-[6rpx] price-font">.{{ parseFloat(goodsPrice).toFixed(2).split('.')[1] }}</text>
-									<image v-if="priceType() == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
 									<image
 										class="h-[24rpx] ml-[6rpx] max-w-[44rpx]"
 										v-if="priceType() == 'member_price'"
@@ -54,18 +53,23 @@
 						</view>
 					</view>
 					<scroll-view class="h-[500rpx] px-[32rpx] box-border mb-[60rpx]" scroll-y="true">
-						<view :class="{ 'mt20': 0 != index }" v-for="(item, index) in goodsDetail.goodsSpec" :key="index">
+						<view :class="{ 'mt-[20rpx]': 0 != index }" v-for="(item, index) in goodsDetail.goodsSpec" :key="index">
 							<view class="text-[28rpx] leading-[36rpx] mb-[24rpx]">{{ item.spec_name }}</view>
 							<view class="flex flex-wrap">
-								<view class="relative box-border sku-item-wrap  text-center flex-center"
-									:class="{'actvie': subItem.selected,
-										'not-exist': (specListStatus[item.spec_id] && specListStatus[item.spec_id][subItem.name] && (specListStatus[item.spec_id][subItem.name]?.status == 'notExist'))
+								<view
+									class="relative box-border bg-[var(--temp-bg)] text-[24rpx] px-[44rpx] text-center h-[56rpx] flex-center mr-[20rpx] mb-[20rpx] border-1 border-solid rounded-[50rpx] border-[var(--temp-bg)]"
+									:class="{
+										'!border-[var(--primary-color)] text-[var(--primary-color)] !bg-[var(--primary-color-light)]':
+											subItem.selected,
+										'text-[#a8a8a8]': (specListStatus[item.spec_id] && specListStatus[item.spec_id][subItem.name] && (specListStatus[item.spec_id][subItem.name]?.status == 'notExist'))
 									}"
 									v-for="(subItem, subIndex) in item.values"
 									:key="subIndex"
 									@click="change(subItem, index, item)"
 									>{{ subItem.name }}
-                                    <text class="stockout absolute " :class="{'actvie': subItem.selected }" v-if="specListStatus[item.spec_id] && specListStatus[item.spec_id][subItem.name] && (specListStatus[item.spec_id][subItem.name]?.status == 'outOfStock')">缺货</text></view>
+                                    <text class="text-[16rpx] text-[#fff] bg-[#CACACA] px-[4px] py-[4rpx] -top-[14rpx] right-[0] absolute rounded-[5rpx]" :class="{
+										'!bg-[var(--primary-color)]': subItem.selected
+									}" v-if="specListStatus[item.spec_id] && specListStatus[item.spec_id][subItem.name] && (specListStatus[item.spec_id][subItem.name]?.status == 'outOfStock')">缺货</text></view>
 							</view>
 						</view>
 						<view class="flex justify-between items-center my-[20rpx]">
@@ -83,8 +87,8 @@
 								<template #minus>
 									<view class="relative w-[30rpx] h-[30rpx]" @click="reduceNumChange">
 										<text
-											class="num-box nc-iconfont nc-icon-jianV6xx font-500 absolute flex items-center justify-center"
-											:class="{ 'text-color-light9': buyNum <= minBuy }"
+											class="text-[30rpx] nc-iconfont nc-icon-jianV6xx font-500 absolute flex items-center justify-center -left-[8rpx] -bottom-[8rpx] -right-[8rpx] -top-[8rpx]"
+											:class="{ '!text-[var(--text-color-light9)]': buyNum <= minBuy }"
 										></text>
 									</view>
 								</template>
@@ -100,8 +104,8 @@
 								<template #plus>
 									<view class="relative w-[30rpx] h-[30rpx]" @click="addNumChange">
 										<text
-											class="num-box nc-iconfont nc-icon-jiahaoV6xx font-500 absolute flex items-center justify-center"
-											:class="{ 'text-color-light9': buyNum >= maxBuy }"
+											class="text-[30rpx] nc-iconfont nc-icon-jiahaoV6xx font-500 absolute flex items-center justify-center -left-[8rpx] -bottom-[8rpx] -right-[8rpx] -top-[8rpx]"
+											:class="{ '!text-[var(--text-color-light9)]': buyNum >= maxBuy }"
 										></text>
 									</view>
 								</template>
@@ -290,7 +294,7 @@ const closeFn = () => {
 
 const goodsDetail = computed(() => {
 	let data = cloneDeep(props.goodsDetail)
-	console.log('goodsDetail', data)
+
 	// 重组数据结构
 	if (Object.keys(data).length) {
 		if (!Object.keys(currSpec.value.name).length) currSpec.value.name = data.sku_spec_format.split(',')
@@ -398,7 +402,7 @@ const detectionGoodsIsDisable = (data: any, currSkuName: any) => {
 	}
 }
 
-const emits = defineEmits(['change', 'update'])
+const emits = defineEmits(['change'])
 const getSkuId = () => {
 	props.goodsDetail.skuList.forEach((skuItem: any, skuIndex: any) => {
 		if (skuItem.sku_spec_format == currSpec.value.name.toString()) {
@@ -485,6 +489,7 @@ const confirm = () => {
 		let num = 0
 		let limitNum = 0
 		let cartId = ''
+
 		if (
 			cartList.value['goods_' + goodsDetail.value.goods_id] &&
 			cartList.value['goods_' + goodsDetail.value.goods_id]['sku_' + currSpec.value.skuId]
@@ -533,54 +538,6 @@ const confirm = () => {
 				})
 			},
 		)
-	} else if(openType.value == 'update_cart'){
-		let num = 0
-		let limitNum = 0
-		if (cartList.value['goods_' + goodsDetail.value.goods_id] && cartList.value['goods_' + goodsDetail.value.goods_id]) {
-			limitNum = toRaw(cartList.value['goods_' + goodsDetail.value.goods_id].totalNum)
-		}
-		num += Number(buyNum.value)
-		limitNum += Number(buyNum.value)
-		/************** 限购-start **************/
-		if (goodsDetail.value.goods.is_limit) {
-			let tips = `该商品单次限购${goodsDetail.value.goods.max_buy}件`
-			if (goodsDetail.value.goods.limit_type != 1) {
-				//单次限购
-				tips = `该商品每人限购${goodsDetail.value.goods.max_buy}件`
-				if (goodsDetail.value.goods.max_buy - maxBuy.value) {
-					tips += `,已购${goodsDetail.value.goods.max_buy - maxBuy.value}件`
-				}
-			}
-			if (limitNum > maxBuy.value) {
-				uni.showToast({ title: tips, icon: 'none' })
-				return false
-			}
-		}
-		/************** 限购-end **************/
-
-		cartStore.increase(
-			{
-				id: goodsDetail.value.id || '',
-				goods_id: goodsDetail.value.goods_id,
-				sku_id: currSpec.value.skuId,
-				stock: goodsDetail.value.stock,
-				sale_price: goodsDetail.value.sale_price,
-				site_id: goodsDetail.value.site_id,
-				num: num,
-			},
-			0,
-			() => {
-				uni.showToast({
-					title: '加入购物车成功',
-					icon: 'none',
-				})
-				currSpec.value = {
-					skuId: '',
-					name: [],
-				}
-				emits('update')
-			},
-		)
 	} else if (openType.value == 'buy_now') {
 		// 立即购买
 		const data = {
@@ -625,7 +582,7 @@ const updateSpecListStatus = () => {
 	let selectedArr = JSON.parse(JSON.stringify(currSpec.value.name))
 	let selected = {}
 	selectedArr.forEach((item, index) => {
-		selected[specList[index]?.spec_id] = item
+		selected[specList[index].spec_id] = item
 	})
 
 	// 1. 获取规格顺序
@@ -684,48 +641,5 @@ defineExpose({
 }
 ::v-deep .uni-scroll-view {
 	position: inherit;
-}
-.mt20 {
-	margin-top: 20px;
-}
-.sku-item-wrap{
-	background-color: var(--temp-bg);
-	font-size: 24rpx;
-	padding: 0 44rpx;
-	height: 56rpx;
-	margin-right: 20rpx;
-	margin-bottom: 20rpx;
-	border-radius: 50rpx;
-	border: 1rpx solid var(--temp-bg);
-	&.actvie {
-		border-color: var(--primary-color) !important;
-		color: var(--primary-color);
-		background-color: var(--primary-color-light) !important;
-	}
-	&.not-exist { 
-		color: #a8a8a8;
-	}
-}
-.stockout{
-	font-size: 16rpx;
-	color: #fff;
-	background-color: #CACACA;
-	padding: 4rpx;
-	top: -14rpx;
-	right: 0; 
-	border-radius: 5rpx;
-	&.actvie{
-		background-color: var(--primary-color) !important;
-	}
-}
-.num-box{
-	font-size: 30rpx;
-	left: -8rpx;
-	top: -8rpx;
-	right: -8rpx;
-	bottom: -8rpx;
-}
-.text-color-light9{
-	color: var(--text-color-light9) !important;
 }
 </style>

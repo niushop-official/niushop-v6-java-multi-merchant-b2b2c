@@ -7,23 +7,23 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="exportTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px"  :model="exportTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('exportKey')" prop="export_key">
-                        <el-select v-model="exportTableData.searchParam.export_key" clearable :placeholder="t('exportKeyPlaceholder')" class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="exportTableData.searchParam.export_key" clearable :placeholder="t('exportKeyPlaceholder')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item" :value="key" v-for="(item, key) in exportKeyList" :key="key" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('exportStatus')" prop="export_status">
-                        <el-select v-model="exportTableData.searchParam.export_status" clearable :placeholder="t('exportStatusPlaceholder')" class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="exportTableData.searchParam.export_status" clearable :placeholder="t('exportStatusPlaceholder')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item" :value="key" v-for="(item, key) in exportStatusList" :key="key" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
                         <el-date-picker v-model="exportTableData.searchParam.create_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadExportList()">{{ t('search') }}</el-button>

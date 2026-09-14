@@ -9,22 +9,21 @@ export function getSupplyList(params: Record<string, any>) {
 }
 
 /**
- * 供货商分页列表
+ * 供货商详情
+ * @param site_id 商品site_id
+ * @returns
+ */
+export function getSupplyDetail(site_id: number) {
+    return request.get(`mall/site/select_goods/supply_detail/${site_id}`);
+}
+
+/**
+ * 选品商品分页列表
  * @returns
  */
 export function getGoodsList(params: Record<string, any>) {
     return request.get('mall/site/select_goods/goods_list', {params})
 }
-
-/**
- * 供货商信息
- * @param site_id 商品site_id
- * @returns
- */
-export function getShopInfo(site_id: number) {
-    return request.get(`shop/site/shop/info/${site_id}`);
-}
-
 
 /**
  * 选品商品详情

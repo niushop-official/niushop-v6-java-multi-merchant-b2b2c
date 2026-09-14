@@ -28,6 +28,7 @@
 
         <div class="w-[700px]">
             <div class="flex flex-wrap">
+                <el-button type="primary" @click="showDialog = true">{{ t('changePage') }}</el-button>
                 <el-button type="primary" @click="toDecorate()" v-show="page.use_template.action == 'decorate'" class="ml-[12px]">{{ t('decorate') }}</el-button>
             </div>
 
@@ -57,6 +58,27 @@
 
         </div>
 
+        <el-dialog v-model="showDialog" :title="t('pageSelectTips')" width="400px" :close-on-press-escape="true" :destroy-on-close="true" :close-on-click-modal="false">
+            <div class="flex items-start">
+                <el-scrollbar class="pl-4 h-[300px] flex-1">
+                    <div class="flex flex-wrap">
+                        <div v-for="(item, key) in pageType" :key="key"
+                                class="border border-br rounded-[3px] mr-[10px] mb-[10px] px-4 h-[32px] leading-[32px] cursor-pointer hover:bg-primary-light-9 px-[10px] hover:text-primary"
+                                :class="[key == link.type ? 'border-primary text-primary' : '']"
+                                @click="changeLink(key,item)">{{ item.title }}
+                        </div>
+                    </div>
+                </el-scrollbar>
+            </div>
+
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="showDialog = false">{{ t('cancel') }}</el-button>
+                    <el-button type="primary" @click="changePage()">{{ t('confirm') }}</el-button>
+                </span>
+            </template>
+        </el-dialog>
+
     </div>
 
 </template>
@@ -67,7 +89,7 @@ import { t } from '@/lang'
 import { img } from '@/utils/common'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getDecoratePage } from '@/app/api/diy'
+import { getDecoratePage, changeTemplate, getDiyTemplate } from '@/app/api/diy'
 import storage from '@/utils/storage'
 import QRCode from 'qrcode'
 import { useClipboard } from '@vueuse/core'
@@ -78,8 +100,27 @@ const page: any = reactive({})
 const router = useRouter()
 const wapDomain = ref('')
 const wapImage = ref('')
-const link = ref({
+const link: any = ref({
     name: ''
+})
+
+// 切换页面
+const formData = reactive({
+    type: '',
+    name: '',
+    page: '',
+    title: '',
+    action: ''
+})
+
+const showDialog = ref(false)
+const pageType: any = reactive({}) // 页面类型
+
+// 获取自定义页面类型
+getDiyTemplate({ type: 'member_index' }).then(res => {
+    for (const key in res.data) {
+        pageType[key] = res.data[key]
+    }
 })
 
 // 初始化数据
@@ -95,6 +136,7 @@ const refreshData = () => {
         link.value.title = page.use_template.title;
         link.value.page = page.use_template.page;
         link.value.action = page.use_template.action;
+        link.value.type = page.use_template.type;
 
         if (page.use_template.url) {
             page.loadingIframe = false // 加载iframe
@@ -154,7 +196,6 @@ window.addEventListener('message', (event) => {
         }
     } catch (e) {
         initLoad()
-        // console.log('diy member 后台接受数据错误', e)
     }
 }, false)
 
@@ -270,6 +311,36 @@ const toPreview = () => {
         }
     })
     window.open(url.href)
+}
+
+// 切换页面链接
+const changeLink = (key:any,item: any) => {
+    link.value.type = key;
+    link.value.name = item.name;
+    link.value.page = item.page;
+    link.value.title = item.title;
+    link.value.action = item.action;
+}
+
+const isRepeat = ref(false)
+
+const changePage = ()=>{
+    formData.type = type.value;
+    formData.name = link.value.name;
+    formData.page = link.value.page;
+    formData.title = link.value.title;
+    formData.action = link.value.action;
+
+    if (isRepeat.value) return
+    isRepeat.value = true
+
+    changeTemplate({
+        ...formData
+    }).then((res) => {
+        isRepeat.value = false
+        showDialog.value = false;
+        refreshData()
+    })
 }
 
 // 复制

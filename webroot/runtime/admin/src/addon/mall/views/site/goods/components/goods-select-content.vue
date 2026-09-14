@@ -79,7 +79,7 @@ import { cloneDeep } from 'lodash-es'
 import { img, deepClone } from '@/utils/common'
 import { ElMessage } from 'element-plus'
 import { getCategoryTree } from '@/app/api/basic_site'
-import { getGoodsSelectPageList, getGoodsSkuNoPageList, getGoodsType } from '@/addon/mall/api/site/goods'
+import { getGoodsSelectPageList, getGoodsSkuNoPageList, getGoodsType } from '@/app/lang/zh-cn/api/site/goods'
 
 const prop = defineProps({
     goodsIds: {
@@ -142,7 +142,9 @@ const goodsType: any = reactive([])
 // 初始化数据
 const initData = () => {
 // 查询商品分类树结构
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []

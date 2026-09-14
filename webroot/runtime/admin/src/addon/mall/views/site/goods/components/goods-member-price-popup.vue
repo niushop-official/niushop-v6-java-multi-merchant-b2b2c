@@ -90,7 +90,7 @@ import { ElMessage } from 'element-plus'
 import {
     getGoodsSkuList,
     editGoodsListMemberPrice
-} from '@/addon/mall/api/site/goods'
+} from '@/app/lang/zh-cn/api/site/goods'
 
 const goodsListTableRef = ref()
 const formData: any = reactive({

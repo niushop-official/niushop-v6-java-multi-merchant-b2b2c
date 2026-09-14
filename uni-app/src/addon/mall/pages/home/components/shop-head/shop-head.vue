@@ -85,7 +85,7 @@ import { computed, ref, onMounted, nextTick,getCurrentInstance } from 'vue'
 import { img,  redirect,getToken,currRoute, distance } from '@/utils/common'
 import { t } from '@/locale'
 import { useLogin } from '@/hooks/useLogin'
-import { editShopCollect } from '@/app/api/shop';
+import { editShopCollect } from '@/addon/mall/api/shop';
 import { onLoad, onPageScroll } from '@dcloudio/uni-app';
 import useShopStore from '@/addon/mall/stores/shop';
 
@@ -239,9 +239,8 @@ const followShop = ()=> {
 
 	editShopCollect({
 		site_id: shopInfo.value.siteId,
-		is_follow: shopInfo.value.isFollow == 0 ? 1 : 0,
-		addon: 'mall'
-		}).then(res => {
+		is_follow: shopInfo.value.isFollow == 0 ? 1 : 0
+	}).then(res => {
 		if (shopInfo.value.isFollow) {
 			uni.showToast({
 				title: '取消关注',

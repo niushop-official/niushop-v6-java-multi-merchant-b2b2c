@@ -5,7 +5,7 @@
             <view class="min-h-[480rpx] popup-common bg-[#f5f5f5]" @touchmove.prevent.stop>
                 <view class="title !pt-[30rpx] !pb-[40rpx]">优惠</view>
                 <view class="px-[var(--popup-sidebar-m)] pb-[30rpx]">
-                    <scroll-view :scroll-y="true" class="h-[800rpx]" v-if="skuPromotionInfo && skuPromotionInfo.price_details">
+                    <scroll-view :scroll-y="true" class="h-[800rpx]">
                         <view>
                             <view class="flex justify-center">
                                 <view class="bg-[var(--primary-color-light)] p-[20rpx] rounded-[16rpx] flex flex-col justify-center">
@@ -15,21 +15,21 @@
                                     <view class="text-[22rpx] mt-[6rpx] text-primary leading-[30rpx] text-center">预估到手</view>
                                 </view>
                             </view>
-                            <view class="discount-box" v-if="skuPromotionInfo.price_details.price_list && Object.keys(skuPromotionInfo.price_details.price_list).length > 0">
+                            <view class="discount-box" v-if="Object.keys(skuPromotionInfo.price_details.price_list).length > 0">
                                 <view class="text-[24rpx] font-500 mb-[20rpx]">当前购买可使用以下优惠</view>
                                 <view class="flex justify-center items-center">
                                     <view class="w-[160rpx] h-[106rpx] flex flex-col items-center justify-center bg-[var(--primary-color-light)] rounded-[16rpx] relative z-10">
                                         <view class="price-font text-[32rpx] text-primary">￥{{ skuPromotionInfo.price_details.price_list.original_price.price }}</view>
                                         <text class="text-primary text-[20rpx] leading-[30rpx]">{{ skuPromotionInfo.price_details.price_list.original_price.desc }}</text>
                                     </view>
-                                    <view class="flex items-center" v-if="Number(skuPromotionInfo.price_details.price_list.admin_promotion?.price)">
+                                    <view class="flex items-center" v-if="Number(skuPromotionInfo.price_details.price_list.admin_promotion.price)">
                                         <view class="text-[#FF0000] mx-[30rpx] nc-iconfont nc-icon-jianV6xx"></view>
                                         <view class="w-[160rpx] h-[106rpx] flex flex-col items-center justify-center bg-[var(--primary-color-light)] rounded-[16rpx] relative z-10">
                                             <view class="price-font text-[32rpx] text-primary">￥{{ skuPromotionInfo.price_details.price_list.admin_promotion.price }}</view>
                                             <text class="text-primary text-[20rpx] leading-[30rpx]">{{ skuPromotionInfo.price_details.price_list.admin_promotion.desc }}</text>
                                         </view>
                                     </view>
-                                    <view class="flex items-center" v-if="Number(skuPromotionInfo.price_details.price_list.site_promotion?.price)">
+                                    <view class="flex items-center" v-if="Number(skuPromotionInfo.price_details.price_list.site_promotion.price)">
                                         <view class="text-[#FF0000] mx-[30rpx] nc-iconfont nc-icon-jianV6xx"></view>
                                         <view class="w-[160rpx] h-[106rpx] flex flex-col items-center justify-center bg-[var(--primary-color-light)] rounded-[16rpx] relative z-10">
                                             <view class="price-font text-[32rpx] text-primary">￥{{ skuPromotionInfo.price_details.price_list.site_promotion.price }}</view>
@@ -39,7 +39,7 @@
                                 </view>
                             </view>
                         </view>
-                        <view v-if="skuPromotionInfo.activity_list && Object.keys(skuPromotionInfo.activity_list).length">
+                        <view v-if="Object.keys(skuPromotionInfo.activity_list).length">
                             <view class="text-[24rpx] font-500 mt-[30rpx] mb-[20rpx] leading-[34rpx]">商品可参与以下优惠促销活动</view>
                             <view class="card-template !py-0 bg-[#fff]">
                                 <view class="py-[30rpx] flex justify-between items-center border-0 border-b-[2rpx] border-solid border-[#eee]" v-if="skuPromotionInfo.activity_list.discount" @click="toDetail('discount', skuPromotionInfo.activity_list.discount.activity_id)">
@@ -93,7 +93,7 @@
                                 </view>
                             </view>
                         </view>
-                        <!-- <view class="text-[24rpx] text-[var(--text-color-light9)] font-500 mt-[20rpx] mb-[20rpx] leading-[34rpx]">以上优惠为系统根据可享活动/优惠的预估值</view>
+                        <view class="text-[24rpx] text-[var(--text-color-light9)] font-500 mt-[20rpx] mb-[20rpx] leading-[34rpx]">以上优惠为系统根据可享活动/优惠的预估值</view>
                         <view v-if="skuPromotionInfo.coupon_list && skuPromotionInfo.coupon_list.length">
                            <view class="text-[24rpx] font-500 mt-[30rpx] mb-[20rpx] leading-[34rpx]">可领取优惠券</view>
                            <view class="mb-[30rpx] bg-[#fff] flex items-center  rounded-[var(--rounded-small)]"
@@ -112,7 +112,7 @@
                                 <text v-if="item.btnType === 'collecting'" class="bg-[var(--primary-color)] mr-[20rpx] w-[106rpx] box-border text-center text-[#fff] h-[50rpx] text-[22rpx] px-[20rpx] leading-[50rpx] rounded-[100rpx]" @click="getCouponFn(item, index)">领取</text>
                                 <text v-else class="!bg-[var(--primary-help-color4)] mr-[20rpx] text-[#fff] mr-[20rpx] h-[50rpx] text-[22rpx] px-[20rpx] leading-[50rpx] rounded-[100rpx]">{{ item.btnType === 'collected' ? '已领完' : '已领取' }}</text>
                             </view>
-                        </view> -->
+                        </view>
                     </scroll-view>
                 </view>
             </view>
@@ -129,7 +129,7 @@ import { img, deepClone, redirect } from '@/utils/common'
 import { useLogin } from '@/hooks/useLogin'
 import useMemberStore from '@/stores/member'
 import { getGoodsSkuPromotionDetail } from '@/addon/mall/api/goods';
-import { getCoupon } from '@/app/api/marketing';
+import { getCoupon } from '@/addon/mall/api/coupon';
 
 // 会员信息
 const memberStore = useMemberStore()
@@ -139,9 +139,8 @@ const youhuiShow = ref(false);
 const skuPromotionInfo = ref<any>({});  //商品信息
 const skuId = ref('');
 const open = (data: any,sku_id: any) => {
-    if (!data || !data.price_details) return
     skuPromotionInfo.value = deepClone(data)
-    skuPromotionInfo.value.coupon_list = (data.coupon_list || []).map((el: any) => {
+    skuPromotionInfo.value.coupon_list = data.coupon_list.map((el: any) => {
         if (el.sum_count != -1 && el.receive_count === el.sum_count) {
             el.btnType = 'collected'//已领完
         }
@@ -203,7 +202,6 @@ const getGoodsSkuPromotionDetailFn = () => {
     getGoodsSkuPromotionDetail({
         sku_id: skuId.value || '',
     }).then((res: any) => {
-        if (!res.data?.coupon_list) return
         skuPromotionInfo.value.coupon_list = res.data.coupon_list.map((el: any) => {
             if (el.sum_count != -1 && el.receive_count === el.sum_count) {
                 el.btnType = 'collected'//已领完

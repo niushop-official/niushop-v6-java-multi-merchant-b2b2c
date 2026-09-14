@@ -18,15 +18,6 @@ import useGoodsDetailStore from '@/addon/mall/stores/goodsDetail'
 const props = defineProps(['component', 'index', 'value']);
 const diyStore = useDiyStore();
 const emits = defineEmits(['update:componentIsShow']); //商品数据加载完成之后触发
-
-/** 富文本中图片/视频的路径统一通过 img() 转换为完整 URL */
-const formatGoodsDesc = (html: string): string => {
-    if (!html) return html
-    return html
-        .replace(/(<img[^>]*?src=["'])([^"']+)(["'][^>]*?>)/gi, (m, pre: string, src: string, post: string) => `${pre}${img(src)}${post}`)
-        .replace(/(<video[^>]*?src=["'])([^"']+)(["'][^>]*?>)/gi, (m, pre: string, src: string, post: string) => `${pre}${img(src)}${post}`)
-}
-
 const diyComponent = computed(() => {
     if (diyStore.mode == 'decorate') {
         const obj = {
@@ -36,15 +27,7 @@ const diyComponent = computed(() => {
         }
         return Object.assign({},obj,diyStore.value[props.index]);
     } else {
-        const goodsDetail = useGoodsDetailStore().goodsDetail;
-        const result: AnyObject = Object.assign({}, props.component, goodsDetail);
-        if (result.goods_desc) {
-            result.goods_desc = formatGoodsDesc(result.goods_desc)
-        }
-        if (result.goods && result.goods.goods_desc) {
-            result.goods = Object.assign({}, result.goods, { goods_desc: formatGoodsDesc(result.goods.goods_desc) })
-        }
-        return result;
+        return Object.assign({}, props.component, useGoodsDetailStore().goodsDetail);
     }
 })
 

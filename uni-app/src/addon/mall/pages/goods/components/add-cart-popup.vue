@@ -15,7 +15,6 @@
                                 <text class="text-[32rpx] font-bold price-font mr-[4rpx]">￥</text>
                                 <text class="text-[48rpx] price-font">{{ parseFloat(goodsPrice(detail)).toFixed(2).split('.')[0] }}</text>
                                 <text class="text-[32rpx] price-font">.{{ parseFloat(goodsPrice(detail)).toFixed(2).split('.')[1] }}</text>
-                                <image v-if="priceType(detail) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
                                 <image v-if="priceType(detail) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
                                 <image v-else-if="priceType(detail) == 'discount_price'" class="max-w-[80rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/discount.png')" mode="heightFix" />
                             </view>
@@ -27,11 +26,11 @@
                     </view>
                 </view>
                 <scroll-view class="h-[500rpx] box-border px-[32rpx] mb-[30rpx]" scroll-y="true">
-                    <view :class="{'mt36': 0 != index }" v-for="(item, index) in goodsDetail.goodsSpec" :key="index">
+                    <view :class="{'mt-[36rpx]': 0 != index }" v-for="(item, index) in goodsDetail.goodsSpec" :key="index">
                         <view class="text-[26rpx] leading-[36rpx] mb-[24rpx]">{{ item.spec_name }}</view>
                         <view class="flex flex-wrap">
-                            <view class="sub-item-wrap box-border text-center"
-                                :class="{'selected': subItem.selected}"
+                            <view class="box-border bg-[#f2f2f2] text-[24rpx] px-[44rpx] text-center h-[56rpx] leading-[52rpx] mr-[20rpx] mb-[20rpx] border-1 border-solid rounded-[50rpx] border-[#f2f2f2]"
+                                :class="{'!border-[var(--primary-color)] text-[var(--primary-color)] !bg-[var(--primary-color-light)]': subItem.selected}"
                                 v-for="(subItem, subIndex) in item.values" :key="subIndex" @click="change(subItem, index)">{{ subItem.name }}
                             </view>
                         </view>
@@ -46,8 +45,8 @@
                             v-model="buyNum" :min="minBuy" :max="maxBuy" integer :step="1" input-width="98rpx" input-height="54rpx">
                             <template #minus>
                                 <view class="relative w-[34rpx] h-[34rpx]" @click="reduceNumChange()">
-                                    <text class="num-wrap nc-iconfont nc-icon-jianV6xx font-500 absolute flex items-center justify-center"
-                                        :class="{ 'text-color-light9': buyNum <= minBuy }"></text>
+                                    <text class="text-[34rpx] nc-iconfont nc-icon-jianV6xx font-500 absolute flex items-center justify-center -left-[8rpx] -bottom-[8rpx] -right-[8rpx] -top-[8rpx]"
+                                        :class="{ '!text-[var(--text-color-light9)]': buyNum <= minBuy }"></text>
                                 </view>
                             </template>
                             <template #input>
@@ -56,16 +55,16 @@
                             </template>
                             <template #plus>
                                 <view class="relative w-[34rpx] h-[34rpx]" @click="addNumChange()">
-                                    <text class="num-wrap nc-iconfont nc-icon-jiahaoV6xx font-500 absolute flex items-center justify-center"
-                                        :class="{ 'text-color-light9': buyNum >= maxBuy }"></text>
+                                    <text class="text-[34rpx] nc-iconfont nc-icon-jiahaoV6xx font-500 absolute flex items-center justify-center -left-[8rpx] -bottom-[8rpx] -right-[8rpx] -top-[8rpx]"
+                                        :class="{ '!text-[var(--text-color-light9)]': buyNum >= maxBuy }"></text>
                                 </view>
                             </template>
                         </u-number-box>
                         <u-number-box v-else v-model="buyNum" :min="minBuy" :max="maxBuy" integer :step="1" input-width="98rpx" input-height="54rpx">
                             <template #minus>
                                 <view class="relative w-[34rpx] h-[34rpx]" @click="reduceNumChange()">
-                                    <text class="num-wrap nc-iconfont nc-icon-jianV6xx font-500 absolute flex items-center justify-center"
-                                        :class="{ 'text-color-light9': buyNum <= minBuy }"></text>
+                                    <text class="text-[34rpx] nc-iconfont nc-icon-jianV6xx font-500 absolute flex items-center justify-center -left-[8rpx] -bottom-[8rpx] -right-[8rpx] -top-[8rpx]"
+                                        :class="{ '!text-[var(--text-color-light9)]': buyNum <= minBuy }"></text>
                                 </view>
                             </template>
                             <template #input>
@@ -74,8 +73,8 @@
                             </template>
                             <template #plus>
                                 <view class="relative w-[34rpx] h-[34rpx]" @click="addNumChange()">
-                                    <text class="num-wrap nc-iconfont nc-icon-jiahaoV6xx font-500 absolute flex items-center justify-center"
-                                        :class="{ 'text-color-light9': buyNum >= maxBuy }"></text>
+                                    <text class="text-[34rpx] nc-iconfont nc-icon-jiahaoV6xx font-500 absolute flex items-center justify-center -left-[8rpx] -bottom-[8rpx] -right-[8rpx] -top-[8rpx]"
+                                        :class="{ '!text-[var(--text-color-light9)]': buyNum >= maxBuy }"></text>
                                 </view>
                             </template>
                         </u-number-box>
@@ -396,34 +395,5 @@ defineExpose({
 ::v-deep .u-number-box .u-number-box__slot {
     display: flex;
     align-items: center;
-}
-.mt36{
-    margin-top: 36rpx;
-}
-.sub-item-wrap{
-    background-color: #f2f2f2;
-    font-size: 24rpx;
-    padding: 0 44rpx;
-    height: 56rpx;
-    line-height: 52rpx;
-    margin-right: 20rpx;
-    margin-bottom: 20rpx;
-    border: 1rpx solid #f2f2f2;
-    border-radius: 50rpx;
-    &.selected {
-        background-color:var(--primary-color-light) !important;
-        color: var(--primary-color) !important;
-        border-color: var(--primary-color) !important;
-    }
-}
-.num-wrap {
-    font-size: 34rpx;
-    left: -8rpx;
-    right: -8rpx;
-    top: -8rpx;
-    bottom: -8rpx;
-}
-.text-color-light9{
-    color: var(--text-color-light9) !important;
 }
 </style>

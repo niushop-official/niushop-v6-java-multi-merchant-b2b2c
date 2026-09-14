@@ -5,30 +5,30 @@
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="accounTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="100px" :model="accounTable.searchParam" ref="searchFormRef" class="page-form">
 <!--                    <el-form-item :label="t('店铺名称')" prop="site_name">
                         <el-input v-model="accounTable.searchParam.site_name"  :placeholder="t('请输入店铺名称')" />
                     </el-form-item>-->
                     <el-form-item :label="t('入驻平台')" prop="type">
-                        <el-select v-model="accounTable.searchParam.type" clearable :placeholder="t('请选择入驻平台')" class="input-width">
-                            <el-option :label="t('全部')" value="" />
+                        <el-select v-model="accounTable.searchParam.type" clearable :placeholder="t('请选择入驻平台')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item" :value="index" v-for="(item, index) in typeList" :key="index" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('业务入账状态')" prop="is_settle">
-                        <el-select v-model="accounTable.searchParam.is_settle" clearable :placeholder="t('请选择业务入驻状态')" class="input-width">
-                            <el-option :label="t('全部')" value="" />
+                        <el-select v-model="accounTable.searchParam.is_settle" clearable :placeholder="t('请选择业务入驻状态')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item.name" :value="item.id" v-for="(item, index) in settleList" :key="index" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('开启状态')" prop="status">
-                        <el-select v-model="accounTable.searchParam.status" clearable :placeholder="t('请选择状态')" class="input-width">
-                            <el-option :label="t('全部')" value="" />
+                        <el-select v-model="accounTable.searchParam.status" clearable :placeholder="t('请选择状态')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item" :value="index" v-for="(item, index) in statusList" :key="index" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
-                        <el-date-picker v-model="accounTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('开始时间')" :end-placeholder="t('结束时间')" />
+                        <el-date-picker v-model="accounTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('开始时间')" :end-placeholder="t('结束时间')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadAccountList()">{{ t('search') }}</el-button>
@@ -105,7 +105,8 @@ import { reactive, ref } from 'vue'
 import { t } from '@/lang'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessageBox, FormInstance } from 'element-plus'
-import { getAccount, getAccountStatus, getAccountType, getAccountSettle, addByHandle, getShopList, editAccount } from '@/app/api/shop_admin'
+import { getAccount, getAccountStatus, getAccountType, getAccountSettle, addByHandle, editAccount } from '@/app/api/shop_admin'
+import { getSiteList } from '@/app/api/site'
 
 const router = useRouter()
 const route = useRoute()
@@ -199,7 +200,7 @@ const bindUserRules = reactive({
 const shopList = ref<any>([])
 
 const getShopListFn = () => {
-    getShopList({}).then((res: any) => {
+    getSiteList({}).then((res: any) => {
         shopList.value = res.data
     })
 }

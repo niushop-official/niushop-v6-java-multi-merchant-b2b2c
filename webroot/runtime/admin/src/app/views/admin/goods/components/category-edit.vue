@@ -34,6 +34,13 @@ import { t } from '@/lang'
 import type { FormInstance } from 'element-plus'
 import { addCategory, editCategory, getCategoryInfo, getCategoryTree } from '@/app/api/basic_admin'
 
+const prop = defineProps({
+    addon: {
+        type: String,
+        default: ''
+    }
+})
+
 const showDialog = ref(false)
 const loading = ref(false)
 const title = ref('')
@@ -83,9 +90,8 @@ const confirm = async (formEl: FormInstance | undefined) => {
     await formEl.validate(async (valid) => {
         if (valid) {
             loading.value = true
-
             const data = formData
-
+            data.addon = prop.addon
             save(data).then(res => {
                 loading.value = false
                 showDialog.value = false
@@ -104,7 +110,9 @@ const goodsCategoryProps = {
     emitPath: false
 }
 const initData = () => {
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: prop.addon
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []

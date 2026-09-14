@@ -313,10 +313,22 @@
                                         </el-icon>
                                     </span>
                                 </div>
-                            </el-col>                      
+                            </el-col>
+                            <el-col :span="8" v-if="formData.vip_card_info">
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] text-[#666666] text-right  mr-[20px]">{{ t('卡名称') }}</span>
+                                    <span class="text-[14px]"> {{ formData.vip_card_info?.card_name }}</span>
+                                </div>
+                            </el-col>
+                            <el-col :span="8" v-if="formData.vip_card_info">
+                                <div class="flex items-center mt-[15px]">
+                                    <span class="text-[14px] w-[130px] text-[#666666] text-right  mr-[20px]">{{ t('到期时间') }}</span>
+                                    <span class="text-[14px]"> {{ formData.vip_card_info?.expire_time }}</span>
+                                </div>
+                            </el-col>
                         </el-row>
                     </div>
-                </el-card>  
+                </el-card>
                 <el-card class="box-card !border-none mt-[10px]" shadow="never"> 
                          <el-tabs v-model="activeName" class="demo-tabs ml-[15px]" @tab-change="handleMenuClick">
                             <el-tab-pane v-for="(item,index) in typeList" :key="index" :name="item.key">

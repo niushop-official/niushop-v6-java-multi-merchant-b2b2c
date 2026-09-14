@@ -46,17 +46,23 @@
                 </div>
             </div>
             <div class="w-[320px] ml-[20px] p-[20px] rounded-[16px] box-border bg-[#fff]">
-                <h1 class="text-[18px] text-[#333] font-600 mb-[30px]">热门资讯</h1>
+                <div class="flex items-center justify-between mb-[20px]">
+                    <div class="flex items-center">
+                        <img src="@/assets/images/new.png" class="w-[18px] h-[18px] mr-[6px]" />
+                        <h1 class="text-[16px] text-[#333] font-500 ">热门资讯</h1>
+                    </div>
+                    <div class="text-[14px] text-[#999]">
+                        <span class="iconfont icon-shuaxinV6xx !text-[14px] mr-[4px]"></span>
+                        <span >换一换</span>
+                    </div>
+                </div>
                 <template v-for="(item, index) in articleHotList" :key="index">
-                    <div class="border-0 border-b-[1px] border-dashed border-[#eee] cursor-pointer" :class="{'mt-[10px]':index}"  @click="toDetail(item.id)">
-                        <h3 class="text-[16px] leading-[22px] flex mb-[10px] hover:text-[var(--el-color-primary)] whitespace-nowrap overflow-hidden text-ellipsis">
-                            <span class="mr-[5px] rounded-[50%] text-[11px] !w-[22px] h-[22px] text-center leading-[22px]" :class="index <= 2 ? 'bg-[#ED383E] text-[#fff] ' : 'text-[#ED383E] bg-[#FFEFF0]'"><span v-if="index <= 9">0</span>{{ index+1 }}</span>
-                            <span class="text-[#333] max-h-[44px] multi-hidden hover:text-[var(--el-color-primary)] flex-1">{{ item.title }}</span>
+                    <div class="cursor-pointer flex items-center justify-between" :class="{'mb-[14px]': (index + 1) != articleHotList.length }"  @click="toDetail(item.id)">
+                        <h3 class="text-[14px] leading-[22px] flex items-center hover:text-[var(--el-color-primary)] whitespace-nowrap overflow-hidden text-ellipsis">
+                            <span class="w-[6px] h-[6px] bg-[#D9D9D9] flex-shrink-0 mr-[6px]"></span>
+                            <span class="text-[#333] max-h-[44px] using-hidden hover:text-[var(--el-color-primary)] flex-1">{{ item.title }}</span>
                         </h3>
-                        <!-- <div class="text-[#999] text-[14px] flex items-center">
-                            <span class="iconfont icon-shijian_o !text-[20px]"></span>
-                            <span class="ml-[3px]">{{ item.create_time }}</span>
-                        </div> -->
+                        <span class="text-[#999] text-[14px] flex-shrink-0 ml-[6px]">{{ item.create_time.split(" ")[0] }}</span>
                     </div>
                 </template>
                 <el-empty v-if="!articleHotList.length&&!articleHotLoading" description="暂无数据" :image-size="200" :image="img('static/resource/images/system/empty.png')" />

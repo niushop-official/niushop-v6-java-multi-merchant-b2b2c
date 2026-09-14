@@ -7,7 +7,7 @@
             </el-form-item>
 
             <el-form-item :label="t('adjustBalance')" prop="adjust">
-                 <el-input v-model.number="formData.adjust" clearable  :placeholder="t('adjustPlaceholder')" class="input-width">
+                 <el-input v-model.number="formData.adjust" clearable  maxlength="7" show-word-limit :placeholder="t('adjustPlaceholder')" class="input-width">
                      <template #prepend>
                         <el-select v-model="formData.adjust_type" placeholder="请选择" style="width: 80px">
                             <el-option :label="t('增加')" :value="1" />

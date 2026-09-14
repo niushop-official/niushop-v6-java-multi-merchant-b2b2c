@@ -5,9 +5,9 @@
                 <span class="text-page-title">{{pageName}}</span>
             </div>
             <div class="flex justify-between items-center mt-[16px]">
-                <el-form :inline="true" :model="roleTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true"  label-width="70px" :model="roleTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('roleName')" prop="search">
-                        <el-input v-model="roleTableData.searchParam.search" class="w-[240px]" :placeholder="t('roleNamePlaceholder')" />
+                        <el-input v-model="roleTableData.searchParam.search" :placeholder="t('roleNamePlaceholder')" class="search-input" clearable />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadRoleList()">{{ t('search') }}</el-button>

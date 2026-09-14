@@ -128,14 +128,6 @@ export function getMemberSendComponent(send_type: string) {
     return request.get(`member/member/send/component/${send_type}`)
 }
 
-/**
- * 赠送优惠券
- * @param id 会员id
- * @returns
- */
-export function sendCoupon(params: Record<string, any>) {
-    return request.post(`mall/admin/goods/platform_coupon/send`, params, {showSuccessMessage: true});
-}
 /***************************************************** 会员标签 ****************************************************/
 
 /**
@@ -604,7 +596,7 @@ export function getMemberLevelAll() {
  * 获取签到礼包内容
  */
 export function getMemberGiftsContent(params: Record<string, any>) {
-    return request.post(`member/gifts/content`, { params });
+    return request.post(`member/gifts/content`, params);
 }
 
 /**

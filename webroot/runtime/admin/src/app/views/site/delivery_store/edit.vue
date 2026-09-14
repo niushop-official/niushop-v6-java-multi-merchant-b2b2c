@@ -27,8 +27,22 @@
                 </el-form-item>
                 <el-form-item :label="t('tradeTime')" prop="trade_time">
                     <div>
-                        <el-input v-model.trim="formData.trade_time" clearable :placeholder="t('tradeTimePlaceholder')" class="input-width" :disabled="formData.is_system === 1" />
-                        <p class="text-[12px] text-[#999]">{{ t('tradeTimeTips') }}</p>
+                        <el-radio-group v-model="tradeTimeType" :disabled="formData.is_system === 1">
+                            <el-radio label="all_day">{{ t('tradeTimeAllDay') }}</el-radio>
+                            <el-radio label="daily_repeat">{{ t('tradeTimeDailyRepeat') }}</el-radio>
+                        </el-radio-group>
+                        <div v-if="tradeTimeType === 'daily_repeat'" class="mt-[12px]">
+                            <el-input
+                                v-model.trim="tradeTimeCustom"
+                                :placeholder="t('tradeTimePlaceholder')"
+                                class="input-width"
+                                clearable
+                                maxlength="50"
+                                show-word-limit
+                                :disabled="formData.is_system === 1"
+                            />
+                            <p class="text-[12px] text-[#999] mt-[6px]">{{ t('tradeTimeTips') }}</p>
+                        </div>
                     </div>
                 </el-form-item>
                 <el-form-item :label="t('开启状态')" prop="status">
@@ -44,7 +58,7 @@
                     </div>
                 </el-form-item>
                 <template v-if="formData.time_is_open === 1">
-                    <el-form-item :label="t('自提日期')" prop="time_week" >
+                    <el-form-item :label="t('配送自提日期')" prop="time_week" >
                         <el-checkbox-group v-model="formData.time_week">
                             <el-checkbox :label="'1'">{{ t('monday') }}</el-checkbox>
                             <el-checkbox :label="'2'">{{ t('tuesday') }}</el-checkbox>
@@ -136,11 +150,11 @@
                         <el-option :label="t('provincePlaceholder')" :value="0"/>
                         <el-option v-for="(item, index) in areaList.province" :key="index" :label="item.name"  :value="item.id"/>
                     </el-select>
-                    <el-select v-model="formData.city_id" value-key="id" @change="handleFlash"  clearable class="w-[200px] ml-3" ref="cityRef" :disabled="formData.is_system === 1">
+                    <el-select v-model="formData.city_id" value-key="id" @change="handleFlash" clearable class="w-[200px] ml-3" ref="cityRef" :disabled="formData.is_system === 1">
                         <el-option :label="t('cityPlaceholder')" :value="0"/>
                         <el-option v-for="(item, index) in areaList.city " :key="index" :label="item.name"  :value="item.id"/>
                     </el-select>
-                    <el-select v-model="formData.district_id" value-key="id" @change="handleFlash"  clearable class="w-[200px] ml-3"  ref="districtRef" :disabled="formData.is_system === 1">
+                    <el-select v-model="formData.district_id" value-key="id" @change="handleFlash" clearable class="w-[200px] ml-3"  ref="districtRef" :disabled="formData.is_system === 1">
                         <el-option :label="t('districtPlaceholder')" :value="0"/>
                         <el-option v-for="(item, index) in areaList.district " :key="index" :label="item.name"  :value="item.id"/>
                     </el-select>
@@ -153,28 +167,41 @@
                 </el-form-item>
 
                 <el-form-item prop="area" v-loading="mapLoading">
-                    <div class="relative w-full">
-                        <div id="container" class="w-full h-[520px]"></div>
-                        <div class="absolute bg-white w-[270px] h-[500px] top-[10px] left-[10px] region-list" v-if="formData.pick_up_type.indexOf('local_delivery') != -1">
+                    <div class="relative w-full overflow-hidden">
+                        <map-selector
+                             ref="mapSelectorRef"
+                             id="container-custom"
+                             :container-id="'container-custom'"
+                             :container-class="'w-full h-[520px]'"
+                             :longitude="formData?.longitude"
+                             :latitude="formData?.latitude"
+                             :zoom="14"
+                             :disabled-click-marker="false"
+                             @locationChange="handleLocationChange"
+                             :selected-key="formData.area[currArea]?.area_json?.key"
+                            @areaChange="handleAreaChange"
+                            @selectChange="handleSelectChange"
+                         />
+                        <div class="absolute bg-white w-[270px] h-[500px] top-[10px] left-[10px] region-list" v-if="formData.pick_up_type.indexOf('local_delivery') != -1" @mousedown.stop>
                             <el-scrollbar>
-                                <div class="p-[10px] region-item pr-[50px] relative" v-for="(item, index) in formData.area" :key="index" :class="{ '!border-primary': index == currArea }" @click="selectArea(index)">
+                                <div class="p-[10px] region-item pr-[50px] relative" v-for="(item, index) in formData.area" :key="item.area_json?.key || index" :class="{ '!border-primary': index == currArea }" @click="selectArea(index)">
                                     <el-form label-width="80px" :model="item" :rules="formRules" class="page-form"
                                         ref="areaFromRef">
                                         <div class="pb-[18px]">
                                             <el-form-item :label="t('areaName')" prop="area_name">
-                                                <el-input v-model.trim="formData.area[index].area_name" type="text" @click.stop=""/>
+                                                <el-input v-model.trim="formData.area[index].area_name" type="text" @click.stop="" @focus="onAreaFormFocus" @keydown.stop=""/>
                                             </el-form-item>
                                         </div>
                                         <div class="pb-[18px]">
                                             <el-form-item :label="t('startPrice')" prop="start_price">
                                                 <el-input v-model.trim="formData.area[index].start_price"  maxlength="8" type="text"
-                                                    @keyup="filterDigit($event)" @click.stop="" />
+                                                    @keyup="filterDigit($event)" @blur="formData.area[index].start_price = $event.target.value" @click.stop="" @focus="onAreaFormFocus" @keydown.stop="" />
                                             </el-form-item>
                                         </div>
                                         <div class="pb-[10px]" v-show="initData.fee_type == 'region'">
                                             <el-form-item :label="t('deliveryPrice')" prop="delivery_price">
                                                 <el-input v-model.trim="formData.area[index].delivery_price" type="text"
-                                                    @keyup="filterDigit($event)"  @click.stop=""/>
+                                                    @keyup="filterDigit($event)" @blur="formData.area[index].delivery_price = $event.target.value" @click.stop="" @focus="onAreaFormFocus" @keydown.stop=""/>
                                             </el-form-item>
                                         </div>
                                         <el-form-item :label="t('areaType')">
@@ -212,17 +239,22 @@ import { ArrowLeft } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import { guid, filterNumber, filterDigit, deepClone, debounce } from '@/utils/common'
 import { getMap, getAreaListByPid, getAreaByCode } from '@/app/api/sys'
-import { createCircle, deleteGeometry, createPolygon, selectGeometry, createMarker, latLngToAddress, addressToLatLng } from '@/utils/qqmap'
 import { getDeliveryStoreDetail, addDeliveryStore, editDeliveryStore, getStoreInit, getStorePickUpType } from '@/app/api/delivery_site'
 import { FormInstance, ElMessage } from 'element-plus'
 import Test from '@/utils/test'
+import MapSelector from '@/components/map-selector/index.vue'
+import userStore from '@/stores/modules/user'
 
+const siteInfo = computed(() => {
+    return userStore().siteInfo
+})
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
 const pageName = route.meta.title
 const formRef = ref<FormInstance>()
 const areaFromRef: any = ref<FormInstance[]>()
+const mapSelectorRef = ref<any>(null)
 const initialFormData = {
     store_id: '',
     pick_up_type: [],
@@ -247,7 +279,8 @@ const initialFormData = {
             start_price: 0,
             delivery_price: 0,
             area_json: {
-                key: guid()
+                key: guid(),
+                radius: 1000
             }
         }
     ],
@@ -259,6 +292,28 @@ const initialFormData = {
 }
 const formData: Record<string, any> = reactive({ ...initialFormData })
 formData.store_id = route.query.store_id
+
+const ALL_DAY_TRADE_TIME = '全天'
+const tradeTimeType = ref<'all_day' | 'daily_repeat'>('all_day')
+const tradeTimeCustom = ref('')
+
+const syncTradeTimeForm = (value = '') => {
+    const hours = String(value || '').trim()
+    if (!hours || hours === ALL_DAY_TRADE_TIME) {
+        tradeTimeType.value = 'all_day'
+        tradeTimeCustom.value = ''
+        formData.trade_time = ALL_DAY_TRADE_TIME
+        return
+    }
+    tradeTimeType.value = 'daily_repeat'
+    tradeTimeCustom.value = hours
+    formData.trade_time = hours
+}
+
+const resolveTradeTime = () => {
+    if (tradeTimeType.value === 'all_day') return ALL_DAY_TRADE_TIME
+    return tradeTimeCustom.value.trim()
+}
 const pickUpType = ref([])
 const initData = reactive<any>({
     fee_type: 'region',
@@ -291,7 +346,10 @@ const getDeliveryStoreDetailFn = () => {
                 }))
             }
         })
-        
+        syncTradeTimeForm(formData.trade_time)
+        if (formData.pick_up_type.indexOf('local_delivery') != -1) {
+            initMapAreas()
+        }
     }).catch(() => {
         loading.value = false
     })
@@ -311,6 +369,7 @@ const refreshAddress = (bool = false) => {
                 if (data[key] != undefined) formData[key] = data[key]
             }
         })
+        syncTradeTimeForm(formData.trade_time)
         if (bool) {
             ElMessage({
                 message: t('refreshSuccess'),
@@ -357,18 +416,7 @@ getAreaListByPid(0).then(res => {
 
 let mapKey: string = ''
 onMounted(() => {
-    const mapScript = document.createElement('script')
-    getMap().then(res => {
-        mapKey = res.data.key
-        mapScript.type = 'text/javascript'
-        mapScript.src = 'https://map.qq.com/api/gljs?libraries=tools,service&v=1.exp&key=' + res.data.key
-        document.body.appendChild(mapScript)
-    })
-    mapScript.onload = () => {
-        setTimeout(() => {
-            initMap()
-        }, 500)
-    }
+    initMapAreas()
     getStoreInitFn()
 })
 
@@ -378,66 +426,202 @@ onMounted(() => {
 let map: any
 let marker: any
 const mapLoading = ref(true)
-const initMap = () => {
-    const TMap = (window as any).TMap
-    const LatLng = TMap.LatLng
-    const center = new LatLng(formData.latitude, formData.longitude)
-
-    map = new TMap.Map('container', {
-        center,
-        zoom: 14
-    })
-
-    map.on('tilesloaded', () => {
+/**
+ * 初始化地图区域
+ */
+const initMapAreas = async () => {
+    if (!mapSelectorRef.value) return
+    if (formData.pick_up_type.indexOf('local_delivery') == -1) {
         mapLoading.value = false
-    })
-
-    marker = createMarker(map)
-
-    if (formData.is_system != 1) {
-        map.on('click', (evt: any) => {
-            map.setCenter(evt.latLng)
-            marker.updateGeometries({
-                id: 'center',
-                position: evt.latLng
-            })
-            latLngChange(evt.latLng.lat, evt.latLng.lng)
-        })
+        return
     }
-
-    latLngChange(center.lat, center.lng)
-
-    if (formData.pick_up_type.indexOf('local_delivery') != -1) {
-        formData.area.forEach(item => {
-            item.area_type == 'radius' ? createCircle(map, item.area_json) : createPolygon(map, item.area_json)
-        })
+    mapLoading.value = true
+    // 等待地图初始化完成
+    const checkMapReady = async () => {
+        let attempts = 0
+        const maxAttempts = 10
+        while (attempts < maxAttempts) {
+            try {
+                // 尝试获取地图实例，检查地图是否已初始化
+                const map = await mapSelectorRef.value.getMap()
+                if (map) {
+                    return true
+                }
+            } catch (error) {
+                // 地图未初始化完成，继续等待
+            }
+            attempts++
+            await new Promise(resolve => setTimeout(resolve, 200))
+        }
+        return false
+    }
+    // 检查地图是否就绪
+    const isReady = await checkMapReady()
+    if (!isReady) {
+        console.warn('地图初始化超时，无法加载区域')
+        mapLoading.value = false
+        return
+    }
+    // 清空现有覆盖物
+    await mapSelectorRef.value.clearOverlays()
+    // 绘制所有区域
+    for (const item of formData.area) {
+        if (item.area_type === 'radius' && formData.pick_up_type.indexOf('local_delivery') != -1) {
+            if (!item.area_json.center) {
+                item.area_json.center = { lat: formData.latitude, lng: formData.longitude }
+            }
+            if (!item.area_json.radius) {
+                item.area_json.radius = 1000
+            }
+            await mapSelectorRef.value.addCircle(item.area_json.center, item.area_json.radius, {
+                key: item.area_json.key
+            })
+        } else if (item.area_type === 'custom' && formData.pick_up_type.indexOf('local_delivery') != -1) {
+            await mapSelectorRef.value.addPolygon(item.area_json.paths, {
+                key: item.area_json.key
+            })
+        }
+    }
+    // 选中第一个区域
+    if (formData.area.length > 0) {
+        currArea.value = 0
+        mapSelectorRef.value.selectGeometry(formData.area[0].area_json.key)
+    }
+    mapLoading.value = false
+}
+// 处理地图区域变化事件
+const handleAreaChange = (data: any) => {
+    if (!data || !data.key) return
+    // 根据key找到对应的区域
+    const areaIndex = formData.area.findIndex((item: any) => item.area_json?.key === data.key)
+    if (areaIndex === -1) return
+    // 合并更新区域路径数据，避免覆盖丢失已有几何信息
+    const path = data.path || {}
+    formData.area[areaIndex].area_json = {
+        ...formData.area[areaIndex].area_json,
+        ...path
     }
 }
 
-const storeArea = reactive({
-    province_id: 0,
-    city_id: 0,
-    district_id: 0
-})
+// 编辑区域表单时取消地图图形编辑状态，防止按键操作影响地图范围
+const onAreaFormFocus = () => {
+    mapSelectorRef.value?.deselectGeometry?.()
+}
 
-const latLngChange = (lat: number, lng: number) => {
-    latLngToAddress({ mapKey, lat, lng }).then(({ message, result }) => {
-        if (message == 'query ok' || message == 'Success') {
-            formData.latitude = result.location.lat
-            formData.longitude = result.location.lng
-            formData.address = result.formatted_addresses && result.formatted_addresses.recommend ? result.formatted_addresses.recommend : ''
+// 处理地图选中事件
+const handleSelectChange = (key: string) => {
+    // 找到对应的区域并设置选中状态
+    const areaIndex = formData.area.findIndex((item: any) => item.area_json?.key === key)
+    if (areaIndex !== -1) {
+        currArea.value = areaIndex
+    }
+}
 
-            getAreaByCode(result.ad_info.adcode).then(({ data }) => {
-                storeArea.province_id = data.province ? data.province.id : 0
-                storeArea.city_id = data.city ? data.city.id : 0
-                storeArea.district_id = data.district ? data.district.id : 0
-            })
-        } else {
-            console.error(message, result)
+// 监听地图位置变化事件
+const handleLocationChange = (data: { lat: number, lng: number, address: any }) => {
+    formData.latitude = data.lat
+    formData.longitude = data.lng
+
+    // 处理地址信息
+    if (data.address) {
+        // 腾讯地图返回格式
+        if (data.address.formatted_addresses && !data.address.addressComponent) {
+            formData.address = data.address.formatted_addresses?.recommend || ''
+            const addressStr = data.address.address || ''
+            matchAreaFromAddress(addressStr)
+        } else if (data.address.addressComponent) {
+            // 天地图返回格式
+            const detailAddr = data.address.formatted_addresses?.recommend || data.address.formatted_address || data.address.poi || ''
+            formData.address = detailAddr
+            matchAreaFromTianditu(data.address.addressComponent)
         }
-    }).catch(() => {
-        // console.log(err)
-    })
+    }
+}
+
+// 从地址字符串匹配省市区（腾讯地图）
+const matchAreaFromAddress = (addressStr: string) => {
+    const provinceMatch = addressStr.match(/^(.+?省|.+?市|.+?自治区)/)
+    const cityMatch = addressStr.match(/(.+?市)/)
+    const districtMatches = addressStr.match(/(.+?区|.+?县)/g)
+
+    if (provinceMatch) {
+        const provinceName = provinceMatch[1]
+        const matchedProvince = areaList.province.find(item => 
+            item.name.includes(provinceName) || provinceName.includes(item.name)
+        )
+
+        if (matchedProvince) {
+            formData.province_id = matchedProvince.id
+            getAreaListByPid(formData.province_id).then(res => {
+                areaList.city = res.data || []
+
+                if (cityMatch) {
+                    const cityName = cityMatch[1]
+                    const matchedCity = areaList.city.find(item => 
+                        item.name.includes(cityName) || cityName.includes(item.name)
+                    )
+
+                    if (matchedCity) {
+                        formData.city_id = matchedCity.id
+                        getAreaListByPid(formData.city_id).then(res => {
+                            areaList.district = res.data || []
+
+                            if (districtMatches && districtMatches.length > 0) {
+                                const districtName = districtMatches[districtMatches.length - 1]
+                                const matchedDistrict = areaList.district.find(item => 
+                                    item.name.includes(districtName) || districtName.includes(item.name)
+                                )
+                                if (matchedDistrict) {
+                                    formData.district_id = matchedDistrict.id
+                                }
+                            }
+                        })
+                    }
+                }
+            })
+        }
+    }
+}
+
+// 从天地图地址组件匹配省市区
+const matchAreaFromTianditu = (addressComp: any) => {
+    if (!addressComp) return
+
+    // 匹配省
+    if (addressComp.province) {
+        const matchedProvince = areaList.province.find(item => 
+            item.name.includes(addressComp.province) || addressComp.province.includes(item.name)
+        )
+        if (matchedProvince) {
+            formData.province_id = matchedProvince.id
+            getAreaListByPid(formData.province_id).then(res => {
+                areaList.city = res.data || []
+
+                // 匹配市
+                if (addressComp.city) {
+                    const matchedCity = areaList.city.find(item => 
+                        item.name.includes(addressComp.city) || addressComp.city.includes(item.name)
+                    )
+                    if (matchedCity) {
+                        formData.city_id = matchedCity.id
+                        getAreaListByPid(formData.city_id).then(res => {
+                            areaList.district = res.data || []
+
+                            // 匹配区
+                            if (addressComp.county) {
+                                const matchedDistrict = areaList.district.find(item => 
+                                    item.name.includes(addressComp.county) || addressComp.county.includes(item.name)
+                                )
+                                if (matchedDistrict) {
+                                    formData.district_id = matchedDistrict.id
+                                }
+                            }
+                        })
+                    }
+                }
+            })
+        }
+    }
 }
 
 /**
@@ -510,82 +694,57 @@ const handleFlash = () => {
     flash.value = true
 }
 
-const areaChange = debounce(() => {
-    setTimeout(() => {
-        const province = areaList.province.map((item) => { if (item.id == formData.province_id) { return item.name } })
-        const city = areaList.city.map((item) => { if (item.id == formData.city_id) { return item.name } })
-        const district = areaList.district.map((item) => { if (item.id == formData.district_id) { return item.name } })
+/**
+ * 将地址解析后的经纬度同步到配送区域 area_json
+ */
+const syncAreaCenterFromLocation = (lat: number, lng: number, force = false) => {
+    formData.area.forEach((item: any) => {
+        if (item.area_type !== 'radius') return
+        if (!item.area_json.center || force) {
+            item.area_json.center = { lat, lng }
+        }
+        if (!item.area_json.radius) {
+            item.area_json.radius = 1000
+        }
+    })
+}
 
-        const address = [
-            formData.province_id ? (provinceRef.value.selectedLabel || province) : '',
-            formData.city_id ? (cityRef.value.selectedLabel || city) : '',
-            formData.district_id ? (districtRef.value.selectedLabel || district) : '',
+const areaChange = debounce(async () => {
+    setTimeout(async () => {
+        // 获取省名称：找到第一个id匹配的省，取它的name；没找到则返回空字符串
+        const province = areaList.province.find(item => item.id == formData.province_id)?.name || '';
+        // 获取市名称
+        const city = areaList.city.find(item => item.id == formData.city_id)?.name || '';
+        // 获取区名称
+        const district = areaList.district.find(item => item.id == formData.district_id)?.name || '';
+
+        const fullAddress = [
+            formData.province_id ? (provinceRef.value?.selectedLabel || province) : '',
+            formData.city_id ? (cityRef.value?.selectedLabel || city) : '',
+            formData.district_id ? (districtRef.value?.selectedLabel || district) : '',
             formData.address
-        ]
-        addressToLatLng({ mapKey, address: address.join('') }).then(({ message, result }) => {
-            if (message == 'Success' || message == 'query ok') {
-                const latLng = new (window as any).TMap.LatLng(result.location.lat, result.location.lng)
-                map.setCenter(latLng)
+        ].join('')
 
-                marker.updateGeometries({
-                    id: 'center',
-                    position: latLng
-                })
-                formData.latitude = result.location.lat
-                formData.longitude = result.location.lng
-                if (formData.pick_up_type.indexOf('local_delivery') != -1 && flash.value) {
-                    formData.area.forEach(item => {
-                        // 先删除旧的图形
-                        deleteGeometry(item.area_json.key)
-                        // 重新创建图形
-                        item.area_json.center = {
-                            lat: result.location.lat,
-                            lng: result.location.lng
-                        }
-                        item.area_type == 'radius' ? createCircle(map, item.area_json) : createPolygon(map, item.area_json)
-                    })
+        if (fullAddress && mapSelectorRef.value) {
+            try {
+                const result = await mapSelectorRef.value.searchAddress(fullAddress)
+                formData.latitude = result.lat
+                formData.longitude = result.lng
+
+                if (formData.pick_up_type.indexOf('local_delivery') != -1) {
+                    const shouldForceSync = flash.value || !route.query.store_id
+                    syncAreaCenterFromLocation(result.lat, result.lng, shouldForceSync)
+                    if (shouldForceSync) {
+                        await initMapAreas()
+                    }
+                    flash.value = false
                 }
-            } else {
-                console.error(message, result)
+            } catch (error) {
+                console.error('地址搜索失败:', error)
             }
-        })
+        }
     }, 500)
 }, 500)
-
-/**
- * 地图点选获取市
- */
-watch(() => storeArea.province_id, (nval) => {
-    if (nval) {
-        getAreaListByPid(storeArea.province_id).then(res => {
-            areaList.city = res.data
-            formData.province_id = storeArea.province_id
-            formData.city_id = storeArea.city_id
-        })
-    }
-})
-
-/**
-* 地图点选获取区
- */
-watch(() => storeArea.city_id, (nval) => {
-    if (nval) {
-        getAreaListByPid(storeArea.city_id).then(res => {
-            areaList.district = res.data
-            formData.city_id = storeArea.city_id
-            formData.district_id = storeArea.district_id
-        })
-    }
-})
-
-/**
- * 地图点选获取区
- */
-watch(() => storeArea.district_id, (nval) => {
-    if (nval) {
-        formData.district_id = storeArea.district_id
-    }
-})
 
 // 正则表达式
 const regExp = {
@@ -596,7 +755,7 @@ const regExp = {
 }
 
 // 表单验证规则
-const formRules = reactive({ 
+const formRules = reactive({
     store_name: [
         { required: true, message: t('storeNamePlaceholder'), trigger: 'blur' }
     ],
@@ -607,7 +766,16 @@ const formRules = reactive({
         { required: true, message: t('storeMobilePlaceholder'), trigger: 'blur' }
     ],
     trade_time: [
-        { required: true, message: t('tradeTimePlaceholder'), trigger: 'blur' }
+        {
+            validator: (_rule: any, _value: string, callback: any) => {
+                if (tradeTimeType.value === 'daily_repeat' && !tradeTimeCustom.value.trim()) {
+                    callback(new Error(t('tradeTimePlaceholder')))
+                    return
+                }
+                callback()
+            },
+            trigger: 'blur'
+        }
     ],
     time_week: [
         { required: true, message: t('timeWeekRequire'), trigger: 'change' }
@@ -745,7 +913,6 @@ const formRules = reactive({
     address: [
         { required: true, message: t('addressPlaceholder'), trigger: 'blur' }
     ]
-
 })
 
 // 添加时间段
@@ -778,56 +945,98 @@ const currArea = ref<number>(0)
 /**
  * 添加配送区域
  */
-const addArea = () => {
-    formData.area.push({
+const addArea = async () => {
+    if (!mapSelectorRef.value) return
+    // 获取地图中心点
+    const map = await mapSelectorRef.value.getMap()
+    const mapCenter = map ? map.getCenter() : { lat: 39.909187, lng: 116.397463 }
+    // 创建新区域
+    const newArea = {
         area_name: '',
         area_type: 'radius',
         start_price: 0,
         delivery_price: 0,
         area_json: {
-            key: guid()
-        }
-    })
+            key: guid(),
+            center: { lat: mapCenter.lat, lng: mapCenter.lng },
+            radius: 1000
+        } as any
+    }
+    formData.area.push(newArea)
     const index = formData.area.length - 1
-    createCircle(map, formData.area[index].area_json)
+    // 添加圆形覆盖物
+    await mapSelectorRef.value.addCircle(newArea.area_json.center, newArea.area_json.radius, {
+        key: newArea.area_json.key
+    })
+    // 选中新添加的区域
+    currArea.value = index
+    await mapSelectorRef.value.selectGeometry(newArea.area_json.key)
 }
 
 /**
  * 删除配送区域
  */
-const deleteArea = (index: number) => {
+const deleteArea = async (index: number) => {
+    if (!mapSelectorRef.value) return
     const data = formData.area[index]
-    deleteGeometry(data.area_json.key)
+    await mapSelectorRef.value.removeOverlay({ key: data.area_json.key })
     formData.area.splice(index, 1)
 }
 
-const selectArea = (index: number) => {
+const selectArea = async (index: number) => {
+    if (!mapSelectorRef.value) return
     currArea.value = index
     const data = formData.area[index]
-    selectGeometry(data.area_json.key)
+    await mapSelectorRef.value.selectGeometry(data.area_json.key)
 }
-
-const areaTypeChange = (index: number) => {
+/**
+ * 区域类型改变时处理
+ */
+const areaTypeChange = async (index: number) => {
     const data = formData.area[index]
-    deleteGeometry(data.area_json.key)
-    data.area_type == 'radius' ? createCircle(map, data.area_json) : createPolygon(map, data.area_json)
+    mapSelectorRef.value.removeOverlay({ key: data.area_json.key })
+    const map = await mapSelectorRef.value.getMap()
+    if (data.area_type == 'radius') {
+        const mapCenter = map?.getCenter() || { lat: 39.909187, lng: 116.39746 }
+        data.area_json.center = data.area_json.center || { lat: mapCenter.lat, lng: mapCenter.lng }
+        data.area_json.radius = data.area_json.radius || 1000
+        mapSelectorRef.value.addCircle(data.area_json.center, data.area_json.radius, data.area_json)
+    } else {
+        if (!data.area_json.paths?.length) {
+            const center = data.area_json.center || map?.getCenter() || { lat: 39.909187, lng: 116.397463 }
+            data.area_json.paths = [
+                { lat: center.lat + 0.01, lng: center.lng + 0.01 },
+                { lat: center.lat - 0.01, lng: center.lng + 0.01 },
+                { lat: center.lat - 0.01, lng: center.lng - 0.01 },
+                { lat: center.lat + 0.01, lng: center.lng - 0.01 }
+            ]
+        }
+        mapSelectorRef.value.addPolygon(data.area_json.paths, data.area_json)
+    }
+    setTimeout(() => {
+        currArea.value = index
+        mapSelectorRef.value.selectGeometry(data.area_json.key)
+    }, 100)
 }
 
 onBeforeUnmount(() => {
-    map.destroy()
+    // 地图组件会自动清理
 })
 
 // 当配送类型发生改变时
-const changePickUpType = (val: any) => {
+const changePickUpType = async (val: any) => {
     if (val.indexOf('local_delivery') == -1) {
-        formData.area.forEach((item: any) => {
-            deleteGeometry(item.area_json.key)
-        })
+        // 清空所有覆盖物
+        if (mapSelectorRef.value) {
+            try {
+                await mapSelectorRef.value.clearOverlays()
+            } catch (error) {
+                console.error('清空覆盖物失败:', error)
+            }
+        }
     } else {
-        formData.area.forEach((item: any) => {
-            deleteGeometry(item.area_json.key)
-            item.area_type == 'radius' ? createCircle(map, item.area_json) : createPolygon(map, item.area_json)
-        })
+        // 重新创建覆盖物
+        initMapAreas()
     }
 }
 
@@ -861,6 +1070,7 @@ const onSave = async (formEl: FormInstance | undefined) => {
                     param.address
                 ]
                 param.full_address = address.join('')
+                param.trade_time = resolveTradeTime()
                 param.trade_time_json = param.trade_time_json.map((range: any) => ({
                     start_time: range.start_time ? timeTransition(range.start_time) : null,
                     end_time: range.end_time ? timeTransition(range.end_time) : null
@@ -882,8 +1092,16 @@ const back = () => {
 
 // 新窗口打开
 const newWindow = () => {
+    let path = ''
+    if (siteInfo.value?.app.includes('mall')) {
+        path = '/site/mall/shop/setting'
+    } else if (siteInfo.value?.app.includes('o2o')) {
+        path = '/site/o2o/shop/setting'
+    } else if (siteInfo.value?.app.includes('supply')) {
+        path = '/site/supply/shop/setting'
+    }
     const url = router.resolve({
-        path: '/site/shop/setting'
+        path: path
     })
     window.open(url.href)
 }
@@ -901,5 +1119,10 @@ const newWindow = () => {
 }
 #container :deep(div){
     z-index: 2 !important;
+}
+#container-custom {
+    position: relative;
+    z-index: 1 !important; // 降低地图容器的z-index
+    pointer-events: auto;
 }
 </style>

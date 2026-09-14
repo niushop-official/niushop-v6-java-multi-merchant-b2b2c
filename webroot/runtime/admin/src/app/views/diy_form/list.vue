@@ -14,19 +14,13 @@
             </el-alert>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="diyFormTableData.searchParam" ref="searchFormDiyFormRef">
+                <el-form :inline="true"  label-width="70px" :model="diyFormTableData.searchParam" ref="searchFormDiyFormRef" class="page-form">
                     <el-form-item :label="t('title')" prop="title">
-                        <el-input v-model.trim="diyFormTableData.searchParam.title" :placeholder="t('titlePlaceholder')" />
+                        <el-input v-model.trim="diyFormTableData.searchParam.title" :placeholder="t('titlePlaceholder')" clearable  class="search-input"/>
                     </el-form-item>
-<!--                    <el-form-item :label="t('forAddon')" prop="addon_name">-->
-<!--                        <el-select v-model="diyFormTableData.searchParam.addon_name" :placeholder="t('forAddonPlaceholder')" @change="handleSelectAddonChange">-->
-<!--                            <el-option :label="t('all')" value="" />-->
-<!--                            <el-option v-for="(item, key) in apps" :label="item.title" :value="key" :key="key"/>-->
-<!--                        </el-select>-->
-<!--                    </el-form-item>-->
                     <el-form-item :label="t('typeName')" prop="type">
-                        <el-select v-model="diyFormTableData.searchParam.type" :placeholder="t('formTypePlaceholder')">
-                            <el-option :label="t('all')" value="" />
+                        <el-select v-model="diyFormTableData.searchParam.type" :placeholder="t('formTypePlaceholder')" clearable  class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item, key) in formType" :label="item.title" :value="key" :key="key"/>
                         </el-select>
                     </el-form-item>
@@ -51,7 +45,7 @@
                 <el-table-column :label="t('status')" min-width="80">
                     <template #default="{ row }">
                         <div class="flex items-center justify-start">
-                            <el-tag :type="row.status == 1 ? 'success' : 'info'" class="cursor-pointer" @click="showClick(row)">{{ row.status == 1 ? t('statusOn') : t('statusOff') }}</el-tag>
+                            <el-switch v-model="row.status" :active-value="1" :inactive-value="0" inline-prompt :active-text="t('statusOn')" :inactive-text="t('statusOff')" @change="(value) => showClick(row, value)" />
                         </div>
                     </template>
                 </el-table-column>
@@ -245,14 +239,12 @@ const addEvent = async (formEl: FormInstance | undefined) => {
     })
 }
 
-const showClick = (row: any) => {
-    const data = row.status === 1 ? 0 : 1
-    const obj = {
+const showClick = (row: any, value: number) => {
+    editFormStatus({
         form_id: row.form_id,
-        status: data
-    }
-    editFormStatus(obj).then((res) => {
-        row.status = data
+        status: value
+    }).catch(() => {
+        row.status = value == 1 ? 0 : 1
     })
 }
 

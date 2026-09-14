@@ -128,7 +128,9 @@ const secondLevelArrowChange = (row:any) => {
 const loadCategoryList = () => {
     categoryTable.loading = true
 
-    getCategoryTree().then(res => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then(res => {
         categoryTable.loading = false
         categoryTable.data = res.data
         categoryTable.data.forEach((item:any) => {

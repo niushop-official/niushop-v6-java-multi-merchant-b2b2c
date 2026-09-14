@@ -63,6 +63,14 @@
                     <view class="text-[28rpx]">退还供货商货款</view>
                     <view class="text-[28rpx]">{{ detail.supply_refund_money }}</view>
                 </view>
+                <!-- <view class="justify-between card-template-item">
+                    <view class="text-[28rpx]">支付商圈佣金</view>
+                    <view class="text-[28rpx]">{{ detail.circle_commission }}</view>
+                </view>
+                <view class="justify-between card-template-item">
+                    <view class="text-[28rpx]">退还商圈佣金</view>
+                    <view class="text-[28rpx]">{{ detail.circle_refund_commission }}</view>
+                </view> -->
            </view>
         </view>
     </view>
@@ -72,7 +80,7 @@
 import { reactive, ref } from 'vue'
 import { timeStampTurnTime } from '@/utils/common'
 import { onLoad } from '@dcloudio/uni-app';
-import { getFinanceAccountsDetail } from '@/app/api/stat'
+import { getFinanceAccountsDetail } from '@/addon/mall/api/account'
 
 const date = ref('')
 const type = ref('')

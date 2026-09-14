@@ -30,12 +30,12 @@
             </el-form-item>
             <el-form-item :label="t('显示状态')" prop="status">
                 <el-select v-model="formData.status" :placeholder="t('请选择显示状态')" clearable>
-                    <el-option v-for="(item,index) in initData.status_list" :key="index" :label="item" :value="index" />
+                    <el-option v-for="(item,key) in initData.status_list" :key="key" :label="item" :value="Number(key)" />
                 </el-select>
             </el-form-item>
             <el-form-item :label="t('是否热门')" prop="is_hot">
                 <el-select v-model="formData.is_hot" :placeholder="t('请选择是否热门')" clearable>
-                    <el-option v-for="(item,index) in initData.is_hot_list" :key="index" :label="item" :value="index" />
+                    <el-option v-for="(item,key) in initData.is_hot_list" :key="key" :label="item" :value="Number(key)" />
                 </el-select>
             </el-form-item>
 
@@ -58,6 +58,13 @@ import { filterNumber } from '@/utils/common'
 
 import { addBrand, editBrand, getBrandInfo, getBrandInit } from '@/app/api/basic_admin'
 
+const prop = defineProps({
+    addon: {
+        type: String,
+        default: ''
+    }
+})
+
 const showDialog = ref(false)
 const loading = ref(false)
 const title = ref('')
@@ -76,8 +83,8 @@ const initialFormData = {
     },
     desc: '',
     sort: '',
-    status: '1',
-    is_hot: '2'
+    status: 1,
+    is_hot: 2
 }
 const formData: Record<string, any> = reactive({ ...initialFormData })
 
@@ -136,7 +143,7 @@ const confirm = async (formEl: FormInstance | undefined) => {
             loading.value = true
 
             const data = formData
-
+            data.addon = prop.addon
             save(data).then(res => {
                 loading.value = false
                 showDialog.value = false

@@ -5,15 +5,16 @@
                 <span class="right">{{ pageName }}</span>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="localRecordTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="localRecordTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('交易单号')" prop="trade_no">
-                        <el-input v-model.trim="localRecordTable.searchParam.trade_no" :placeholder="t('请输入交易单号')" />
+                        <el-input v-model.trim="localRecordTable.searchParam.trade_no" :placeholder="t('请输入交易单号')" class="search-input" clearable />
                     </el-form-item>
                     <el-form-item :label="t('deliveryNo')" prop="delivery_no">
-                        <el-input v-model.trim="localRecordTable.searchParam.delivery_no" :placeholder="t('deliveryNoPlaceholder')" />
+                        <el-input v-model.trim="localRecordTable.searchParam.delivery_no" :placeholder="t('deliveryNoPlaceholder')" class="search-input" clearable />
                     </el-form-item>
                     <el-form-item :label="t('交易类型')" prop="trade_type">
-                        <el-select v-model="localRecordTable.searchParam.trade_type" :placeholder="t('请选择交易类型')" clearable>
+                        <el-select v-model="localRecordTable.searchParam.trade_type" :placeholder="t('请选择交易类型')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,key) in tradeType" :key="key" :label="item" :value="key" />
                         </el-select>
                     </el-form-item>

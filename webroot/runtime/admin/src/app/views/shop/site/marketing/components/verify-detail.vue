@@ -107,7 +107,7 @@
                             </div>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="num" :label="t('数量')" min-width="50" align="right" />
+                    <el-table-column prop="verify_num" :label="t('数量')" min-width="50" align="right" />
                 </el-table>
             </div>
         </div>

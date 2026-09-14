@@ -728,14 +728,6 @@ const goodsEvent = (data: any) => {
                 sku_id: data.sku_id
             }
         })
-    }  else if (detail.value.order_type == 'friend_help'){
-        redirect({
-            url: '/addon/friend_help/pages/goods/detail',
-            param: {
-                friend_help_id: detail.value.extend_field_1,
-                sku_id: data.sku_id
-            }
-        })
     } else {
         redirect({
             url: '/addon/mall/pages/goods/detail',

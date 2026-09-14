@@ -10,9 +10,9 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="goodsAttrTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px"  :model="goodsAttrTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('attrName')" prop="attr_name">
-                        <el-input v-model="goodsAttrTable.searchParam.attr_name" :placeholder="t('attrNamePlaceholder')" />
+                        <el-input v-model="goodsAttrTable.searchParam.attr_name" :placeholder="t('attrNamePlaceholder')" clearable class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadShopGoodsAttrList()">{{ t('search') }}</el-button>

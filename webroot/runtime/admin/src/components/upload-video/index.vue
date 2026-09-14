@@ -2,31 +2,36 @@
 	<div class="flex flex-wrap">
 		<template v-if="limit == 1">
 			<div class="rounded cursor-pointer relative bg-page video-wrap mr-[10px]" :style="style">
-                <div class="absolute left-0 right-0 top-0 bottom-0 cursor-not-allowed z-[100] bg-[rgba(221,221,221,0.3)]" v-if="disabled"></div>
 				<template v-if="videos.data.length">
 					<div class="w-full h-full relative flex items-center overflow-hidden rounded">
 						<video :src="img(videos.data[0])" class="w-full"/>
-						<div class="absolute z-[1] flex items-center justify-center w-full h-full inset-0 bg-black bg-opacity-60 operation" v-if="!disabled">
+						<div class="absolute z-[1] flex items-center justify-center w-full h-full inset-0 bg-black bg-opacity-60 operation">
 							<icon name="iconfont icon24gf-playCircle" color="#fff" size="25px" @click="previewVideo()"/>
 						</div>
 					</div>
-					<icon name="element CircleCloseFilled" color="#bbb" size="18px" @click="removeVideo" class="!absolute z-[2] top-[-9px] right-[-9px]"/>
+					<icon v-if="!disabled" name="element CircleCloseFilled" color="#bbb" size="18px" @click="removeVideo" class="!absolute z-[2] top-[-9px] right-[-9px]"/>
 				</template>
-				<upload-attachment :limit="limit" type="video" @confirm="confirmSelect" v-else>
-					<div class="w-full h-full flex items-center justify-center flex-col">
-                        <slot name="icon">
-                            <icon name="iconfont icon24gf-playCircle" size="25px" color="var(--el-text-color-secondary)"/>
-                        </slot>
-					</div>
-				</upload-attachment>
+				<template v-else-if="!disabled">
+					<upload-attachment :limit="limit" type="video" @confirm="confirmSelect">
+						<div class="w-full h-full flex items-center justify-center flex-col">
+							<slot name="icon">
+								<icon name="iconfont icon24gf-playCircle" size="25px" color="var(--el-text-color-secondary)"/>
+							</slot>
+						</div>
+					</upload-attachment>
+				</template>
+				<div v-else class="w-full h-full flex items-center justify-center flex-col cursor-not-allowed bg-[rgba(221,221,221,0.3)]">
+					<slot name="icon">
+						<icon name="iconfont icon24gf-playCircle" size="25px" color="var(--el-text-color-secondary)"/>
+					</slot>
+				</div>
 			</div>
 		</template>
 		<template v-else>
 			<div class="rounded cursor-pointer relative bg-page video-wrap mr-[10px]" :style="style" v-for="(item, index) in videos.data" :key="index">
-                <div class="absolute left-0 right-0 top-0 bottom-0 cursor-not-allowed z-[100] bg-[rgba(221,221,221,0.3)]" v-if="disabled"></div>
 				<div class="w-full h-full relative flex items-center overflow-hidden rounded">
 					<video :src="img(item)" class="w-full"/>
-					<div class="absolute z-[1] flex items-center justify-center w-full h-full inset-0 bg-black bg-opacity-60 operation" v-if="!disabled">
+					<div class="absolute z-[1] flex items-center justify-center w-full h-full inset-0 bg-black bg-opacity-60 operation">
 						<icon name="iconfont icon24gf-playCircle" color="#fff" size="25px" @click="previewVideo(index)"/>
 					</div>
 				</div>
@@ -35,9 +40,9 @@
 			<div class="rounded cursor-pointer relative bg-page video-wrap mr-[10px]" :style="style" v-if="videos.data.length < limit && !disabled">
 				<upload-attachment :limit="limit" type="video" @confirm="confirmSelect">
 					<div class="w-full h-full flex items-center justify-center flex-col">
-                        <slot name="icon">
-                            <icon name="iconfont icon24gf-playCircle" size="25px" color="var(--el-text-color-secondary)"/>
-                        </slot>
+						<slot name="icon">
+							<icon name="iconfont icon24gf-playCircle" size="25px" color="var(--el-text-color-secondary)"/>
+						</slot>
 					</div>
 				</upload-attachment>
 			</div>
@@ -117,6 +122,7 @@ const style = computed(() => {
  * 选择视频
  */
 const confirmSelect = (data: Record<string, any>) => {
+    if (prop.disabled) return
     if (prop.limit == 1) {
         videos.data.splice(0, 1)
         data && videos.data.push(data.url)
@@ -134,6 +140,7 @@ const confirmSelect = (data: Record<string, any>) => {
  * @param index
  */
 const removeVideo = (index: number = 0) => {
+    if (prop.disabled) return
     videos.data.splice(index, 1)
     setValue()
 }

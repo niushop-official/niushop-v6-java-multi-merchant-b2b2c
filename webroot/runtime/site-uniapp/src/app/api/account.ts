@@ -11,14 +11,14 @@ export function getAccountCheck() {
  * 获取店铺转账方式
  */
 export function getTransfertype() {
-    return request.get(`/shop/site/shop/cash_out/transfer_type`)
+    return request.get(`shop/site/shop/cash_out/transfer_type`)
 }
 
 /**
  * 申请提现
  */
 export function getCashApply(params: Record<string, any>) {
-    return request.post(`/shop/site/shop/cash_apply`, params)
+    return request.post(`shop/site/shop/cash_apply`, params)
 }
 
 /**
@@ -33,6 +33,42 @@ export function getCashOutList(params: Record<string, any>) {
  */
 export function getShopCashOutInfo(id: number) {
     return request.get(`shop/site/shop/cash_out/${id}`)
+}
+
+/**
+ * 获取店铺结算账户列表
+ */
+export function getShopSettAccountList() {
+    return request.get(`site/sett_account`)
+}
+
+/**
+ * 获取店铺结算账户详情
+ * @param id 结算账户id
+ */
+export function getShopSettAccountInfo(id: number) {
+    return request.get(`site/sett_account/${id}`)
+}
+
+/**
+ * 添加店铺结算账户
+ */
+export function addShopSettAccount(params: Record<string, any>) {
+    return request.post(`site/sett_account`, params, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
+ * 修改店铺结算账户
+ */
+export function editShopSettAccount(params: Record<string, any>) {
+    return request.put(`site/sett_account/${params.id}`, params, { showErrorMessage: true, showSuccessMessage: true })
+}
+
+/**
+ * 删除店铺结算账户
+ */
+export function delShopSettAccount(id: number) {
+    return request.delete(`site/sett_account/${id}`, { showErrorMessage: true, showSuccessMessage: true })
 }
 
 /**

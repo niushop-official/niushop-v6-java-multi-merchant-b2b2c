@@ -7,49 +7,57 @@
 			</div>
 
 			<el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-				<el-form :inline="true" :model="orderTable.searchParam" ref="searchFormRef">
+				<el-form label-width="70px" :inline="true" :model="orderTable.searchParam" ref="searchFormRef" class="page-form">
 
 					<el-form-item :label="t('orderInfo')" prop='search_name'>
-						<el-select v-model="orderTable.searchParam.search_type" clearable class="input-item">
-							<el-option :label="t('orderNo')" value="order_no"></el-option>
-							<el-option :label="t('orderTradoNo')" value="out_trade_no"></el-option>
-						</el-select>
-						<el-input class="input-item ml-3" v-model="orderTable.searchParam.search_name" />
+						<el-input class="search-input" v-model="orderTable.searchParam.search_name" clearable>
+							<template #prepend>
+								<el-select v-model="orderTable.searchParam.search_type" clearable class="!w-[120px]">
+									<el-option :label="t('orderNo')" value="order_no"></el-option>
+									<el-option :label="t('orderTradoNo')" value="out_trade_no"></el-option>
+								</el-select>
+							</template>
+						</el-input>
 					</el-form-item>
 					<el-form-item :label="t('payType')" prop='pay_type'>
-						<el-select v-model="orderTable.searchParam.pay_type" clearable class="input-item">
+						<el-select v-model="orderTable.searchParam.pay_type" clearable class="search-input">
+							<el-option  label="全部" value="all" />
 							<el-option v-for="(item, index) in payTypeData" :key="index" :label="item.name" :value="item.key"></el-option>
 						</el-select>
 					</el-form-item>
 					<el-form-item :label="t('fromType')" prop='order_from'>
-						<el-select v-model="orderTable.searchParam.order_from" clearable class="input-item">
+						<el-select v-model="orderTable.searchParam.order_from" clearable class="search-input">
+							<el-option  label="全部" value="all" />
 							<el-option v-for="(item, index) in orderFromData" :key="index" :label="item" :value="index"></el-option>
 						</el-select>
 					</el-form-item>
 					<el-form-item :label="t('goodsSource')" prop="goods_source">
-                        <el-select v-model="orderTable.searchParam.goods_source" :placeholder="t('goodsSourcePlaceholder')" clearable>
+                        <el-select v-model="orderTable.searchParam.goods_source" :placeholder="t('goodsSourcePlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,index) in goodsSource" :key="index" :label="item.name" :value="index" />
                         </el-select>
                     </el-form-item>
 					<el-form-item :label="t('配送方式')" prop="delivery_type">
-                        <el-select v-model="orderTable.searchParam.delivery_type" :placeholder="t('请选择配送方式')" clearable>
+                        <el-select v-model="orderTable.searchParam.delivery_type" :placeholder="t('请选择配送方式')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,index) in deliveryTypeData" :key="index" :label="item" :value="index" />
                         </el-select>
                     </el-form-item>
 					<el-form-item :label="t('订单类型')" prop="order_type">
-                        <el-select v-model="orderTable.searchParam.order_type" :placeholder="t('请选择订单类型')" clearable>
+                        <el-select v-model="orderTable.searchParam.order_type" :placeholder="t('请选择订单类型')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,index) in orderType" :key="index" :label="item" :value="index" />
                         </el-select>
                     </el-form-item>
 					<el-form-item :label="t('createTime')" prop="create_time">
 						<el-date-picker v-model="orderTable.searchParam.create_time" type="datetimerange"
 							value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-							:end-placeholder="t('endDate')" />
+							:end-placeholder="t('endDate')" class="search-input" />
 					</el-form-item>
 					<el-form-item :label="t('payTime')" prop="pay_time">
 						<el-date-picker v-model="orderTable.searchParam.pay_time" type="datetimerange"
 							value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-							:end-placeholder="t('endDate')" />
+							:end-placeholder="t('endDate')" class="search-input" />
 					</el-form-item>
 					<el-form-item>
 						<el-button type="primary" @click="loadOrderList()">{{ t('search') }}</el-button>
@@ -194,8 +202,8 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { getOrderList, getOrderStatus, getOrderPayType, getOrderFrom, getOrderType } from '@/addon/mall/api/admin/order'
-import { getGoodsSource } from '@/addon/mall/api/admin/goods'
+import { getOrderList, getOrderStatus, getOrderPayType, getOrderFrom, getOrderType } from '@/app/lang/zh-cn/api/admin/order'
+import { getGoodsSource } from '@/app/lang/zh-cn/api/admin/goods'
 import { getAdminDeliveryType } from '@/app/api/delivery_admin'
 import OrderExportSelect from '@/addon/mall/views/admin/order/components/order-export-select.vue'
 import { img } from '@/utils/common'

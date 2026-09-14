@@ -28,6 +28,13 @@ export function getMobile(data: AnyObject) {
     return request.put('member/getmobile', data, { showErrorMessage: true })
 }
 
+/**
+ * 获取全部会员等级
+ */
+export function getMemberLevelAll() {
+    return request.get(`member/level/all`);
+}
+
 /***************************************************** 会员列表 ****************************************************/
 /**
  * 获取店铺会员列表

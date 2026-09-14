@@ -7,15 +7,16 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="goodsTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="goodsTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('goodsName')" prop="goods_name">
-                        <el-input v-model.trim="goodsTable.searchParam.goods_name" :placeholder="t('goodsNamePlaceholder')" maxlength="60" />
+                        <el-input v-model.trim="goodsTable.searchParam.goods_name" :placeholder="t('goodsNamePlaceholder')" maxlength="60" clearable class="search-input"/>
                     </el-form-item>
                     <el-form-item :label="t('goodsCategory')" prop="goods_category">
-                        <el-cascader v-model="goodsTable.searchParam.goods_category" :options="goodsCategoryOptions" :placeholder="t('goodsCategoryPlaceholder')" clearable :props="{ value: 'value', label: 'label', emitPath: false }" />
+                        <el-cascader v-model="goodsTable.searchParam.goods_category" :options="goodsCategoryOptions" :placeholder="t('请选择分类')" clearable :props="{ value: 'value', label: 'label', emitPath: false }" class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('goodsType')" prop="goods_type">
-                        <el-select v-model="goodsTable.searchParam.goods_type" :placeholder="t('goodsTypePlaceholder')" clearable>
+                        <el-select v-model="goodsTable.searchParam.goods_type" :placeholder="t('goodsTypePlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="item in goodsType" :key="item.type" :label="item.name" :value="item.type" />
                         </el-select>
                     </el-form-item>
@@ -102,7 +103,7 @@ import { ElMessageBox, ElMessage, FormInstance } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { cloneDeep } from 'lodash-es'
 import { getCategoryTree } from '@/app/api/basic_site'
-import { getRecycleGoodsPageList, getGoodsType, recycleGoods } from '@/addon/mall/api/site/goods'
+import { getRecycleGoodsPageList, getGoodsType, recycleGoods } from '@/app/lang/zh-cn/api/site/goods'
 
 const route = useRoute()
 const pageName = route.meta.title
@@ -136,7 +137,9 @@ const goodsType: any = reactive([])
 // 初始化数据
 const initData = () => {
     // 查询商品分类树结构
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []
@@ -157,6 +160,11 @@ const initData = () => {
                 })
             })
             goodsCategoryOptions.splice(0, goodsCategoryOptions.length, ...goodsCategoryTree)
+            goodsCategoryOptions.unshift({
+                value: '',
+                label: '全部',
+                children: []
+            })
         }
     })
     // 商品类型

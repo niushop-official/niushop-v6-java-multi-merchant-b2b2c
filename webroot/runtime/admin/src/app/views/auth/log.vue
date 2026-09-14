@@ -5,16 +5,16 @@
                 <span class="text-page-title">{{pageName}}</span>
             </div>
             <div class="flex justify-between items-start mt-[20px]">
-                <el-form :inline="true" :model="sysUserLogTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true"  label-width="90px" :model="sysUserLogTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('ip')" prop="ip">
-                        <el-input v-model.trim="sysUserLogTableData.searchParam.ip" :placeholder="t('ipPlaceholder')" />
+                        <el-input v-model.trim="sysUserLogTableData.searchParam.ip" :placeholder="t('ipPlaceholder')" class="search-input" clearable />
                     </el-form-item>
                     <el-form-item :label="t('username')" prop="username">
-                        <el-input v-model.trim="sysUserLogTableData.searchParam.username" :placeholder="t('usernamePlaceholder')" />
+                        <el-input v-model.trim="sysUserLogTableData.searchParam.username" :placeholder="t('usernamePlaceholder')"  class="search-input" clearable/>
                     </el-form-item>
 
                     <el-form-item :label="t('url')" prop="url">
-                        <el-input v-model.trim="sysUserLogTableData.searchParam.url" :placeholder="t('urlPlaceholder')" />
+                        <el-input v-model.trim="sysUserLogTableData.searchParam.url" :placeholder="t('urlPlaceholder')" class="search-input" clearable />
                     </el-form-item>
 
                     <el-form-item>

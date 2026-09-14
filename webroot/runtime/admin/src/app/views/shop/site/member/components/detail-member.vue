@@ -117,13 +117,19 @@
     </el-drawer>
 </template>
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { t } from '@/lang'
-import { getShopMemberInfo, getShopMemberCoupon } from '@/app/api/shop_site'
+import { getShopMemberInfo } from '@/app/api/shop_site'
+import { getShopMemberCoupon } from '@/app/api/marketing_site'
 import { ElMessage } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import { img, mobileHide } from '@/utils/common'
 import EditMember from '@/app/views/shop/site/member/components/edit-member.vue'
+import userStore from '@/stores/modules/user'
+
+const siteInfo = computed(() => {
+    return userStore().siteInfo
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -158,9 +164,10 @@ const editMemberInfo = (type: any) => {
 }
 
 const getMemberInfoFn = async (bool = false) => {
+    const addon = siteInfo.value?.app?.[0]
     loading.value = true
     if (memberId) {
-        const data = await (await getShopMemberInfo(memberId)).data
+        const data = await (await getShopMemberInfo(memberId, addon)).data
         if (!data || Object.keys(data).length == 0) {
             ElMessage.error(t('memberNull'))
             setTimeout(() => {

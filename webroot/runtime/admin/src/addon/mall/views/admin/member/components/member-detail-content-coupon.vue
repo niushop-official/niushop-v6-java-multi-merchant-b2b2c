@@ -21,7 +21,7 @@
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
 import { img } from '@/utils/common'
-import { getMemberPlatformCouponList } from '@/addon/mall/api/admin/marketing'
+import { getMemberPlatformCouponList } from '@/app/api/marketing_admin'
 
 const props = defineProps({
     member_id: {

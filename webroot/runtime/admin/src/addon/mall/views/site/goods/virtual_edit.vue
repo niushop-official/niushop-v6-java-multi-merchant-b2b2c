@@ -53,8 +53,8 @@
                   <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipOne') }}</div>
                   <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipTwo') }}</div>
                   <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipThree') }}</div>
-                  <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipFour') }}</div>
-                  <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipFive') }}</div>
+<!--                  <div class="mt-[5px] text-[12px] text-[var(&#45;&#45;el-color-primary)] leading-[20px]">{{ t('goodsVideoTipFour') }}</div>-->
+<!--                  <div class="mt-[5px] text-[12px] text-[var(&#45;&#45;el-color-primary)] leading-[20px]">{{ t('goodsVideoTipFive') }}</div>-->
                 </div>
               </div>
             </el-form-item>
@@ -147,6 +147,13 @@
                 <el-input v-model.trim="goodsEdit.formData.point_deduct_rate" clearable :placeholder="t('pointDeductRatioPlaceholder')" class="input-width" maxlength="5" show-word-limit :disabled="goodsEdit.isSupplyDisabled('point_deduct_rate')" @keyup="filterNumberWithPercent($event)" step="0.01" min="0" max="100">
                   <template #append>%</template>
                 </el-input>
+              </div>
+            </el-form-item>
+            <!-- 关联推荐 -->
+            <el-form-item :label="t('关联推荐')">
+              <div>
+                <goods-select-popup ref="goodsSelectPopupRef" v-model="goodsEdit.formData.recommend_goods_ids" :exclude_goods_id="goodsEdit.formData.goods_id"  :min="1" :max="6" />
+                <div class="text-[12px] text-[#999]">设置后，该商品详情页【店铺推荐】会展示选中的商品</div>
               </div>
             </el-form-item>
 
@@ -453,6 +460,13 @@
                 <div class="text-[12px] text-[#999] leading-[20px]" v-if="goodsEdit.formData.member_discount == 'fixed_price'">{{t('fixedPriceHint')}}</div>
               </div>
             </el-form-item>
+            <el-form-item :label="t('付费会员等级折扣')">
+              <el-radio-group v-model="goodsEdit.formData.vip_card_discount" :disabled="goodsEdit.isSupplyDisabled('vip_card_discount')">
+                <el-radio label="">{{ t('nonparticipation') }}</el-radio>
+                <el-radio label="discount">{{ t('discount') }}</el-radio>
+                <el-radio label="fixed_price">{{ t('fixedPrice') }}</el-radio>
+              </el-radio-group>
+            </el-form-item>
           </el-form>
           <el-form :model="goodsEdit.formData" label-width="120px" ref="priceStockCommonFormRef" :rules="goodsEdit.formRules" class="page-form">
             <el-form-item :label="t('isLimit')">
@@ -702,15 +716,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed ,onMounted, watch} from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { t } from '@/lang'
 import { ElMessage, FormInstance } from 'element-plus'
 import { ArrowLeft, CircleCloseFilled, Rank } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import { deepClone, filterNumber, timeStampTurnTime } from '@/utils/common'
-import { addVirtualGoods, editVirtualGoods, getVirtualGoodsInit } from '@/addon/mall/api/site/goods'
+import { addVirtualGoods, editVirtualGoods, getVirtualGoodsInit } from '@/app/lang/zh-cn/api/site/goods'
 import { useGoodsEdit } from './public/js/useGoodsEdit'
-import { getShopPointConfig } from '@/addon/mall/api/site/marketing'
+import { getShopPointConfig } from '@/app/api/basic_site'
+import goodsSelectPopup from '@/addon/mall/views/site/goods/components/goods-select-popup.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -750,6 +765,15 @@ const goodsEdit = useGoodsEdit({
             priceStockCommonFormRef: priceStockCommonFormRef.value,
             deliveryFormRef: deliveryFormRef.value
         }
+    },
+    getVerify () {
+        return [
+            {
+                key: 'delivery',
+                verify: false,
+                ref: deliveryFormRef.value
+            }
+        ]
     },
     addApi: addVirtualGoods,
     editApi: editVirtualGoods,
@@ -808,8 +832,9 @@ const goodsEdit = useGoodsEdit({
                 {
                     trigger: 'blur',
                     validator: (rule: any, value: any, callback: any) => {
-                        if (formData.virtual_delivery_type == 'verify' && formData.virtual_verify_type == 1 && value < 1) {
+                        if (formData.virtual_delivery_type == 'verify' && formData.virtual_verify_type == 1 && Number(value) < 1) {
                             callback(new Error(t('virtualIndateErrorHint')))
+                            return
                         }
                         callback()
                     }
@@ -958,20 +983,26 @@ const isLimitDisabled = computed(() => {
 })
 
 const curDisabledArea = ref<any>([]) // 禁用区域
+const isInitializing = ref(true) // 初始化标志位
 
 // 监听发货方式变化
 watch(() => goodsEdit.formData.virtual_delivery_type, (newType) => {
+    // 初始化期间不执行，避免覆盖已设置的限购值
+    if (isInitializing.value) return
+    
     if (newType === 'auto' || newType === 'manual') {
-    // 选择自动发货或手动发货时，设置限购相关值
+        // 选择自动发货或手动发货时，设置限购相关值
         goodsEdit.formData.is_limit = 1
         goodsEdit.formData.limit_type = 1
         goodsEdit.formData.max_buy = 1
-    } else {
-    // 选择其他发货方式时，清空限购相关值
-        goodsEdit.formData.is_limit = 0
-        goodsEdit.formData.limit_type = 0
-        goodsEdit.formData.max_buy = 0
     }
+    // 注释掉else分支，不再自动清空限购值，保留用户之前设置的值
+    // else {
+    //     // 选择其他发货方式时，清空限购相关值
+    //     goodsEdit.formData.is_limit = 0
+    //     goodsEdit.formData.limit_type = 0
+    //     goodsEdit.formData.max_buy = 0
+    // }
 }, { immediate: true })
 // 加载初始化数据
 getVirtualGoodsInit({
@@ -980,13 +1011,19 @@ getVirtualGoodsInit({
     const data = res.data
     if (data) {
         curDisabledArea.value = deepClone(data.disable_edit_area)
+
+        // 先设置虚拟发货类型，再调用 handleGoodsInit，这样 watch 就不会覆盖已设置的限购值
+        if (goodsEdit.formData.goods_id && data.goods_info) {
+            goodsEdit.formData.virtual_delivery_type = data.goods_info.virtual_delivery_type
+        }
+
         goodsEdit.handleGoodsInit(data)
 
         // 虚拟商品 收发货设置
         if (goodsEdit.formData.goods_id && data.goods_info) {
             orderGoodsCount.value = data.goods_info.order_goods_count
 
-            goodsEdit.formData.virtual_delivery_type = data.goods_info.virtual_delivery_type
+            // goodsEdit.formData.virtual_delivery_type = data.goods_info.virtual_delivery_type
             goodsEdit.formData.virtual_receive_type = data.goods_info.virtual_receive_type
             goodsEdit.formData.virtual_verify_type = String(data.goods_info.virtual_verify_type)
             goodsEdit.formData.virtual_verify_mobile = String(data.goods_info.virtual_verify_mobile)
@@ -1004,6 +1041,9 @@ getVirtualGoodsInit({
             goodsEdit.formData.point_deduct_rate = data.goods_info.point_deduct_rate || ''
             goodsEdit.formData.point_deduct_type = data.goods_info.point_deduct_type || 'site'
         }
+
+        // 初始化完成，允许 watch 监听用户操作（在所有数据设置完成后设置）
+        isInitializing.value = false
     }
 })
 

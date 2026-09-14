@@ -31,7 +31,7 @@
 import { ref } from 'vue';
 import { t } from '@/locale'
 import { img, redirect } from '@/utils/common';
-import { getShopFollowList , editShopCollect} from '@/app/api/shop';
+import { getShopFollowList , editShopCollect} from '@/addon/mall/api/shop';
 import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue';
 import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.vue';
 import useMescroll from '@/components/mescroll/hooks/useMescroll.js';
@@ -43,7 +43,6 @@ let loading = ref<boolean>(false);
 const getCollectFn = (mescroll) => {
 	loading.value = false;
 	let data: object = {
-		addon: 'mall',
 		page: mescroll.num,
 		limit: mescroll.size
 	};
@@ -67,7 +66,7 @@ const getCollectFn = (mescroll) => {
 
 //进入店铺
 const toShopDetail = (id: any) => {
-	redirect({ url: '/addon/mall/pages/site/index', param: { site_id: id } })
+	redirect({ url: '/addon/mall/pages/index', param: { site_id: id } })
 }
 const cartOptions = ref([
     {
@@ -82,9 +81,8 @@ const cartOptions = ref([
 const swipeClick = (id:any,is_follow:any) => {
 	editShopCollect({
 		site_id: id,
-		is_follow: is_follow,
-		addon: 'mall'
-		}).then(res => {
+		is_follow: is_follow
+	}).then(res => {
         list.value = [];
 	    getMescroll().resetUpScroll();
     })

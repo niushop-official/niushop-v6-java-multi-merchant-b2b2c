@@ -83,6 +83,7 @@ declare module '@vue/runtime-core' {
     HeatMap: typeof import('./src/components/heat-map/index.vue')['default']
     Icon: typeof import('./src/components/icon/index.vue')['default']
     MapInfo: typeof import('./src/components/map-info/index.vue')['default']
+    MapSelector: typeof import('./src/components/map-selector/index.vue')['default']
     PayInfo: typeof import('./src/components/pay-info/index.vue')['default']
     PopoverInput: typeof import('./src/components/popover-input/index.vue')['default']
     RangeInput: typeof import('./src/components/range-input/index.vue')['default']

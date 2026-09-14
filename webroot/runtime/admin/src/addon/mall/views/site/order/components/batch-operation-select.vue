@@ -41,7 +41,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
-import { getOrderBatchDeliveryType } from '@/addon/mall/api/site/order'
+import { getOrderBatchDeliveryType } from '@/app/lang/zh-cn/api/site/order'
 
 const selectDialog = ref(false)
 const loading = ref(false)

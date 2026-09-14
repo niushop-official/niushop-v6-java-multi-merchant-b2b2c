@@ -41,8 +41,7 @@
 
                     <el-table-column prop="status" :label="t('status')" min-width="80" :show-overflow-tooltip="true" >
                         <template #default="{ row }">
-	                        <el-tag type="success" v-if="row.status == 1" @click="modifyPrinterStatusEvent(row.printer_id, 0)" class="cursor-pointer">{{ t('statusOn') }}</el-tag>
-	                        <el-tag type="info" v-else @click="modifyPrinterStatusEvent(row.printer_id, 1)" class="cursor-pointer">{{ t('statusOff') }}</el-tag>
+                            <el-switch v-model="row.status" :active-value="1" :inactive-value="0" inline-prompt :active-text="t('statusOn')" :inactive-text="t('statusOff')" @change="(value) => modifyPrinterStatusEvent(row, value)" />
                         </template>
                     </el-table-column>
 
@@ -121,15 +120,18 @@ loadPrinterList()
 const isRepeat = ref(false)
 
 // 修改小票打印机状态
-const modifyPrinterStatusEvent = (printer_id: any, status: any) => {
+const modifyPrinterStatusEvent = (row: any, status: any) => {
     if (isRepeat.value) return
     isRepeat.value = true
 
     modifyPrinterStatus({
-        printer_id,
+        printer_id: row.printer_id,
         status
     }).then((res) => {
         loadPrinterList()
+        isRepeat.value = false
+    }).catch(() => {
+        row.status = status == 1 ? 0 : 1
         isRepeat.value = false
     })
 }

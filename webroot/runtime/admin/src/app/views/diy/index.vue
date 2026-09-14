@@ -31,8 +31,14 @@
                 <diy-link v-model="link" :ignore="['OTHER_LINK']" @success="changePage" v-if="type == 'DIY_INDEX'">
                     <el-button type="primary">{{ t('changePage') }}</el-button>
                 </diy-link>
-                <el-button type="primary" @click="toDecorate()" v-show="page.use_template.action == 'decorate'" class="ml-[12px]">{{ t('decorate') }}</el-button>
+                <div v-if="!siteInfo?.app?.includes('waimai')">
+                    <el-button type="primary" @click="toDecorate()" v-show="page.use_template.action == 'decorate'" :class="{'ml-[12px]': type == 'DIY_INDEX'}">{{ t('decorate') }}</el-button>
+                </div>
             </div>
+
+            <el-tabs v-model="activeName" class="mt-[20px]" @tab-click="tabHandleClick" v-if="siteId > 0 && Object.keys(siteIndexTemplate).length > 1">
+                <el-tab-pane v-for="(item,index) in siteIndexTemplate" :label="item.title" :name="index"></el-tab-pane>
+            </el-tabs>
 
             <div class="info-wrap">
 
@@ -70,10 +76,11 @@ import { t } from '@/lang'
 import { img } from '@/utils/common'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getDecoratePage, changeTemplate } from '@/app/api/diy'
+import { getDecoratePage, changeTemplate, getSiteIndexTemplateList } from '@/app/api/diy'
 import storage from '@/utils/storage'
 import QRCode from 'qrcode'
 import { useClipboard } from '@vueuse/core'
+import userStore from '@/stores/modules/user'
 
 const siteId = storage.get('siteId')
 const type: any = ref('DIY_INDEX');
@@ -84,11 +91,24 @@ const wapImage = ref('')
 const link = ref({
     name: ''
 })
+const activeName = ref('')
 
-if(siteId > 0){
-    type.value = 'DIY_SITE_INDEX'
-}else{
-    type.value = 'DIY_INDEX'
+const tabHandleClick = (tab: any) => {
+    console.log(tab.props)
+    activeName.value = tab.props.name
+    type.value = tab.props.name
+    refreshData()
+}
+
+const siteIndexTemplate = ref({})
+// 获取自定义店铺首页模板列表
+const loadDiySiteIndexTemplate = ()=> {
+    getSiteIndexTemplateList().then(res => {
+        siteIndexTemplate.value = res.data
+        type.value = Object.keys(siteIndexTemplate.value)[0]
+        activeName.value = type.value
+        refreshData()
+    })
 }
 
 // 切换页面
@@ -148,7 +168,14 @@ const refreshData = () => {
     })
 }
 
-refreshData()
+const siteInfo = ref<any>(null)
+if (siteId > 0) {
+    loadDiySiteIndexTemplate()
+    siteInfo.value = userStore().siteInfo
+} else {
+    type.value = 'DIY_INDEX'
+    refreshData()
+}
 
 const uniAppLoadStatus = ref(false) // uni-app 加载状态，true：加载完成，false：未完成
 
@@ -221,10 +248,18 @@ const settingTips = () => {
     window.open('https://www.kancloud.cn/niucloud/niucloud-admin-develop/3213393')
 }
 
+const isFrontWarehousePreview = () => {
+    const pagePath = page.use_template?.page || page.use_template?.url || ''
+    return String(pagePath).includes('front_warehouse') || String(type.value).includes('FRONT_WAREHOUSE')
+}
+
 const setDomain = () => {
     if(siteId > 0){
-        page.use_template.wapPreview = page.wapUrl + page.use_template.page + '?site_id=' + siteId;
-        page.shareUrl = page.use_template.wapPreview;
+        // 分享/扫码走真实页面；前置仓左侧 iframe 加 admin_preview，避免定位跳到「重新定位」
+        page.shareUrl = page.wapUrl + page.use_template.page + '?site_id=' + siteId;
+        page.use_template.wapPreview = isFrontWarehousePreview()
+            ? page.shareUrl + '&admin_preview=1'
+            : page.shareUrl;
     }else{
         page.use_template.wapPreview = page.wapUrl + page.use_template.url
         page.shareUrl = page.wapUrl + '/';

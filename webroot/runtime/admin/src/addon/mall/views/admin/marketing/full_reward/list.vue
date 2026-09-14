@@ -7,12 +7,12 @@
 
         <!-- 搜索 -->
         <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-            <el-form :inline="true" :model="tableData.searchParam" ref="searchFormRef">
+            <el-form label-width="70px" :inline="true" :model="tableData.searchParam" ref="searchFormRef" class="page-form">
                 <el-form-item :label="t('name')" prop="title">
-                    <el-input v-model.trim="tableData.searchParam.title" :placeholder="t('namePlaceholder')" />
+                    <el-input v-model.trim="tableData.searchParam.title" :placeholder="t('namePlaceholder')" class="search-input" clearable />
                 </el-form-item>
                 <el-form-item :label="t('activityTime')" prop="create_time">
-                    <el-date-picker v-model="tableData.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" @change="manjianTimeChange" />
+                    <el-date-picker v-model="tableData.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')" :end-placeholder="t('endDate')" @change="manjianTimeChange" class="search-input" />
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="loadManjianList()">{{ t("search") }}</el-button>
@@ -68,7 +68,7 @@ import { ref, reactive } from 'vue'
 import { t } from '@/lang'
 import { useRoute, useRouter } from 'vue-router'
 import { FormInstance, ElMessageBox, ElMessage } from 'element-plus'
-import { getFullGiftList ,getFullGiftInit} from "@/addon/mall/api/admin/marketing";
+import { getFullGiftList ,getFullGiftInit} from "@/app/lang/zh-cn/api/admin/marketing";
 import { setTablePageStorage, getTablePageStorage ,getCurrentDataTime} from '@/utils/common'
 import manjianDetail from '@/addon/mall/views/admin/marketing/full_reward/components/detail-drawer.vue'
 

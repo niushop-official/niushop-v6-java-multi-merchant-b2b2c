@@ -7,20 +7,20 @@
 			</div>
 
 			<el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-				<el-form :inline="true" :model="orderTable.searchParam" ref="searchFormRef">
+				<el-form label-width="70px" :inline="true" :model="orderTable.searchParam" ref="searchFormRef" class="page-form">
 					<el-form-item :label="t('orderRefundNo')" prop="order_refund_no">
 						<el-input v-model.trim="orderTable.searchParam.order_refund_no"
-							:placeholder="t('orderRefundNoPlaceholder')" @keyup="filterNumber($event)" maxlength="30" />
+							:placeholder="t('orderRefundNoPlaceholder')" @keyup="filterNumber($event)" maxlength="30" class="search-input" clearable />
 					</el-form-item>
 					<el-form-item :label="t('createTime')" prop="create_time">
 						<el-date-picker v-model="orderTable.searchParam.create_time" type="datetimerange"
 							value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-							:end-placeholder="t('endDate')" />
+							:end-placeholder="t('endDate')" class="search-input" />
 					</el-form-item>
 					<el-form-item>
 						<el-button type="primary" @click="loadOrderList()">{{ t('search') }}</el-button>
 						<el-button @click="resetForm(searchFormRef)">{{ t('reset') }}</el-button>
-						 <el-button type="primary" @click="exportEvent">{{ t('export') }}</el-button>
+						<el-button type="primary" @click="exportEvent">{{ t('export') }}</el-button>
 					</el-form-item>
 				</el-form>
 			</el-card>
@@ -144,7 +144,7 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { orderRefund } from '@/addon/mall/api/site/order'
+import { orderRefund } from '@/app/lang/zh-cn/api/site/order'
 import { img, filterNumber } from '@/utils/common'
 import type { FormInstance } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'

@@ -6,9 +6,9 @@
 
 		<el-form class="page-form" :model="formData" :rules="formRules" label-width="150px" ref="formRef" v-loading="loading">
 
-			<div class="flex">
+			<div class="flex overflow-x-auto">
 
-				<div class="flex-1 mr-[20px] bg-[#fff]">
+				<div class="flex-1 mr-[20px] bg-[#fff] min-w-[1100px] flex-shrink-0">
 
 					<el-card class="box-card !border-none" shadow="never">
 
@@ -32,8 +32,8 @@
 						<div v-for="item in template" :key="item.key" class="bg-[#f8f8f9] mb-[20px] py-[20px] px-[40px] text-[14px]">
 							<h4 class="panel-title !text-sm">{{ item.title }}</h4>
 							<div v-for="(childItem,index) in item.list" :key="childItem.key" class="ml-[30px]" :style="{ 'margin-bottom' : item.list.length == (index + 1) ? '0' : '20px' }">
-								<div class="flex">
-									<el-checkbox v-model="formData.value[item.key][childItem.key].status" v-if="childItem.label" :label="childItem.label" :value="childItem.status" :true-value="1" :false-value="0" class="w-[180px] mr-[10px]" :disabled="childItem.disabled" />
+								<div class="flex overflow-x-auto">
+									<el-checkbox v-model="formData.value[item.key][childItem.key].status" v-if="childItem.label" :label="childItem.label" :value="childItem.status" :true-value="1" :false-value="0" class="!w-[180px] mr-[10px]" :disabled="childItem.disabled" />
 
 									<template v-if="childItem.type == 'input'">
 										<el-input v-model.trim="formData.value[item.key][childItem.key].value" clearable :placeholder="'请输入' + (childItem.placeholder ? childItem.placeholder : childItem.label)" class="input-width mr-[30px]" maxlength="100" />
@@ -88,7 +88,7 @@
 					</el-card>
 				</div>
 
-				<el-card class="box-card !border-none w-[450px]" shadow="never">
+				<el-card class="box-card !border-none w-[450px] flex-shrink-0" shadow="never">
 
 					<h3 class="panel-title !text-sm">{{ t('preview') }}</h3>
 

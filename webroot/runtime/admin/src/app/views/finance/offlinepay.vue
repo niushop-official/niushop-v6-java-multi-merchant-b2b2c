@@ -7,18 +7,18 @@
 
         <div class="mt-[10px]">
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="payListTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="payListTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('outTradeNo')" prop="trade_no">
-                        <el-input v-model="payListTable.searchParam.out_trade_no" :placeholder="t('outTradeNoPlaceholder')" />
+                        <el-input v-model="payListTable.searchParam.out_trade_no" :placeholder="t('outTradeNoPlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
                         <el-date-picker v-model="payListTable.searchParam.create_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('status')" prop="status">
-                        <el-select v-model="payListTable.searchParam.status" placeholder="Select">
-                            <el-option :label="t('all')" value="" />
+                        <el-select v-model="payListTable.searchParam.status" placeholder="Select" clearable  class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="t('waitAudit')" value="3" />
                             <el-option :label="t('passed')" value="2" />
                             <el-option :label="t('notPass')" value="-1" />

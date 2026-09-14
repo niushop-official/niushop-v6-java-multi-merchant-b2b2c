@@ -7,22 +7,22 @@
 					<input class="input" maxlength="50" type="text" v-model="goods_name"  placeholder="请搜索您想要的商品" placeholderClass="text-[var(--text-color-light9)] text-[24rpx]" confirm-type="search" @confirm="searchTypeFn('all')">
 					<text v-if="goods_name" class="nc-iconfont nc-icon-cuohaoV6xx1 clear" @click="goods_name=''"></text>
 				</view>
-				<view :class="['list-icon iconfont list-icon', listType ? 'icona-yingyongzhongxinV6xx-32' : 'icona-yingyongliebiaoV6xx-32']" @click="listIconBtn"></view>
+				<view :class="['iconfont text-[32rpx] text-[#333] -mb-[2rpx]', listType ? 'icona-yingyongzhongxinV6xx-32' : 'icona-yingyongliebiaoV6xx-32']" @click="listIconBtn"></view>
 			</view>
 			<view class="flex justify-between items-center h-[88rpx] px-[30rpx]">
 				<view class="flex items-center justify-between text-[26rpx] flex-1">
-					<text class="text-light3"  :class="{ 'text-color font-500': searchType == 'all' }" @click="searchTypeFn('all')">综合排序</text>
-					<view class="flex items-center text-light3" :class="{ 'text-color font-500': searchType == 'sale_num' }" @click="searchTypeFn('sale_num')">
+					<text class="text-[#333]"  :class="{ '!text-[var(--primary-color)] font-500': searchType == 'all' }" @click="searchTypeFn('all')">综合排序</text>
+					<view class="flex items-center text-[#333]" :class="{ '!text-[var(--primary-color)] font-500': searchType == 'sale_num' }" @click="searchTypeFn('sale_num')">
 						<text class="mr-[4rpx]">销量</text>
-						<text v-if="sale_num == 'asc'" class="font16 nc-iconfont nc-icon-a-xiangshangV6xx1" :class="{'text-primary': searchType == 'sale_num' }"></text>
-						<text  v-else class="font16 nc-iconfont nc-icon-a-xiangxiaV6xx1" :class="{'text-primary': searchType == 'sale_num' }"></text>
+						<text v-if="sale_num == 'asc'" class="text-[16rpx] nc-iconfont nc-icon-a-xiangshangV6xx1" :class="{'text-[var(--primary-color)]': searchType == 'sale_num' }"></text>
+						<text  v-else class="text-[16rpx] nc-iconfont nc-icon-a-xiangxiaV6xx1" :class="{'text-[var(--primary-color)]': searchType == 'sale_num' }"></text>
 					</view>
-					<view class="flex items-center text-light3" :class="{'text-color font-500': searchType == 'price' }" @click="searchTypeFn('price')">
+					<view class="flex items-center text-[#333]" :class="{'!text-[var(--primary-color)] font-500': searchType == 'price' }" @click="searchTypeFn('price')">
 						<text class=" mr-[4rpx]">价格</text>
-						<text v-if="price == 'asc'" class="font16 nc-iconfont nc-icon-a-xiangshangV6xx1" :class="{'text-primary': searchType == 'price' }"></text>
-						<text v-else class="font16 nc-iconfont nc-icon-a-xiangxiaV6xx1" :class="{'text-primary': searchType == 'price' }"></text>
+						<text v-if="price == 'asc'" class="text-[16rpx] nc-iconfont nc-icon-a-xiangshangV6xx1" :class="{'text-[var(--primary-color)]': searchType == 'price' }"></text>
+						<text v-else class="text-[16rpx] nc-iconfont nc-icon-a-xiangxiaV6xx1" :class="{'text-[var(--primary-color)]': searchType == 'price' }"></text>
 					</view>
-					<view class="flex items-center" :class="{'text-color font-500': searchType == 'label', 'text-light3': searchType != 'label' }" @click="searchTypeFn('label')">
+					<view class="flex items-center" :class="{'!text-[var(--primary-color)] font-500': searchType == 'label', 'text-[#333]': searchType != 'label' }" @click="searchTypeFn('label')">
 						<text class="mr-[8rpx]">筛选</text>
 						<text class="iconfont font-500 icona-shaixuanV6xx-34 -mb-[4rpx] !text-[26rpx]"></text>
 					</view>
@@ -34,7 +34,7 @@
 				<view class="text-[28rpx] px-[30rpx] mt-[40rpx]">全部分类</view>
 				<view class="flex flex-wrap pl-[30rpx] pt-[30rpx]">
 					<text @click="loadCategory(item.category_id)" v-for="(item, index) in categoryList" :key="item.category_id"
-						:class="{ 'label-select': currGoodsCategory == item.category_id }" class="category-wrap truncate  flex items-center justify-center  box-border ">
+						:class="{ 'label-select': currGoodsCategory == item.category_id }" class="truncate text-[#333] px-[10rpx] border-[2rpx] border-solid border-transparent w-[184rpx] h-[56rpx] flex items-center justify-center mr-[30rpx] mb-[30rpx] box-border bg-[var(--temp-bg)] rounded-[50rpx] text-[24rpx]">
 						{{ item.category_name }}
 					</text>
 				</view>
@@ -44,7 +44,7 @@
 		<mescroll-body ref="mescrollRef" top="176rpx" bottom="50px" @init="mescrollInit" :down="{ use: false }"  @up="getAllAppListFn">
 			<view v-if="goodsList.length" :class="['sidebar-margin', !listType ? 'biserial-goods-list' : '']">
 				<template v-if="listType">
-					<view v-for="(item, index) in goodsList" :key="index" class="goods-item-wrap bg-white flex  overflow-hidden" :class="{ 'mb20': (index+1) != goodsList.length}" @click="toDetail(item.goods_id)">
+					<view v-for="(item, index) in goodsList" :key="index" class="bg-white flex px-[20rpx] py-[24rpx] rounded-[var(--rounded-small)] overflow-hidden" :class="{ 'mb-[20rpx]': (index+1) != goodsList.length}" @click="toDetail(item.goods_id)">
 						<image v-if="item.goods_cover_thumb_mid" class="w-[270rpx] h-[270rpx] rounded-[var(--rounded-mid)]" :src="img(item.goods_cover_thumb_mid)" :mode="'aspectFill'" @error="item.goods_cover_thumb_mid='static/resource/images/diy/shop_default.jpg'"></image>
 						<image v-else class="w-[270rpx] h-[270rpx] rounded-[var(--rounded-mid)]" :src="img('static/resource/images/diy/shop_default.jpg')" :mode="'aspectFill'"></image>
 						<view class="flex-1 flex flex-col  ml-[20rpx] py-[6rpx]">
@@ -86,7 +86,6 @@
 										<text class="text-[40rpx] font-500">{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[0] }}</text>
 										<text class="text-[24rpx] font-500">.{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[1] }}</text>
 									</view>
-									<image v-if="diyGoods.priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
 									<image v-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 									<image class="h-[24rpx] w-[72rpx] ml-[6rpx]" v-if="diyGoods.priceType(item) == 'discount_price'" :src="img('addon/mall/discount.png')" mode="heightFix" />
 								</view>
@@ -148,7 +147,6 @@
                                                 <text class="text-[40rpx] font-500">{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[0] }}</text>
                                                 <text class="text-[24rpx] font-500">.{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[1] }}</text>
                                             </view>
-											<image v-if="diyGoods.priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
                                             <image v-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 											<image class="h-[24rpx] w-[72rpx] ml-[6rpx]" v-if="diyGoods.priceType(item) == 'discount_price'" :src="img('addon/mall/discount.png')" mode="heightFix" />
                                         </view>
@@ -209,7 +207,6 @@
                                                 <text class="text-[40rpx] font-500">{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[0] }}</text>
                                                 <text class="text-[24rpx] font-500">.{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[1] }}</text>
                                             </view>
-											<image v-if="diyGoods.priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
                                             <image v-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 											<image class="h-[24rpx] w-[72rpx] ml-[6rpx]" v-if="diyGoods.priceType(item) == 'discount_price'" :src="img('addon/mall/discount.png')" mode="heightFix" />
                                         </view>
@@ -261,7 +258,6 @@ let goods_name = ref("");
 let price = ref("");
 let sale_num = ref("");
 let searchType = ref('all');
-let is_vip_card = ref('');
 // 刷新定位
 /************** 定位-start ****************/
 const locationVal = useLocation(true);
@@ -277,7 +273,6 @@ onLoad(async (option:any) => {
 	goods_name.value = option.goods_name ? decodeURIComponent(option.goods_name) : ''
 	coupon_id.value = option.coupon_id || ''
     siteId.value = option.site_id || 0;
-	is_vip_card.value = option.is_vip_card || '';
 	await getGoodsCategoryTree({}).then((res: any) => {
 		const initData = { category_name: "全部", category_id: '' };
 		categoryList.value.push(initData);
@@ -304,7 +299,6 @@ const getAllAppListFn = (mescroll: mescrollStructure) => {
 		order: searchType.value === 'all' ? '' : searchType.value,
 		sort: searchType.value == 'price' ? price.value : sale_num.value,
 		position: systemStore.diyAddressInfo,
-		is_vip_card: is_vip_card.value
 	};
 	let api = coupon_id.value ? getGoodsCouponPages : getGoodsPages;
 	api(data).then((res: any) => {
@@ -382,19 +376,9 @@ onMounted(() => {
 .scroll-view-wrap {
 	word-break: keep-all;
 }
-.list-icon {
-	font-size: 32rpx;
-	color: #333;
-	margin-bottom: -2rpx;
-}
-.font16 {
-	font-size: 16px;
-}
-.text-light3 {
-	color:#333;
-}
+
 .text-color {
-	color: var(--primary-color) !important;
+	color: var(--primary-color);
 }
 
 .label-select {
@@ -402,26 +386,7 @@ onMounted(() => {
 	border-color: var(--primary-color);
 	background-color: var(--primary-color-light);
 }
-.category-wrap{
-	color: #333;
-	padding-left: 10px;
-	padding-right: 10px;
-	border: 2rpx solid transparent;
-	width: 184rpx;
-	height: 56rpx;
-	margin-right: 30px;
-	margin-bottom: 30px;
-	background-color: var(--temp-bg);
-	border-radius: 50rpx;
-	font-size: 24rpx;
-}
-.goods-item-wrap {
-	padding: 24rpx 20rpx;
-	border-radius: var(--rounded-small);
-	&.mb20 {
-		margin-bottom: 20rpx;
-	}
-}
+
 :deep(.u-popup .u-transition) {
 	top: 156rpx !important;
 }

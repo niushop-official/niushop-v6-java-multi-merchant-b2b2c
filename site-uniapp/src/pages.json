@@ -293,8 +293,8 @@
 	],
 	"subPackages": [
 		// {{ PAGE_BEGAIN }}
-        // MALL_PAGE_BEGIN
-		{
+		// MALL_PAGE_BEGIN
+{
 			"root": "addon/mall",
 			"pages": [
 				// *********************************** 商城 ***********************************
@@ -460,9 +460,9 @@
 				}
 			]
             
-		}
+		},
 		// MALL_PAGE_END
-		// {{ PAGE_END }}
+	// {{ PAGE_END }}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",

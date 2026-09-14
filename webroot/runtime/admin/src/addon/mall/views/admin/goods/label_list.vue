@@ -10,9 +10,9 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="labelTable.searchParam" ref="searchFormRef">
+                <el-form label-width="70px" :inline="true" :model="labelTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('labelName')" prop="label_name">
-                        <el-input v-model.trim="labelTable.searchParam.label_name" :placeholder="t('labelNamePlaceholder')" />
+                        <el-input v-model.trim="labelTable.searchParam.label_name" :placeholder="t('labelNamePlaceholder')" class="search-input" clearable />
                     </el-form-item>
 
                     <el-form-item>
@@ -38,8 +38,7 @@
                     </el-table-column>
                     <el-table-column prop="status" :label="t('status')" min-width="80" :show-overflow-tooltip="true" >
                         <template #default="{ row }">
-                            <el-tag type="success" v-if="row.status == 1" @click="modifyLabelStatusEvent(row.label_id, 0)" class="cursor-pointer">{{ t('statusOn') }}</el-tag>
-                            <el-tag type="info" v-else @click="modifyLabelStatusEvent(row.label_id, 1)" class="cursor-pointer">{{ t('statusOff') }}</el-tag>
+                            <el-switch v-model="row.status" :active-value="1" :inactive-value="0" inline-prompt :active-text="t('statusOn')" :inactive-text="t('statusOff')" @change="(value) => modifyLabelStatusEvent(row, value)" />
                         </template>
                     </el-table-column>
                     <el-table-column prop="memo" :label="t('memo')" min-width="200" />
@@ -198,15 +197,18 @@ const sortInputListener = debounce((sort, row) => {
 const isRepeat = ref(false)
 
 // 修改状态
-const modifyLabelStatusEvent = (label_id: any, status: any) => {
+const modifyLabelStatusEvent = (row: any, status: any) => {
     if (isRepeat.value) return
     isRepeat.value = true
 
     modifyLabelStatus({
-        label_id,
+        label_id: row.label_id,
         status
     }).then((res) => {
         loadLabelList()
+        isRepeat.value = false
+    }).catch(() => {
+        row.status = status == 1 ? 0 : 1
         isRepeat.value = false
     })
 }

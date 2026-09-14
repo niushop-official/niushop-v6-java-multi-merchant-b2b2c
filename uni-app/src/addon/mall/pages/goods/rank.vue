@@ -31,9 +31,9 @@
 
             <!-- 列表 -->
             <mescroll-body ref="mescrollRef" :height="listHeight" @init="mescrollInit" :down="{ use: false }" @up="getRankGoodsListFn">
-                <view class="bg-white flex rounded-mid p20"
+                <view class="bg-[#fff] flex rounded-[var(--rounded-mid)] p-[20rpx]"
                       v-for="(item,index) in rankGoodsList" :key="item.goods_id"
-                      :class="{'mb20': (rankGoodsList.length-1) != index}" v-if="rankGoodsList.length"
+                      :class="{'mb-[20rpx]': (rankGoodsList.length-1) != index}" v-if="rankGoodsList.length"
                       @click="toLink(item.goods_id)">
                     <view class="w-[240rpx] h-[240rpx] flex items-center justify-center relative">
                         <!-- 榜单排名图片 -->
@@ -341,14 +341,5 @@ onLoad(async(option: any) => {
         line-height: 44rpx;
         text-align: center;
     }
-}
-.rounded-mid {
-    border-radius: var(--rounded-mid);
-}
-.p20 {
-    padding: 20rpx;
-}
-.mb20 {
-    margin-bottom: 20rpx;
 }
 </style>

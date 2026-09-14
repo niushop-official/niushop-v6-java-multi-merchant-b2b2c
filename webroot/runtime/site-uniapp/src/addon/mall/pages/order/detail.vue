@@ -11,10 +11,11 @@
                 <view class="title">买家信息</view>
                 <view class="justify-between card-template-item">
                     <view class="text-[28rpx]">买家昵称</view>
-                    <view class="flex items-center" @click.stop="redirect({url: '/app/pages/member/detail', param: {member_id: detail.member_id}})">
+                    <!-- @click.stop="redirect({url: '/app/pages/member/detail', param: {member_id: detail.member_id}})" -->
+                    <view class="flex items-center">
                         <u-avatar :default-url="img('static/resource/images/default_headimg.png')" :src="img(detail.member.headimg)" :size="'30rpx'" leftIcon="none" />
                         <text v-if="detail.member" class="text-[28rpx] ml-[10rpx]">{{ detail.member.nickname }}</text>
-                        <text class="nc-iconfont nc-icon-youV6xx text-[24rpx] text-[#999] relative top-[2rpx]"></text>
+                        <!-- <text class="nc-iconfont nc-icon-youV6xx text-[24rpx] text-[#999] relative top-[2rpx]"></text> -->
                     </view>
                 </view>
                 <view class="justify-between card-template-item" v-if="detail.member.mobile">
@@ -256,6 +257,12 @@
                     <view class="text-[28rpx]">{{ detail.form_details[0]?.recordsFieldList[fieldKey].render_value }}</view>
                 </view>
             </view>
+            <view class="sidebar-margin my-[var(--top-m)] card-template">
+                <view class="justify-between text-[28rpx] card-template-item"  @click="redirect({url: '/addon/mall/pages/order/log', param: { order_id: detail.order_id }})">
+                    <view>操作日志</view>
+                    <text class="nc-iconfont nc-icon-youV6xx text-[24rpx] text-[var(--text-color-light9)] pt-[2rpx]"></text>
+                </view>
+            </view>
         </view>
         <view class="tab-bar-placeholder"></view>
         <view class="flex z-2 justify-between items-center bg-[#fff] fixed left-0 right-0 bottom-0 min-h-[110rpx] px-[30rpx]  pb-ios">
@@ -359,6 +366,7 @@ const orderDetailFn = (id: any) => {
         }
 		loading.value = false;
         detail.value.btnList = []
+        const expressDeliveryList = Array.isArray(detail.value.order_delivery) ? detail.value.order_delivery.filter((item: any) => item.delivery_type == 'express') : []
         detail.value.btnList.push({ name: '备注', type: 'notes'})
         if(!detail.value.supply_id){
             if(detail.value.status == 2 && detail.value.delivery_type !== 'store'){
@@ -386,7 +394,7 @@ const orderDetailFn = (id: any) => {
             if((detail.value.status == 1 || detail.value.status == 2) && detail.value.delivery_type != 'virtual' && detail.value.delivery_type!='store'){
                detail.value.btnList.push({ name: '修改地址', type: 'edit_address' })
 			}
-            if(detail.value.order_delivery && detail.value.delivery_type == 'express'){
+            if(detail.value.delivery_type == 'express' && expressDeliveryList.length){
                 detail.value.btnList.push({ name: '查看物流', type: 'package' })
             }
         }
@@ -488,13 +496,15 @@ const orderEditAddressFn = () => {
 const packageRef = ref();
 const packageEvent = () => {
     const arr: any = []
-	detail.value.order_delivery.forEach((item: any, index: number) => {
+	const orderDelivery = Array.isArray(detail.value.order_delivery) ? detail.value.order_delivery : []
+	orderDelivery.forEach((item: any, index: number) => {
         if(item.delivery_type == 'express'){
             item.name = `包裹${index + 1}`
             item.mobile = detail.value.taker_mobile
             arr.push(item)
         }
     })
+    if(!arr.length) return
     packageRef.value.open(arr)
 }
 

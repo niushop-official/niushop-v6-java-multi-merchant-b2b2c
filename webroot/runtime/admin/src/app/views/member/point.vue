@@ -30,20 +30,20 @@
                 </el-row>
             </el-card>
             <el-card class="box-card !border-none mb-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="memberAccountLogTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="memberAccountLogTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('memberInfo')" prop="keywords">
-                        <el-input v-model="memberAccountLogTableData.searchParam.keywords" class="w-[240px]" :placeholder="t('memberInfoPlaceholder')" />
+                        <el-input v-model="memberAccountLogTableData.searchParam.keywords" :placeholder="t('memberInfoPlaceholder')" clearable  class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('fromType')" prop="from_type">
-                        <el-select v-model="memberAccountLogTableData.searchParam.from_type" clearable :placeholder="t('fromTypePlaceholder')" class="input-width">
-                            <el-option :label="t('selectPlaceholder')" value="" />
+                        <el-select v-model="memberAccountLogTableData.searchParam.from_type" clearable :placeholder="t('fromTypePlaceholder')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item.name" :value="key" v-for="(item, key) in fromTypeList" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
                         <el-date-picker v-model="memberAccountLogTableData.searchParam.create_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadMemberAccountLogList()">{{ t('search') }}</el-button>

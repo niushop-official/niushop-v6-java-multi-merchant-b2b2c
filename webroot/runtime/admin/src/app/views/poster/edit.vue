@@ -77,7 +77,7 @@
                             </ul>
 
                             <!-- 组件预览渲染区域 -->
-                            <div class="preview-iframe" :style="posterStore.getGlobalStyle()" @click="posterStore.changeCurrentIndex(-99)">
+                            <div class="preview-iframe" :style="[posterStore.getGlobalStyle(),{height: posterStore.global.isDiyWidthHeight == 1 ? posterStore.global.height + 'px' : '' }]" @click="posterStore.changeCurrentIndex(-99)">
                                 <div class="item-wrap area-box select-none max-w-[720px] cursor-move" v-for="(item,index) in posterStore.value" :id="item.id" :key="item.id"
                                      :style="previewIframeStyle(item)"
                                      :class="{ 'selected' : posterStore.currentIndex == index }"
@@ -134,7 +134,7 @@
                                             <!-- 文本 -->
                                             <template v-if="posterStore.editComponent.type == 'text'">
                                                 <el-form-item :label="t('textFontSize')">
-                                                    <el-slider v-model="posterStore.editComponent.fontSize" show-input size="small" class="ml-[10px]" :min="14" :max="50" />
+                                                    <el-slider v-model="posterStore.editComponent.fontSize" show-input size="small" class="ml-[10px]" :min="14" :max="80" />
                                                 </el-form-item>
                                                 <el-form-item :label="t('textColor')">
                                                     <el-color-picker v-model="posterStore.editComponent.fontColor" />
@@ -608,7 +608,7 @@ const preview = () => {
 	margin: 0 auto;
 	width: 720px;
 	height: 1280px;
-	background-size: 100% 1280px;
+	background-size: 100% 100%;
 	background-repeat: no-repeat;
 	position: relative;
     transform-origin: left top;

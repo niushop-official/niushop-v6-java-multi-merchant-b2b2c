@@ -86,6 +86,7 @@
                         <div class="flex items-center mr-[20px]">
                             <span class="text-[14px] oppoSans-M">挑货状态：</span>
                             <el-select v-model="goodsTable.searchParam.select_status" class="!w-[160px] !rounded-[4px]" :placeholder="t('请选择挑货状态')" clearable>
+                                <el-option  label="全部" value="all" />
                                 <el-option  label="已挑货" :value="1" />
                                 <el-option  label="未挑货" :value="2" />
                             </el-select>
@@ -163,7 +164,7 @@ import { ElMessage } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import goodsAddPopup from './components/goods-add-popup.vue'
 import { getCategoryList } from '@/app/api/basic_admin'
-import { getGoodsList } from '@/addon/mall/api/site/select_goods'
+import { getGoodsList } from '@/app/lang/zh-cn/api/site/select_goods.js'
 import supplyBatchPopup from './components/supply-batch-popup.vue'
 import useSystemStore from '@/stores/modules/system'
 const systemStore = useSystemStore()

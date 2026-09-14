@@ -60,36 +60,67 @@
                 </span>
             </template>
         </el-dialog>
-        <el-dialog v-model="changeSiteDialog" width="1260px" title="切换店铺" append-to-body>
-            <div class="min-h-[540px]">
-                <div class="flex flex-wrap" v-loading="site.loading">
-                    <div v-for="(item, index) in site.tableData" :key="index" @click="selectSite(item)" :class="['home-item w-[285px] box-border mb-[20px] cursor-pointer',{'mr-[20px]': index ==0 || (index + 1) % 4 != 0,'border-[1px] border-solid border-[var(--el-color-primary)]': siteInfo.site_id == item.site_id}]">
-                        <div class="flex items-center px-[24px] pt-[22px] pb-[16px] bg-[#F0F2F4] home-item-head">
-                            <img v-if="item.front_end_logo" class="w-[48px] h-[48px] mr-[15px] rounded-[50%] overflow-hidden" :src="img(item.front_end_logo)" />
-                            <img v-else class="w-[48px] h-[48px] mr-[15px] rounded-[50%] overflow-hidden" src="@/app/assets/images/site_logo.png" />
-                            <div class="flex flex-col flex-1 justify-center">
-                                <div class="flex items-center flex-wrap">
-                                    <span class="text-[16px] text-[#000] max-w-[145px] font-bold truncate mr-[10px]">{{item.site_name}}</span>
-                                    <div class="flex items-center justify-center min-w-[42px] h-[18px] bg-[#FF5500] rounded-tl-md rounded-br-md items-tab" v-if="item.app_name">
-                                        <span class="text-[12px] text-[#fff]">{{item.app_name}}</span>
+        <el-dialog v-model="changeSiteDialog" width="1060px" title="切换店铺" align-center append-to-body>
+            <el-form :inline="true" :model="site.searchParam" ref="searchFormRef">
+                <el-form-item>
+                    <div class="secrch-input w-[500px] h-[38px] flex items-center  border-solid border-[1px] border-[#ddd] rounded-[8px] box-border">
+                        <el-select v-model="site.searchParam.search_type" class="!w-[112px] text-[12px] flex-shrink-0">
+                            <el-option :label="t('店铺名称')" value="site_name"></el-option>
+                            <el-option :label="t('店铺编号')" value="site_id"></el-option>
+                        </el-select>
+                        <span class="w-[1px] h-[24px] bg-[#eee]"></span>
+                        <el-input v-model.trim="site.searchParam.search_value" :placeholder="t('请输入店铺名称')" class="w-[340px] !text-[12px]"  maxlength="60" />
+                        <span class="text-[14px] font-[500] text-[#323233] flex-shrink-0 mr-[16px] cursor-pointer" @click="getHomeSiteFn()">查询</span>
+                    </div>
+                </el-form-item>
+            </el-form>
+            <div class="flex items-center mb-[20px]">
+                <template v-for="(item, key) in addonList" :key="item.key">
+                    <span class="text-[12px] text-[#888] cursor-pointer" :class="{'!text-[#222] font-[700]':site.searchParam.app == item.key }" @click="handleApp(item)">{{ item.title }}({{ item.site_num }})</span>
+                    <span class="w-[1px] h-[13px] bg-[#ddd] mx-[14px]" v-if="key !== Object.keys(addonList).length - 1"></span>
+                </template>
+            </div>
+            <div class="min-h-[385px]">
+                <div v-loading="site.loading">
+                    <div class="grid grid-cols-3 gap-[16px]">
+                        <div v-for="(item, index) in site.tableData" :key="index" @click="selectSite(item)" :class="['w-[330px] p-[18px] box-border border-[1px] border-solid border-[#ddd] rounded-[4px] cursor-pointer flex relative overflow-hidden',{'!border-primary bg-[#f3f7ff]': siteInfo.site_id == item.site_id}]">
+                            <view class="absolute top-[-1px] right-[-1px] w-[18px] h-[18px] bg-primary rounded-bl-[10px] rounded-tr-[4px] flex items-center justify-center" v-if="siteInfo.site_id == item.site_id">
+                                <span class="nc-iconfont nc-icon-duihaoV6xx-1 text-[#fff] !text-[12px]"></span>
+                            </view>
+                            <div class="relative w-[70px] h-[70px]">
+                                <img v-if="item.front_end_logo" class="w-[70px] h-[70px] rounded-[4px] overflow-hidden" :src="img(item.front_end_logo)" />
+                                <img v-else class="w-[70px] h-[70px] rounded-[4px] overflow-hidden" src="@/app/assets/images/site_logo.png" />
+                                <view v-if="item.business_state == 1" class="operation pl-[4px] pr-[10px] pb-[6px] absolute top-0 left-0 text-[12px] text-[#fff] box-border leading-[18px]">{{ item.business_state_name }}</view>
+                                <view v-else class="rest pl-[4px] pr-[10px] pb-[6px] absolute top-0 left-0 text-[12px] text-[#fff] box-border leading-[18px]">{{ item.business_state_name }}</view>
+                            </div>
+                            <div class="flex-1 ml-[12px]">
+                                <div class="text-[14px] text-[#222] max-w-[145px] font-[600] truncate mb-[4px]">{{item.site_name}}</div>
+                                <div class="text-[12px] text-[#999] mb-[4px]">店铺编号：{{item.site_id}}</div>
+                                <el-tooltip class="box-item" effect="light" placement="bottom">
+                                    <template #content>
+                                        <div class="flex items-center">
+                                            <template v-for="(subItem,subIndex) in item.app_name" :key="subIndex">
+                                                <span>{{ subItem }}</span>
+                                                <span v-if="subIndex !== item.app_name.length - 1">、</span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <div class="max-w-[236px]  using-hidden" v-if="item.app_name.length">
+                                        <span class="inline-block text-[12px] mr-[6px] h-[18px] px-[4px] rounded-[2px] border-solid border-[1px] whitespace-nowrap" :style="{ color: randomColorList[subIndex % randomColorList.length], borderColor: randomColorList[subIndex % randomColorList.length] }" v-for="(subItem,subIndex) in item.app_name" :key="subIndex">{{ subItem }}</span>
                                     </div>
-                                </div>
-                                <span class="text-[12px] mt-[3px] text-[#555]" v-if="item.status !== 1">{{item.status_name}}</span>
+                                </el-tooltip>
                             </div>
                         </div>
-                        <div class="px-[24px] py-[20px] text-[#6D7278]">
-                            <p class="text-[14px]">店铺编号：{{item.site_id}}</p>
-                            <p class="text-[14px] mt-[2px]">店铺套餐：{{item.group_name || '--'}}</p>
-                        </div>
                     </div>
-                    <div v-if="!site.tableData.length && !site.loading" class="m-auto">
+                    
+                    <div v-if="!site.tableData.length && !site.loading" class="flex flex-col items-center m-auto">
                         <img src="@/app/assets/images/empty.png"/>
                         <p class="text-center text-gray-400">暂无店铺</p>
                     </div>
                 </div>
             </div>
             <div class="mt-[16px] flex justify-end">
-                <el-pagination v-model:current-page="site.params.page" v-model:page-size="site.params.limit"
+                <el-pagination v-model:current-page="site.page" v-model:page-size="site.limit"
                             layout="total, prev, pager, next, jumper" :total="site.total"
                             @current-change="getHomeSiteFn" :hide-on-single-page="true"/>
             </div>
@@ -107,7 +138,7 @@ import { FormInstance, FormRules, ElNotification } from 'element-plus'
 import userInfoEdit from '@/app/components/user-info-edit/index.vue'
 import useUserStore from '@/stores/modules/user'
 import { setUserInfo } from '@/app/api/personal'
-import { getHomeSite } from '@/app/api/home'
+import { getHomeSite, getAddon } from '@/app/api/home'
 import { t } from '@/lang'
 import storage from '@/utils/storage'
 const userStore = useUserStore()
@@ -178,21 +209,44 @@ const submitForm = (formEl: FormInstance | undefined) => {
     })
 }
 // 修改密码 --- end
+const addonList = ref({})
+const getAddonFn = () => {
+    getAddon().then((res: any) => {
+        addonList.value = res.data
+    })
+}
+
+const randomColorList = ref([
+    '#1890FF',
+    '#FF6D11',
+    '#29C441',
+    '#FF0202',
+    '#890CE8',
+    '#F404C0',
+    '#00C8DE'
+])
 // 切换店铺
 const changeSiteDialog = ref(false)
 const site = reactive({
-    params: {
-        page: 1,
-        limit: 12
+    page: 1,
+    limit: 9,
+    searchParam: {
+        search_value: '',
+        search_type: 'site_name',
+        app: ''
     },
     loading: false,
     tableData: [],
     total: 0
 })
 const getHomeSiteFn = (page: number = 1) => {
-    site.params.page = page
+    site.page = page
     site.loading = true
-    getHomeSite(site.params).then(res => {
+    getHomeSite({
+        page: site.page,
+        limit: site.limit,
+        ...site.searchParam
+    }).then(res => {
         site.tableData = res.data.data
         site.total = res.data.total
         site.loading = false
@@ -200,8 +254,13 @@ const getHomeSiteFn = (page: number = 1) => {
         site.loading = false
     })
 }
+const handleApp = (data: any) => {
+    site.searchParam.app = data.key
+    getHomeSiteFn()
+}
 const changeSite = () => {
     getHomeSiteFn()
+    getAddonFn()
     changeSiteDialog.value = true
 }
 const selectSite = (site: any) => {
@@ -236,5 +295,26 @@ const selectSite = (site: any) => {
       color: #fff !important;
     }
   }
+}
+:deep(.secrch-input .el-input__wrapper){
+    box-shadow: none !important;
+}
+:deep(.secrch-input .el-select__wrapper){
+    box-shadow: none !important;
+}
+:deep(.secrch-input .el-select__selected-item){
+    font-size: 12px;
+    color:#323233;
+    font-weight: 700;
+}
+.operation {
+    background-image: url('@/app/assets/images/operation.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+.rest {
+    background-image: url('@/app/assets/images/rest.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
 }
 </style>

@@ -11,7 +11,7 @@
 			<view class="tabs-box z-2 fixed left-0 bg-[#fff] bottom-[50px] top-0" :style="tabsBoxCss">
 				<scroll-view :scroll-y="true" class="scroll-height">
 					<view class="bg-[var(--temp-bg)]">
-						<view class="tab-item" :class="{ 'tab-item-active': index == tabActive,'rounded-br-12':tabActive-1===index,'rounded-tr-12':tabActive+1===index  }" v-for="(item, index) in tabsData" :key="index" @click="firstLevelClick(index, item)">
+						<view class="tab-item" :class="{ 'tab-item-active': index == tabActive,'rounded-br-[12rpx]':tabActive-1===index,'rounded-tr-[12rpx]':tabActive+1===index  }" v-for="(item, index) in tabsData" :key="index" @click="firstLevelClick(index, item)">
 							<view class="text-box text-left leading-[1.3] break-words px-[16rpx]">
 								{{ item.category_name }}
 							</view>
@@ -20,7 +20,7 @@
 				</scroll-view>
 			</view>
 			<scroll-view class="h-[100vh]" :scroll-y="true">
-				<view class="category-box scroll-ios" :class="{ 'pt100': config.search.control }">
+				<view class="pl-[188rpx] scroll-ios pt-[20rpx] pr-[20rpx]" :class="{ '!pt-[100rpx]': config.search.control }">
 					<view class="bg-[#fff] grid grid-cols-3 gap-x-[50rpx] gap-y-[32rpx] py-[32rpx] px-[24rpx] rounded-[var(--rounded-big)]" v-if="tabsData[tabActive]?.child_list && !loading">
 						<template v-for="(item, index) in tabsData[tabActive]?.child_list" :key="item.category_id">
 							<view @click="toLink(item.category_id)" class=" flex items-center  flex-col">
@@ -37,7 +37,7 @@
 				</view>
 			</scroll-view>
 		</view>
-
+		<tabbar />
 		<mescroll-empty v-if="!tabsData.length && !loading" :option="{tip : '暂无商品分类'}"></mescroll-empty>
 		<loading-page :loading="loading"></loading-page>
 	</view>
@@ -90,9 +90,7 @@ const tabsBoxCss = computed(() => {
 const tabsData: any = ref<Array<Object>>([])
 const getCategoryData = () => {
     loading.value = true;
-    getGoodsCategoryTree({
-		addon: 'mall'
-	}).then((res: any) => {
+    getGoodsCategoryTree().then((res: any) => {
         tabsData.value = res.data;
         if (categoryId) {
             for (let i = 0; i < tabsData.value.length; i++) {
@@ -182,20 +180,6 @@ const searchNameFn = () => {
 	transform: rotate(180deg);
 }
 
-.rounded-br-12 {
-	border-bottom-right-radius: 0rpx;
-}
-.rounded-tr-12 {
-	border-top-right-radius: 0rpx;
-}
-.category-box {
-	padding-left: 188rpx;
-	padding-top: 20rpx;
-	padding-right: 20rpx;
-}
-.pt100 {
-	padding-top: 100rpx !important;
-}
 .text-color {
 	color: $u-primary;
 }

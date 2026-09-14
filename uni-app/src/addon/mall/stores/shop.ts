@@ -25,7 +25,6 @@ export const useShopStore = defineStore('shop', {
                     isFollow: res.data.member_info?.is_follow,
                     distance: res.data.distance,
                     background_h5: res.data.background_h5,
-                    qrcode_shop_config: res.data.qrcode_shop_config
                 }
                 this.shopInfo[siteId] = data;
                 if(callback) callback(data);

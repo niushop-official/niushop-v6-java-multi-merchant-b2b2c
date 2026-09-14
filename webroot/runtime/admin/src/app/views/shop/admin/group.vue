@@ -8,9 +8,9 @@
                 </el-button>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="shopGroupTableData.searchParam" ref="searchFormRef">
+                <el-form :inline="true"  label-width="70px"  :model="shopGroupTableData.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('groupName')" prop="keywords">
-                        <el-input v-model="shopGroupTableData.searchParam.keywords" :placeholder="t('groupNamePlaceholder')" />
+                        <el-input v-model="shopGroupTableData.searchParam.keywords" :placeholder="t('groupNamePlaceholder')" class="search-input" clearable  />
                     </el-form-item>
 
                     <el-form-item>

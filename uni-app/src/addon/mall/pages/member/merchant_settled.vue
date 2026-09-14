@@ -1,8 +1,8 @@
 <template>
-    <view class="bg-[#fff]  min-h-[100vh] overflow-hidden" :style="themeColor()" v-if="!repeatLoading">
+    <view class="bg-[#fff]  min-h-[100vh] overflow-hidden" :style="themeColor()" v-if="systemStore.auditFlag && !repeatLoading">
         <view class="relative" v-if="diyData" :style="{height: headStyle, backgroundImage: 'url(' + img(diyData.apply_banner) + ')',backgroundSize: 'cover', backgroundPosition: 'bottom',  backgroundRepeat: 'no-repeat'}">
             <!-- #ifdef MP-WEIXIN -->
-            <top-tabbar v-if="systemStore.systemInfo && topTabarObj" :data="param"  :scrollBool="topTabarObj?.getScrollBool()" />
+            <top-tabbar :data="param"  :scrollBool="topTabarObj.getScrollBool()" />
             <!-- #endif -->
             <view class="side-tab" :style="{top: topStyle}" @click="redirect({url:'/addon/mall/pages/member/merchant_record'})">
                 <text class="nc-iconfont nc-icon-shenheV6xx icon"></text>
@@ -10,7 +10,6 @@
             </view>
         </view> 
         <view class="mt-[-150rpx] relative  card-template !px-[40rpx] merchant-settled">
-            <view class="mb-[30rpx] text-[34rpx] leading-[48rpx] font-500 text-[#333]">{{ applyTitle }}</view>
             <u-form labelPosition="left" :model="formData" :label-style="{'font-size':'28rpx'}"  class="pl-[15rpx]"
                 labelWidth="150rpx" errorType='toast' :rules="rules" ref="formRef">
                 <view>
@@ -44,25 +43,25 @@
                     </u-form-item>
                 </view>
                 <view>
-                    <u-form-item :label="t('categoryName')" prop="category_id" required  >
+                    <u-form-item :label="t('categoryId')" prop="category_id" required  >
                         <view class="flex items-center flex-1" @click="showPicker  = true">
                             <view class="flex-1">
                                 <view class="" v-if="formData.category_id">{{formData.category_name}}</view>
                                 <view class="text-[var(--text-color-light9)]" v-else>
-                                    {{ t('categoryNamePlaceholder') }}</view>
+                                    {{ t('categoryIdPlaceholder') }}</view>
                             </view>
                             <text
                                 class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
                         </view>
                     </u-form-item>
                 </view>
-                <view v-if="formData.child_category_id">
-                    <u-form-item :label="t('childCategoryName')" prop="child_category_id" required  >
-                        <view class="flex items-center flex-1" @click="showChildPicker  = true">
+                <view>
+                    <u-form-item :label="t('groupId')" prop="group_id" required  >
+                        <view class="flex items-center flex-1" @click="siteGroupPopup = true">
                             <view class="flex-1">
-                                <view class="" v-if="formData.child_category_id">{{formData.child_category_name}}</view>
+                                <view class="" v-if="formData.group_id">{{formData.group_name}}</view>
                                 <view class="text-[var(--text-color-light9)]" v-else>
-                                    {{ t('categoryNamePlaceholder') }}</view>
+                                    {{ t('groupIdPlaceholder') }}</view>
                             </view>
                             <text
                                 class="nc-iconfont nc-icon-youV6xx text-[30rpx] text-[var(--text-color-light9)]"></text>
@@ -102,9 +101,23 @@
             </view>
         </view>
         <u-loading-page bg-color="rgb(248,248,248)" :loading="loading" loadingText=""></u-loading-page>
-        <u-action-sheet :actions="siteCategoryList" :show="showPicker" :closeOnClickOverlay="true" :safeAreaInsetBottom="true" @close="showPicker = false" @select="changeCategory"></u-action-sheet>
-        <u-action-sheet :actions="siteChildCategoryList" :show="showChildPicker" :closeOnClickOverlay="true" :safeAreaInsetBottom="true" @close="showChildPicker = false" @select="changeChildCategory"></u-action-sheet>
-        
+        <u-action-sheet :actions="shopCategoryList" :show="showPicker" :closeOnClickOverlay="true" :safeAreaInsetBottom="true" @close="showPicker = false" @select="changeCategory"></u-action-sheet>
+        <!-- 店铺套餐 -->
+        <u-popup :show="siteGroupPopup" @close="siteGroupPopup = false" :closeable="true">
+            <view class="px-[30rpx] pb-[30rpx]" @touchmove.prevent.stop>
+                <view class="text-center p-[30rpx] text-[30rpx]">{{ t('groupId') }}</view>
+                <scroll-view scroll-y="true" class="h-[450rpx] mt-[20rpx]">
+                    <u-radio-group v-model="curSiteGroupId" placement="column">
+                        <u-radio activeColor="var(--primary-color)" :labelSize="'26rpx'"
+                            :customStyle="{marginBottom: '30rpx'}" v-for="(item, index) in siteGroupList"
+                            :key="index" :label="item.group_name" :name="item.group_id"></u-radio>
+                    </u-radio-group>
+                </scroll-view>
+                <button
+                    class="mt-[40rpx] primary-btn-bg text-[#fff] h-[80rpx] leading-[80rpx] rounded-[100rpx] text-[26rpx] font-500"
+                    @click="siteGroupPopupFn">{{ t('save') }}</button>
+            </view>
+        </u-popup>
 
         <fab-float />
     </view>
@@ -117,8 +130,7 @@ import { t } from '@/locale'
 import { uploadImage } from '@/app/api/system'
 import { onLoad, onPageScroll } from '@dcloudio/uni-app'
 import { topTabar } from '@/utils/topTabbar'
-import { getSiteCategoryAll } from '@/app/api/site'
-import { getShopConfig, setShopApply, editShopApply, getShopApply, checkhaveAccount } from '@/addon/mall/api/merchant'
+import { getShopConfig, getShopCategory, getSiteGroup, setShopApply, editShopApply, getShopApply, checkShopStatus, checkhaveAccount } from '@/addon/mall/api/merchant'
 import { getFormRecord } from '@/app/api/diy_form'
 import useSystemStore from '@/stores/system'
 import useMemberStore from '@/stores/member'
@@ -132,11 +144,9 @@ const memberStore = useMemberStore()
 const userInfo = computed(() => memberStore.info)
 
 /********* 自定义头部 - start ***********/
-const param = ref<any>({})
-let topTabarObj = null
+const topTabarObj = topTabar()
+let param = topTabarObj.setTopTabbarParam({ title: '商家入驻' })
 /********* 自定义头部 - end ***********/
-
-const applyTitle = ref('商家入驻')
 
 // 头部图片的高度
 const headStyle = computed(() => {
@@ -150,7 +160,6 @@ const topStyle = computed(() => {
 
 // 审核
 const showPicker = ref(false)
-const showChildPicker = ref(false)
 const formData = reactive<any>({
     apply_id: '',
     site_name: '',
@@ -160,8 +169,8 @@ const formData = reactive<any>({
     mobile_key: '',
     category_id: '',
     category_name: '',
-    child_category_id: '',
-    child_category_name: '',
+    group_id: '',
+    group_name: '',
     business_license: [],
     agree: false,
     refuse_reason: '',
@@ -172,46 +181,13 @@ const diyData = ref<any>(null)
 const diyFormRef = ref<any>(null)
 
 onLoad((option: any) => {
-    // console.log('auditFlag:', systemStore.auditFlag)
-    // console.log('repeatLoading:', repeatLoading.value)
-    // console.log('systemInfo:', systemStore.systemInfo)
     formData.apply_id = option.apply_id || ''
-    try {
-        topTabarObj = topTabar()
-        param.value = topTabarObj.setTopTabbarParam({ title: applyTitle.value })
-    } catch (e) {
-        console.error('topTabbar init error:', e)
-    }
     getShopConfigFn()
     checkStatus()
 })
-
-const curChildCategoryId = ref('')
-const siteChildCategoryList = ref([])
 const changeCategory = (e) =>{
     formData.category_id = e.category_id
-    formData.category_name = e.name
-    
-    // 重置子分类
-    formData.child_category_id = ''
-    formData.child_category_name = ''
-    
-    // 检查是否有子分类
-    if (e.child_list && Array.isArray(e.child_list) && e.child_list.length > 0) {
-        // 子分类列表
-        siteChildCategoryList.value = e.child_list
-        // 自动选中第一个子分类
-        formData.child_category_id = e.child_list[0].category_id
-        formData.child_category_name = e.child_list[0].name
-    }
-    
-    // 关闭选择器
-    showPicker.value = false
-}
-const changeChildCategory = (e) =>{
-    formData.child_category_id = e.category_id
-    formData.child_category_name = e.name
-    showChildPicker.value = false
+    formData.category_name = e.category_name
 }
 // 详情
 const repeatLoading = ref(true)
@@ -225,7 +201,7 @@ const getShopApplyFn = (id: any) => {
         })
         formData.form_data.record_id = data.form_record_id
         curCategoryId.value = formData.category_id
-        curChildCategoryId.value = formData.child_category_id
+        curSiteGroupId.value = formData.group_id
         if(data.form_record_id){
             getFormRecordFn(data)
         }
@@ -250,20 +226,27 @@ const getShopConfigFn = () => {
     getShopConfig().then((res: any) => {
         diyData.value = res.data
         if(res.data.apply_title) {
-            applyTitle.value = res.data.apply_title
             uni.setNavigationBarTitle({
-                title: applyTitle.value
+                title: res.data.apply_title
             })
-            if (topTabarObj) param.value = topTabarObj.setTopTabbarParam({ title: applyTitle.value })
         }
     })
 }
 const checkStatus = () => {
-    if (formData.apply_id) {
-        getShopApplyFn(formData.apply_id)
-    } else {
-        repeatLoading.value = false
-    }
+    checkShopStatus().then((res) => {
+        if (res.data) {
+            redirect({
+                url: '/addon/mall/pages/member/merchant_record',
+                mode: 'redirectTo'
+            })
+        } else{
+            if (formData.apply_id) {
+                getShopApplyFn(formData.apply_id)
+            } else {
+                repeatLoading.value = false
+            }
+        }
+    })
 }
 
 // 上传照片
@@ -297,16 +280,33 @@ const deletePic = (event) => {
 
 // 店铺分类
 const curCategoryId = ref('')
-const siteCategoryList = ref([])
+const shopCategoryList = ref([])
 const getShopCategoryFn = () => {
-    getSiteCategoryAll({
-        addon: 'mall'
-    }).then(res => {
-        siteCategoryList.value = res.data
+    getShopCategory().then(res => {
+        shopCategoryList.value = res.data
+        shopCategoryList.value.forEach((item,index)=>{
+            item.name = item.category_name
+        })
     })
 }
 getShopCategoryFn()
 
+// 店铺套餐
+const siteGroupPopup = ref(false)
+const curSiteGroupId = ref('')
+const siteGroupList = ref([])
+const getSiteGroupFn = () => {
+    getSiteGroup().then(res => {
+        siteGroupList.value = res.data
+    })
+}
+getSiteGroupFn()
+const siteGroupPopupFn = () => {
+    formData.group_id = curSiteGroupId.value;
+    let data = siteGroupList.value.find(item => item.group_id === curSiteGroupId.value)
+    formData.group_name = data.group_name
+    siteGroupPopup.value = false;
+}
 // 规则
 const rules = computed(() => {
     return {
@@ -343,6 +343,12 @@ const rules = computed(() => {
             type: 'number',
             required: true,
             message: t('categoryIdPlaceholder'),
+            trigger: ['blur', 'change'],
+        },
+        'group_id': {
+            type: 'number',
+            required: true,
+            message: t('groupIdPlaceholder'),
             trigger: ['blur', 'change'],
         },
         'business_license': {

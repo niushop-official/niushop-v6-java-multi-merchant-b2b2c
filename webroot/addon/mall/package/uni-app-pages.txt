@@ -1,0 +1,295 @@
+{
+			"root": "addon/mall",
+			"pages": [
+				// *********************************** 商城 ***********************************
+				{
+					"path": "pages/index",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.index%",
+						"usingComponents": {
+							"diy-group": "../../../../addon/components/diy/group/index"
+						},
+						"componentPlaceholder": {
+							"diy-group": "view"
+						}
+					}
+				},
+				{
+					"path": "pages/coupon/list",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.coupon.list%"
+					}
+				},
+				{
+					"path": "pages/coupon/detail",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.coupon.detail%"
+					}
+				},
+				{
+					"path": "pages/evaluate/list",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.evaluate.list%"
+					}
+				},
+				{
+					"path": "pages/evaluate/order_evaluate",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.evaluate.order_evaluate%"
+					}
+				},
+				{
+					"path": "pages/evaluate/order_evaluate_view",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.evaluate.order_evaluate_view%"
+					}
+				},
+				{
+					"path": "pages/member/index",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.member.index%"
+					}
+				},
+				{
+					"path": "pages/member/my_coupon",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.member.my_coupon%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/member/browse",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.member.browse%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/member/merchant_settled",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.member.merchant_settled%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/member/merchant_record",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.member.merchant_record%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/member/merchant_detail",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.member.merchant_detail%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/goods/search",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.search%"
+					}
+				},
+				{
+					"path": "pages/goods/list",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.list%"
+					}
+				},
+				{
+                    "path": "pages/goods/rank",
+                    "style": {
+                        // #ifndef H5
+                        "navigationStyle": "custom",
+                        // #endif
+                        "navigationBarTitleText": "%mall.pages.goods.rank%"
+                    }
+                },
+				{
+					"path": "pages/goods/detail",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.detail%",
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "pages/goods/cart",
+					"style": {
+						// #ifndef H5
+                        "navigationStyle": "custom",
+                        // #endif
+						"navigationBarTitleText": "%mall.pages.goods.cart%"
+					}
+				},
+				{
+					"path": "pages/goods/category",
+					"style": {
+						// #ifndef H5
+                        "navigationStyle": "custom",
+                        // #endif
+						"navigationBarTitleText": "%mall.pages.goods.category%"
+					}
+				},
+                {
+					"path": "pages/goods/gift",
+					"style": {
+						// #ifndef H5
+                        "navigationStyle": "custom",
+                        // #endif
+						"navigationBarTitleText": "%mall.pages.goods.gift%"
+					}
+				},
+				{
+					"path": "pages/collect/goods",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.collect.goods%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/collect/shop",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.collect.shop%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/shop/list",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.shop.list%"
+					}
+				},
+				{
+					"path": "pages/shop/detail",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.shop.detail%"
+					}
+				},
+				{
+					"path": "pages/shop/search",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.shop.search%"
+					}
+				},
+				{
+					"path": "pages/shop/goods_list",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.shop.goods_list%"
+					}
+				},
+				{
+					"path": "pages/home/goods",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.shop.home.goods%"
+					}
+				},
+				{
+					"path": "pages/home/coupon",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.shop.home.coupon%"
+					}
+				},
+				{
+					"path": "pages/home/category",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.shop.home.category%"
+					}
+				},
+				{
+					"path": "pages/order/detail",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.order.detail%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/list",
+					"style": {
+						// #ifndef H5
+                        "navigationStyle": "custom",
+                        // #endif
+						"navigationBarTitleText": "%mall.pages.order.list%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/payment",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.order.payment%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/refund/apply",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.refund.apply%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/refund/edit_apply",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.refund.edit_apply%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/refund/list",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.refund.list%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/refund/detail",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.refund.detail%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/refund/log",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.refund.log%"
+					},
+					"needLogin": true
+				}
+			]
+		},

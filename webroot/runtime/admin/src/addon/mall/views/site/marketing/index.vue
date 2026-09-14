@@ -35,7 +35,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive } from 'vue'
-import { getMarketingIndex } from '@/addon/mall/api/site/marketing'
+import { getMarketingIndex } from '@/app/lang/zh-cn/api/site/marketing'
 import { img } from '@/utils/common'
 import { RouteLocationRaw, useRouter } from 'vue-router'
 import storage from '@/utils/storage'

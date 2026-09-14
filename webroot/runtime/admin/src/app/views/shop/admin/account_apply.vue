@@ -5,18 +5,18 @@
                 <span class="text-page-title">{{ pageName }}</span>
             </div>
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="accountApplyTable.searchParam" ref="searchFormRef">
+                <el-form :inline="true" label-width="70px" :model="accountApplyTable.searchParam" ref="searchFormRef" class="page-form">
 <!--                    <el-form-item :label="t('店铺名称')" prop="site_name">
                         <el-input v-model="accountApplyTable.searchParam.site_name"  :placeholder="t('请输入店铺名称')" />
                     </el-form-item>-->
                     <el-form-item :label="t('入驻平台')" prop="type">
-                        <el-select v-model="accountApplyTable.searchParam.type" clearable :placeholder="t('请选择入驻平台')" class="input-width">
-                            <el-option :label="t('全部')" value="" />
+                        <el-select v-model="accountApplyTable.searchParam.type" clearable :placeholder="t('请选择入驻平台')" class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="item" :value="index" v-for="(item, index) in typeList" :key="index" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('createTime')" prop="create_time">
-                        <el-date-picker v-model="accountApplyTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('开始时间')" :end-placeholder="t('结束时间')" />
+                        <el-date-picker v-model="accountApplyTable.searchParam.create_time" type="datetimerange" value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('开始时间')" :end-placeholder="t('结束时间')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadAccountApplyList()">{{ t('search') }}</el-button>

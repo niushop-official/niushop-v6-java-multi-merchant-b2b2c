@@ -2,7 +2,7 @@
     <template v-if="meta.show">
         <el-sub-menu v-if="routes.children" :index="String(routes.name)">
             <template #title>
-                <div class="w-[25px] h-full flex items-center justify-center">
+                <div class="w-[25px] flex items-center justify-center flex-shrink-0">
                     <template v-if="meta.icon">
                         <el-image class="w-[16px] h-[16px] overflow-hidden" :src="meta.icon" fit="fill" v-if="isUrl(meta.icon)"/>
                         <icon :name="meta.icon" v-else />
@@ -14,14 +14,14 @@
             <menu-item v-for="(route, index) in routes.children" :routes="route" :key="index" :level="props.level + 1" />
         </el-sub-menu>
         <el-menu-item :index="String(routes.name)" @click="router.push({ name: routes.name })" v-else>
+            <div class="w-[25px] flex items-center justify-center flex-shrink-0" v-if="props.level == 1">
+                <template v-if="meta.icon">
+                    <el-image class="w-[16px] h-[16px] overflow-hidden" :src="meta.icon" fit="fill" v-if="isUrl(meta.icon)"/>
+                    <icon :name="meta.icon" v-else />
+                </template>
+                <icon v-else :name="'iconfont iconshezhi1'" />
+            </div>
             <template #title>
-                <div class="w-[25px] h-full flex items-center justify-center" v-if="props.level == 1">
-                    <template v-if="meta.icon">
-                        <el-image class="w-[16px] h-[16px] overflow-hidden" :src="meta.icon" fit="fill" v-if="isUrl(meta.icon)"/>
-                        <icon :name="meta.icon" v-else />
-                    </template>
-                    <icon v-else :name="'iconfont iconshezhi1'" />
-                </div>
                 <span class="text-[14px]">{{ meta.title }}</span>
             </template>
         </el-menu-item>

@@ -292,7 +292,7 @@ const addProperties = (item) => {
     let absX = initList.value.length % colsValue.value;
     let absY = Math.floor(initList.value.length / colsValue.value);
     let x = absX * viewWidth.value;
-    let y = absY * viewWidth.value;
+    let y = absY * props.itemHeight;
     initList.value.push({
         src: item,
         x,
@@ -311,7 +311,7 @@ const addProperties = (item) => {
         moveEnd: false
     });
     add.x = (initList.value.length % colsValue.value) * viewWidth.value + 'px';
-    add.y = Math.floor(initList.value.length / colsValue.value) * viewWidth.value + 'px';
+    add.y = Math.floor(initList.value.length / colsValue.value) * props.itemHeight + 'px';
     sortList();
 };
 

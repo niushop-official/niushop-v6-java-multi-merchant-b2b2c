@@ -365,8 +365,8 @@ const getAttachmentList = debounce((page: number = 1) => {
             }
         }
     }).catch((err) => {
-        if (prop.type == 'image' && err.response.status == 500) {
-            showElMessage({ message: 'php脚本内存不足请加大php配置中memory_limit的数值, <a style="text-decoration: underline;" href="https://www.kancloud.cn/niucloud/niucloud-admin-develop/3249216" target="blank">点击查看相关手册</a>', type: 'error', dangerouslyUseHTMLString: true })
+        if (prop.type == 'image' && err.response?.status == 500) {
+            showElMessage({ message: '服务器处理图片时发生异常，请检查服务端日志或调整JVM内存配置', type: 'error' })
         }
         attachment.loading = false
     })

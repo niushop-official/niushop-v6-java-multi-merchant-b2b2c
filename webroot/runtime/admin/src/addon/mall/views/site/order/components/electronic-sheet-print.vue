@@ -150,7 +150,7 @@ import {
     getElectronicSheetList,
     printElectronicSheet
 } from '@/app/api/delivery_site'
-import { deliveryPackageList } from '@/addon/mall/api/site/order'
+import { deliveryPackageList } from '@/app/lang/zh-cn/api/site/order'
 import { loadCLodop, getLodop } from '@/utils/lodop'
 import { img } from '@/utils/common'
 import { ElMessage, FormInstance } from 'element-plus'

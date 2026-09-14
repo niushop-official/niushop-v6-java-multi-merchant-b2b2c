@@ -9,115 +9,6 @@ export function getMarketingIndex(params: Record<string, any>) {
     return request.get(`mall/site/marketing`, {params})
 }
 
-/**
- * 获取商品分类列表
- * @param params
- * @returns
- */
-export function getGoodsCategoryList(params: Record<string, any>) {
-    return request.get(`mall/site/goods/coupon/init`, params)
-}
-
-/**
- * 添加优惠券
- * @param params
- * @returns
- */
-export function addCoupon(params: Record<string, any>) {
-    return request.post(`mall/site/goods/coupon`, params, {showErrorMessage: true, showSuccessMessage: true})
-}
-
-/**
- * 获取优惠券列表
- * @param params
- * @returns
- */
-export function getCouponList(params: Record<string, any>) {
-    return request.get(`mall/site/goods/coupon`, {params})
-}
-
-/**
- * 获取优惠券领取记录
- * @param params
- * @returns
- */
-export function getCouponRecords(params: Record<string, any>) {
-    return request.get(`mall/site/goods/coupon/records`, {params});
-}
-
-/**
- * 获取优惠券详情
- * @param id
- * @returns
- */
-export function getCouponInfo(id: number) {
-    return request.get(`mall/site/goods/coupon/detail/${id}`);
-}
-/**
- * 获取优惠券详情
- * @param id
- * @returns
- */
-export function getCouponStat(params: Record<string, any>) {
-    return request.get(`mall/site/goods/coupon/stat`, {params});
-}
-/**
- * 优惠券状态变更
- * @param params
- * @returns
- */
-export function editCouponStatus(params: Record<string, any>) {
-    return request.put(`mall/site/goods/coupon/setstatus/${params.status}`, params, {showSuccessMessage: true})
-}
-
-/**
- * 编辑优惠券
- * @param params
- * @returns
- */
-export function editCoupon(params: Record<string, any>) {
-    return request.put(`mall/site/goods/coupon/edit/${params.id}`, params, {
-        showErrorMessage: true,
-        showSuccessMessage: true
-    })
-}
-
-/**
- * 删除优惠券
- * @param id
- * @returns
- */
-export function deleteCoupon(id: number) {
-    return request.delete(`mall/site/goods/coupon/${id}`, {showSuccessMessage: true})
-}
-
-/**
- * 关闭优惠券
- * @param id
- * @returns
- */
-export function closeCoupon(id: number) {
-    return request.put(`mall/site/goods/coupon/invalid/${ id }`, { showSuccessMessage: true })
-}
-
-/**
- * 获取优惠券状态
- * @param id
- * @returns
- */
-export function getStatusList() {
-    return request.get(`mall/site/goods/coupon/status`);
-}
-
-/**
- * 获取选中优惠券列表
- * @param params
- * @returns
- */
-export function getCouponSelectPageList(params: Record<string, any>) {
-    return request.get(`mall/site/goods/coupon/select`, { params })
-}
-
 /***************************************************** 限时折扣 ****************************************************/
 
 /**
@@ -234,7 +125,7 @@ export function setShopPointConfig(params: Record<string, any>) {
  * 获取满减列表
  */
 export function getFullReductionList(params: Record<string, any>) {
-    return request.get(`mall/site/full_reduction/list`, {params})
+    return request.get(`marketing/site/full_reduction/list`, {params})
 }
 
 /**
@@ -243,7 +134,7 @@ export function getFullReductionList(params: Record<string, any>) {
  * @returns
  */
 export function getFullReductionInfo(params: Record<string, any>) {
-    return request.get(`mall/site/full_reduction/init`,{params});
+    return request.get(`marketing/site/full_reduction/init`,{params});
 }
 
 /**
@@ -252,7 +143,7 @@ export function getFullReductionInfo(params: Record<string, any>) {
  * @returns
  */
 export function addFullReduction(params: Record<string, any>) {
-    return request.post(`mall/site/full_reduction/add`, params, {
+    return request.post(`marketing/site/full_reduction/add`, params, {
         showErrorMessage: true,
         showSuccessMessage: true
     })
@@ -264,7 +155,7 @@ export function addFullReduction(params: Record<string, any>) {
  * @returns
  */
 export function editFullReduction(params: Record<string, any>) {
-    return request.post(`mall/site/full_reduction/edit/${params.id}`, params, {
+    return request.post(`marketing/site/full_reduction/edit/${params.id}`, params, {
         showErrorMessage: true,
         showSuccessMessage: true
     })
@@ -276,7 +167,7 @@ export function editFullReduction(params: Record<string, any>) {
  * @returns
  */
 export function deleteFullReduction(id: number) {
-    return request.delete(`mall/site/full_reduction/delete/${ id }`, { showSuccessMessage: true })
+    return request.delete(`marketing/site/full_reduction/delete/${ id }`, { showSuccessMessage: true })
 }
 
 /**
@@ -285,7 +176,7 @@ export function deleteFullReduction(id: number) {
  * @returns
  */
 export function closeFullReduction(id: number,params: Record<string, any>) {
-    return request.put(`mall/site/full_reduction/setStatus/${ id }`, params,{ showSuccessMessage: true })
+    return request.put(`marketing/site/full_reduction/setStatus/${ id }`, params,{ showSuccessMessage: true })
 }
 
 /**
@@ -294,7 +185,14 @@ export function closeFullReduction(id: number,params: Record<string, any>) {
  * @returns
  */
 export function checkFullReduction(params: Record<string, any>) {
-    return request.post(`mall/site/full_reduction/check`, params)
+    return request.post(`marketing/site/full_reduction/check`, params)
+}
+
+/**
+ * 获取满减商品选择组件
+ */
+export function getFullReductionGoodsSelectComponent() {
+    return request.get(`marketing/site/full_reduction/goods_select/component`)
 }
 
 
@@ -364,4 +262,107 @@ export function closeFullGift(id: number,params: Record<string, any>) {
  */
 export function checkFullGift(params: Record<string, any>) {
     return request.post(`mall/site/full_gift/check`, params)
+}
+
+/***************************************************** 店铺优惠券 ****************************************************/
+
+/**
+ * 获取商品分类列表
+ * @param params
+ * @returns
+ */
+export function getGoodsCategoryList(params: Record<string, any>) {
+    return request.get(`marketing/site/goods/coupon/init`, params)
+}
+
+/**
+ * 添加优惠券
+ * @param params
+ * @returns
+ */
+export function addCoupon(params: Record<string, any>) {
+    return request.post(`marketing/site/goods/coupon`, params, {showErrorMessage: true, showSuccessMessage: true})
+}
+
+/**
+ * 获取优惠券列表
+ * @param params
+ * @returns
+ */
+export function getCouponList(params: Record<string, any>) {
+    return request.get(`marketing/site/goods/coupon`, {params})
+}
+
+/**
+ * 获取优惠券领取记录
+ * @param params
+ * @returns
+ */
+export function getCouponRecords(params: Record<string, any>) {
+    return request.get(`marketing/site/goods/coupon/records`, {params});
+}
+
+/**
+ * 获取优惠券详情
+ * @param id
+ * @returns
+ */
+export function getCouponInfo(id: number) {
+    return request.get(`marketing/site/goods/coupon/detail/${id}`);
+}
+
+/**
+ * 获取优惠券统计
+ * @param params
+ * @returns
+ */
+export function getCouponStat(params: Record<string, any>) {
+    return request.get(`marketing/site/goods/coupon/stat`, {params});
+}
+
+/**
+ * 编辑优惠券
+ * @param params
+ * @returns
+ */
+export function editCoupon(params: Record<string, any>) {
+    return request.put(`marketing/site/goods/coupon/edit/${params.id}`, params, {
+        showErrorMessage: true,
+        showSuccessMessage: true
+    })
+}
+
+/**
+ * 删除优惠券
+ * @param id
+ * @returns
+ */
+export function deleteCoupon(id: number) {
+    return request.delete(`marketing/site/goods/coupon/${id}`, {showSuccessMessage: true})
+}
+
+/**
+ * 关闭优惠券
+ * @param id
+ * @returns
+ */
+export function closeCoupon(id: number) {
+    return request.put(`marketing/site/goods/coupon/invalid/${ id }`, { showSuccessMessage: true })
+}
+
+/**
+ * 获取优惠券状态
+ * @returns
+ */
+export function getStatusList() {
+    return request.get(`marketing/site/goods/coupon/status`);
+}
+
+/**
+ * 获取选中优惠券列表
+ * @param params
+ * @returns
+ */
+export function getCouponSelectPageList(params: Record<string, any>) {
+    return request.get(`marketing/site/goods/coupon/select`, { params })
 }

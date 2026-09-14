@@ -8,30 +8,31 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="goodsTable.searchParam" ref="searchFormRef">
+                <el-form label-width="70px" :inline="true" :model="goodsTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('goodsName')" prop="goods_name">
-                        <el-input v-model.trim="goodsTable.searchParam.goods_name" :placeholder="t('goodsNamePlaceholder')" maxlength="60" />
+                        <el-input v-model.trim="goodsTable.searchParam.goods_name" :placeholder="t('goodsNamePlaceholder')" maxlength="60" class="search-input" clearable />
                     </el-form-item>
                     <el-form-item :label="t('goodsCategory')" prop="goods_mall_category">
-                        <el-cascader :props="goodsCategoryProps" v-model="goodsTable.searchParam.goods_mall_category" :options="goodsCategoryOptions" :placeholder="t('goodsCategoryPlaceholder')" clearable filterable />
+                        <el-cascader :props="goodsCategoryProps" v-model="goodsTable.searchParam.goods_mall_category" :options="goodsCategoryOptions" :placeholder="t('请选择商品分类')" clearable filterable class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('goodsSource')" prop="goods_source">
-                        <el-select v-model="goodsTable.searchParam.goods_source" :placeholder="t('goodsSourcePlaceholder')" clearable>
+                        <el-select v-model="goodsTable.searchParam.goods_source" :placeholder="t('goodsSourcePlaceholder')" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option v-for="(item,index) in goodsSource" :key="index" :label="item.name" :value="index" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('saleNum')" prop="sale_num">
-                        <div class="region-input">
-                            <input type="text" :placeholder="t('startSaleNumPlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.start_sale_num" @keyup="filterDigit($event)">
+                        <div class="region-input search-input">
+                            <input type="text" :placeholder="t('startSaleNumPlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.start_sale_num" @keyup="filterDigit($event)" class="w-[130px]">
                             <span class="separator">-</span>
-                            <input type="text" :placeholder="t('endSaleNumPlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.end_sale_num" @keyup="filterDigit($event)">
+                            <input type="text" :placeholder="t('endSaleNumPlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.end_sale_num" @keyup="filterDigit($event)" class="w-[130px]">
                         </div>
                     </el-form-item>
                     <el-form-item :label="t('skuPrice')">
-                        <div class="region-input">
-                            <input type="text" :placeholder="t('startPricePlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.start_price" @keyup="filterDigit($event)">
+                        <div class="region-input search-input">
+                            <input type="text" :placeholder="t('startPricePlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.start_price" @keyup="filterDigit($event)" class="w-[130px]">
                             <span class="separator">-</span>
-                            <input type="text" :placeholder="t('endPricePlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.end_price" @keyup="filterDigit($event)">
+                            <input type="text" :placeholder="t('endPricePlaceholder')" maxlength="10" v-model.trim="goodsTable.searchParam.end_price" @keyup="filterDigit($event)" class="w-[130px]">
                         </div>
                     </el-form-item>
 
@@ -212,8 +213,8 @@ import { debounce, img, filterDigit } from '@/utils/common'
 import { ElMessage, FormInstance } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { cloneDeep } from 'lodash-es'
-import { getCategoryTree } from '@/app/api/basic_admin'
-import { getGoodsPageList, getGoodsStatusType, editGoodsSort, offline, getLabelList, editGoodsLabel, getGoodsInfo, getGoodsSource } from '@/addon/mall/api/admin/goods'
+import { getCategoryTree, getLabelList, editGoodsLabel } from '@/app/api/basic_admin'
+import { getGoodsPageList, getGoodsStatusType, editGoodsSort, offline, getGoodsInfo, getGoodsSource } from '@/app/lang/zh-cn/api/admin/goods'
 import goodsAduitPopup from '@/addon/mall/views/admin/goods/components/goods-audit-popup.vue'
 
 const route = useRoute()
@@ -271,7 +272,9 @@ const goodsSource: any = reactive({})
 // 初始化数据
 const initData = () => {
     // 查询商品分类树结构
-    getCategoryTree().then((res) => {
+    getCategoryTree({
+        addon: 'mall'
+    }).then((res) => {
         const data = res.data
         if (data) {
             const goodsCategoryTree: any = []
@@ -302,6 +305,11 @@ const initData = () => {
                 })
             })
             goodsCategoryOptions.splice(0, goodsCategoryOptions.length, ...goodsCategoryTree)
+            goodsCategoryOptions.unshift({
+                value: '',
+                label: '全部',
+                children: []
+            })
         }
     })
 

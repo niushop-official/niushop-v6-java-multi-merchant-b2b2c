@@ -307,7 +307,7 @@ const orderBtnFn = (data: any, type = '') => {
 		}
 	} else if (type == 'invoice') {
 
-        redirect({ url: '/app/pages/invoice/invoice', param: { order_id: data.order_id, order_money:data.invoice_money, trade_type: 'mall' } })
+        redirect({ url: '/app/pages/invoice/invoice', param: { order_id: data.order_id, trade_type: 'mall' } })
     }
 }
 

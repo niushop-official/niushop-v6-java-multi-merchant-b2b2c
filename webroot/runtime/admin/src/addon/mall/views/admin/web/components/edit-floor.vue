@@ -54,7 +54,7 @@
 import { ref, reactive, computed } from 'vue'
 import { t } from '@/lang'
 import type { FormInstance } from 'element-plus'
-import { addFloor, editFloor, getFloorInfo } from '@/addon/mall/api/admin/web'
+import { addFloor, editFloor, getFloorInfo } from '@/app/lang/zh-cn/api/admin/web'
 import { cloneDeep } from 'lodash-es'
 import navLink from '@/app/views/web/components/nav-link.vue'
 import goodsSelectPopup from '@/addon/mall/views/admin/goods/components/goods-select-popup.vue'

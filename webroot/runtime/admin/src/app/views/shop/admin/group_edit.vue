@@ -14,15 +14,15 @@
                 </el-form-item>
                 <el-form-item :label="t('mainApp')" prop="app">
                     <div class="text-gray-400" v-if="!appList.length">{{ t('appListEmpty') }}</div>
-                    <el-checkbox-group v-model="formData.app" class="flex flex-wrap w-full" v-else>
+                    <el-radio-group v-model="formData.app" class="flex flex-wrap w-full" v-else>
                         <template #default>
                             <div class="flex w-[300px]" v-for="(item, index) in appList" :key="index">
-                                <el-checkbox :label="item.key" class="w-full !h-auto border border-[var(--el-color-info-light-7)] border-solid p-[10px] !mr-[10px] !mb-[10px] rounded-md" :disabled="formData.create_by != 'user'">
+                                <el-radio :value="item.key" class="w-full !h-auto border border-[var(--el-color-info-light-7)] border-solid p-[10px] !mr-[10px] !mb-[10px] rounded-md" :disabled="formData.create_by != 'user'">
                                     <template #default>
                                         <div class="w-full">
                                             <div class="flex">
                                                 <div class="w-[60px] h-[60px] mr-[10px] rounded-md overflow-hidden">
-                                                    <el-image :src="img(item.icon)" v-if="item.icon" class="w-full h-full" />
+                                                    <el-image :src="item.icon.indexOf('data:image') != -1 ? item.icon : img(item.icon)" v-if="item.icon" class="w-full h-full" />
                                                     <el-image v-else class="w-full h-full">
                                                         <template #error>
                                                             <div class="image-error">
@@ -40,10 +40,10 @@
                                             </div>
                                         </div>
                                     </template>
-                                </el-checkbox>
+                                </el-radio>
                             </div>
                         </template>
-                    </el-checkbox-group>
+                    </el-radio-group>
                 </el-form-item>
 
                 <el-form-item :label="t('containAddon')">
@@ -51,13 +51,13 @@
                     <el-checkbox-group v-model="formData.addon" class="flex flex-wrap w-full" v-else>
                         <template #default>
                             <template v-for="(item, index) in addonList" :key="index">
-                                <div class="flex w-[300px]"  v-show="item.support_app == '' || formData.app.includes(item.support_app)">
+                                <div class="flex w-[300px]"  v-show="item.support_app == '' || formData.app == item.support_app">
                                     <el-checkbox :label="item.key" name="" class="w-full !h-auto border border-solid p-[10px] !mr-[10px] !mb-[10px] rounded-md" :disabled="formData.create_by != 'user'">
                                         <template #default>
                                             <div class="w-full">
                                                 <div class="flex">
                                                     <div class="w-[60px] h-[60px] mr-[10px] rounded-md overflow-hidden">
-                                                        <el-image :src="img(item.icon)" v-if="item.icon" class="w-full h-full" />
+                                                        <el-image :src="item.icon.indexOf('data:image') != -1 ? item.icon : img(item.icon)" v-if="item.icon" class="w-full h-full" />
                                                         <el-image v-else class="w-full h-full">
                                                             <template #error>
                                                                 <div class="image-error">
@@ -91,7 +91,7 @@
 </template>
 
 <script lang="ts" setup async>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { t } from '@/lang'
 import { ElMessageBox, FormInstance } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
@@ -115,7 +115,7 @@ const formData: Record<string, any> = ref({
     group_id: 0,
     group_name: '',
     group_desc: '',
-    app: [],
+    app: '',
     addon: [],
     create_by: 'user',
     sync_site: 0
@@ -132,23 +132,35 @@ const getInstalledAddonListFn = async () => {
             const item = data[key]
             item.type == 'addon' ? addons.push(item) : apps.push(item)
         })
-
         appList.value = apps
         addonList.value = addons
+        if (route.query.id) {
+            getShopGroupInfoFn()
+        } else {
+            formData.value.app = appList.value.length ? appList.value[0].key : ''
+            loading.value = false
+        }
     }).catch()
 }
 getInstalledAddonListFn()
 
-if (route.query.id) {
+// 切换主应用时，剔除套餐内含插件中不再被新应用支持的插件
+watch(() => formData.value.app, (newApp) => {
+    if (!addonList.value.length || !formData.value.addon.length) return
+    formData.value.addon = formData.value.addon.filter((key: string) => {
+        const item = addonList.value.find((a: any) => a.key == key)
+        return !item || item.support_app == '' || item.support_app == newApp
+    })
+})
+
+const getShopGroupInfoFn = () => {
     getShopGroupInfo(route.query.id).then(({ data }) => {
         data.addon = data.addon.filter((key: string) => installAddon.includes(key))
+        data.app = Array.isArray(data.app) ? (data.app[0] ?? '') : (data.app || '')
         formData.value = data
         loading.value = false
     }).catch()
-} else {
-    loading.value = false
 }
-
 const back = () => {
     router.push('/shop/group')
 }
@@ -178,13 +190,13 @@ const confirm = async (formEl: FormInstance | undefined) => {
         if (valid) {
             if (formData.value.group_id) {
                 ElMessageBox.confirm(t('syncUpdateSiteApp'), t('warning'),
-                {
-                    confirmButtonText: t('yes'),
-                    cancelButtonText: t('no'),
-                    type: 'warning',
-                    showClose: false,
-                    closeOnClickModal: false
-                }
+                    {
+                        confirmButtonText: t('yes'),
+                        cancelButtonText: t('no'),
+                        type: 'warning',
+                        showClose: false,
+                        closeOnClickModal: false
+                    }
                 ).then(() => {
                     formData.value.sync_site = 1
                     saveFun()
@@ -201,7 +213,8 @@ const confirm = async (formEl: FormInstance | undefined) => {
 const saveFun = () => {
     saveLoding.value = true
     const save = formData.value.group_id ? editShopGroup : addShopGroup
-    save(formData.value).then(res => {
+    const saveData = { ...formData.value, app: formData.value.app ? [formData.value.app] : [] }
+    save(saveData).then(res => {
         setTimeout(() => {
             back()
         }, 1000)
@@ -219,6 +232,7 @@ const saveFun = () => {
     height: 100%;
 }
 
+:deep(.el-radio__label),
 :deep(.el-checkbox__label) {
     width: 100%;
 }

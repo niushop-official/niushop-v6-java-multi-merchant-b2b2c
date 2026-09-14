@@ -79,7 +79,7 @@ import { ref, reactive, computed, nextTick } from 'vue'
 import { t } from '@/lang'
 import { img } from '@/utils/common'
 import { FormInstance, ElMessage } from 'element-plus'
-import { shopActiveRefund } from '@/addon/mall/api/site/order'
+import { shopActiveRefund } from '@/app/lang/zh-cn/api/site/order'
 import { cloneDeep } from 'lodash-es'
 const showDialog = ref(false)
 const loading = ref(false)

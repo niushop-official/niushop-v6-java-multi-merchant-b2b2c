@@ -46,7 +46,7 @@ import { t } from '@/lang'
 import { ref, reactive } from 'vue'
 import { img } from '@/utils/common'
 import { useRoute, useRouter } from 'vue-router'
-import { getSupplyGoods } from '@/addon/mall/api/site/select_goods'
+import { getSupplyGoods } from '@/app/lang/zh-cn/api/site/select_goods'
 
 const router = useRouter()
 const route = useRoute()

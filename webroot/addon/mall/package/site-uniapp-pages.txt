@@ -1,0 +1,167 @@
+{
+			"root": "addon/mall",
+			"pages": [
+				// *********************************** 商城 ***********************************
+				{
+					"path": "pages/goods/list",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.list%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/goods/edit",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.edit%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/goods/spec",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.spec%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/goods/discount",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.discount%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/goods/fixed_price",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.fixed_price%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/goods/content",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.content%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/goods/album",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.goods.album%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/detail",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.order.detail%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/log",
+					"style": {
+						// #ifndef H5
+						"navigationStyle": "custom",
+						// #endif
+						"navigationBarTitleText": "%mall.pages.order.log%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/list",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.order.list%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/adjust_price",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.order.adjust_price%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/edit_address",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.order.edit_address%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/delivery",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.order.delivery%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/active_refund",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.order.active_refund%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/order/pay_info",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.order.pay_info%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/refund/list",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.refund.list%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/refund/detail",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.refund.detail%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/refund/log",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.refund.log%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/account/bill",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.account.bill%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/account/bill_detail",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.account.bill_detail%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/site_shop/info",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.site_shop.info%"
+					},
+					"needLogin": true
+				},
+				{
+					"path": "pages/site_shop/setting",
+					"style": {
+						"navigationBarTitleText": "%mall.pages.site_shop.setting%"
+					},
+					"needLogin": true
+				}
+			]
+            
+		}

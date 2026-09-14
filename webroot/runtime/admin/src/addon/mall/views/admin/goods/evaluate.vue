@@ -7,9 +7,9 @@
             </div>
 
             <el-card class="box-card !border-none my-[10px] table-search-wrap" shadow="never">
-                <el-form :inline="true" :model="evaluateTable.searchParam" ref="searchFormRef">
+                <el-form label-width="70px" :inline="true" :model="evaluateTable.searchParam" ref="searchFormRef" class="page-form">
                     <el-form-item :label="t('goodsName')" prop="goods_name">
-                        <el-input v-model="evaluateTable.searchParam.goods_name" clearable :placeholder="t('goodsNamePlaceholder')" class="input-width" />
+                        <el-input v-model="evaluateTable.searchParam.goods_name" clearable :placeholder="t('goodsNamePlaceholder')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="loadEvaluateList()">{{ t('search') }}</el-button>
@@ -92,7 +92,7 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { t } from '@/lang'
-import { getEvaluateList } from '@/addon/mall/api/admin/goods'
+import { getEvaluateList } from '@/app/lang/zh-cn/api/admin/goods'
 import { img } from '@/utils/common'
 import { FormInstance } from 'element-plus'
 import { useRoute } from 'vue-router'

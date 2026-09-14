@@ -31,6 +31,14 @@
                         <icon name="iconfont iconmap-connect" size="20px" class="block !text-gray-400 mx-[5px]" />
                         <el-color-picker v-model="formData.select_bg_color_end" show-alpha />
                     </el-form-item>
+                    <el-form-item :label="t('搜索页榜单样式')">
+                        <template v-for="(item,index) in config" :key="index">
+                                <div :class="['w-[150px] border-[1px] border-[#ededed] border-solid overflow-hidden text-[#ededed] rounded-[4px] mr-[20px] relative', formData.search_style_type == item.value ? 'border-color text-color' : '']" @click="rankChange(item.value)">
+                                    <img class="w-[100%] h-full" :src="img(item.preview)" fit-object="contain" />
+                                    <span class="iconfont iconicon-selected absolute right-0 bottom-[-8px]"></span>
+                                </div>
+                            </template>
+                    </el-form-item>
                 </el-card>
             </el-form>
         </el-card>
@@ -45,11 +53,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { t } from '@/lang'
 import { useRoute } from 'vue-router'
 import { FormInstance } from 'element-plus'
-import { getRankConfig, setRankConfig } from '@/addon/mall/api/admin/marketing'
+import { img } from '@/utils/common'
+import { getRankConfig, setRankConfig } from '@/app/lang/zh-cn/api/admin/marketing'
 
 const route = useRoute()
 const pageName = route.meta.title
@@ -59,8 +68,28 @@ const formData = ref({
     select_color: '#FF4142',
     select_bg_color_start: '#FFFFFF',
     select_bg_color_end: '#FFEBD7',
-    rank_images: ''
+    rank_images: '',
+    search_style_type: 1
 })
+
+const config = reactive<any>([
+    {
+        value: 1,
+        preview: 'addon/mall/rank/rank_1.png'
+    },
+    {
+        value: 2,
+        preview: 'addon/mall/rank/rank_2.png'
+    },
+    {
+        value: 3,
+        preview: 'addon/mall/rank/rank_3.png'
+    }
+])
+
+const rankChange = (value: any) => {
+    formData.value.search_style_type = value
+}
 
 const formRef = ref<FormInstance>()
 
@@ -105,4 +134,12 @@ const onSave = async () => {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.border-color {
+    border-color: var(--el-color-primary);
+}
+
+.text-color {
+    color: var(--el-color-primary);
+}
+</style>

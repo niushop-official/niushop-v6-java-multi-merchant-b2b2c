@@ -4,7 +4,7 @@
 			<!-- 实时概况 -->
 			<el-row :gutter="20">
 				<el-col :span="6" >
-					<div class="store h-[100px] box-border px-[25px] py-[25px] flex cursor-pointer" @click="toLink('/shop/setting')">
+					<div class="store h-[100px] box-border px-[25px] py-[25px] flex cursor-pointer" @click="toLink('/mall/shop/setting')">
 						<el-image :src="img(info.front_end_logo)" fit="contain" class="w-[50px] h-[50px] rounded-full border-[1px] border-[#fff] border-solid">
 							<template #error>
 								<img src="@/app/assets/images/icon-addon.png" class="w-[50px] h-[50px]">
@@ -218,14 +218,20 @@
 
 			<div class="other-temp-item min-h-[264px]" v-if="articleList && articleList.length">
 				<div class="head">
-					<span class="head-left">公告通知</span>
+					<div class="flex items-center">
+						<img src="@/addon/mall/assets/index/new.png" class="w-[18px] h-[18px] mr-[6px]">
+						<span class="head-left">新闻资讯</span>
+					</div>
 					<span class="head-right" @click="articleCheckMore">更多</span>
 				</div>
 
 				<div class="content">
-					<div class="content-item  flex justify-between text-[14px] py-[8px] text-[#666] leading-[1] " v-for="(item, index) in articleList" :key="index" >
-						<span class="truncate w-[70%] cursor-pointer hover-item" @click="articleDetail(item.id)">{{ item.title }}</span>
-						<span v-if="item.create_time">{{ item.create_time.split(" ")[0] }}</span>
+					<div class="content-item flex justify-between text-[14px] py-[8px] leading-[1] " v-for="(item, index) in articleList" :key="index" >
+						<div class="flex items-center cursor-pointer" @click="articleDetail(item.id)">
+							<span class="w-[6px] h-[6px] bg-[#D9D9D9] flex-shrink-0 mr-[6px]"></span>
+							<span class="truncate max-w-[170px] text-[14px] text-[#333]">{{ item.title }}</span>
+						</div>
+						<span v-if="item.create_time" class="text-[#999]">{{ item.create_time.split(" ")[0] }}</span>
 					</div>
 				</div>
 			</div>
@@ -261,8 +267,8 @@
 import { ref, reactive } from 'vue'
 import { t } from '@/lang'
 import { img } from '@/utils/common'
-import { getShopStatSale, getShopInfo, getShopStatTodo, getShopStatTotal, getShopStatRank, getShopStat } from '@/addon/mall/api/site/shop'
-import { getSuggestionList, getAddonList, getArticleList } from '@/addon/mall/api/site/stat'
+import { getShopStatSale, getShopInfo, getShopStatTodo, getShopStatTotal, getShopStatRank, getShopStat } from '@/app/lang/zh-cn/api/site/shop'
+import { getSuggestionList, getAddonList, getArticleList } from '@/app/lang/zh-cn/api/site/stat'
 import * as echarts from 'echarts'
 import userStore from '@/stores/modules/user'
 import { getService } from '@/app/api/sys'
@@ -544,7 +550,7 @@ const articleDetail = (id: any) => {
 		.head{
 			@apply flex items-center justify-between mb-[12px] px-[12px];
 			.head-left{
-				@apply text-[17px] text-[#333];
+				@apply text-[16px] text-[#333];
 			}
 			.head-right{
 				@apply text-[14px] text-[#999] hover:text-[#333] cursor-pointer;

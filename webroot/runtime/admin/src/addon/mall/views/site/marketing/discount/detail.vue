@@ -84,9 +84,9 @@
                 <el-tab-pane label="活动会员" name="memberList" />
             </el-tabs>
             <div v-if="activeName == 'goodsList'">
-                <el-form :inline="true" :model="goodsParams.searchParam">
+                <el-form :inline="true" :model="goodsParams.searchParam" class="page-form">
                     <el-form-item :label="t('keyword')" prop="keyword">
-                        <el-input v-model.trim="goodsParams.searchParam.keyword" clearable :placeholder="t('keywordPlaceholder')" />
+                        <el-input v-model.trim="goodsParams.searchParam.keyword" clearable :placeholder="t('keywordPlaceholder')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="getActiveDiscountGoodsPageListFn()">{{ t('search') }}</el-button>
@@ -121,7 +121,6 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="active_goods_order_money" :label="t('paymentAmount')" min-width="100" />
-                    
                     <el-table-column prop="active_goods_order_num" :label="t('orderCount')" min-width="100" />
                     <el-table-column prop="active_goods_member_num" :label="t('activeMemberNum')" min-width="100" />
                     <el-table-column prop="active_goods_success_num" :label="t('activeSuccessNum')" min-width="100" />
@@ -133,13 +132,14 @@
                 </div>
             </div>
             <div v-if="activeName == 'orderList'">
-                <el-form :inline="true" :model="orderParams.searchParam" ref="orderSearchFormRef">
+                <el-form :inline="true" label-width="70px" :model="orderParams.searchParam" ref="orderSearchFormRef" class="page-form">
 
                     <el-form-item :label="t('orderInfo')" prop='search_name'>
-                        <el-input class="input-item" v-model.trim="orderParams.searchParam.search_name" />
+                        <el-input class="search-input" v-model.trim="orderParams.searchParam.search_name"  :placeholder="t('请输入订单编号')" clearable/>
                     </el-form-item>
                     <el-form-item :label="t('orderStatus')" prop='status'>
-                        <el-select v-model="orderParams.searchParam.status" clearable class="input-item">
+                        <el-select v-model="orderParams.searchParam.status" clearable class="search-input">
+                            <el-option  label="全部" value="all" />
                             <el-option :label="t('toBePaid')" value="1"></el-option>
                             <el-option :label="t('toBeShipped')" value="2"></el-option>
                             <el-option :label="t('shipped')" value="3"></el-option>
@@ -150,12 +150,12 @@
                     <el-form-item :label="t('createTime')" prop="create_time">
                         <el-date-picker v-model="orderParams.searchParam.create_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item :label="t('payTime')" prop="pay_time">
                         <el-date-picker v-model="orderParams.searchParam.pay_time" type="datetimerange"
                             value-format="YYYY-MM-DD HH:mm:ss" :start-placeholder="t('startDate')"
-                            :end-placeholder="t('endDate')" />
+                            :end-placeholder="t('endDate')" class="search-input" />
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="getActiveDiscountOrderPageListFn()">{{ t('search') }}</el-button>
@@ -240,7 +240,7 @@ import { t } from '@/lang'
 import { img } from '@/utils/common'
 import { FormInstance } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { getActiveDiscountInfo, getActiveDiscountGoodsPageList, getActiveDiscountOrderPageList, getActiveDiscountMemberPageList} from '@/addon/mall/api/site/marketing'
+import { getActiveDiscountInfo, getActiveDiscountGoodsPageList, getActiveDiscountOrderPageList, getActiveDiscountMemberPageList} from '@/app/lang/zh-cn/api/site/marketing'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()

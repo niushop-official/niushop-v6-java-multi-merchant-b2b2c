@@ -56,7 +56,7 @@ import { t } from '@/lang'
 import { ref, reactive } from 'vue'
 import { img } from '@/utils/common'
 import { ElMessage } from 'element-plus'
-import { getActiveGoodsCount, getGoodsSkuList, editGoodsListStock } from '@/addon/mall/api/site/goods'
+import { getActiveGoodsCount, getGoodsSkuList, editGoodsListStock } from '@/app/lang/zh-cn/api/site/goods'
 
 const goods: any = reactive({})
 const activeGoodsCount: any = ref(0)
