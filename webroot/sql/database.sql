@@ -2767,7 +2767,7 @@ VALUES (0, 'niucloud-admin', 0, 'admin', '', '', 1,
         2, '', '', '', 0.00,
         0.00, 0.00, '', '', 0);
 -- 以防默认site_id为1
-UPDATE `ns_site` SET `site_id` = 1 WHERE `site_id` = 0
+UPDATE `ns_site` SET `site_id` = 0 WHERE `site_id` = 1
 
 INSERT INTO `ns_sys_user` VALUES ('1', 'admin', '', '$2a$10$32zCE/6SkAUCGPhtIsKwG.2XDfsW.t4SHPmhNUjLBF6uQ54Ww6uue', '', '', '0', '0', '0', '1', '0', '0', '0', '');
 
