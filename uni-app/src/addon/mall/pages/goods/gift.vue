@@ -115,8 +115,8 @@
           <view class="biserial-goods-list">
             <view>
               <template v-for="(item, index) in goodsList" :key="index">
-                <view v-if="(index % 2) == 0" class="flex flex-col bg-[#fff] box-border overflow-hidden rounded-[24rpx]"
-                      :class="{ 'mt-[24rpx]': index > 1 }" @click="toLink(item)">
+                <view v-if="(index % 2) == 0" class="flex flex-col bg-white box-border overflow-hidden rounded24"
+                      :class="{ 'mt24': index > 1 }" @click="toLink(item)">
                   <up-image  :width="style2Width" :height="style2Width" :src="img(item.sku_image || '')" model="aspectFill">
                     <template #error>
                       <image :style="{ 'width': style2Width, 'height': style2Width}" :src="img('static/resource/images/diy/shop_default.jpg')"
@@ -150,8 +150,8 @@
             </view>
             <view>
               <template v-for="(item, index) in goodsList"  :key="index">
-                <view v-if="(index % 2) == 1" class="flex flex-col bg-[#fff] box-border overflow-hidden rounded-[24rpx]"
-                      :class="{ 'mt-[24rpx]': index > 1 }" :style="itemCss" @click="toLink(item)">
+                <view v-if="(index % 2) == 1" class="flex flex-col bg-white box-border overflow-hidden rounded24"
+                      :class="{ 'mt24': index > 1 }" :style="itemCss" @click="toLink(item)">
                   <up-image :width="style2Width" :height="style2Width" :src="img(item.sku_image || '')" model="aspectFill">
                     <template #error>
                       <image :style="{ 'width': style2Width, 'height': style2Width}" :src="img('static/resource/images/diy/shop_default.jpg')"
@@ -373,6 +373,12 @@ const toLink = (data: any) => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-gap: 10px;
+}
+.mt24 {
+  margin-top: 24rpx;
+}
+.rounded24 {
+  border-radius: 24rpx;
 }
 .top-card{
   /*  #ifdef  H5  */

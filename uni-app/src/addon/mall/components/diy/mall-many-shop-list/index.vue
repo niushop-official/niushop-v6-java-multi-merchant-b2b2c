@@ -4,7 +4,7 @@
         <view v-if="diyStore.mode == 'decorate'" class="absolute left-[0] right-[0] top-[0] bottom-[0] z-10"></view>
         <!-- 店铺列表 -->
         <mescroll-body ref="mescrollRef"  @init="mescrollInit" :down="{ use: false }"  @up="getShopListFn">
-            <view :class="{'mb-[20rpx]': (index + 1) != shopList.length }" :style="itemStyle" v-for="(item, index) in shopList" :key="index" @click="toSite(item)">
+            <view :class="{'mb20': (index + 1) != shopList.length }" :style="itemStyle" v-for="(item, index) in shopList" :key="index" @click="toSite(item)">
                 <view class="p-[20rpx] box-border" v-if="diyComponent.type == 1">
                     <view class="flex items-center">
                         <view class="w-[70rpx] h-[70rpx] rounded-[12rpx] overflow-hidden mr-[16rpx]">
@@ -351,7 +351,7 @@ const toLink = (data:any) => {
 }
 
 const toSite = (data:any) => {
-    redirect({ url: '/addon/mall/pages/index', param: { site_id: data.site_id } })
+    redirect({ url: '/addon/mall/pages/site/index', param: { site_id: data.site_id } })
 }
 </script>
 <style lang="scss" scoped>
@@ -373,5 +373,8 @@ const toSite = (data:any) => {
 
 .img-bg-box{
 	background: linear-gradient(90deg, rgba(51,51,51,0.92) 6.57%, rgba(51,51,51,0.5) 61.03%, rgba(51,51,51,0.92) 100%);
+}
+.mb20{
+    margin-bottom: 20rpx;
 }
 </style>

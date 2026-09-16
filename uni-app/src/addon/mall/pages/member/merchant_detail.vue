@@ -10,12 +10,12 @@
                 <view class="text-[28rpx]">{{ detail.status_name }}</view>
             </view>
             <view class="justify-between card-template-item">
-                <view class="text-[28rpx]">店铺分类</view>
+                <view class="text-[28rpx]">所属行业</view>
                 <view class="text-[28rpx]">{{ detail.category_name }}</view>
             </view>
-            <view class="justify-between card-template-item">
-                <view class="text-[28rpx]">店铺套餐</view>
-                <view class="text-[28rpx]">{{ detail.group_name }}</view>
+            <view class="justify-between card-template-item" v-if="detail.child_category_name">
+                <view class="text-[28rpx]">子级行业</view>
+                <view class="text-[28rpx]">{{ detail.child_category_name }}</view>
             </view>
             <view class="justify-between card-template-item">
                 <view class="text-[28rpx]">商户信息</view>

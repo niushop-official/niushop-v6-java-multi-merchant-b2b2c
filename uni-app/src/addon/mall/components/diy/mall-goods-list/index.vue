@@ -3,26 +3,26 @@
         <view :style="warpCss" class="overflow-hidden">
             <view :style="maskLayer"></view>
             <view class="py-[20rpx] flex gap-x-[24rpx]" v-if="diyComponent.searchCondition.isShow">
-                <view class="flex-1 h-[56rpx] bg-[#fff] rounded-[12rpx] flex-center text-[24rpx] text-[#282828] gap-x-[4rpx]"  :class="{ 'font-500': searchType == 'default' }" @click="searchTypeFn('default')">综合</view>
-                <view class="flex-1 h-[56rpx] bg-[#fff] rounded-[12rpx] flex-center text-[24rpx] text-[#282828] gap-x-[4rpx]" @click="searchTypeFn('space')">
+                <view class="flex-1 tab-item flex-center"  :class="{ 'font-500': searchType == 'default' }" @click="searchTypeFn('default')">综合</view>
+                <view class="flex-1 tab-item flex-center" @click="searchTypeFn('space')">
                     <text>距离</text>
-                    <text v-if="space" class="text-[24rpx] nc-iconfont" :class="{'font-500 text-primary': searchType == 'space','nc-icon-shangV6xx-1': space == 'asc', 'nc-icon-xiaV6xx': space == 'desc' }"></text>
+                    <text v-if="space" class="icon-wrap nc-iconfont" :class="{'font-500 text-primary': searchType == 'space','nc-icon-shangV6xx-1': space == 'asc', 'nc-icon-xiaV6xx': space == 'desc' }"></text>
                     <text v-else class="nc-iconfont nc-icon-shangxiaxuanzeV6xx text-[30rpx]"></text>
                 </view>
-                <view class="flex-1 h-[56rpx] bg-[#fff] rounded-[12rpx] flex-center text-[24rpx] text-[#282828] gap-x-[4rpx]" @click="searchTypeFn('sale_num')">
+                <view class="flex-1 tab-item flex-center" @click="searchTypeFn('sale_num')">
                     <text>销量</text>
-                    <text v-if="sale_num" class="text-[24rpx] nc-iconfont" :class="{'font-500 text-primary': searchType == 'sale_num','nc-icon-shangV6xx-1': sale_num == 'asc', 'nc-icon-xiaV6xx': sale_num == 'desc' }"></text>
+                    <text v-if="sale_num" class="icon-wrap nc-iconfont" :class="{'font-500 text-primary': searchType == 'sale_num','nc-icon-shangV6xx-1': sale_num == 'asc', 'nc-icon-xiaV6xx': sale_num == 'desc' }"></text>
                     <text v-else class="nc-iconfont nc-icon-shangxiaxuanzeV6xx text-[30rpx]"></text>
                 </view>
-                <view class="flex-1 h-[56rpx] bg-[#fff] rounded-[12rpx] flex-center text-[24rpx] text-[#282828] gap-x-[4rpx]" @click="searchTypeFn('price')">
+                <view class="flex-1 tab-item flex-center" @click="searchTypeFn('price')">
                     <text>价格</text>
-                    <text v-if="price" class="text-[24rpx] nc-iconfont" :class="{'font-500 text-primary': searchType == 'price','nc-icon-shangV6xx-1': price == 'asc', 'nc-icon-xiaV6xx': price == 'desc' }"></text>
+                    <text v-if="price" class="icon-wrap nc-iconfont" :class="{'font-500 text-primary': searchType == 'price','nc-icon-shangV6xx-1': price == 'asc', 'nc-icon-xiaV6xx': price == 'desc' }"></text>
                     <text v-else class="nc-iconfont nc-icon-shangxiaxuanzeV6xx text-[30rpx]"></text>
                 </view>
             </view>
             <view :class="{'diy-mall-goods-list relative flex flex-wrap justify-between': diyComponent.style != 'style-2', 'biserial-goods-list': diyComponent.style == 'style-2'}">
                 <template v-if="diyComponent.style == 'style-1'">
-                    <view class="bg-white w-full flex p-[20rpx] overflow-hidden" :class="{ 'mt-[20rpx]': index > 0 }" :style="itemCss" v-for="(item,index) in goodsList" :key="item.goods_id" @click="toLink(item)">
+                    <view class="bg-white w-full flex padding-20 overflow-hidden" :class="{ 'margin-top-20': index > 0 }" :style="itemCss" v-for="(item,index) in goodsList" :key="item.goods_id" @click="toLink(item)">
                         <up-image :radius="imageRounded.val" width="270rpx" height="270rpx" :src="img(item.goods_cover_thumb_mid || '')" model="aspectFill">
                             <template #error>
                                 <image class="w-[270rpx] h-[270rpx] overflow-hidden" :style="imageRounded.style" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill" />
@@ -65,7 +65,8 @@
                                             <text class="text-[24rpx] font-500 mr-[4rpx]">￥</text>
                                             <text class="text-[40rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(item)).toFixed(2) }}</text>
                                         </view>
-                                        <image v-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
+                                        <image v-if="diyGoods.priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
+                                        <image v-else-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 										<image v-else-if="diyGoods.priceType(item) == 'discount_price'" class="max-w-[80rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/discount.png')" mode="heightFix" />
                                     </view>
                                     <text v-if="diyComponent.saleStyle.control" class="mt-[8rpx] text-[22rpx] text-[var(--text-color-light9)]" :style="{ color : diyComponent.saleStyle.color }">已售{{ item.sale_num }}{{ item.unit || '件' }}</text>
@@ -76,12 +77,12 @@
                                         <view v-if="diyComponent.btnStyle.style == 'button'" :style="goodsBtnCss" class="relative px-[18rpx] h-[48rpx] flex items-center justify-center bg-[red]" @click.stop="itemCart(item, 'itemCart' + index)">
                                             <text class="text-[20rpx]">{{ diyComponent.btnStyle.text }}</text>
                                             <view v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-                                            :class="['absolute right-[-16rpx] top-[-16rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
+                                            :class="['absolute btn-wrap text-center font-500 box-border box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'padding-10' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
                                         </view>
                                         <view v-else :style="goodsBtnCss" class="relative w-[46rpx] h-[46rpx] rounded-[50%] flex items-center justify-center" @click.stop="itemCart(item, 'itemCart' + index)">
-                                            <text :class="['nc-iconfont', 'text-[30rpx]', diyComponent.btnStyle.style]"></text>
+                                            <text :class="['nc-iconfont', 'font-size-30', diyComponent.btnStyle.style]"></text>
                                             <view v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-                                            :class="['absolute right-[-16rpx] top-[-16rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
+                                            :class="['absolute btn-wrap text-center font-500 box-border box-border ', cartList['goods_' + item.goods_id].totalNum > 9 ? 'padding-10' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
                                         </view>
                                     </template>
                                 </view>
@@ -92,8 +93,8 @@
                 <template v-if="diyComponent.style == 'style-2'">
                     <view>
                         <template v-for="(item,index) in goodsList">
-                            <view v-if="(index%2) == 0" class="flex flex-col bg-[#fff] box-border overflow-hidden"
-                                  :class="{'mt-[24rpx]': index > 1}" :style="itemCss" @click="toLink(item)">
+                            <view v-if="(index%2) == 0" class="flex flex-col bg-white box-border overflow-hidden"
+                                  :class="{'margin-top-24': index > 1}" :style="itemCss" @click="toLink(item)">
                                 <up-image :radius="imageRounded.val" :width="style2Width" :height="style2Width" :src="img(item.goods_cover_thumb_mid || '')" model="aspectFill">
                                     <template #error>
                                         <image :style="{'width': style2Width,'height': style2Width, 'border-radius': imageRounded.val}" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill" />
@@ -137,7 +138,8 @@
                                                     <text class="text-[40rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(item)).toFixed(2).split('.')[0] }}</text>
                                                     <text class="text-[24rpx] font-500">.{{ parseFloat(diyGoods.goodsPrice(item)).toFixed(2).split('.')[1] }}</text>
                                                 </view>
-                                                <image v-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
+                                                <image v-if="diyGoods.priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
+                                                <image v-else-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 												<image v-else-if="diyGoods.priceType(item) == 'discount_price'" class="max-w-[80rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/discount.png')" mode="heightFix" />
                                             </view>
                                             <text v-if="diyComponent.saleStyle.control" class="text-[22rpx] mt-[8rpx] text-[var(--text-color-light9)]" :style="{ color : diyComponent.saleStyle.color }">
@@ -149,12 +151,12 @@
                                                 <view v-if="diyComponent.btnStyle.style == 'button'" :style="goodsBtnCss" class="relative px-[18rpx] h-[48rpx] flex items-center justify-center bg-[red]" @click.stop="itemCart(item, 'itemCart' + index)">
                                                     <text class="text-[20rpx]">{{ diyComponent.btnStyle.text }}</text>
                                                     <view v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-                                                    :class="['absolute right-[-16rpx] top-[-16rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
+                                                    :class="['absolute btn-wrap text-center font-500 box-border box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'padding-10' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
                                                 </view>
                                                 <view v-else :style="goodsBtnCss" class="relative w-[46rpx] h-[46rpx] rounded-[50%] flex items-center justify-center" @click.stop="itemCart(item, 'itemCart' + index)">
-                                                    <text :class="['nc-iconfont', 'text-[30rpx]', diyComponent.btnStyle.style]"></text>
+                                                    <text :class="['nc-iconfont', 'font-size-30', diyComponent.btnStyle.style]"></text>
                                                     <view v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-                                                    :class="['absolute right-[-16rpx] top-[-16rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
+                                                    :class="['absolute btn-wrap text-center font-500 box-border box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'padding-10' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
                                                 </view>
                                             </template>
                                         </view>
@@ -165,7 +167,7 @@
                     </view>
                     <view>
                         <template v-for="(item,index) in goodsList">
-                            <view v-if="(index%2) == 1" class="flex flex-col bg-[#fff] box-border overflow-hidden" :class="{'mt-[24rpx]': index > 1}" :style="itemCss" @click="toLink(item)">
+                            <view v-if="(index%2) == 1" class="flex flex-col bg-white box-border overflow-hidden" :class="{'margin-top-24': index > 1}" :style="itemCss" @click="toLink(item)">
                                 <up-image :width="style2Width" :height="style2Width" :radius="imageRounded.val" :src="img(item.goods_cover_thumb_mid || '')" model="aspectFill">
                                     <template #error>
                                         <image :style="{'width': style2Width,'height': style2Width, 'border-radius': imageRounded.val}" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill" />
@@ -207,7 +209,8 @@
                                                     <text class="text-[40rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(item)).toFixed(2).split('.')[0] }}</text>
                                                     <text class="text-[24rpx] font-500">.{{ parseFloat(diyGoods.goodsPrice(item)).toFixed(2).split('.')[1] }}</text>
                                                 </view>
-											 	<image v-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
+                                                <image v-if="diyGoods.priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
+											 	<image v-else-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 												<image v-else-if="diyGoods.priceType(item) == 'discount_price'" class="max-w-[80rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/discount.png')" mode="heightFix" />
                                             </view>
                                             <text v-if="diyComponent.saleStyle.control" class="text-[22rpx] mt-[8rpx] text-[var(--text-color-light9)]" :style="{ color : diyComponent.saleStyle.color }">
@@ -219,12 +222,12 @@
                                                 <view v-if="diyComponent.btnStyle.style == 'button'" :style="goodsBtnCss" class="relative px-[18rpx] h-[48rpx] flex items-center justify-center bg-[red]" @click.stop="itemCart(item, 'itemCart' + index)">
                                                     <text class="text-[20rpx]">{{ diyComponent.btnStyle.text }}</text>
                                                     <view v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-                                                    :class="['absolute right-[-16rpx] top-[-16rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
+                                                    :class="['absolute btn-wrap text-center font-500 box-border box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'padding-10' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
                                                 </view>
                                                 <view v-else :style="goodsBtnCss" class="relative w-[46rpx] h-[46rpx] rounded-[50%] flex items-center justify-center" @click.stop="itemCart(item, 'itemCart' + index)">
-                                                    <text :class="['nc-iconfont', 'text-[30rpx]', diyComponent.btnStyle.style]"></text>
+                                                    <text :class="['nc-iconfont', 'font-size-30', diyComponent.btnStyle.style]"></text>
                                                     <view v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-                                                    :class="['absolute right-[-16rpx] top-[-16rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
+                                                    :class="['absolute btn-wrap text-center font-500 box-border box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'padding-10' : '']">{{ cartList['goods_' + item.goods_id].totalNum }}</view>
                                                 </view>
                                             </template>
                                         </view>
@@ -237,7 +240,7 @@
                 <template v-if="diyComponent.style == 'style-3'">
                     <view :style="style3Css" v-if="goodsList.length">
                         <scroll-view :id="'warpStyle3-'+diyComponent.id" class="whitespace-nowrap min-h-[290rpx]" :scroll-x="true">
-                            <view :id="'item'+index+diyComponent.id"  class="w-[214rpx] mb-[6rpx] inline-block bg-[#fff] box-border overflow-hidden" :class="{'!mr-[0rpx]' : index == (goodsList.length-1)}" :style="itemCss+itemStyle3" v-for="(item,index) in goodsList" :key="item.goods_id" @click="toLink(item)">
+                            <view :id="'item'+index+diyComponent.id"  class="item-style inline-block bg-white box-border overflow-hidden" :class="{'margin-right-0' : index == (goodsList.length-1)}" :style="itemCss+itemStyle3" v-for="(item,index) in goodsList" :key="item.goods_id" @click="toLink(item)">
                                 <up-image width="214rpx" height="160rpx" :radius="imageRounded.val" :src="img(item.goods_cover_thumb_mid || '')" model="aspectFill">
                                     <template #error>
                                         <image class="w-[214rpx] h-[160rpx]" :style="imageRounded.style" :src="img('static/resource/images/diy/shop_default.jpg')" mode="aspectFill" />
@@ -251,7 +254,7 @@
                                     </view>
                                     <view v-if="diyComponent.btnStyle.control" class="absolute right-[10rpx] bottom-[12rpx]">
                                         <view v-if="diyComponent.btnStyle.style != 'button'" :style="goodsBtnCss" class="w-[40rpx] h-[40rpx] rounded-[50%] flex items-center justify-center">
-                                            <text :class="[diyComponent.btnStyle.style]" class="nc-iconfont text-[28rpx]"></text>
+                                            <text :class="[diyComponent.btnStyle.style]" class="nc-iconfont font-size-28"></text>
                                         </view>
                                     </view>
                                 </view>
@@ -700,5 +703,53 @@ const toLink = (data: any) => {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-gap: 10px;
+}
+.tab-item {
+    height: 56rpx;
+    background-color: #fff;
+    border-radius: 12rpx;
+    font-size: 24rpx;
+    color: #282828;
+    column-gap: 4rpx;
+    .icon-wrap {
+        font-size: 24rpx;
+    }
+}
+.margin-top-20 {
+    margin-top: 20rpx;
+}
+.margin-top-24 {
+    margin-top: 24rpx;
+}
+.margin-right-0 {
+    margin-right: 0 !important;
+}
+.padding-20 {
+    padding: 20rpx;
+}
+.btn-wrap{
+    right: -16rpx;
+    top: -16rpx;
+    border-radius: 30rpx;
+    height: 30rpx;
+    min-width: 30rpx;
+    line-height: 26rpx;
+    background-color: var(--primary-color);
+    color: #fff;
+    font-size: 20rpx;
+    border: 2rpx solid #fff;
+    &.padding-10 {
+        padding: 0 10rpx;
+    }
+}
+.font-size-30 {
+    font-size: 30rpx;
+}
+.item-style {
+   width: 214rpx;
+   margin-bottom: 6rpx; 
+}
+.font-size-28 {
+    font-size: 28rpx;
 }
 </style>

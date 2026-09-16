@@ -4,8 +4,8 @@
         <view class="diy-template-wrap bg-index" :style="diy.pageStyle()">
             <diy-group ref="diyGroupRef" :data="diy.data" />
         </view>
-        <ns-goods-sku ref="goodsSkuRef" v-if="Object.keys(useGoodsDetailStore().goodsDetail).length" :goods-detail="nsGoodsSkuData" @change="specSelectFn"></ns-goods-sku>
-        <share-poster ref="sharePosterRef" v-if="Object.keys(useGoodsDetailStore().goodsDetail).length" posterType="shop_goods" :posterId="useGoodsDetailStore().goodsDetail.goods?.poster_id" :posterParam="posterParam" :copyUrlParam="copyUrlParam" @close="posterClose" />
+        <ns-goods-sku ref="goodsSkuRef" v-if="useGoodsDetailStore().goodsDetail.goods" :goods-detail="nsGoodsSkuData" @change="specSelectFn"></ns-goods-sku>
+        <share-poster ref="sharePosterRef" v-if="useGoodsDetailStore().goodsDetail.goods" posterType="shop_goods" :posterId="useGoodsDetailStore().goodsDetail.goods?.poster_id" :posterParam="posterParam" :copyUrlParam="copyUrlParam" @close="posterClose" />
         <!-- #ifdef MP-WEIXIN -->
         <!-- 小程序隐私协议 -->
         <wx-privacy-popup ref="wxPrivacyPopupRef"></wx-privacy-popup>
@@ -35,7 +35,16 @@ const diy = useDiyGoodsDetail({
 })
 const memberStore = useMemberStore()
 const userInfo = computed(() => memberStore.info)
-nsGoodsSkuData.value = JSON.parse(JSON.stringify(useGoodsDetailStore().goodsDetail))
+
+watch(
+    () => useGoodsDetailStore().goodsDetail.goods_id,
+    (goodsId) => {
+        if (goodsId && useGoodsDetailStore().goodsDetail.goods) {
+            nsGoodsSkuData.value = JSON.parse(JSON.stringify(useGoodsDetailStore().goodsDetail))
+        }
+    },
+    { immediate: true }
+)
 
 watch(
     () => useGoodsDetailStore().goodsDetail.isOpenSkuBuy,

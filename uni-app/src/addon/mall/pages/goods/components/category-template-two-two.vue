@@ -1,6 +1,6 @@
 <template>
 	<view class="min-h-screen bg-[var(--page-bg-color)] overflow-hidden">
-		<view class="mescroll-box bg-[#f6f6f6]" :class="{ 'cart': config.cart.control && config.cart.event === 'cart', 'detail': !(config.cart.control && config.cart.event === 'cart') }" v-if="tabsData.length">
+		<view class="mescroll-box bg-gray" :class="{ 'cart': config.cart.control && config.cart.event === 'cart', 'detail': !(config.cart.control && config.cart.event === 'cart') }" v-if="tabsData.length">
 			<mescroll-body ref="mescrollRef" :down="{ use: false }" @init="mescrollInit" @up="getListFn">
 				<view v-if="config.search.control" class="box-border search-box z-10 bg-[var(--page-bg-color)] fixed top-0 left-0 right-0 h-[96rpx]" :style="{'top': systemStore.topTabbarInfo.fullHeight || 0}">
 					<view class="flex-1 search-input bg-[#fff]">
@@ -11,10 +11,10 @@
 				</view>
 
 				<!--  #ifdef  H5 -->
-				<view class="tabs-box z-2 fixed left-0 bg-[#fff] bottom-[50px] top-0" :class="{ '!top-[96rpx]': config.search.control, 'pb-[98rpx]': config.cart.control && config.cart.event === 'cart' }">
+				<view class="tabs-box z-2 fixed left-0 bg-[#fff] bottom-[50px] top-0" :class="{ '!top-[96rpx]': config.search.control, '!pb-[98rpx]': config.cart.control && config.cart.event === 'cart' }">
 					<scroll-view :scroll-y="true" class="scroll-height">
 						<view class="bg-[var(--temp-bg)]">
-							<view class="tab-item" :class="{ 'tab-item-active ': index == tabActive,'rounded-br-[12rpx]':tabActive-1===index && (!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length),'rounded-tr-[12rpx]':tabActive+1===index&&(!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length) }" v-for="(item, index) in tabsData" :key="index" @click="firstLevelClick(index, item)">
+							<view class="tab-item" :class="{ 'tab-item-active ': index == tabActive,'rounded-br-12':tabActive-1===index && (!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length),'rounded-tr-12':tabActive+1===index&&(!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length) }" v-for="(item, index) in tabsData" :key="index" @click="firstLevelClick(index, item)">
 								<view class="text-box leading-[1.3] break-words px-[24rpx]">{{ item.category_name }}</view>
 							</view>
 						</view>
@@ -26,7 +26,7 @@
 				<view class="tabs-box z-2 fixed left-0 bg-[#fff] pb-ios bottom-[100rpx] top-0" :style="tabsBoxCss">
 					<scroll-view :scroll-y="true" class="scroll-height">
 						<view class="bg-[var(--temp-bg)]">
-							<view class="tab-item" :class="{ 'tab-item-active': index == tabActive,'rounded-br-[12rpx]':tabActive-1===index&&(!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length),'rounded-tr-[12rpx]':tabActive+1===index&&(!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length) }" v-for="(item, index) in tabsData" :key="index" @click="firstLevelClick(index, item)">
+							<view class="tab-item" :class="{ 'tab-item-active': index == tabActive,'rounded-br-12':tabActive-1===index&&(!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length),'rounded-tr-12':tabActive+1===index&&(!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length) }" v-for="(item, index) in tabsData" :key="index" @click="firstLevelClick(index, item)">
 								<view class="text-box px-[16rpx] leading-[1.3] break-words">
 									{{ item.category_name }}
 								</view>
@@ -35,17 +35,15 @@
 					</scroll-view>
 				</view>
 				<!--  #endif -->
-				<view class="flex items-center h-[98rpx] pl-[24rpx] pr-[48rpx] py-[20rpx] z-10 bg-[var(--page-bg-color)] fixed left-[168rpx] right-0 box-border top-0" :style="twoTabCss"
-					:class="{ '!top-[94rpx]': config.search.control }"
+				<view class="category-child-box flex items-center z-10 fixed right-0 box-border top-0" :style="twoTabCss" :class="{ 'top94': config.search.control }"
 					v-if="tabsData[tabActive]?.child_list && tabsData[tabActive]?.child_list.length">
 					<template v-if="!labelPopup">
 						<scroll-view :scroll-x="true" scroll-with-animation
 							:scroll-into-view="'id' + (subActive ? subActive - 1 : 0)"
 							class="flex-1 h-[54rpx] scroll-Y box-border pr-[24rpx] bg-[var(--page-bg-color)]">
 							<view class="flex items-center h-[54rpx] box-border">
-								<text
-									class="w-[150rpx] flex-shrink-0 px-[14rpx] h-[54rpx] truncate  text-center !leading-[50rpx] !text-[22rpx] border-[2rpx] border-solid !rounded-[100rpx] box-border text-[#333] box-border"
-									:class="{ 'bg-[var(--primary-color-light)] font-500 !text-[var(--primary-color)] border-[var(--primary-color)]': index === subActive, 'border-[#fff]  bg-[#fff]': index != subActive, ' ml-[24rpx]': index != 0 }"
+								<text class="category-child-item flex-shrink-0 truncate  text-center box-border box-border"
+									:class="{ 'selected font-500': index === subActive, 'not-selected': index != subActive, 'ml24': index != 0 }"
 									v-for="(item, index) in tabsData[tabActive]?.child_list"
 									:key="tabsData[tabActive].category_id" :id="'id' + index"
 									@click="subMenuClick(index, item)">{{ item.category_name }}</text>
@@ -62,19 +60,19 @@
 					<u-popup :show="labelPopup" mode="top" @close="labelPopup = false">
 						<view class="flex flex-wrap pt-[20rpx] pb-[24rpx]" :style="labelPopupCss" @touchmove.prevent.stop>
 							<text
-								class="px-[14rpx] flex-shrink-0 w-[160rpx] box-border ml-[20rpx] mb-[26rpx] h-[60rpx] text-center leading-[56rpx] text-[26rpx] border-[2rpx] border-solid !rounded-[100rpx] text-[#333] truncate"
-								:class="{ 'bg-[var(--primary-color-light)] font-500 !text-[var(--primary-color)] border-[var(--primary-color)]': index === subActive, 'border-[var(--temp-bg)]  bg-[var(--temp-bg)]': index != subActive }"
+								class="popup-item-wrap flex-shrink-0 box-border text-center truncate"
+								:class="{ 'selected font-500': index === subActive, 'not-selected': index != subActive }"
 								v-for="(item, index) in tabsData[tabActive]?.child_list"
 								:key="tabsData[tabActive].category_id" @click="subMenuClick(index, item)">{{ item.category_name }}</text>
 						</view>
 					</u-popup>
-				</view>
-				<view class="flex justify-center flex-wrap pl-[168rpx] pt-[20rpx] pb-[20rpx]"
-					:class="{ '!pt-[194rpx]': config.search.control && tabsData[tabActive]?.child_list && tabsData[tabActive]?.child_list.length, 'pt-[100rpx]': config.search.control && (!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length), 'pt-[98rpx]': tabsData[tabActive]?.child_list && tabsData[tabActive]?.child_list.length && !config.search.control }">
+				</view> 
+				<view class="flex justify-center flex-wrap goods-box-wrap"
+					:class="{ 'pt194': config.search.control && tabsData[tabActive]?.child_list && tabsData[tabActive]?.child_list.length, 'pt100': config.search.control && (!tabsData[tabActive].child_list || !tabsData[tabActive].child_list.length), 'pt98': tabsData[tabActive]?.child_list && tabsData[tabActive]?.child_list.length && !config.search.control }">
 					<template v-for="(item, index) in list" :key="item.goods_id">
 						<view
-							class="w-[536rpx] box-border bg-white w-full flex mx-[20rpx] py-[24rpx] px-[20rpx] rounded-[var(--rounded-small)]"
-							:class="{ 'mt-[20rpx]': index }" @click.stop="toLink(item.goods_id)">
+							class="goods-item-wrap box-border bg-white w-full flex"
+							:class="{ 'mt20': index }" @click.stop="toLink(item.goods_id)">
 							<view class="mr-[20rpx] rounded-[var(--goods-rounded-small)] overflow-hidden">
 								<view class="w-[168rpx] h-[168rpx] flex items-center justify-center mr-[20rpx] rounded-[var(--goods-rounded-small)] overflow-hidden">
 									<up-image width="168rpx" height="168rpx" :radius="'var(--goods-rounded-small)'" :src="img(item.goods_cover_thumb_mid ? item.goods_cover_thumb_mid : '')" mode="aspectFill">
@@ -91,6 +89,7 @@
 										<text class="text-[24rpx] font-500">￥</text>
 										<text class="text-[40rpx] font-500">{{ parseFloat(goodsPrice(item)).toFixed(2).split('.')[0] }}</text>
 										<text class="text-[24rpx] font-500">.{{ parseFloat(goodsPrice(item)).toFixed(2).split('.')[1] }}</text>
+										<image v-if="priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
 										<image class="h-[24rpx] max-w-[46rpx] ml-[6rpx]" v-if="priceType(item) == 'member_price'" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 										<image class="h-[24rpx] ml-[6rpx]" v-if="priceType(item) == 'discount_price'" :src="img('addon/mall/discount.png')" mode="heightFix" />
 									</view>
@@ -116,17 +115,17 @@
 												</view>
 												<view
 													v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-													:class="['absolute right-[-16rpx] top-[-16rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">
+													:class="['absolute num-box  text-center font-500 box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px10' : '']">
 													{{ cartList['goods_' + item.goods_id].totalNum }}
 												</view>
 											</view>
-											<view v-if="config.cart.control && config.cart.style === 'style-2'" class="ww-[50rpx] h-[50rpx] relative">
+											<view v-if="config.cart.control && config.cart.style === 'style-2'" class="w-[50rpx] h-[50rpx] relative">
 												<text :id="'itemCart' + index"
 													class="text-color nc-iconfont nc-icon-tianjiaV6xx text-[44rpx]"
 													@click.stop="itemCart(item, 'itemCart' + index)"></text>
 												<view
 													v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-													:class="['absolute right-[-16rpx] top-[-16rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">
+													:class="['absolute num-box text-center  font-500 box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px10' : '']">
 													{{ cartList['goods_' + item.goods_id].totalNum }}
 												</view>
 											</view>
@@ -136,7 +135,7 @@
 													@click.stop="itemCart(item, 'itemCart' + index)"></text>
 												<view
 													v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-													:class="['absolute right-[-10rpx] top-[-2rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">
+													:class="['absolute num-box-style3 text-center font-500 box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px10' : '']">
 													{{ cartList['goods_' + item.goods_id].totalNum }}
 												</view>
 											</view>
@@ -148,7 +147,7 @@
 												</view>
 												<view
 													v-if="cartList['goods_' + item.goods_id] && cartList['goods_' + item.goods_id].totalNum"
-													:class="['absolute right-[-10rpx] top-[-10rpx] rounded-[30rpx] h-[30rpx] min-w-[30rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border border-[2rpx] border-solid border-[#fff]', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px-[10rpx]' : '']">
+													:class="['absolute num-box-style4 text-center  font-500 box-border', cartList['goods_' + item.goods_id].totalNum > 9 ? 'px10' : '']">
 													{{ cartList['goods_' + item.goods_id].totalNum }}
 												</view>
 											</view>
@@ -192,8 +191,8 @@
 						<view id="animation-end" class="w-[66rpx] h-[66rpx] rounded-[35rpx] bg-[var(--primary-color)] text-center leading-[66rpx]" @click.stop="toCart">
 							<text class="nc-iconfont nc-icon-gouwucheV6mm1 text-[#fff] text-[32rpx]"></text>
 						</view>
-						<view v-if="totalNum" class="border-[1rpx] border-solid border-[#fff]"
-							:class="['absolute left-[40rpx] top-[-10rpx] rounded-[28rpx] h-[28rpx] min-w-[28rpx] text-center leading-[26rpx] bg-[var(--primary-color)] text-[#fff] text-[20rpx] font-500 box-border', totalNum > 9 ? 'px-[10rpx]' : '']">
+						<view v-if="totalNum"
+							:class="['absolute total-box text-center font-500 box-border', totalNum > 9 ? 'px10' : '']">
 							{{ totalNum > 99 ? "99+" : totalNum }}
 						</view>
 					</view>
@@ -206,8 +205,8 @@
 				<!-- <button v-if="isBindMobile && userInfo && !userInfo.mobile" class="w-[180rpx] h-[70rpx] text-[26rpx] leading-[70rpx] font-500 !text-[#fff] m-0 rounded-full primary-btn-bg remove-border" open-type="getPhoneNumber" @getphonenumber="memberStore.bindMobile">去结算</button>
 				<button v-else class="w-[180rpx] h-[70rpx] text-[26rpx] leading-[70rpx] font-500 !text-[#fff] m-0 rounded-full primary-btn-bg remove-border" @click="settlement">去结算</button> -->
 				<button
-                    class="w-[180rpx] h-[70rpx] text-[26rpx] leading-[70rpx] font-500 m-0 rounded-full remove-border"
-                    :class="{'primary-btn-bg !text-[#fff]': parseFloat(totalMoney) > 0, 'bg-[#F7F7F7] !text-[var(--text-color-light9)]': parseFloat(totalMoney) <= 0}"
+                    class="settle-wrap font-500 m-0 rounded-full remove-border"
+                    :class="{'primary-btn-bg text-white': parseFloat(totalMoney) > 0, 'bg-f7f7f7 text-color-light9': parseFloat(totalMoney) <= 0}"
                     @click="settlement">去结算</button>
 			</view>
 			<!--  #endif -->
@@ -221,7 +220,7 @@
 			<mescroll-empty :option="{tip : '暂无商品分类'}"></mescroll-empty>
 		</view>
 		<loading-page :loading="loading"></loading-page>
-		<tabbar />
+
 		<!-- 强制绑定手机号 -->
 		<bind-mobile ref="bindMobileRef" /> 
 	</view>
@@ -468,7 +467,9 @@ const initAll = ref({
 const tabsData:any = ref<Array<Object>>([])
 const getCategoryData = () => {
 	loading.value = true;
-	getGoodsCategoryTree().then((res: any) => {
+	getGoodsCategoryTree({
+		addon: 'mall'
+	}).then((res: any) => {
 		tabsData.value = res.data;
 		for (let i = 0; i < tabsData.value.length; i++) {
 			if(tabsData.value[i].child_list){
@@ -516,8 +517,15 @@ const firstLevelClick = (index: number, data: any) => {
 		subMenuClick(0, data.child_list[0]);
 	} else {
         categoryId = data.category_id;
-		list.value = [];
-		getMescroll().resetUpScroll();
+		uni.pageScrollTo({
+			scrollTop: 0,
+			duration: 0,
+			complete: () => {
+				list.value = [];
+				getMescroll().resetUpScroll();
+			}
+		})
+		
 	}
 }
 
@@ -530,8 +538,14 @@ const subMenuClick = (index: number, data: any) => {
 	subActive.value = index;
     categoryId = data.category_id;
 	labelPopup.value = false
-	list.value = [];
-	getMescroll().resetUpScroll();
+	uni.pageScrollTo({
+		scrollTop: 0,
+		duration: 0,
+		complete: () => {
+			list.value = [];
+			getMescroll().resetUpScroll();
+		}
+	})
 }
 
 // 搜索名字
@@ -827,6 +841,158 @@ const goodsPrice = (data:any) => {
 		height: 48rpx;
 		background-color: var(--primary-color);
 	}
+}
+.bg-gray {
+	background-color: #f6f6f6;
+}
+
+.rounded-br-12 {
+	border-bottom-right-radius: 0rpx;
+}
+.rounded-tr-12 {
+	border-top-right-radius: 0rpx;
+}
+.category-child-box {
+	height: 98rpx;
+	padding: 20rpx 48rpx 20rpx 24rpx;
+	background-color: var(--page-bg-color);
+	left: 168rpx;
+}
+.top94 {
+	top: 94rpx !important;
+}
+.category-child-item {
+	width: 150rpx;
+	height: 54rpx;
+	padding: 0 14rpx;
+	line-height: 54rpx;
+	font-size: 22rpx;
+	border: 2rpx solid transparent;
+	border-radius: 100rpx;
+	color: #333;
+	&.selected {
+		background-color: var(--primary-color-light);
+		color:var(--primary-color) !important;
+		border-color: var(--primary-color);
+	}
+	&.not-selected {
+		background-color: #fff;
+		border-color: #fff;
+	}
+	&.ml24 {
+		margin-left: 24rpx;
+	}
+}
+.popup-item-wrap{
+	padding: 0 14rpx;
+	width: 160rpx;
+	margin-left: 20rpx;
+	margin-bottom: 26rpx;
+	height: 60rpx;
+	line-height: 56rpx;
+	font-size: 26rpx;
+	border-radius: 100rpx;
+	color: #333;
+	border: 2rpx solid transparent;
+	&.selected{
+		background-color: var(--primary-color-light);
+		border-color: var(--primary-color);
+		color: var(--primary-color) !important;
+	}
+	&.not-selected {
+		background-color: var(--temp-bg);
+		border-color: var(--temp-bg);
+	}
+}
+.goods-box-wrap {
+	padding-left: 168rpx;
+	padding-top: 20rpx;
+	padding-bottom: 20rpx;
+}
+.pt194 {
+	padding-top: 194rpx !important;
+}
+.pt100 {
+	padding-top: 100rpx !important;
+}
+.pt98 {
+	padding-top: 98rpx !important;
+}
+.goods-item-wrap {
+	width: 536rpx;
+	margin: 0 20rpx;
+	padding: 24rpx 20rpx;
+	border-radius:var(--rounded-small);
+	&.mt20 {
+		margin-top: 20rpx;
+	}
+}
+.num-box {
+	right: -16rpx;
+	top: -16rpx;
+	border-radius: 30rpx;
+	height: 30rpx;
+	min-width: 30rpx;
+	line-height: 26rpx;
+	background-color: var(--primary-color);
+	color: #fff;
+	font-size: 20rpx;
+	border: 2rpx solid #fff;
+}
+.num-box-style3 {
+	right: -10rpx;
+	top: -2rpx;
+	border-radius: 30rpx;
+	height: 30rpx;
+	min-width: 30rpx;
+	line-height: 26rpx;
+	background-color: var(--primary-color);
+	color: #fff;
+	font-size: 20rpx;
+	border: 2rpx solid #fff;
+}
+.num-box-style4 {
+	right: -10rpx;
+	top: -10rpx;
+	border-radius: 30rpx;
+	height: 30rpx;
+	min-width: 30rpx;
+	line-height: 26rpx;
+	background-color: var(--primary-color);
+	color: #fff;
+	font-size: 20rpx;
+	border: 2rpx solid #fff;
+}
+.total-box {
+	left: 40rpx;
+	top: -10rpx;
+	border-radius: 28rpx;
+	height: 28rpx;
+	min-width: 28rpx;
+	line-height: 26rpx;
+	background-color: var(--primary-color);
+	color: #fff;
+	font-size: 20rpx;
+	border: 1rpx solid #fff;
+}
+.px10 {
+	padding-left: 10rpx;
+	padding-right: 10rpx;
+}
+.settle-wrap {
+	width:180rpx;
+	height: 70rpx;
+	font-size: 26rpx;
+	line-height: 70rpx;
+	&.text-white {
+		color: #fff !important;
+	}
+}
+.text-color-light9 {
+	color: var(--text-color-light9) !important;
+}
+.bg-f7f7f7 {
+	background-color: #f7f7f7;
 }
 
 /*  #ifdef  H5  */

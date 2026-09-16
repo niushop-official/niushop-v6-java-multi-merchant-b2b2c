@@ -19,52 +19,39 @@
         <wx-privacy-popup ref="wxPrivacyPopupRef"></wx-privacy-popup>
         <!-- #endif -->
 
+        <template v-if="diyStore && diyStore.mode == '' && diyStore.global && diyStore.global.bottomTabBar && diyStore.global.bottomTabBar.isShow">
+            <tabbar />  
+        </template>
     </view>
 </template>
 
 <script setup lang="ts">
-import { ref,nextTick } from 'vue';
+import { ref, nextTick } from 'vue';
 import { useDiy } from '@/hooks/useDiy'
-import { getToken, redirect } from '@/utils/common';
-import diyGroup from '@/addon/components/diy/group/index.vue'
-import { getShopInfo } from '@/addon/mall/api/shop'
-import { onLoad } from '@dcloudio/uni-app';
-import useDiyStore from '@/app/stores/diy';
-import useMemberStore from '@/stores/member'
+import { redirect } from '@/utils/common';
 import { useShare } from '@/hooks/useShare'
+import diyGroup from '@/addon/components/diy/group/index.vue'
+import { onShow } from '@dcloudio/uni-app';
+import useDiyStore from '@/app/stores/diy';
+
 const { setShare } = useShare()
 
 uni.hideTabBar() // 隐藏tabbar
-const diyStore = useDiyStore();
 
 const diy = useDiy({
-    name: 'DIY_SITE_INDEX'
+    name: 'DIY_MALL_INDEX'
 })
-
+const diyStore = useDiyStore()
 const diyGroupRef = ref(null)
 
-const wxPrivacyPopupRef:any = ref(null)
-
+const wxPrivacyPopupRef: any = ref(null)
+const collectTipRef: any = ref(null)
 // 监听页面加载
 diy.onLoad();
 
-onLoad((option: any)=>{
-    if (diyStore.mode != 'decorate') {
-        shopInfoFn(option.site_id)
-    }
-    if(getToken()){
-        useMemberStore().addVisit({site_id: option.site_id})
-    }
+onShow(()=>{
+    diyStore.siteId = 0
 })
-
-const shopInfoFn = (siteId:any) =>{
-    getShopInfo(siteId).then((res:any) =>{
-        if (res.data.business_status == 0) {
-            redirect({ url: '/app/pages/site/close' })
-            return false
-        }
-    })
-}
 
 // 监听页面显示
 diy.onShow((data: any) => {
@@ -74,36 +61,24 @@ diy.onShow((data: any) => {
         // })
     } else if (data.page) {
         // 跳转到设置的启动页
-        redirect({url: data.page, mode: 'reLaunch'})
+        redirect({ url: data.page, mode: 'reLaunch' })
     }
+    let share = data.share ? JSON.parse(data.share) : null;
+    setShare(share);
     diyGroupRef.value?.refresh();
+
     // #ifdef MP
-    nextTick(()=>{
-        if(wxPrivacyPopupRef.value) wxPrivacyPopupRef.value.proactive();
+    nextTick(() => {
+        if (wxPrivacyPopupRef.value) wxPrivacyPopupRef.value.proactive();
     })
     // #endif
-    setTimeout(() => {
-        let share = data.share;
-
-        setShare({
-            wechat: {
-                ...share
-            },
-            weapp: {
-                ...share
-            }
-        });
-    }, 600);
 });
 
 // 监听页面隐藏
 diy.onHide();
 
-
 // 监听页面卸载
-diy.onUnload(()=>{
-   diyStore.siteId = '';
-});
+diy.onUnload();
 
 // 监听滚动事件
 diy.onPageScroll()
@@ -121,6 +96,23 @@ diy.onPageScroll()
             }
         }
     }
+
     /* #endif */
 }
+// 微信隐私弹框在最高层
+.wx-privacy-popup {
+    :deep(.u-fade-enter-active){
+        z-index: 20070 !important;
+    }
+}
+</style>
+<style>
+/*  #ifdef MP  */   
+.many-shop-list .mescroll-body{
+    min-height: auto !important;
+}
+.many-shop-list .mescroll-upwarp{
+    display: none !important;
+} 
+/*  #endif  */
 </style>

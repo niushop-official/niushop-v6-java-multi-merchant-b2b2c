@@ -135,3 +135,10 @@ export function getGoodsSkuPromotionList(params: Record<string, any>) {
 export function getGoodsSkuPromotionDetail(params: Record<string, any>) {
     return request.get(`mall/goods/sku_promotion/detail`, params)
 }
+
+/**
+ *  商品优惠信息详情
+ */
+export function getGoodsRank(params: Record<string, any>) {
+    return request.get(`mall/rank/goods_rank`, params)
+}

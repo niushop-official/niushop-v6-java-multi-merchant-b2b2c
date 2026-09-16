@@ -52,8 +52,8 @@
         <u-tabbar :fixed="true" :placeholder="true" :safeAreaInsetBottom="true" zIndex="9999">
             <view class="flex items-center pl-[30rpx] pr-[20rpx] box-border  justify-between w-[100%]">
                 <view class="flex items-center" @click="selectCheck">
-                    <text class="iconfont text-color text-[30rpx] mr-[12rpx] text-[var(--text-color-light9)]" :class="{'iconxuanze1 text-[var(--primary-color)]' : is_anonymous === '1' ,'nc-iconfont nc-icon-yuanquanV6xx':is_anonymous !== '1'}"></text>
-                    <text class="text-[28rpx] leading-[34rpx]" :class="{'text-[var(--primary-color)]' :is_anonymous === '1', 'text-[var(--text-color-light6)]':is_anonymous !== '1'}">匿名</text>
+                    <text class="check-wrap iconfont text-color" :class="{'iconxuanze1 active' : is_anonymous === '1' ,'nc-iconfont nc-icon-yuanquanV6xx':is_anonymous !== '1'}"></text>
+                    <text class="anonymous" :class="{'text-primary' :is_anonymous === '1', 'text-color-light6':is_anonymous !== '1'}">匿名</text>
                 </view>
                 <button class="!w-[240rpx] !h-[70rpx] text-[26rpx] !m-0 flex-center rounded-full text-white primary-btn-bg remove-border font-500" hover-class="none" @click="submit">提交</button>
             </view>
@@ -170,5 +170,20 @@ const toLink = (order_id: any) => {
     &::after {
         border: none;
     }
+}
+.check-wrap {
+    font-size: 30rpx;
+    margin-right: 12rpx;
+    color: var(--text-color-light9);
+    &.active{
+        color: var(--primary-color);
+    }
+}
+.anonymous{
+    font-size: 28rpx;
+    line-height: 34rpx;
+}
+.text-color-light6{
+    color: var(--text-color-light6);
 }
 </style>

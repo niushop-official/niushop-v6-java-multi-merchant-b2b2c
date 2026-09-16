@@ -48,3 +48,10 @@ export function getCartGoodsList(params : Record<string, any>) {
 export function getCartSum(params : Record<string, any>) {
 	return request.get(`mall/cart/sum`, params)
 }
+
+/**
+ * 购物车计算
+ */
+export function calculate(params : Record<string, any>) {
+	return request.post(`mall/cart/calculate`, params)
+}

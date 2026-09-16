@@ -5,8 +5,8 @@
                 <scroll-view :id="'warpStyle-'+diyComponent.id" class="whitespace-nowrap h-[341rpx] w-full" :scroll-x="true">
                     <template v-for="(item,index) in goodsList" :key="index">
                         <view v-if="item.info" :id="'item'+index+diyComponent.id"
-                              class="w-[224rpx] h-[341rpx] mr-[20rpx] inline-block bg-[#fff] box-border overflow-hidden"
-                              :class="{'!mr-[0rpx]' : index == (goodsList.length-1)}" :style="itemCss+itemStyle"
+                              class="item-wrap  inline-block bg-white box-border overflow-hidden"
+                              :class="{'mr-0' : index == (goodsList.length-1)}" :style="itemCss+itemStyle"
                               @click="toLink(item)">
                             <view class="w-full h-[134rpx]" :style="listFrameStyle(item)">
                                 <view class="flex pl-[16rpx] pr-[20rpx] justify-between h-[63rpx] items-center">
@@ -223,4 +223,12 @@ const toLink = (data: any) => {
 </script>
 
 <style lang="scss" scoped>
+.item-wrap{
+    width: 224rpx;
+    height: 341rpx;
+    margin-right: 20rpx;
+    &.mr-0{
+        margin-right: 0 !important;
+    }
+}
 </style>

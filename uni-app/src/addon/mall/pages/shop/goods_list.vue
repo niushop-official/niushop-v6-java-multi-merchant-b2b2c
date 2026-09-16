@@ -67,6 +67,7 @@
                                         <text class="text-[40rpx] font-500">{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[0] }}</text>
                                         <text class="text-[24rpx] font-500">.{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[1] }}</text>
                                     </view>
+									<image v-if="diyGoods.priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
                                     <image v-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 									<image class="h-[24rpx] w-[72rpx] ml-[6rpx]" v-if="diyGoods.priceType(item) == 'discount_price'" :src="img('addon/mall/discount.png')" mode="heightFix" />
                                 </view>
@@ -108,6 +109,7 @@
                                                 <text class="text-[40rpx] font-500">{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[0] }}</text>
                                                 <text class="text-[24rpx] font-500">.{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[1] }}</text>
                                             </view>
+											<image v-if="diyGoods.priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
                                             <image v-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 											<image class="h-[24rpx] w-[72rpx] ml-[6rpx]" v-if="diyGoods.priceType(item) == 'discount_price'" :src="img('addon/mall/discount.png')" mode="heightFix" />
                                         </view>
@@ -149,6 +151,7 @@
                                                 <text class="text-[40rpx] font-500">{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[0] }}</text>
                                                 <text class="text-[24rpx] font-500">.{{ diyGoods.goodsPrice(item).toFixed(2).split('.')[1] }}</text>
                                             </view>
+											<image v-if="diyGoods.priceType(item) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
                                             <image v-if="diyGoods.priceType(item) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 											<image class="h-[24rpx] w-[72rpx] ml-[6rpx]" v-if="diyGoods.priceType(item) == 'discount_price'" :src="img('addon/mall/discount.png')" mode="heightFix" />
                                         </view>

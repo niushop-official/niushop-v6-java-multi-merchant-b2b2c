@@ -6,29 +6,29 @@
                 <top-tabbar :data="param"  class="top-header"/>
                 <!-- #endif -->
             </view>
-            <view class="-mt-[-36rpx] px-[var(--sidebar-m)] py-[24rpx] flex items-center justify-between leading-[40rpx] text-[28rpx] bg-[var(--page-bg-color)] rounded-t-[26rpx] relative z-99999 !pl-[30rpx]" :class="{'!bg-[#fff]': typePopup}">
+            <view class="tab-wrap  flex items-center justify-between  relative z-99999" :class="{'active': typePopup}">
                 <text :class="{ 'text-primary font-500': searchType == 'all' }" @click="searchTypeFn('all')">默认排序</text>
                 <view class="flex items-center" :class="{ 'text-primary font-500': searchType == 'create_time' }" @click="searchTypeFn('create_time')">
                     <text class="mr-[4rpx]">最新</text>
-                    <text v-if="create_time == 'asc'" class="text-[18rpx] text-[var(--text-color-light6)] nc-iconfont nc-icon-a-xiangshangV6xx1" :class="{ '!text-primary': searchType == 'create_time' }"></text>
-                    <text v-else class="text-[18rpx] text-[var(--text-color-light6)]  nc-iconfont nc-icon-a-xiangxiaV6xx1" :class="{ '!text-primary': searchType == 'create_time' }"></text>
+                    <text v-if="create_time == 'asc'" class="icon-wrap nc-iconfont nc-icon-a-xiangshangV6xx1" :class="{ 'selected': searchType == 'create_time' }"></text>
+                    <text v-else class="icon-wrap  nc-iconfont nc-icon-a-xiangxiaV6xx1" :class="{ 'selected': searchType == 'create_time' }"></text>
                 </view>
                 <view class="flex items-center" :class="{ 'text-primary font-500': searchType == 'price' }" @click="searchTypeFn('price')">
                     <text class="mr-[4rpx]">价格</text>
-                    <text v-if="price == 'asc'" class="text-[18rpx]  text-[var(--text-color-light6)] nc-iconfont nc-icon-a-xiangshangV6xx1" :class="{ '!text-primary': searchType == 'price' }"></text>
-                    <text v-else class="text-[18rpx] text-[var(--text-color-light6)] nc-iconfont nc-icon-a-xiangxiaV6xx1" :class="{ '!text-primary': searchType == 'price' }"></text>
+                    <text v-if="price == 'asc'" class="icon-wrap nc-iconfont nc-icon-a-xiangshangV6xx1" :class="{ 'selected': searchType == 'price' }"></text>
+                    <text v-else class="icon-wrap nc-iconfont nc-icon-a-xiangxiaV6xx1" :class="{ 'selected': searchType == 'price' }"></text>
                 </view>
                 <view class="flex items-center" :class="{'text-primary font-500': searchType == 'type' }" @click="searchTypeFn('type')">
                     <view class="w-[2rpx] h-[28rpx] bg-gradient-to-b from-[#333] to-[#fff] mr-[20rpx] flex-shrink-0"></view>
                     <text class="mr-[10rpx]">筛选</text>
-                    <text class="nc-iconfont text-[var(--text-color-light6)] nc-icon-shaixuanV6xx text-[28rpx]" :class="{'text-primary': searchType == 'type' }"></text>
+                    <text class="filter-wrap nc-iconfont nc-icon-shaixuanV6xx" :class="{'text-primary': searchType == 'type' }"></text>
                 </view>
             </view>
         </view>
         <mescroll-body ref="mescrollRef"  @init="mescrollInit" :down="{ use: false }"  height="auto" @up="getMallCouponListFn" :top="mescrollTop">
             <view v-if="list.length" class="pb-[var(--top-m)] sidebar-margin">
                 <template v-for="(item, index) in list">
-                    <view v-if="item.btnType === 'collected'" class="flex items-center relative w-[100%] rounded-[var(--rounded-big)] overflow-hidden bg-[#fff] py-[20rpx] background-size" :class="{'mt-[var(--top-m)]':index}" :style="{ backgroundImage: 'url(' + img('addon/mall/coupon/coupn_loot.png') + ')'}" @click="toDetail(item.id)" >
+                    <view v-if="item.btnType === 'collected'" class="collected-item flex items-center relative   overflow-hidden bg-white background-size" :class="{'mt20':index}" :style="{ backgroundImage: 'url(' + img('addon/mall/coupon/coupn_loot.png') + ')'}" @click="toDetail(item.id)" >
                         <view class="box-border flex-1 border-0 border-r-[1px] border-[#FFDCDC] border-dashed flex items-center">
                             <view class="w-[164rpx] box-border flex justify-center">
                                 <view class="flex items-baseline text-[var(--price-text-color)]">
@@ -60,7 +60,7 @@
                         <view class="absolute top-0 right-[194rpx]  h-[10rpx] w-[20rpx] rounded-br-[20rpx] rounded-bl-[20rpx] bg-[var(--page-bg-color)] "></view>
                         <view class="absolute bottom-0 right-[194rpx] h-[10rpx] w-[20rpx] rounded-tr-[20rpx] rounded-tl-[20rpx] bg-[var(--page-bg-color)]"></view>
                     </view>
-                    <view v-else class ="flex items-center relative w-[100%] rounded-[var(--rounded-big)] overflow-hidden bg-[#fff] py-[20rpx] background-size" :class="{'mt-[var(--top-m)]':index}" @click="toDetail(item.id)">
+                    <view v-else class ="flex items-center relative collected-item   overflow-hidden bg-white  background-size" :class="{'mt20':index}" @click="toDetail(item.id)">
                         <view class="relative box-border flex-1 border-0 border-r-[1px] border-[#FFDCDC] border-dashed flex items-center pl-[10rpx]">
                             <view class="w-[164rpx] box-border flex justify-center">
                                 <view class="flex items-baseline text-[var(--price-text-color)]">
@@ -107,7 +107,7 @@
             <view @touchmove.prevent.stop class="flex mx-[var(--sidebar-m)] border-0 border-t-[2rpx] border-solid border-[#F0F2F8]">
                 <scroll-view :scroll-x="true" scroll-with-animation :scroll-into-view="'id' + (subActive ? subActive - 1 : 0)" class="scroll-wrap  box-border bg-white rounded-b-[26rpx]">
                     <view class=" flex-nowrap items-center flex py-[20rpx]">
-                        <text class="flex-shrink-0 w-[140rpx] box-border px-[10rpx] truncate h-[50rpx] text-[24rpx] leading-[50rpx] text-center text-[#333] bg-[var(--temp-bg)] rounded-[30rpx] border-box mr-[20rpx] border-[2rpx] border-solid border-[#F8F9FD]" :class="{'!text-primary !border-primary !bg-[var(--primary-color-light)] font-500':item.value == curType}"
+                        <text class="label-item flex-shrink-0  box-border truncate text-center    border-box" :class="{'active font-500':item.value == curType}"
                             v-for="(item,index) in typeList" :key="index" :id="'id' + index"
                             @click="typeClick(index,item.value)">{{ item.label }}</text>
                     </view>
@@ -121,7 +121,7 @@
 import { ref, computed, nextTick, getCurrentInstance, watch } from 'vue'
 import { img, redirect, pxToRpx, getToken } from '@/utils/common'
 import { topTabar } from '@/utils/topTabbar'
-import { getMallCouponList, getCoupon, getMyCouponType } from '@/addon/mall/api/coupon'
+import { getMallCouponList, getCoupon, getMyCouponType } from '@/app/api/marketing'
 import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue'
 import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.vue'
 import useMescroll from '@/components/mescroll/hooks/useMescroll.js'
@@ -356,5 +356,55 @@ button{
 }
 :deep(.mescroll-empty){
     margin-top: 0 !important;
+}
+.tab-wrap{
+    margin-top: -36rpx;
+    padding: 24rpx var(--sidebar-m);
+    line-height: 40rpx;
+    font-size: 28rpx;
+    background-color: var(--page-bg-color);
+    border-radius: 26rpx 26rpx 0 0;
+    padding-left: 30rpx !important;
+    &.active {
+        background-color: #fff !important;
+    }
+}
+.icon-wrap{
+    font-size: 18rpx;
+    color: var(--text-color-light6);
+    &.selected {
+        color: var(--primary-color) !important;
+    }
+}
+.filter-wrap {
+    font-size: 28rpx;
+    color: var(--text-color-light6);
+}
+.collected-item {
+    width: 100%;
+    border-radius: var(--rounded-big);
+    padding-top: 20rpx;
+    padding-bottom: 20rpx;
+    &.mt20 {
+        margin-top: var(--top-m);
+    }
+}
+.label-item{
+    width: 140rpx;
+    height: 50rpx;
+    padding-left: 10rpx;
+    padding-right: 10rpx;
+    font-size: 24rpx;
+    line-height: 46rpx;
+    color: #333;
+    background-color: var(--temp-bg);
+    border-radius: 30rpx;
+    margin-right: 20rpx;
+    border: 2rpx solid #F8F9FD;
+    &.active {
+        color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        background-color: var(--primary-color-light) !important;
+    }
 }
 </style>
