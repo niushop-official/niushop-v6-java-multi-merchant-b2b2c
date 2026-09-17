@@ -22,9 +22,9 @@ spring:
       max-request-size: 50MB
   # 数据源配置项
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/***?useUnicode=true&characterEncoding=utf8&useSSL=false&allowMultiQueries=true
+    url: jdbc:mysql://localhost:3306/niucloud_java?useUnicode=true&characterEncoding=utf8&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
     username: root
-    password: 
+    password: root
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
     druid:
@@ -136,3 +136,8 @@ sa-token:
     password:
     # 连接超时时间
     timeout: 10s
+
+# 牛之云默认授权
+niu-cloud:
+  auth-code: 20260917349545406027976
+  auth-secret: b29y05kcvcaghz

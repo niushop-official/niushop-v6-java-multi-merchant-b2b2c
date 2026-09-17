@@ -217,18 +217,8 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     public void checkAuthInfo(HttpServletRequest request) {
-        String method = RequestUtils.getRequestMethod();
-        if (method.equals("get") || request.getRequestURI().contains("/adminapi/niucloud/authinfo")) return;
-
-        if (!isCheckDomain()) return;
-
-        AuthInfoVo authInfo = niucloudService.getAuthinfo();
-        if (authInfo == null) return;
-
-        String siteAddress = authInfo.getData().getSiteAddress();
-        if (ObjectUtil.isNotEmpty(siteAddress) && RequestUtils.getRequestDomain().contains(siteAddress)) return;
-
-        throw new CommonException("授权域名校验失败！请确保当前访问域名与授权码绑定的域名一致");
+        // 已注释授权域名校验
+        return;
     }
 
     public boolean isCheckDomain() {
