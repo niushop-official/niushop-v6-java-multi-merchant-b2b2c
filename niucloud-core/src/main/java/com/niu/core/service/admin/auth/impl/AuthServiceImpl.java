@@ -166,7 +166,7 @@ public class AuthServiceImpl implements IAuthService {
      */
     @Override
     public void checkRole(HttpServletRequest request) {
-        checkAuthInfo(request);
+//        checkAuthInfo(request);
 
         String rule = RequestUtils.getReqeustURI().toLowerCase().trim();
         String method = RequestUtils.getRequestMethod().toLowerCase().trim();

@@ -18,8 +18,6 @@ import com.niu.core.common.exception.CommonException;
 import com.niu.core.common.utils.date.DateUtils;
 import com.niu.core.service.admin.niucloud.ICloudBuildService;
 import com.niu.core.service.admin.sys.vo.SysDeveloperTokenVo;
-import com.niu.core.service.core.niucloud.ICoreNiucloudConfigService;
-import com.niu.core.service.core.niucloud.vo.NiucloudConfigVo;
 import com.niu.core.service.core.sys.ICoreSysConfigService;
 import me.chanjar.weixin.common.util.crypto.SHA1;
 import org.apache.commons.io.FileUtils;
@@ -39,6 +37,8 @@ public class NiucloudUtils {
 
     private static String secret = "";
 
+    private static String developerToken = "";
+
     @Value("${niu-cloud.auth-code:}")
     public void setCode(String code) {
         NiucloudUtils.code = code;
@@ -47,6 +47,12 @@ public class NiucloudUtils {
     @Value("${niu-cloud.auth-secret:}")
     public void setSecret(String secret) {
         NiucloudUtils.secret = secret;
+    }
+
+    public NiucloudUtils() {
+        ICoreSysConfigService sysConfigService = (ICoreSysConfigService) SpringContext.getBean(ICoreSysConfigService.class);
+        SysDeveloperTokenVo developerTokenVo = sysConfigService.getDeveloperToken();
+        developerToken = developerTokenVo.getToken();
     }
 
     public String getCode() {
@@ -62,9 +68,7 @@ public class NiucloudUtils {
     }
 
     public String getDeveloperToken() {
-        ICoreSysConfigService sysConfigService = (ICoreSysConfigService) SpringContext.getBean(ICoreSysConfigService.class);
-        SysDeveloperTokenVo developerTokenVo = sysConfigService.getDeveloperToken();
-        return developerTokenVo.getToken();
+        return developerToken;
     }
 
     public static NiucloudUtils getInstance() {
@@ -113,7 +117,7 @@ public class NiucloudUtils {
 
         private static HttpRequest handleRequest(HttpRequest request) {
             request.header("Referer", RequestUtils.getDomain(true));
-            request.header("developer-token", NiucloudUtils.getInstance().getDeveloperToken());
+            request.header("developer-token", NiucloudUtils.getInstance().developerToken);
             request.header("access-token", getAccessToken());
             return request;
         }
