@@ -241,6 +241,192 @@
             <template v-if="component.componentName == 'SingleRecommend'">
                 <diy-single-recommend :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SingleRecommend" @update:componentIsShow="component.componentIsShow = $event" />
             </template>
+<!--            <template v-if="component.componentName == 'SeckillGoods'">-->
+<!--                <diy-seckill-goods :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SeckillGoods" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'SeckillGoodsDetailBasicInfo'">-->
+<!--                <diy-seckill-goods-detail-basic-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SeckillGoodsDetailBasicInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'SeckillGoodsDetailBottom'">-->
+<!--                <diy-seckill-goods-detail-bottom :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SeckillGoodsDetailBottom" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'SeckillGoodsDetailDesc'">-->
+<!--                <diy-seckill-goods-detail-desc :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SeckillGoodsDetailDesc" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'SeckillGoodsDetailPurchaseService'">-->
+<!--                <diy-seckill-goods-detail-purchase-service :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SeckillGoodsDetailPurchaseService" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'SeckillHot'">-->
+<!--                <diy-seckill-hot :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SeckillHot" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'SeckillRubikCube'">-->
+<!--                <diy-seckill-rubik-cube :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SeckillRubikCube" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'SeckillSpecialOffer'">-->
+<!--                <diy-seckill-special-offer :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.SeckillSpecialOffer" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PointsMallGoodsList'">-->
+<!--                <diy-points-mall-goods-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PointsMallGoodsList" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PointsMallInfo'">-->
+<!--                <diy-points-mall-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PointsMallInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PointsMallManyGoodsList'">-->
+<!--                <diy-points-mall-many-goods-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PointsMallManyGoodsList" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanActivityGoodsDetailBasicInfo'">-->
+<!--                <diy-pintuan-activity-goods-detail-basic-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanActivityGoodsDetailBasicInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanActivityGoodsDetailBottom'">-->
+<!--                <diy-pintuan-activity-goods-detail-bottom :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanActivityGoodsDetailBottom" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanActivityGoodsDetailDesc'">-->
+<!--                <diy-pintuan-activity-goods-detail-desc :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanActivityGoodsDetailDesc" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanActivityGoodsDetailGameplay'">-->
+<!--                <diy-pintuan-activity-goods-detail-gameplay :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanActivityGoodsDetailGameplay" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanActivityGoodsDetailGoodsInfo'">-->
+<!--                <diy-pintuan-activity-goods-detail-goods-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanActivityGoodsDetailGoodsInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanActivityGoodsDetailPintuanInfo'">-->
+<!--                <diy-pintuan-activity-goods-detail-pintuan-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanActivityGoodsDetailPintuanInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanActivityGoodsDetailProgress'">-->
+<!--                <diy-pintuan-activity-goods-detail-progress :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanActivityGoodsDetailProgress" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanGoodsDetailBasicInfo'">-->
+<!--                <diy-pintuan-goods-detail-basic-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanGoodsDetailBasicInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanGoodsDetailBottom'">-->
+<!--                <diy-pintuan-goods-detail-bottom :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanGoodsDetailBottom" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanGoodsDetailDesc'">-->
+<!--                <diy-pintuan-goods-detail-desc :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanGoodsDetailDesc" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanGoodsDetailGameplay'">-->
+<!--                <diy-pintuan-goods-detail-gameplay :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanGoodsDetailGameplay" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanGoodsDetailProgress'">-->
+<!--                <diy-pintuan-goods-detail-progress :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanGoodsDetailProgress" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanGoodsDetailPurchaseService'">-->
+<!--                <diy-pintuan-goods-detail-purchase-service :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanGoodsDetailPurchaseService" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanHot'">-->
+<!--                <diy-pintuan-hot :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanHot" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanImmediately'">-->
+<!--                <diy-pintuan-immediately :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanImmediately" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanLimit'">-->
+<!--                <diy-pintuan-limit :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanLimit" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanList'">-->
+<!--                <diy-pintuan-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanList" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanMemberInfo'">-->
+<!--                <diy-pintuan-member-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanMemberInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'PintuanOrderInfo'">-->
+<!--                <diy-pintuan-order-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.PintuanOrderInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FrontWarehouseCategoryGoodsList'">-->
+<!--                <diy-front-warehouse-category-goods-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FrontWarehouseCategoryGoodsList" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FrontWarehouseManyGoodsList'">-->
+<!--                <diy-front-warehouse-many-goods-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FrontWarehouseManyGoodsList" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FrontWarehouseMemberInfo'">-->
+<!--                <diy-front-warehouse-member-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FrontWarehouseMemberInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FrontWarehouseOrderInfo'">-->
+<!--                <diy-front-warehouse-order-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FrontWarehouseOrderInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oGoodsList'">-->
+<!--                <diy-o2o-goods-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oGoodsList" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oGoodsRecommend'">-->
+<!--                <diy-o2o-goods-recommend :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oGoodsRecommend" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oMemberInfo'">-->
+<!--                <diy-o2o-member-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oMemberInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oNotice'">-->
+<!--                <diy-o2o-notice :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oNotice" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oOrderInfo'">-->
+<!--                <diy-o2o-order-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oOrderInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oSearch'">-->
+<!--                <diy-o2o-search :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oSearch" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oStoreBottom'">-->
+<!--                <diy-o2o-store-bottom :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oStoreBottom" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oStoreEvaluate'">-->
+<!--                <diy-o2o-store-evaluate :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oStoreEvaluate" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oStoreGroup'">-->
+<!--                <diy-o2o-store-group :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oStoreGroup" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oStoreInfo'">-->
+<!--                <diy-o2o-store-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oStoreInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oStoreTab'">-->
+<!--                <diy-o2o-store-tab :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oStoreTab" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'O2oVicinityLowPrice'">-->
+<!--                <diy-o2o-vicinity-low-price :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.O2oVicinityLowPrice" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'WaimaiMemberAsset'">-->
+<!--                <diy-waimai-member-asset :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.WaimaiMemberAsset" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'WaimaiMemberBanner'">-->
+<!--                <diy-waimai-member-banner :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.WaimaiMemberBanner" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'WaimaiMemberCollect'">-->
+<!--                <diy-waimai-member-collect :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.WaimaiMemberCollect" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'WaimaiMemberInfo'">-->
+<!--                <diy-waimai-member-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.WaimaiMemberInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'WaimaiOrderInfo'">-->
+<!--                <diy-waimai-order-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.WaimaiOrderInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'WaimaiShopList'">-->
+<!--                <diy-waimai-shop-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.WaimaiShopList" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'MallFenxiaoGoodsList'">-->
+<!--                <diy-mall-fenxiao-goods-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.MallFenxiaoGoodsList" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FriendHelpCarousel'">-->
+<!--                <diy-friend-help-carousel :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FriendHelpCarousel" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FriendHelpGoodsDetailBasicInfo'">-->
+<!--                <diy-friend-help-goods-detail-basic-info :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FriendHelpGoodsDetailBasicInfo" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FriendHelpGoodsDetailBottom'">-->
+<!--                <diy-friend-help-goods-detail-bottom :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FriendHelpGoodsDetailBottom" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FriendHelpGoodsDetailDesc'">-->
+<!--                <diy-friend-help-goods-detail-desc :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FriendHelpGoodsDetailDesc" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FriendHelpGoodsDetailGameplay'">-->
+<!--                <diy-friend-help-goods-detail-gameplay :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FriendHelpGoodsDetailGameplay" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FriendHelpGoodsDetailProgress'">-->
+<!--                <diy-friend-help-goods-detail-progress :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FriendHelpGoodsDetailProgress" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FriendHelpGoodsDetailPurchaseService'">-->
+<!--                <diy-friend-help-goods-detail-purchase-service :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FriendHelpGoodsDetailPurchaseService" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FriendHelpHot'">-->
+<!--                <diy-friend-help-hot :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FriendHelpHot" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
+<!--            <template v-if="component.componentName == 'FriendHelpList'">-->
+<!--                <diy-friend-help-list :component="component" :global="data.global" :index="index" :scrollBool="diyGroup.componentsScrollBool.FriendHelpList" @update:componentIsShow="component.componentIsShow = $event" />-->
+<!--            </template>-->
                 </view>
             </view>
         </template>
@@ -276,6 +462,68 @@
    import diyMallShopInfo from '@/addon/mall/components/diy/mall-shop-info/index.vue';
    import diyMallShopList from '@/addon/mall/components/diy/mall-shop-list/index.vue';
    import diySingleRecommend from '@/addon/mall/components/diy/single-recommend/index.vue';
+   // import diySeckillGoods from '@/addon/seckill/components/diy/seckill-goods/index.vue';
+   // import diySeckillGoodsDetailBasicInfo from '@/addon/seckill/components/diy/seckill-goods-detail-basic-info/index.vue';
+   // import diySeckillGoodsDetailBottom from '@/addon/seckill/components/diy/seckill-goods-detail-bottom/index.vue';
+   // import diySeckillGoodsDetailDesc from '@/addon/seckill/components/diy/seckill-goods-detail-desc/index.vue';
+   // import diySeckillGoodsDetailPurchaseService from '@/addon/seckill/components/diy/seckill-goods-detail-purchase-service/index.vue';
+   // import diySeckillHot from '@/addon/seckill/components/diy/seckill-hot/index.vue';
+   // import diySeckillRubikCube from '@/addon/seckill/components/diy/seckill-rubik-cube/index.vue';
+   // import diySeckillSpecialOffer from '@/addon/seckill/components/diy/seckill-special-offer/index.vue';
+   // import diyPointsMallGoodsList from '@/addon/points_mall/components/diy/points-mall-goods-list/index.vue';
+   // import diyPointsMallInfo from '@/addon/points_mall/components/diy/points-mall-info/index.vue';
+   // import diyPointsMallManyGoodsList from '@/addon/points_mall/components/diy/points-mall-many-goods-list/index.vue';
+   // import diyPintuanActivityGoodsDetailBasicInfo from '@/addon/pintuan/components/diy/pintuan-activity-goods-detail-basic-info/index.vue';
+   // import diyPintuanActivityGoodsDetailBottom from '@/addon/pintuan/components/diy/pintuan-activity-goods-detail-bottom/index.vue';
+   // import diyPintuanActivityGoodsDetailDesc from '@/addon/pintuan/components/diy/pintuan-activity-goods-detail-desc/index.vue';
+   // import diyPintuanActivityGoodsDetailGameplay from '@/addon/pintuan/components/diy/pintuan-activity-goods-detail-gameplay/index.vue';
+   // import diyPintuanActivityGoodsDetailGoodsInfo from '@/addon/pintuan/components/diy/pintuan-activity-goods-detail-goods-info/index.vue';
+   // import diyPintuanActivityGoodsDetailPintuanInfo from '@/addon/pintuan/components/diy/pintuan-activity-goods-detail-pintuan-info/index.vue';
+   // import diyPintuanActivityGoodsDetailProgress from '@/addon/pintuan/components/diy/pintuan-activity-goods-detail-progress/index.vue';
+   // import diyPintuanGoodsDetailBasicInfo from '@/addon/pintuan/components/diy/pintuan-goods-detail-basic-info/index.vue';
+   // import diyPintuanGoodsDetailBottom from '@/addon/pintuan/components/diy/pintuan-goods-detail-bottom/index.vue';
+   // import diyPintuanGoodsDetailDesc from '@/addon/pintuan/components/diy/pintuan-goods-detail-desc/index.vue';
+   // import diyPintuanGoodsDetailGameplay from '@/addon/pintuan/components/diy/pintuan-goods-detail-gameplay/index.vue';
+   // import diyPintuanGoodsDetailProgress from '@/addon/pintuan/components/diy/pintuan-goods-detail-progress/index.vue';
+   // import diyPintuanGoodsDetailPurchaseService from '@/addon/pintuan/components/diy/pintuan-goods-detail-purchase-service/index.vue';
+   // import diyPintuanHot from '@/addon/pintuan/components/diy/pintuan-hot/index.vue';
+   // import diyPintuanImmediately from '@/addon/pintuan/components/diy/pintuan-immediately/index.vue';
+   // import diyPintuanLimit from '@/addon/pintuan/components/diy/pintuan-limit/index.vue';
+   // import diyPintuanList from '@/addon/pintuan/components/diy/pintuan-list/index.vue';
+   // import diyPintuanMemberInfo from '@/addon/pintuan/components/diy/pintuan-member-info/index.vue';
+   // import diyPintuanOrderInfo from '@/addon/pintuan/components/diy/pintuan-order-info/index.vue';
+   // import diyFrontWarehouseCategoryGoodsList from '@/addon/front_warehouse/components/diy/front-warehouse-category-goods-list/index.vue';
+   // import diyFrontWarehouseManyGoodsList from '@/addon/front_warehouse/components/diy/front-warehouse-many-goods-list/index.vue';
+   // import diyFrontWarehouseMemberInfo from '@/addon/front_warehouse/components/diy/front-warehouse-member-info/index.vue';
+   // import diyFrontWarehouseOrderInfo from '@/addon/front_warehouse/components/diy/front-warehouse-order-info/index.vue';
+   // import diyO2oGoodsList from '@/addon/o2o/components/diy/o2o-goods-list/index.vue';
+   // import diyO2oGoodsRecommend from '@/addon/o2o/components/diy/o2o-goods-recommend/index.vue';
+   // import diyO2oMemberInfo from '@/addon/o2o/components/diy/o2o-member-info/index.vue';
+   // import diyO2oNotice from '@/addon/o2o/components/diy/o2o-notice/index.vue';
+   // import diyO2oOrderInfo from '@/addon/o2o/components/diy/o2o-order-info/index.vue';
+   // import diyO2oSearch from '@/addon/o2o/components/diy/o2o-search/index.vue';
+   // import diyO2oStoreBottom from '@/addon/o2o/components/diy/o2o-store-bottom/index.vue';
+   // import diyO2oStoreEvaluate from '@/addon/o2o/components/diy/o2o-store-evaluate/index.vue';
+   // import diyO2oStoreGroup from '@/addon/o2o/components/diy/o2o-store-group/index.vue';
+   // import diyO2oStoreInfo from '@/addon/o2o/components/diy/o2o-store-info/index.vue';
+   // import diyO2oStoreTab from '@/addon/o2o/components/diy/o2o-store-tab/index.vue';
+   // import diyO2oVicinityLowPrice from '@/addon/o2o/components/diy/o2o-vicinity-low-price/index.vue';
+   // import diyWaimaiMemberAsset from '@/addon/waimai/components/diy/waimai-member-asset/index.vue';
+   // import diyWaimaiMemberBanner from '@/addon/waimai/components/diy/waimai-member-banner/index.vue';
+   // import diyWaimaiMemberCollect from '@/addon/waimai/components/diy/waimai-member-collect/index.vue';
+   // import diyWaimaiMemberInfo from '@/addon/waimai/components/diy/waimai-member-info/index.vue';
+   // import diyWaimaiOrderInfo from '@/addon/waimai/components/diy/waimai-order-info/index.vue';
+   // import diyWaimaiShopList from '@/addon/waimai/components/diy/waimai-shop-list/index.vue';
+   // import diyMallFenxiaoGoodsList from '@/addon/mall_fenxiao/components/diy/mall-fenxiao-goods-list/index.vue';
+   // import diyFriendHelpCarousel from '@/addon/friend_help/components/diy/friend-help-carousel/index.vue';
+   // import diyFriendHelpGoodsDetailBasicInfo from '@/addon/friend_help/components/diy/friend-help-goods-detail-basic-info/index.vue';
+   // import diyFriendHelpGoodsDetailBottom from '@/addon/friend_help/components/diy/friend-help-goods-detail-bottom/index.vue';
+   // import diyFriendHelpGoodsDetailDesc from '@/addon/friend_help/components/diy/friend-help-goods-detail-desc/index.vue';
+   // import diyFriendHelpGoodsDetailGameplay from '@/addon/friend_help/components/diy/friend-help-goods-detail-gameplay/index.vue';
+   // import diyFriendHelpGoodsDetailProgress from '@/addon/friend_help/components/diy/friend-help-goods-detail-progress/index.vue';
+   // import diyFriendHelpGoodsDetailPurchaseService from '@/addon/friend_help/components/diy/friend-help-goods-detail-purchase-service/index.vue';
+   // import diyFriendHelpHot from '@/addon/friend_help/components/diy/friend-help-hot/index.vue';
+   // import diyFriendHelpList from '@/addon/friend_help/components/diy/friend-help-list/index.vue';
     import topTabbar from '@/components/top-tabbar/top-tabbar.vue'
     import popAds from '@/components/pop-ads/pop-ads.vue'
     import { useDiyGroup } from './useDiyGroup'
