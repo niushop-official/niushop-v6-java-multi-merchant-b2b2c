@@ -18,19 +18,41 @@ export function getShopList(params: Record<string, any>) {
  * 获取店铺列表(有商品)
  */
 export function getShopWebList(params: Record<string, any>) {
-    return request.post(`mall/shop_list`, params)
+    return request.post(`shop/web/shop_list`, params)
+}
+
+
+/**
+ * 获取店铺分类
+ */
+export function getShopCategory() {
+    return request.get(`shop/web/shop_category`)
 }
 
 /**
  * 获取店铺详情
  */
 export function getShopInfo(id: number, params: any = null) {
-    return request.get(`mall/shop/${ id }`, params)
+    return request.get(`shop/web/shop/${ id }`, params)
+}
+/**
+ * 收藏取消店铺
+ * @param params
+ */
+export function editShopCollect(params: Record<string, any>) {
+    return request.put(`shop/web/shop/${ params.site_id }/${ params.is_follow }`)
+}
+
+/**
+ * 获取店铺收藏列表
+ */
+export function getShopFollowList(params: Record<string, any>) {
+    return request.get(`shop/web/follow`, params)
 }
 
 /**
  * 获取店铺组件
  */
 export function getShopComponents(params: Record<string, any>) {
-    return request.get(`mall/shop/component`, params)
+    return request.post(`shop/web/shop/component`, params)
 }
