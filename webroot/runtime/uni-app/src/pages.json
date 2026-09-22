@@ -213,7 +213,7 @@
 	],
 	"subPackages": [
 		// {{ PAGE_BEGAIN }}
-		// MALL_PAGE_BEGIN
+// MALL_PAGE_BEGIN
 {
 			"root": "addon/mall",
 			"pages": [
@@ -510,7 +510,7 @@
 			]
 		},
 		// MALL_PAGE_END
-	// {{ PAGE_END }}
+// {{ PAGE_END }}
 		{
 			"root": "app/components",
 			"pages": []

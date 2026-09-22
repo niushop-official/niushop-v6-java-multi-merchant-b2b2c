@@ -48,7 +48,7 @@
             <div class="navbar-item flex items-center h-full cursor-pointer" @click="toArticle">
                 <i class="nc-iconfont nc-icon-xinxi cursor-pointer text-[#fff]" :title="t('最新动态')"></i>
             </div>
-            <div class="navbar-item flex items-center h-full cursor-pointer" @click="toVersion">
+            <div class="navbar-item flex items-center h-full cursor-pointer" @click="toVersion" v-if="false">
                 <i class="nc-iconfont nc-icon-banbenhao cursor-pointer text-[#fff]" :title="`版本号V${systemStore.website?.version?.version}`"></i>
             </div>
             <!-- 预览 只有站点时展示-->
