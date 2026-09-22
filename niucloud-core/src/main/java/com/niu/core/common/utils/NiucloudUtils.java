@@ -49,12 +49,6 @@ public class NiucloudUtils {
         NiucloudUtils.secret = secret;
     }
 
-    public NiucloudUtils() {
-        ICoreSysConfigService sysConfigService = (ICoreSysConfigService) SpringContext.getBean(ICoreSysConfigService.class);
-        SysDeveloperTokenVo developerTokenVo = sysConfigService.getDeveloperToken();
-        developerToken = developerTokenVo.getToken();
-    }
-
     public String getCode() {
         return code;
     }
