@@ -1,1 +1,0 @@
-import{dl as o,dm as u}from"./index-3bb112b3.js";var c=Math.ceil,g=Math.max;function m(a,i,n,e){for(var l=-1,r=g(c((i-a)/(n||1)),0),f=Array(r);r--;)f[e?r:++l]=a,a+=n;return f}function v(a){return function(i,n,e){return e&&typeof e!="number"&&o(i,n,e)&&(n=e=void 0),i=u(i),n===void 0?(n=i,i=0):n=u(n),e=e===void 0?i<n?1:-1:u(e),m(i,n,e,a)}}var h=v();const M=h;export{M as r};
