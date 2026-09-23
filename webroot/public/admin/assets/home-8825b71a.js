@@ -1,0 +1,1 @@
+import{aD as t}from"./index-5c4e2f90.js";function n(e){return t.get("home/site",{params:e})}function o(){return t.get("home/site/list")}function r(){return t.get("addon/app/with_site_num")}export{n as a,r as b,o as g};

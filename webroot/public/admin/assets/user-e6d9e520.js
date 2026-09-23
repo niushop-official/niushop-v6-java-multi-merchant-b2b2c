@@ -1,0 +1,1 @@
+import{aD as t}from"./index-5c4e2f90.js";function s(e){return t.get("user/user",{params:e})}function u(e){return t.get(`user/user/${e}`)}function n(e){return t.get("user/user_all",{params:e})}function i(e){return t.get("user/site/user_all",{params:e})}function g(){return t.get("user/site/user_list")}export{u as a,s as b,i as c,g as d,n as g};

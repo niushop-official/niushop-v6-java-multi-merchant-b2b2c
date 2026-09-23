@@ -1,0 +1,1 @@
+import{aD as e}from"./index-5c4e2f90.js";function r(){return e.get("auth/get")}function u(t){return e.put("auth/edit",t,{showSuccessMessage:!0})}export{r as g,u as s};

@@ -1,0 +1,1 @@
+import{aD as n}from"./index-5c4e2f90.js";function e(t){return n.get("marketing/admin/full_reduction/list",{params:t})}function o(t){return n.get(`marketing/admin/full_reduction/info/${t}`)}function u(){return n.get("marketing/admin/full_reduction/init")}function r(t){return n.get("marketing/admin/goods/platform_coupon",{params:t})}export{o as a,e as b,u as c,r as g};
