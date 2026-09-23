@@ -1,0 +1,21 @@
+{
+    "index":"首页",
+    "apply":"申请退款",
+    "refund":"退款",
+    "goodsInfo":"商品",
+    "num":"数量",
+    "price":"价格",
+    "refundType":"退款类型",
+    "refundOnly":"仅退款",
+    "returnRefund":"退货退款",
+    "refundTypePlaceholder":"请选择退款类型",
+    "refundMoney":"退款金额",
+    "applyMoneyPlaceholder":"请输入申请退款金额",
+    "maxRefundMoney":"最多可输入金额",
+    "includeDelivery":"包含运费",
+    "refundReason":"退款原因",
+    "refundRemark":"退款说明",
+    "remarkPlaceholder":"请输入退款说明(选填)",
+    "reasonPlaceholder":"请选择退款原因",
+    "submit":"提交"
+}

@@ -1,0 +1,191 @@
+<template>
+    <div>
+        <!-- 自定义组件渲染 -->
+        <!-- v-show="requestData.status == 1  && !diy.getLoading()" -->
+        <div class="diy-template-wrap">
+            <diy-group ref="diyGroupRef" :data="diyFormData" />
+        </div>
+    </div>
+</template>
+<script lang="ts" setup>
+import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { useDiyForm } from '@/addon/components/diy/group/useDiyForm'
+import { useRouter, useRoute } from 'vue-router'
+import { deepClone, getValidTime } from '@/utils/common'
+import storage from '@/utils/storage'
+import diyGroup from '@/addon/components/diy/group/index.vue'
+import { ElMessage } from 'element-plus'
+
+// storage_name 后期扩展使用，暂时只有存储和删除，没有应用
+// form_sign 表单标识，用于区分表单，防止表单数据混淆，有五分钟的时效
+const props = defineProps(['form_id', 'relate_id', 'form_sign', 'storage_name', 'form_border']);
+
+const route = useRoute()
+const router = useRouter()
+
+const diy = useDiyForm({
+    form_id: props.form_id,
+    form_sign: props.form_sign
+})
+
+const diyGroupRef = ref(null)
+
+const requestData = computed(() => {
+    return diy.requestData;
+})
+
+const diyFormData: any = reactive({})
+onMounted(() => {
+    diy.getData(() => {
+        diyFormData.status = diy.data.status;
+        if (diyFormData.status) {
+            diyFormData.title = diy.data.title;
+            diyFormData.global = diy.data.global;
+            if (diyFormData.global) {
+                diyFormData.global.topStatusBar.isShow = false; // 顶部导航栏强制隐藏
+                diyFormData.global.bottomTabBar.isShow = false; // 底部导航强制隐藏
+            }
+            let value: any = [];
+            if (props.form_border == 'none') {
+                diyFormData.global.borderControl = false;
+            }
+            // 需要过滤 组件类型，筛选出来表单，排除表单提交组件
+            diy.data.value.forEach((item: any) => {
+                if (item.componentType == 'diy_form' && item.componentName != 'FormSubmit') {
+                    value.push(item);
+                }
+            })
+            diyFormData.value = deepClone(value);
+            diyFormData.componentRefs = null;
+            // diyGroupRef.value?.refresh();
+            watchFormData();
+        }
+    })
+})
+
+const watchFormData = () => {
+    watch(
+        () => diyFormData.value,
+        (newValue, oldValue) => {
+            if (newValue) {
+                let formData: any = {
+                    validTime: getValidTime(5), // 缓存数据有效期为5分钟
+                    components: []
+                };
+                newValue.forEach((item: any) => {
+                    // 只存表单组件
+                    if (item.componentType == 'diy_form' && item.componentName != 'FormSubmit' && item.field.cache) {
+                        // 只存储表单数据，压缩存储空间
+                        let field = deepClone(item.field);
+                        // 移除不需要存储的数据
+                        delete field.remark; // 字段说明
+                        delete field.detailComponent; // 用于详情展示
+                        delete field.default; // 默认值
+                        formData.components.push({
+                            id: item.id,
+                            componentName: item.componentName,
+                            componentType: item.componentType,
+                            componentTitle: item.componentTitle,
+                            isHidden: item.isHidden,
+                            field: field
+                        })
+                    }
+                })
+                if (formData.components.length) {
+                    storage.set({ key: 'diyFormStorage_' + props.form_sign, data: formData})
+                }
+            }
+        },
+        { deep: true }
+    )
+}
+
+const verify = () => {
+    if (!diyFormData.status) return true;
+    if (!diyFormData.value) return true;
+    let allPass = true; // 是否全部通过验证
+
+    let componentRefs = diyGroupRef.value.getFormRef().componentRefs;
+
+    // 需要过滤 组件类型，筛选出来表单
+    for (let i = 0; i < diyFormData.value.length; i++) {
+        let item = diyFormData.value[i];
+        if (item.field.required || item.field.value) {
+            let refKey = `diy${ item.componentName }Ref`;
+            let isBreak = false;
+            if (componentRefs[refKey]) {
+                for (let k = 0; k < componentRefs[refKey].length; k++) {
+                    let compRef = componentRefs[refKey][k];
+                    let verify = compRef.verify(); // 验证表单组件数据
+                    if (verify && !verify.code) {
+                        isBreak = true;
+                        ElMessage({
+                            message: verify.message,
+                            type: 'warning',
+                        })
+                        break;
+                    }
+
+                }
+                if (isBreak) {
+                    allPass = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (!allPass) return false;
+
+    const data = {
+        form_id: props.form_id,
+        value: storage.get('diyFormStorage_' + props.form_sign),
+        relate_id: props.relate_id || 0 // 关联业务id
+    }
+    if (props.storage_name) {
+        storage.set({key:props.storage_name, data: data})
+    }
+    return allPass;
+}
+
+// 获取数据
+const getData = () => {
+    return {
+        form_id: props.form_id,
+        value: diyFormData.value,
+        relate_id: props.relate_id || 0 // 关联业务id
+    }
+}
+
+const clearStorage = (keys: any = []) => {
+    storage.remove('diyFormStorage_' + props.form_sign)
+    if (props.storage_name) storage.remove(props.storage_name)
+    if (keys) {
+        keys.forEach((key: any) => {
+            storage.remove(key)
+        })
+    }
+}
+
+// 监听页面隐藏
+// diy.onHide();
+
+// 监听页面卸载
+diy.onUnmounted();
+
+// 监听滚动事件
+// diy.onPageScroll()
+
+defineExpose({
+    verify,
+    getData,
+    clearStorage
+})
+
+</script>
+
+<style lang="scss">
+.diy-template-wrap > div div:last-of-type .form-item-frame .base-layout-two{
+    margin-bottom: 0;
+}
+</style>
