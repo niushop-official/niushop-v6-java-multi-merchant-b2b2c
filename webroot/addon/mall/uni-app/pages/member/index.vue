@@ -18,7 +18,9 @@
         <!-- 小程序隐私协议 -->
         <wx-privacy-popup ref="wxPrivacyPopupRef"></wx-privacy-popup>
         <!-- #endif -->
-
+        <template v-if="diyStore && diyStore.mode == '' && diyStore.global && diyStore.global.bottomTabBar && diyStore.global.bottomTabBar.isShow">
+            <tabbar />  
+        </template>
     </view>
 </template>
 
@@ -27,12 +29,13 @@ import {ref, computed, nextTick} from 'vue';
 import {useDiy} from '@/hooks/useDiy'
 import diyGroup from '@/addon/components/diy/group/index.vue'
 import useMemberStore from '@/stores/member'
-
+import useDiyStore from '@/app/stores/diy'
 
 // 会员信息
 const memberStore = useMemberStore()
 const userInfo = computed(() => memberStore.info)
 
+const diyStore = useDiyStore()
 
 const diy = useDiy({
     name: 'DIY_MALL_MEMBER_INDEX'

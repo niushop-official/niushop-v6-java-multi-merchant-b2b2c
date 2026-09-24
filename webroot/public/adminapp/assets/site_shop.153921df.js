@@ -1,0 +1,1 @@
+import{ah as s}from"./index-af0cd8be.js";function e(){return s.get("mall/site/shop/setting")}function t(e){return s.put("mall/site/shop/setting",e,{showErrorMessage:!0,showSuccessMessage:!0})}export{e as g,t as s};

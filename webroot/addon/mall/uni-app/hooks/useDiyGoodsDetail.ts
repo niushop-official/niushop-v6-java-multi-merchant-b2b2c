@@ -16,6 +16,24 @@ export function useDiyGoodsDetail(params: any = {}) {
     const template = ref('')
     const currRoute = ref('') //当前路由
     const requestData: any = reactive({});
+    /** 进入详情前的 siteId，离开时还原，避免污染其它 DIY 页底部导航 */
+    const prevSiteId = ref<any>(null)
+    const siteIdOverwritten = ref(false)
+
+    const overwriteSiteId = (siteId: any) => {
+        if (!siteIdOverwritten.value) {
+            prevSiteId.value = diyStore.siteId
+            siteIdOverwritten.value = true
+        }
+        diyStore.siteId = siteId || 0
+    }
+
+    const restoreSiteId = () => {
+        if (!siteIdOverwritten.value) return
+        diyStore.siteId = prevSiteId.value ?? ''
+        siteIdOverwritten.value = false
+        prevSiteId.value = null
+    }
 
     // 自定义页面 数据
     const diyData = reactive({
@@ -145,6 +163,7 @@ export function useDiyGoodsDetail(params: any = {}) {
                     }
 
                     Object.assign(requestData, res.data.diy_detail_info);
+                    overwriteSiteId(res.data.site_id || 0);
                     handleComponentDataFn()
                     // 商品详情数据处理
                     diyData.global.goodsParameter = {}
@@ -186,7 +205,7 @@ export function useDiyGoodsDetail(params: any = {}) {
             diyData.value = sources.value;
             diyData.value.forEach((item: any, index) => {
 
-                const detailComponent = ['MallGoodsDetailBottom','MallGoodsDetailDesc','MallGoodsDetailAttr','MallGoodsDetailEvaluate','MallGoodsDetailSow','MallGoodsDetailPurchaseService','MallGoodsDetailBasicInfo', 'MallGoodsDetailShopInfo']
+                const detailComponent = ['MallGoodsDetailBottom','MallGoodsDetailDesc','MallGoodsDetailAttr','MallGoodsDetailEvaluate','MallGoodsDetailSow','MallGoodsDetailPurchaseService','MallGoodsDetailBasicInfo', 'MallGoodsDetailShopInfo', 'MallGoodsDetailRank']
                 if(detailComponent.indexOf(item.componentName) > -1){
                     item.componentIsShow = false // 是否显示
                 }else{
@@ -247,6 +266,7 @@ export function useDiyGoodsDetail(params: any = {}) {
             uni.setStorageSync('diyPageBlank', url);
             /******** 解决跳转自定义页面空白问题-第一步 -end **********/
 
+            restoreSiteId()
             if (callback) callback()
         })
     }
@@ -254,6 +274,7 @@ export function useDiyGoodsDetail(params: any = {}) {
     // 监听页面卸载
     const onUnloadLifeCycle = () => {
         onUnload(() => {
+            restoreSiteId()
             useGoodsDetailStore().removeGoodsDetail()
         })
     }

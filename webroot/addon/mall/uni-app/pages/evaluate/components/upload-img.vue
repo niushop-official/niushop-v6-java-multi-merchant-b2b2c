@@ -1,6 +1,6 @@
 <template>
     <view class="flex flex-wrap">
-        <view v-for="(item, index) in value" class="mb-[18rpx] relative" :class="{'mr-[18rpx]': (index + 1) % 4 != 0 }">
+        <view v-for="(item, index) in value" class="mb18 relative" :class="{'mr18': (index + 1) % 4 != 0 }">
             <up-image  width="140rpx" height="140rpx" radius="var(--goods-rounded-big)" :src="img(item || '')" mode="aspectFill" @click="imgListPreview(item)">
                 <template #error>
                     <u-icon name="photo" color="var(--text-color-light9)" size="50"></u-icon>
@@ -93,3 +93,11 @@ const imgListPreview = (item: any) => {
     })
 }
 </script>
+<style lang="scss" scoped>
+.mb18 {
+    margin-bottom: 18rpx;
+}
+.mr18 {
+    margin-right: 18rpx;
+}
+</style>

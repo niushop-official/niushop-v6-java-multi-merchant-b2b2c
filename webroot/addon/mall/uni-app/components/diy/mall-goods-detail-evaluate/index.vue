@@ -1,7 +1,7 @@
 <template>
     <view :style="warpCss" class="overflow-hidden" v-if="diyComponent && diyComponent.goods && Object.keys(diyComponent.goods).length">
         <view class="card-template">
-            <view class="flex items-center justify-between min-h-[40rpx]" :class="{'mb-[30rpx]': evaluate && evaluate.list && evaluate.list.length}">
+            <view class="evaluate-wrap flex items-center justify-between" :class="{'margin-bottom': evaluate && evaluate.list && evaluate.list.length}">
                 <text class="title !mb-[0]">宝贝评价({{ evaluate.count }})</text>
                 <view v-if="evaluate.count" class="h-[40rpx] flex items-center" @click="toLink(diyComponent.goods_id)">
                     <text class="text-[24rpx] text-[var(--text-color-light9)]">查看全部</text>
@@ -10,7 +10,7 @@
                 <text v-if="!evaluate.count" class="text-[24rpx] text-[var(--text-color-light6)]">暂无评价</text>
             </view>
             <view>
-                <view :class="{'pb-[34rpx]': index != (evaluate.list.length - 1)}" v-for="(item, index) in evaluate.list" :key="index">
+                <view :class="{'padding-bottom-34': index != (evaluate.list.length - 1)}" v-for="(item, index) in evaluate.list" :key="index">
                     <view class="flex items-center w-full">
                         <u-avatar :default-url="img('static/resource/images/default_headimg.png')" :src="img(item.member_head)" :size="'50rpx'" leftIcon="none" />
                         <text class="ml-[10rpx] text-[28rpx] text-[#333]">{{ item.member_name }}</text>
@@ -154,5 +154,14 @@ onMounted(() => {
 .card-template{
     background-color: transparent !important;
     border-radius: 0 !important;
+}
+.evaluate-wrap{
+    min-height: 40rpx;
+    &.margin-bottom {
+        margin-bottom: 30rpx;
+    }
+}
+.padding-bottom-34 {
+    padding-bottom: 34rpx;
 }
 </style>

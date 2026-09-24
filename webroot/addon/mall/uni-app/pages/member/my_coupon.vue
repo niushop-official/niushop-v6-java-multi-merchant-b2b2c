@@ -88,7 +88,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { img, redirect } from '@/utils/common'
-import { getMyCouponList, getMyCouponType, getMyCouponStatusCount } from '@/addon/mall/api/coupon'
+import { getMyCouponList, getMyCouponType, getMyCouponStatusCount } from '@/app/api/marketing'
 import useMemberStore from '@/stores/member'
 import MescrollBody from '@/components/mescroll/mescroll-body/mescroll-body.vue'
 import MescrollEmpty from '@/components/mescroll/mescroll-empty/mescroll-empty.vue'

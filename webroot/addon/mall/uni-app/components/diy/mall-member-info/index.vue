@@ -1,30 +1,41 @@
 <template>
     <view :style="warpCss">
-        <view class="px-[30rpx] pt-[30rpx] box-border pb-[30rpx]" :class="{'!pb-[120rpx]':diyComponent.isShowAccount}">
+        <view class="p30 box-border" :class="{'pb120':diyComponent.isShowAccount}">
             <!-- #ifdef MP-WEIXIN -->
             <view :style="navbarInnerStyle"></view>
             <!-- #endif -->
             <view v-if="info" class="flex items-center">
                 <!-- 唤起获取微信 -->
-                <u-avatar :src="img(info.headimg)" :size="'110rpx'" leftIcon="none" :default-url="img('static/resource/images/default_headimg.png')" @click="clickAvatar" />
+                <view class="relative w-[140rpx] flex-shrink-0 overflow-visible"  :class="{'border-[2rpx] border-solid border-[#eee] rounded-full': info.vip_card_buy.is_open}">
+                    <u-avatar :src="img(info.headimg)" :size="'140rpx'" leftIcon="none" :default-url="img('static/resource/images/default_headimg.png')" @click="clickAvatar" />
+                    <view v-if="info.vip_card_buy.is_open" class="absolute bottom-[-8rpx] left-0 right-0 flex-center z-100">
+                        <view  class="flex items-center flex-shrink-0 whitespace-nowrap h-[32rpx] bg-[#eee] px-[12rpx] rounded-[20rpx] text-[18rpx] text-[#333] box-border">
+                            <image :src="img('static/resource/images/diy/member/VIP_06.png')" mode="aspectFit" class="w-[20rpx] h-[16rpx] align-middle flex-shrink-0 mr-[4rpx]" />
+                            <text class="flex-shrink-0 mt-[2rpx] max-w-[120rpx] truncate">{{ info.vip_card_buy.card_name }}</text>
+                        </view>
+                    </view>
+                </view>
+                
                 <view class="ml-[20rpx] flex-1">
-                    <view class="text-[#ffffff] flex items-baseline flex-wrap" :class="{'!items-baseline':info.mobile, '!items-center': !info.mobile}" :style="{ color : diyComponent.textColor }">
+                    <view class="text-white flex items-baseline flex-wrap" :class="{'baseline':info.mobile, 'center': !info.mobile}" :style="{ color : diyComponent.textColor }">
                         <view class="text-[32rpx] truncate max-w-[320rpx] font-500 leading-[38rpx]">{{ info.nickname }}</view>
                         <view class="text-[26rpx] font-400 leading-[28rpx] ml-[10rpx]" v-if="info.mobile">{{ info.mobile.replace(info.mobile.substring(3, 7), "****") }}</view>
-
                         <!-- #ifdef H5 -->
-                        <view v-else-if="!info.mobile" @click="bindMobileFn"
+                        <view v-if="!info.mobile" @click="bindMobileFn"
                               class="text-[22rpx] ml-[10rpx] px-[6rpx] border-[1rpx] border-solid border-[#E3E4E9] rounded-[8rpx] h-[34rpx] flex-center" :style="diyComponent.textColor ? { boxShadow: '0 0 0 1rpx ' + diyComponent.textColor, border: 'none' } : {}">
                             {{ t('bindMobile') }}
                         </view>
                         <!-- #endif -->
 
                         <!-- #ifdef MP-WEIXIN -->
-                        <button v-else-if="!info.mobile" class="text-[22rpx] ml-[10rpx] bg-[#fff] px-[6rpx] border-[1rpx] border-solid border-[#E3E4E9] rounded-[8rpx] h-[37rpx] flex-center mr-0" :style="diyComponent.textColor ? { boxShadow: '0 0 0 1rpx ' + diyComponent.textColor, border: 'none' } : {}" open-type="getPhoneNumber" @getphonenumber="memberStore.bindMobile">{{ t('bindMobile') }}</button>
+                        <button v-if="!info.mobile" class="text-[22rpx] ml-[10rpx] bg-[#fff] px-[6rpx] border-[1rpx] border-solid border-[#E3E4E9] rounded-[8rpx] h-[37rpx] flex-center mr-0" :style="diyComponent.textColor ? { boxShadow: '0 0 0 1rpx ' + diyComponent.textColor, border: 'none' } : {}" open-type="getPhoneNumber" @getphonenumber="memberStore.bindMobile">{{ t('bindMobile') }}</button>
                         <!-- #endif -->
 
                     </view>
                     <view class="text-[#666] text-[24rpx] font-400 leading-[28rpx] mt-[14rpx]" :style="{ color : diyComponent.uidTextColor }">UID：{{ info.member_no }}</view>
+                    <view class="flex items-center mt-[14rpx]">
+                        <text class="bg-[#FFEBCD] rounded-[4rpx] rounded-br-[14rpx] px-[8rpx] leading-[32rpx] text-[22rpx] font-500 text-[#111]" @click="toLink('/app/pages/member/level')" v-if="info.member_level_name">{{ info.member_level_name }}</text>
+                    </view>
                 </view>
                 <text @click="redirect({ url: '/app/pages/setting/index' })" class="nc-iconfont nc-icon-shezhiV6xx1 text-[38rpx] ml-[10rpx]" :style="{ color : diyComponent.textColor }"></text>
             </view>
@@ -79,7 +90,7 @@
 import { computed, ref } from 'vue'
 import useMemberStore from '@/stores/member'
 import { useLogin } from '@/hooks/useLogin'
-import { getMyCouponCount } from '@/addon/mall/api/coupon'
+import { getMyCouponCount } from '@/app/api/marketing'
 import { img, isWeixinBrowser, redirect, urlDeconstruction, moneyFormat } from '@/utils/common'
 import { t } from '@/locale'
 import { wechatSync } from '@/app/api/system'
@@ -144,7 +155,11 @@ const info = computed(() => {
             point: 0,
             money: 0,
             mobile: '155****0549',
-            member_no: 'NIU0000021'
+            member_no: 'NIU0000021',
+            vip_card_buy: {
+                is_open: 0,
+                card_name: '付费会员',
+            }
         }
     } else {
         getMyCouponCountFn()
@@ -235,6 +250,12 @@ const getMyCouponCountFn = async() => {
 
 }
 
+// 跳转链接
+const toLink = (link: string) => {
+    if (diyStore.mode == 'decorate') return false;
+    redirect({ url: link })
+}
+
 //强制绑定手机号
 const bindMobileRef: any = ref(null)
 const bindMobileFn = () => {
@@ -256,4 +277,16 @@ const navbarInnerStyle = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+.p30{
+    padding: 30rpx;
+}
+.pb120 {
+    padding-bottom: 120rpx !important;
+}
+.baseline{
+    align-items: baseline !important;
+}
+.center {
+    align-items: center !important;
+}
 </style>

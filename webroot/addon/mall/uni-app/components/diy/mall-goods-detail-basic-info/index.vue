@@ -1,18 +1,18 @@
 <template>
     <view :style="warpCss" class="overflow-hidden relative" v-if="diyComponent && diyComponent.goods && Object.keys(diyComponent.goods).length">
         <!-- 自定义头部 -->
-        <view class="flex items-center left-0 right-0 z-10 bg-transparent detail-head" :class="{'!bg-[#fff]': detailHeadBgChange, 'fixed': diyStore.mode != 'decorate', 'absolute': diyStore.mode == 'decorate'}" :style="navbarInnerStyle">
+        <view class="flex items-center left-0 right-0 z-10 bg-transparent detail-head" :class="{'bg-white': detailHeadBgChange, 'fixed': diyStore.mode != 'decorate', 'absolute': diyStore.mode == 'decorate'}" :style="navbarInnerStyle">
             <view class="flex-center h-[60rpx] rounded-[30rpx] box-border arrow-left px-[40rpx] leading-[1]" :style="navbarInnerArrowStyle">
                 <text class="nc-iconfont nc-icon-zuoV6xx text-[18px]" @click="backToPrevious()"></text>
                 <text class="w-[2rpx] h-[26rpx] bg-[#999] mx-[14rpx]"></text>
                 <text class="nc-iconfont nc-icon-liebiao-xiV6xx1 text-[16px]" @click="topNav = true"></text>
             </view>
-            <view class="ml-auto !pt-[12rpx] !pb-[8rpx] p-[10rpx] arrow-left rounded-full box-border nc-iconfont nc-icon-fenxiangV6xx font-bold text-[#303133] text-[36rpx]" :class="{'border-[#d8d8d8]': detailHeadBgChange}" @click="openShareFn"></view>
+            <view class="open-share-wrap  nc-iconfont nc-icon-fenxiangV6xx arrow-left" :class="{'border-color': detailHeadBgChange}" @click="openShareFn"></view>
         </view>
         <view class="fixed top-0 left-0 right-0 bottom-0 z-100 bg-transparent" @click="topNav = false" v-if="topNav">
             <view class="search-box w-[202rpx] bg-[#fff] rounded-[12rpx] relative" :style="fixedInnerStyle">
                 <view class="px-[20rpx] flex-center" @click="redirect(item.url)" v-for="(item,index) in menuContents" :key="index">
-                    <text class="text-[30rpx] mr-[10rpx]" :class="item.iconfont"></text>
+                    <text class="menu-item" :class="item.iconfont"></text>
                     <text class="pl-[14rpx] py-[20rpx] flex-1 text-[24rpx] text-[#333] border-0 border-[#ddd] border-b-[1rpx] border-solid">{{ item.name }}</text>
                 </view>
             </view>
@@ -31,8 +31,8 @@
             </view>
             <!-- 切换视频、图片 -->
             <view class="media-mode bg-[rgb(0,0,0,.5)] flex items-center rounded-[50rpx] p-[4rpx] absolute bottom-[130rpx] right-[20rpx] text-center leading-[46rpx]" v-if="diyComponent.goods.goods_video != ''">
-                <text class="tab-item" :class="{ '!bg-[#fff] !text-[#666]': switchMedia == 'video' }" @click="switchMedia = 'video'">视频</text>
-                <view class="tab-item flex items-center" :class="{ '!bg-[#fff] !text-[#666]': switchMedia == 'img' }" @click="(switchMedia = 'img'), videoContext.pause()">
+                <text class="tab-item" :class="{ 'selected': switchMedia == 'video' }" @click="switchMedia = 'video'">视频</text>
+                <view class="tab-item flex items-center" :class="{ 'selected': switchMedia == 'img' }" @click="(switchMedia = 'img'), videoContext.pause()">
                     <text class="mr-[4rpx]">图片</text>
                     <text v-if="switchMedia == 'img' && diyComponent?.goods?.goods_image?.length > 1">{{swiperCurrentIndex}}/{{diyComponent.goods.goods_image.length}}</text>
                 </view>
@@ -40,6 +40,7 @@
         </view>
         <view v-if="priceType != 'original_price'" class="relative flex items-center justify-between !bg-cover box-border pb-[26rpx] h-[136rpx] px-[30rpx]" :style="marketGoodCss">
             <view class="text-[#fff] leading-[normal]">
+                <text class="text-[26rpx] mr-[10rpx] font-500 leading-[36rpx]" v-if="priceType == 'svip_price'">付费会员价</text>
                 <text class="text-[26rpx] mr-[10rpx] font-500 leading-[36rpx]" v-if="priceType == 'discount_price'">折扣价</text>
                 <text class="text-[26rpx] mr-[10rpx] font-500 leading-[36rpx]" v-else-if="priceType == 'member_price'">会员价</text>
                 <view class="inline-block mr-[14rpx] relative top-[2rpx]">
@@ -86,7 +87,7 @@
             </view>
         </view>
         <view class="overflow-hidden -mt-[34rpx] relative" :style="ordinaryGoodCss">
-            <view class="detail-title relative px-[30rpx]" :class="{'pt-[40rpx]': priceType != 'original_price','pt-[30rpx]': priceType == 'original_price'}">
+            <view class="detail-title" :class="{'padding-top-40': priceType != 'original_price','padding-top-30': priceType == 'original_price'}">
                 <view class="text-[var(--price-text-color)] flex items-baseline mb-[12rpx]" v-if="priceType == 'original_price'">
                     <view class="inline-block goods-price-time">
                         <text class="price-font text-[32rpx]">￥</text>
@@ -636,6 +637,10 @@ const toDetail = () => {
         border-radius: 50rpx;
         padding: 0 20rpx;
         display: inline-block;
+        &.selected {
+            background-color: #fff !important;
+            color: #666 !important;
+        }
     }
 }
 .brand-tag {
@@ -718,5 +723,37 @@ const toDetail = () => {
     width: 120rpx;
     height: 120rpx;
     background-size: 30%;
+}
+.bg-white{
+    background-color: #fff !important;
+}
+.open-share-wrap{
+    margin-left: auto;
+    padding: 10rpx;
+    padding-top: 12rpx !important;
+    padding-bottom: 8rpx !important;
+    border-radius: 50%;
+    box-sizing: border-box;
+    font-weight: bold;
+    color:#303133;
+    font-size: 36rpx;
+    line-height: 1;
+    &.border-color{
+        border-color: #d8d8d8;
+    }
+}
+.menu-item{
+    font-size: 30rpx;
+    margin-right: 10rpx;
+}
+.detail-title{
+    position: relative;
+    padding: 0 30rpx;
+}
+.padding-top-40 {
+    padding-top: 40rpx;
+}
+.padding-top-30 {
+    padding-top: 30rpx;
 }
 </style>

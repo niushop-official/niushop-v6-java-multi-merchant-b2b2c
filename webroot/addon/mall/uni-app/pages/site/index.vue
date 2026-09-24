@@ -1,0 +1,126 @@
+<template>
+    <view :style="themeColor()">
+
+        <loading-page :loading="diy.getLoading()"></loading-page>
+
+        <view v-show="!diy.getLoading()">
+
+            <!-- 自定义模板渲染 -->
+            <view class="diy-template-wrap bg-index" :style="diy.pageStyle()">
+
+                <diy-group ref="diyGroupRef" :data="diy.data" />
+
+            </view>
+
+        </view>
+
+        <!-- #ifdef MP-WEIXIN -->
+        <!-- 小程序隐私协议 -->
+        <wx-privacy-popup ref="wxPrivacyPopupRef"></wx-privacy-popup>
+        <!-- #endif -->
+
+    </view>
+</template>
+
+<script setup lang="ts">
+import { ref,nextTick } from 'vue';
+import { useDiy } from '@/hooks/useDiy'
+import { getToken, redirect } from '@/utils/common';
+import diyGroup from '@/addon/components/diy/group/index.vue'
+import { getShopInfo } from '@/addon/mall/api/shop'
+import { onLoad } from '@dcloudio/uni-app';
+import useDiyStore from '@/app/stores/diy';
+import useMemberStore from '@/stores/member'
+import { useShare } from '@/hooks/useShare'
+const { setShare } = useShare()
+
+uni.hideTabBar() // 隐藏tabbar
+const diyStore = useDiyStore();
+
+const diy = useDiy({
+    name: 'DIY_MALL_SITE_INDEX'
+})
+
+const diyGroupRef = ref(null)
+
+const wxPrivacyPopupRef:any = ref(null)
+
+// 监听页面加载
+diy.onLoad();
+
+onLoad((option: any)=>{
+    if (diyStore.mode != 'decorate') {
+        shopInfoFn(option.site_id)
+    }
+    if(getToken()){
+        useMemberStore().addVisit({site_id: option.site_id})
+    }
+})
+
+const shopInfoFn = (siteId:any) =>{
+    getShopInfo(siteId).then((res:any) =>{
+        if (res.data.business_status == 0) {
+            redirect({ url: '/app/pages/site/close' })
+            return false
+        }
+    })
+}
+
+// 监听页面显示
+diy.onShow((data: any) => {
+    if (data.value) {
+        // uni.setNavigationBarTitle({
+        // 	title: diyData.title
+        // })
+    } else if (data.page) {
+        // 跳转到设置的启动页
+        redirect({url: data.page, mode: 'reLaunch'})
+    }
+    diyGroupRef.value?.refresh();
+    // #ifdef MP
+    nextTick(()=>{
+        if(wxPrivacyPopupRef.value) wxPrivacyPopupRef.value.proactive();
+    })
+    // #endif
+    setTimeout(() => {
+        let share = data.share;
+
+        setShare({
+            wechat: {
+                ...share
+            },
+            weapp: {
+                ...share
+            }
+        });
+    }, 600);
+});
+
+// 监听页面隐藏
+diy.onHide();
+
+
+// 监听页面卸载
+diy.onUnload(()=>{
+   diyStore.siteId = '';
+});
+
+// 监听滚动事件
+diy.onPageScroll()
+</script>
+<style lang="scss" scoped>
+@import '@/styles/diy.scss';
+</style>
+<style lang="scss">
+.diy-template-wrap {
+    /* #ifdef MP */
+    .child-diy-template-wrap {
+        ::v-deep .diy-group {
+            > .draggable-element.top-fixed-diy {
+                display: block !important;
+            }
+        }
+    }
+    /* #endif */
+}
+</style>

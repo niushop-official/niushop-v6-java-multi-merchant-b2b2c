@@ -1,0 +1,1104 @@
+<template>
+  <div class="main-container">
+    <el-card class="box-card !border-none" shadow="never">
+      <el-page-header :content="goodsEdit.formData.goods_id ? t('updateGoods') : t('addGoods')" :icon="ArrowLeft" @back="goodsEdit.back()" />
+    </el-card>
+
+    <el-card class="box-card mt-[15px] !border-none" shadow="never">
+
+      <el-tabs v-model="goodsEdit.activeName" @tab-click="goodsEdit.tabHandleClick">
+        <el-tab-pane :label="t('basicInfoTab')" name="basic">
+
+          <el-form :model="goodsEdit.formData" label-width="120px" ref="basicFormRef" :rules="goodsEdit.formRules" class="page-form">
+            <el-form-item :label="t('goodsType')" v-if="goodsEdit.formData.goods_id">
+              <template v-for="(item) in goodsEdit.goodsType" :key="item.type">
+                <div class="goods-type-wrap" :class="[goodsEdit.formData.goods_type == item.type ? 'selected' : 'disabled']">
+                  <div class="goods-type-name">{{ item.name }}</div>
+                  <div class="goods-type-desc">({{ item.desc }})</div>
+                  <template v-if="goodsEdit.formData.goods_type == item.type">
+                    <div class="triangle"></div>
+                    <div class="selected">✓</div>
+                  </template>
+                </div>
+              </template>
+            </el-form-item>
+            <el-form-item :label="t('goodsType')" v-else>
+              <div class="goods-type-wrap" :class="{ 'selected': goodsEdit.formData.goods_type == item.type }" v-for="(item) in goodsEdit.goodsType" :key="item.type" @click="goodsEdit.changeGoodsType(item)">
+                <div class="goods-type-name">{{ item.name }}</div>
+                <div class="goods-type-desc">({{ item.desc }})</div>
+                <template v-if="goodsEdit.formData.goods_type == item.type">
+                  <div class="triangle"></div>
+                  <div class="selected">✓</div>
+                </template>
+              </div>
+            </el-form-item>
+            <el-form-item :label="t('同步供货商设置')" prop="supply_sync" v-if="goodsEdit.formData.supply_sync_show">
+              <el-switch v-model="goodsEdit.formData.supply_sync" :active-value="1" :inactive-value="0" @change="goodsEdit.handleSupply" />
+            </el-form-item>
+            <el-form-item :label="t('goodsName')" prop="goods_name">
+              <el-input v-model.trim="goodsEdit.formData.goods_name" clearable :placeholder="t('goodsNamePlaceholder')" class="input-width" maxlength="60" show-word-limit :disabled="goodsEdit.isSupplyDisabled('goods_name')" />
+            </el-form-item>
+            <el-form-item :label="t('subTitle')" prop="sub_title">
+              <el-input v-model.trim="goodsEdit.formData.sub_title" clearable :placeholder="t('subTitlePlaceholder')" class="input-width" maxlength="80" show-word-limit :disabled="goodsEdit.isSupplyDisabled('sub_title')" />
+            </el-form-item>
+            <el-form-item :label="t('goodsImage')" prop="goods_image">
+              <upload-image v-model="goodsEdit.formData.goods_image" :limit="10" :disabled="goodsEdit.isSupplyDisabled('goods_image')"/>
+            </el-form-item>
+            <el-form-item :label="t('goodsVideo')">
+              <div class="flex flex-col">
+                <upload-video v-model="goodsEdit.formData.goods_video" :limit="1" :disabled="goodsEdit.isSupplyDisabled('goods_video')"/>
+                <el-input v-model="goodsEdit.formData.goods_video" clearable :placeholder="t('在此输入外链视频地址')" class="input-width mt-[10px]" :disabled="goodsEdit.isSupplyDisabled('goods_video')"/>
+                <div class="flex flex-col mt-[10px]">
+                  <div class="text-[12px] text-[#999] leading-[20px]">{{ t('goodsVideoTipTile') }}</div>
+                  <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipOne') }}</div>
+                  <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipTwo') }}</div>
+                  <div class="mt-[5px] text-[12px] text-[var(--el-color-primary)] leading-[20px]">{{ t('goodsVideoTipThree') }}</div>
+<!--                  <div class="mt-[5px] text-[12px] text-[var(&#45;&#45;el-color-primary)] leading-[20px]">{{ t('goodsVideoTipFour') }}</div>-->
+<!--                  <div class="mt-[5px] text-[12px] text-[var(&#45;&#45;el-color-primary)] leading-[20px]">{{ t('goodsVideoTipFive') }}</div>-->
+                </div>
+              </div>
+            </el-form-item>
+            <el-form-item :label="t('goodsMallCategory')" prop="goods_mall_category">
+              <el-cascader v-model="goodsEdit.formData.goods_mall_category" :options="goodsEdit.goodsMallCategoryOptions" :placeholder="t('goodsMallCategoryPlaceholder')" clearable :props="{ value: 'value', label: 'label', emitPath: false }" :disabled="goodsEdit.isSupplyDisabled('goods_mall_category')" />
+            </el-form-item>
+            <el-form-item :label="t('goodsCategory')" prop="goods_category">
+              <el-cascader v-model="goodsEdit.formData.goods_category" :options="goodsEdit.goodsCategoryOptions" :props="goodsEdit.goodsCategoryProps" clearable filterable @change="goodsEdit.categoryHandleChange" popper-class="choice" :disabled="goodsEdit.isSupplyDisabled('goods_category')" />
+              <div class="ml-[10px]">
+                <span class="cursor-pointer text-primary mr-[10px]" @click="goodsEdit.refreshGoodsCategory(true)">{{ t('refresh') }}</span>
+                <span class="cursor-pointer text-primary" @click="goodsEdit.toGoodsCategoryEvent">{{ t('addGoodsCategory') }}</span>
+              </div>
+            </el-form-item>
+
+            <el-form-item :label="t('brand')">
+              <el-select v-model="goodsEdit.formData.brand_id" :placeholder="t('brandPlaceholder')" clearable :disabled="goodsEdit.isSupplyDisabled('brand_id')" filterable remote reserve-keyword :remote-method="goodsEdit.refreshGoodsBrand">
+                <el-option v-for="item in goodsEdit.brandOptions" :key="item.brand_id" :label="item.brand_name" :value="item.brand_id" />
+              </el-select>
+            </el-form-item>
+            <el-form-item :label="t('label')">
+              <div v-if="goodsEdit.labelOptions.length == 0" class="text-[12px] text-[#999] leading-[20px]">{{ t('labelEmpty') }}</div>
+              <el-checkbox-group v-else v-model="goodsEdit.formData.label_ids" :disabled="goodsEdit.isSupplyDisabled('label_ids')">
+                <el-checkbox :label="item.label_id" v-for="(item, index) in goodsEdit.labelOptions" :key="index">{{ item.label_name }}</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+            <el-form-item :label="t('goodsService')">
+              <el-checkbox-group v-model="goodsEdit.formData.service_ids" :disabled="goodsEdit.isSupplyDisabled('service_ids')">
+                <el-checkbox :label="item.service_id" v-for="(item, index) in goodsEdit.serviceOptions" :key="index">{{ item.service_name }}</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+
+            <el-form-item :label="t('supplier')" v-if="goodsEdit.formData.addon_shop_supplier && goodsEdit.formData.addon_shop_supplier.status == 1">
+              <el-select v-model="goodsEdit.formData.supplier_id" :placeholder="t('supplierPlaceholder')" clearable :disabled="goodsEdit.isSupplyDisabled('supplier_id')">
+                <el-option v-for="item in goodsEdit.supplierOptions" :key="item.supplier_id" :label="item.supplier_name" :value="item.supplier_id" />
+              </el-select>
+              <div class="ml-[10px]">
+                <span class="cursor-pointer text-primary mr-[10px]" @click="goodsEdit.refreshSupplier">{{ t('refresh') }}</span>
+                <span class="cursor-pointer text-primary" @click="goodsEdit.toSupplierEvent">{{ t('addSupplier') }}</span>
+              </div>
+            </el-form-item>
+            <el-form-item :label="t('status')">
+              <el-radio-group v-model="goodsEdit.formData.status" :disabled="goodsEdit.isSupplyDisabled('status')">
+                <el-radio label="1">{{ t('statusOn') }}</el-radio>
+                <el-radio label="0">{{ t('statusOff') }}</el-radio>
+              </el-radio-group>
+            </el-form-item>
+
+            <!-- <el-form-item :label="goodsEdit.formData.status == 1 ? t('timerOff') : t('timerOn')">
+              <div>
+                <el-radio-group v-model="goodsEdit.formData[goodsEdit.formData.status == 1 ? 'timer_off_status' : 'timer_on_status']">
+                  <el-radio label="1">{{ t('open') }}</el-radio>
+                  <el-radio label="0">{{ t('close') }}</el-radio>
+                </el-radio-group>
+                <div class="mt-[10px] text-[12px] text-[#999] leading-[20px]">{{ goodsEdit.formData.status == 1 ? t('timerOffTip') : t('timerOnTip') }}</div>
+                <div v-if="goodsEdit.formData[goodsEdit.formData.status == 1 ? 'timer_off_status' : 'timer_on_status'] == 1">
+                  <el-date-picker v-model="goodsEdit.formData[goodsEdit.formData.status == 1 ? 'timer_off_time' : 'timer_on_time']" type="datetime" :placeholder="t('pleaseSelectTime')" format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss"     :picker-options="timerPickerOptions" :disabled="goodsEdit.isSupplyDisabled('status')" class="timer-picker"  />
+                </div>
+              </div>
+            </el-form-item>
+
+            <el-form-item :label="t('supportPayType')">
+              <el-checkbox-group v-model="goodsEdit.formData.support_pay_type">
+                <el-checkbox :label="item.key" v-for="(item, index) in goodsEdit.payTypeOptions" :key="index">{{ item.name }}</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+            <el-form-item :label="t('isEnableRefund')">
+              <el-radio-group v-model="goodsEdit.formData.is_enable_refund">
+                <el-radio label="1">{{ t('open') }}</el-radio>
+                <el-radio label="0">{{ t('close') }}</el-radio>
+              </el-radio-group>
+            </el-form-item> -->
+
+            <el-form-item :label="t('PointDeductType')">
+              <div>
+                <el-radio-group v-model="goodsEdit.formData.point_deduct_type">
+                  <el-radio label="custom">{{ t('PointDeductTypeCustom') }}</el-radio>
+                  <el-radio label="site">{{ t('PointDeductTypeSite') }}
+                    <!-- 只在选中默认设置时显示提示文案 -->
+                    <span v-if="goodsEdit.formData.point_deduct_type === 'site'" class="ml-2 text-[12px] text-[#999]">
+          （{{ t('pointDeductRatioTip')+pointRatioCache}}%）
+        </span>
+                  </el-radio>
+                </el-radio-group>
+              </div>
+            </el-form-item>
+
+            <!-- 新增：积分抵扣比例输入框 -->
+            <el-form-item :label="t('pointDeductRatio')" prop="point_deduct_rate" v-if="goodsEdit.formData.point_deduct_type === 'custom'">
+              <div class="flex items-center">
+                <el-input v-model.trim="goodsEdit.formData.point_deduct_rate" clearable :placeholder="t('pointDeductRatioPlaceholder')" class="input-width" maxlength="5" show-word-limit :disabled="goodsEdit.isSupplyDisabled('point_deduct_rate')" @keyup="filterNumberWithPercent($event)" step="0.01" min="0" max="100">
+                  <template #append>%</template>
+                </el-input>
+              </div>
+            </el-form-item>
+            <!-- 关联推荐 -->
+            <el-form-item :label="t('关联推荐')">
+              <div>
+                <goods-select-popup ref="goodsSelectPopupRef" v-model="goodsEdit.formData.recommend_goods_ids" :exclude_goods_id="goodsEdit.formData.goods_id"  :min="1" :max="6" />
+                <div class="text-[12px] text-[#999]">设置后，该商品详情页【店铺推荐】会展示选中的商品</div>
+              </div>
+            </el-form-item>
+            <el-form-item :label="t('unit')" prop="unit">
+              <el-input v-model.trim="goodsEdit.formData.unit" clearable :placeholder="t('unitPlaceholder')" class="input-width" show-word-limit maxlength="6" :disabled="goodsEdit.isSupplyDisabled('unit')" />
+            </el-form-item>
+            <el-form-item :label="t('sort')" prop="shop_sort">
+              <el-input v-model.trim="goodsEdit.formData.shop_sort" clearable :disabled="goodsEdit.isSupplyDisabled('shop_sort')" :placeholder="t('sortPlaceholder')" class="input-width" show-word-limit maxlength="8" @keyup="filterNumber($event)" @blur="goodsEdit.formData.shop_sort = $event.target.value" />
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane :label="t('priceStockTab')" name="price_stock">
+          <el-form :model="goodsEdit.formData" label-width="120px" ref="priceStockFormRef" :rules="goodsEdit.formRules" class="page-form">
+            <el-form-item :label="t('specType')" prop="spec_type">
+              <div>
+                <el-radio-group v-model="goodsEdit.formData.spec_type" :disabled="goodsEdit.isSupplyDisabled('spec_type')">
+                  <el-radio label="single" :disabled="goodsEdit.isDisabledPrice()">{{ t('singleSpec') }}</el-radio>
+                  <el-radio label="multi" :disabled="goodsEdit.isDisabledPrice()">{{ t('multiSpec') }}</el-radio>
+                </el-radio-group>
+                <div class="mt-[10px] text-[12px] text-[#999] leading-[20px]" v-if="goodsEdit.isDisabledPrice()">{{ t('participateInActiveDisableTips') }}</div>
+              </div>
+            </el-form-item>
+
+            <template v-if="goodsEdit.formData.spec_type == 'single'">
+              <el-form-item :label="t('price')" prop="price">
+                <el-input v-model.trim="goodsEdit.formData.price" clearable placeholder="0.00" class="input-width" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('price')" v-if="goodsEdit.formData.supply_goods_id">
+                  <template #append>{{ t('yuan') }}</template>
+                </el-input>
+                <el-input v-model.trim="goodsEdit.formData.price" clearable placeholder="0.00" class="input-width" maxlength="8" :disabled="goodsEdit.isDisabledPrice()" v-else>
+                  <template #append>{{ t('yuan') }}</template>
+                </el-input>
+              </el-form-item>
+
+              <el-form-item :label="t('marketPrice')" prop="market_price">
+                <el-input v-model.trim="goodsEdit.formData.market_price" clearable placeholder="0.00" class="input-width" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('market_price')">
+                  <template #append>{{ t('yuan') }}</template>
+                </el-input>
+              </el-form-item>
+
+              <el-form-item :label="goodsEdit.formData.supply_goods_id ? t('supplyPrice') : t('costPrice')" prop="cost_price">
+                <el-input v-model.trim="goodsEdit.formData.cost_price" clearable placeholder="0.00" class="input-width" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('cost_price')">
+                  <template #append>{{ t('yuan') }}</template>
+                </el-input>
+              </el-form-item>
+              <el-form-item :label="t('minPrice')" prop="min_price" v-if="goodsEdit.formData.supply_goods_id">
+                <el-input v-model.trim="goodsEdit.formData.min_price" clearable placeholder="0.00" class="input-width" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('min_price')">
+                  <template #append>{{ t('yuan') }}</template>
+                </el-input>
+              </el-form-item>
+              <el-form-item :label="t('maxPrice')" prop="max_price" v-if="goodsEdit.formData.supply_goods_id">
+                <el-input v-model.trim="goodsEdit.formData.max_price" clearable placeholder="0.00" class="input-width" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('max_price')">
+                  <template #append>{{ t('yuan') }}</template>
+                </el-input>
+              </el-form-item>
+              <el-form-item :label="t('weight')" prop="weight">
+                <el-input v-model.trim="goodsEdit.formData.weight" clearable placeholder="0.000" class="input-width" maxlength="6" :disabled="goodsEdit.isSupplyDisabled('weight')">
+                  <template #append>kg</template>
+                </el-input>
+              </el-form-item>
+              <el-form-item :label="t('volume')" prop="volume">
+                <el-input v-model.trim="goodsEdit.formData.volume" clearable placeholder="0.000" class="input-width" maxlength="6" :disabled="goodsEdit.isSupplyDisabled('volume')">
+                  <template #append>m³</template>
+                </el-input>
+              </el-form-item>
+              <el-form-item :label="t('goodsStock')" prop="stock">
+                <el-input v-model.trim="goodsEdit.formData.stock" clearable :placeholder="t('goodsStockPlaceholder')" class="input-width" maxlength="8" @keyup="filterNumber($event)" :disabled="goodsEdit.isSupplyDisabled('stock')" v-if="goodsEdit.formData.supply_goods_id">
+                  <template #append>{{ goodsEdit.formData.unit ? goodsEdit.formData.unit : t('defaultUnit') }}</template>
+                </el-input>
+                <el-input v-model.trim="goodsEdit.formData.stock" clearable :placeholder="t('goodsStockPlaceholder')" class="input-width" maxlength="8" @keyup="filterNumber($event)"  v-else>
+                  <template #append>{{ goodsEdit.formData.unit ? goodsEdit.formData.unit : t('defaultUnit') }}</template>
+                </el-input>
+              </el-form-item>
+              <el-form-item :label="t('skuNo')">
+                <el-input v-model.trim="goodsEdit.formData.sku_no" clearable :placeholder="t('skuNoPlaceholder')" class="input-width" maxlength="50"  @keyup="goodsEdit.filterSpecial($event)" :disabled="goodsEdit.isSupplyDisabled('sku_no')" />
+              </el-form-item>
+
+            </template>
+          </el-form>
+
+          <!-- 多规格 -->
+          <el-form :model="goodsEdit.goodsSkuData" label-width="140px" ref="skuFormRef" class="page-form">
+            <div class="el-form-item asterisk-left" v-show="goodsEdit.formData.spec_type == 'multi'">
+              <div class="el-form-item__label w-[120px]">{{ t('goodsSku') }}</div>
+              <div class="spec-wrap">
+                <!--规格项/规格值-->
+                <div class="spec-edit-list relative">
+                  <div class="absolute top-0 left-0 right-0 bottom-0 z-[100] bg-[rgba(221,221,221,0.3)] cursor-not-allowed" v-if="curDisabledArea.includes('goods_spec_format')"></div>
+                  <div class="spec-item" v-for="(item, index) in goodsEdit.goodsSpecFormat" :key="item.id">
+                    <div class="spec-name-wrap">
+                      <el-input v-model.trim="item.spec_name" clearable :placeholder="t('specNamePlaceholder')" class="input-width"  maxlength="20"  @input="goodsEdit.specValueNameInputListener" />
+                    </div>
+                    <div class="spec-value-wrap">
+                      <ul ref="specValueRef">
+                        <li :class="'draggable-element' + index" v-for="(specValue, specIndex) in item.values" :key="specValue.id">
+                          <el-input v-model.trim="specValue.spec_value_name" clearable
+                                    :placeholder="t('specValueNamePlaceholder')" class="input-width"
+                                    :suffix-icon="Rank" maxlength="20"
+                                    @input="goodsEdit.specValueNameInputListener">
+                          </el-input>
+                          <el-icon class="icon" :size="20" color="#7b7b7b" @click="goodsEdit.deleteSpecValue(index, specIndex)">
+                            <CircleCloseFilled />
+                          </el-icon>
+                        </li>
+                      </ul>
+                      <span class="text-primary text-[14px] add-spec-value" @click="goodsEdit.addSpecValue(index)">{{ t('addSpecValue') }}</span>
+                      <div class="box"></div>
+                    </div>
+
+                    <el-icon class="del-spec" :size="20" color="#7b7b7b" @click="goodsEdit.deleteSpec(index)">
+                      <CircleCloseFilled />
+                    </el-icon>
+                  </div>
+
+                </div>
+
+                <div class="add-spec">
+                  <el-button type="primary" :disabled="curDisabledArea.includes('goods_spec_format')" @click="goodsEdit.addSpec">{{ t('addSpec') }}</el-button>
+                </div>
+                <!-- 批量设置 -->
+                <div class="batch-operation-sku" v-show="Object.keys(goodsEdit.goodsSkuData).length">
+                  <label>{{ t('batchOperationSku') }}</label>
+                  <!--
+                                                      <el-select v-model="goodsEdit.batchOperation.spec" class="set-spec-select">
+                                                          <el-option :label="t('all')" value="" />
+                                                          <template v-for="(item, key) in goodsEdit.goodsSkuData" :key="key">
+                                                              <el-option v-if="item.spec_name" :label="item.spec_name" :value="key" />
+                                                          </template>
+                                                      </el-select> -->
+
+                  <el-input  v-if="!goodsEdit.isDisabledPrice()" v-model.trim="goodsEdit.batchOperation.price" clearable :placeholder="t('price')" class="set-input" maxlength="8"  :disabled="goodsEdit.isSupplyDisabled('price')"/>
+                  <el-input v-model.trim="goodsEdit.batchOperation.market_price" clearable :placeholder="t('marketPrice')" class="set-input" maxlength="8"  :disabled="goodsEdit.isSupplyDisabled('market_price')" />
+                  <el-input v-model.trim="goodsEdit.batchOperation.cost_price" clearable :placeholder="goodsEdit.formData.supply_goods_id ? t('supplyPrice') : t('costPrice')" class="set-input" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('cost_price')" />
+                  <el-input v-model.trim="goodsEdit.batchOperation.min_price" clearable :placeholder="t('minPrice')" class="set-input" maxlength="8" v-if="goodsEdit.formData.supply_goods_id" :disabled="goodsEdit.isSupplyDisabled('min_price')"/>
+                  <el-input v-model.trim="goodsEdit.batchOperation.max_price" clearable :placeholder="t('maxPrice')" class="set-input" maxlength="8" v-if="goodsEdit.formData.supply_goods_id" :disabled="goodsEdit.isSupplyDisabled('max_price')"/>
+                  <el-input v-model.trim="goodsEdit.batchOperation.stock" clearable :placeholder="t('stock')" class="set-input" maxlength="8"  :disabled="goodsEdit.isSupplyDisabled('stock')" />
+                  <el-input v-model.trim="goodsEdit.batchOperation.weight" clearable :placeholder="t('skuWeight')" class="set-input" maxlength="8"  :disabled="goodsEdit.isSupplyDisabled('weight')" />
+                  <el-input v-model.trim="goodsEdit.batchOperation.volume" clearable :placeholder="t('skuVolume')" class="set-input" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('volume')"  />
+                  <el-input v-model.trim="goodsEdit.batchOperation.sku_no" clearable maxlength="50" :placeholder="t('skuNo')" class="set-input"  :disabled="goodsEdit.isSupplyDisabled('sku_no')"/>
+                  <el-button type="primary" @click="goodsEdit.saveBatch">{{ t('confirm') }}</el-button>
+                </div>
+
+                <!--sku列表-->
+                <div class="sku-table" v-show="Object.keys(goodsEdit.goodsSkuData).length">
+
+                  <div class="el-table--fit el-table--default el-table" style="width: 100%;">
+                    <div class="el-table__inner-wrapper">
+                      <div class="el-table__header-wrapper">
+                        <table class="el-table__header" border="0" cellpadding="0" cellspacing="0" style="width: 100%;">
+                          <thead>
+                          <tr>
+                            <th class="el-table__cell w-[50px]">
+                              <div class="cell">
+                                <el-checkbox
+                                    v-model="goodsEdit.formData.skuCheckAll"
+                                    :indeterminate="goodsEdit.formData.skuIsIndeterminate"
+                                    @change="goodsEdit.skuHandleCheckAllChange"
+                                ></el-checkbox>
+                              </div>
+                            </th>
+                            <template v-for="(item, index) in goodsEdit.goodsSpecFormat" :key="index">
+                              <th class="el-table__cell" v-if="item.spec_name">
+                                <div class="cell">{{ item.spec_name }}</div>
+                              </th>
+                            </template>
+                            <th class="el-table__cell">
+                              <div class="cell">{{ t('isSell') }}</div>
+                            </th>
+                            <th class="el-table__cell">
+                              <div class="cell">{{ t('image') }}</div>
+                            </th>
+                            <th class="el-table__cell">
+                              <div class="cell">{{ t('price') }}</div>
+                            </th>
+                            <th class="el-table__cell">
+                              <div class="cell">{{ t('marketPrice') }}</div>
+                            </th>
+                            <th class="el-table__cell">
+                              <div class="cell">{{ goodsEdit.formData.supply_goods_id ? t('supplyPrice') : t('costPrice') }}</div>
+                            </th>
+                            <th class="el-table__cell" v-if="goodsEdit.formData.supply_goods_id">
+                              <div class="cell">{{ t('minPrice') }}</div>
+                            </th>
+                            <th class="el-table__cell" v-if="goodsEdit.formData.supply_goods_id">
+                              <div class="cell">{{ t('maxPrice') }}</div>
+                            </th>
+                            <th class="el-table__cell">
+                              <div class="cell">{{ t('stock') }}</div>
+                            </th>
+                            <th class="el-table__cell">
+                              <div class="cell">{{ t('skuWeight') }}</div>
+                            </th>
+                            <th class="el-table__cell">
+                              <div class="cell">{{ t('skuVolume') }}</div>
+                            </th>
+                            <th class="el-table__cell">
+                              <div class="cell">{{ t('skuNo') }}</div>
+                            </th>
+                            <th class="el-table__cell">
+                              <div class="cell">{{ t('defaultSku') }}</div>
+                            </th>
+                          </tr>
+                          </thead>
+                        </table>
+                      </div>
+                      <el-checkbox-group v-model="goodsEdit.formData.skuCheckedCities" @change="goodsEdit.handleCheckedCitiesChange">
+                        <div class="el-table__body-wrapper text-[14px]">
+                          <div class="el-scrollbar">
+                            <div class="el-scrollbar__wrap el-scrollbar__wrap--hidden-default">
+                              <div class="el-scrollbar__view"
+                                   style="display: inline-block; vertical-align: middle;">
+                                <table class="el-table__body" cellspacing="0" cellpadding="0" border="0" style="table-layout: fixed; width: 100%;">
+                                  <tbody tabindex="-1">
+                                  <tr class="el-table__row" v-for="(item, key, index) in goodsEdit.goodsSkuData" :key="key">
+                                    <td class="el-table__cell w-[50px]">
+                                      <div class="cell">
+                                        <el-checkbox :label="key" :key="key">{{ '' }}</el-checkbox>
+                                      </div>
+                                    </td>
+                                    <template v-for="(c, cIndex) in goodsEdit.specData" :key="cIndex">
+                                      <td class="el-table__cell" :rowspan="c.rowSpan" v-if="c.index == index">
+                                        <div class="cell">{{ c.spec_value_name }}</div>
+                                      </td>
+                                    </template>
+
+                                    <td class="el-table__cell">
+                                      <div class="cell">
+                                        <el-switch v-model="item.is_sell" :active-value="1" :inactive-value="0" :disabled="goodsEdit.isSupplyDisabled('is_sell') || item.is_default"  />
+                                      </div>
+                                    </td>
+
+                                    <td class="el-table__cell">
+                                      <div class="cell">
+                                        <upload-image v-model="item.sku_image" :limit="1" width="50px" height="50px" :disabled="goodsEdit.isSupplyDisabled('sku_image')" />
+                                      </div>
+                                    </td>
+
+                                    <td class="el-table__cell">
+                                      <div class="cell">
+                                        <el-form-item :prop="key + '.price'" :rules="goodsEdit.skuPriceRules(item)" class="sku-form-item-wrap">
+                                          <el-input v-model.trim="item.price" clearable placeholder="0.00" maxlength="8" ::disabled="goodsEdit.isSupplyDisabled('price')"  v-if="goodsEdit.formData.supply_goods_id" />
+                                          <el-input v-model.trim="item.price" clearable placeholder="0.00" maxlength="8" :disabled="goodsEdit.isDisabledPrice()" v-else />
+                                        </el-form-item>
+                                      </div>
+                                    </td>
+                                    <td class="el-table__cell">
+                                      <div class="cell">
+                                        <el-form-item :prop="key + '.market_price'" :rules="goodsEdit.skuMarketPriceRules()" class="sku-form-item-wrap">
+                                          <el-input v-model.trim="item.market_price" clearable placeholder="0.00" maxlength="8"  :disabled="goodsEdit.isSupplyDisabled('market_price')"/>
+                                        </el-form-item>
+                                      </div>
+                                    </td>
+                                    <td class="el-table__cell">
+                                      <div class="cell">
+                                        <el-form-item :prop="key + '.cost_price'" :rules="goodsEdit.skuCostPriceRules()" class="sku-form-item-wrap">
+                                          <el-input v-model.trim="item.cost_price" clearable placeholder="0.00" maxlength="8"  :disabled="goodsEdit.isSupplyDisabled('cost_price')"/>
+                                        </el-form-item>
+                                      </div>
+                                    </td>
+                                    <td class="el-table__cell" v-if="goodsEdit.formData.supply_goods_id">
+                                      <div class="cell">
+                                        <el-form-item :prop="key + '.min_price'" class="sku-form-item-wrap">
+                                          <el-input v-model.trim="item.min_price" clearable placeholder="0.00" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('min_price')"/>
+                                        </el-form-item>
+                                      </div>
+                                    </td>
+                                    <td class="el-table__cell" v-if="goodsEdit.formData.supply_goods_id">
+                                      <div class="cell">
+                                        <el-form-item :prop="key + '.max_price'" class="sku-form-item-wrap">
+                                          <el-input v-model.trim="item.max_price" clearable placeholder="0.00" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('max_price')"/>
+                                        </el-form-item>
+                                      </div>
+                                    </td>
+                                    <td class="el-table__cell">
+                                      <div class="cell">
+                                        <el-form-item :prop="key + '.stock'" :rules="goodsEdit.skuStockRules(item)" class="sku-form-item-wrap">
+                                          <!-- :disabled="goodsEdit.isDisabledPrice()" -->
+                                          <el-input v-model.trim="item.stock" clearable placeholder="0" @input="goodsEdit.specStockSum" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('stock')" />
+                                        </el-form-item>
+                                      </div>
+                                    </td>
+                                    <td class="el-table__cell">
+                                      <div class="cell">
+                                        <el-form-item :prop="key + '.weight'" :rules="skuWeightRules()" class="sku-form-item-wrap">
+                                          <el-input v-model.trim="item.weight" clearable placeholder="0.000" maxlength="8"  :disabled="goodsEdit.isSupplyDisabled('weight')"/>
+                                        </el-form-item>
+                                      </div>
+                                    </td>
+                                    <td class="el-table__cell">
+                                      <div class="cell">
+                                        <el-form-item :prop="key + '.volume'" :rules="skuVolumeRules()" class="sku-form-item-wrap">
+                                          <el-input v-model.trim="item.volume" clearable placeholder="0.000" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('volume')" />
+                                        </el-form-item>
+                                      </div>
+                                    </td>
+                                    <td class="el-table__cell">
+                                      <div class="cell">
+                                        <el-input v-model.trim="item.sku_no" clearable maxlength="50" :disabled="goodsEdit.isSupplyDisabled('sku_no')"  />
+                                      </div>
+                                    </td>
+                                    <td class="el-table__cell">
+                                      <div class="cell">
+                                        <el-switch v-model="item.is_default" :active-value="1" :inactive-value="0" @change="goodsEdit.specValueIsDefaultChangeListener($event, key)" :disabled="goodsEdit.isSupplyDisabled('is_default')"  />
+                                      </div>
+                                    </td>
+                                  </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </el-checkbox-group>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <el-form-item :label="t('memberDiscount')">
+              <div>
+                <el-radio-group v-model="goodsEdit.formData.member_discount" :disabled="goodsEdit.isSupplyDisabled('member_discount')">
+                  <el-radio label="">{{ t('nonparticipation') }}</el-radio>
+                  <el-radio label="discount">{{ t('discount') }}</el-radio>
+                  <el-radio label="fixed_price">{{ t('fixedPrice') }}</el-radio>
+                </el-radio-group>
+                <div class="text-[12px] text-[#999] leading-[20px]" v-if="goodsEdit.formData.member_discount == 'discount'">{{t('discountHint')}}</div>
+                <div class="text-[12px] text-[#999] leading-[20px]" v-if="goodsEdit.formData.member_discount == 'fixed_price'">{{t('fixedPriceHint')}}</div>
+              </div>
+            </el-form-item>
+            <el-form-item :label="t('付费会员等级折扣')">
+              <el-radio-group v-model="goodsEdit.formData.vip_card_discount" :disabled="goodsEdit.isSupplyDisabled('vip_card_discount')">
+                <el-radio label="">{{ t('nonparticipation') }}</el-radio>
+                <el-radio label="discount">{{ t('discount') }}</el-radio>
+                <el-radio label="fixed_price">{{ t('fixedPrice') }}</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-form>
+          <el-form :model="goodsEdit.formData" label-width="120px" ref="priceStockCommonFormRef" :rules="goodsEdit.formRules" class="page-form">
+            <el-form-item :label="t('isLimit')">
+              <div>
+                <el-switch v-model="goodsEdit.formData.is_limit" :active-value="1" :inactive-value="0"  :disabled="goodsEdit.isSupplyDisabled('is_limit')"/>
+                <div class="mt-[10px] text-[12px] text-[#999] leading-[20px]">{{ t('isLimitTips') }}</div>
+              </div>
+            </el-form-item>
+            <el-form-item :label="t('limitType')" prop="limit_type" v-if="goodsEdit.formData.is_limit == '1'">
+              <div>
+                <el-radio-group v-model="goodsEdit.formData.limit_type" :disabled="goodsEdit.isSupplyDisabled('limit_type')">
+                  <el-radio :label="1">{{ t('singleTime') }}</el-radio>
+                  <el-radio :label="2">{{ t('singlePerson') }}</el-radio>
+                </el-radio-group>
+                <div class="mt-[10px] text-[12px] text-[#999] leading-[20px]">{{ t('limitTypeTips') }}</div>
+              </div>
+            </el-form-item>
+            <el-form-item :label="t('maxBuy')" prop="max_buy" v-if="goodsEdit.formData.is_limit == '1'">
+              <div>
+                <el-input v-model.trim="goodsEdit.formData.max_buy" clearable :placeholder="t('maxBuyPlaceholder')" class="input-width" maxlength="8" @keyup="filterNumber($event)" :disabled="goodsEdit.isSupplyDisabled('max_buy')">
+                  <template #append>{{ goodsEdit.formData.unit ? goodsEdit.formData.unit : t('defaultUnit') }}</template>
+                </el-input>
+                <div class="mt-[10px] text-[12px] text-[#999] leading-[20px]">{{ t('maxBuyWarnTips') }}</div>
+              </div>
+            </el-form-item>
+            <el-form-item :label="t('minBuy')" prop="min_buy">
+              <div>
+                <el-input v-model.trim="goodsEdit.formData.min_buy" clearable class="input-width" maxlength="8" @keyup="filterNumber($event)" :disabled="goodsEdit.isSupplyDisabled('min_buy')">
+                  <template #append>{{ goodsEdit.formData.unit ? goodsEdit.formData.unit : t('defaultUnit') }}</template>
+                </el-input>
+                <div class="mt-[10px] text-[12px] text-[#999] leading-[20px]">{{ t('minBuyTips') }}</div>
+              </div>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
+        <el-tab-pane :label="t('deliveryTab')" name="delivery">
+          <el-form :model="goodsEdit.formData" label-width="120px" ref="deliveryFormRef" :rules="goodsEdit.formRules" class="page-form">
+            <el-form-item :label="t('deliveryType')" prop="delivery_type">
+              <div>
+                <el-checkbox-group v-model="goodsEdit.formData.delivery_type">
+                  <!--                                    v-show="item.status == '1'"-->
+                  <el-checkbox v-for="(item, index) in deliveryTypeCheckBox" :key="index" :label="item.key" :disabled="goodsEdit.isSupplyDisabled('delivery_type')">{{ item.name }}</el-checkbox>
+                </el-checkbox-group>
+                <div v-if="deliveryTypeFlag" class="text-[12px] text-[#999] leading-[20px]">{{ t('deliveryTypeTips') }}</div>
+                <div v-if="goodsEdit.isSupplyDisabled('is_limit')" class="text-[12px] text-[#999] leading-[20px]">{{ t('挑货商品暂不支持同城配送') }}</div>
+              </div>
+            </el-form-item>
+
+            <el-form-item :label="t('isFreeShipping')" v-show="goodsEdit.formData.delivery_type.indexOf('express') != -1">
+              <el-switch v-model="goodsEdit.formData.is_free_shipping" :active-value="1" :inactive-value="0" :disabled="goodsEdit.isSupplyDisabled('is_free_shipping')" />
+            </el-form-item>
+
+            <el-form-item :label="t('feeType')" prop="fee_type" v-show="goodsEdit.formData.is_free_shipping == 0">
+              <el-radio-group v-model="goodsEdit.formData.fee_type" :disabled="goodsEdit.isSupplyDisabled('fee_type')">
+                <el-radio label="template">{{ t('selectTemplate') }}</el-radio>
+                <el-radio label="fixed">{{ t('fixedShipping') }}</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item :label="t('deliveryMoney')" prop="delivery_money" v-show="goodsEdit.formData.is_free_shipping == 0 && goodsEdit.formData.fee_type == 'fixed'">
+              <el-input v-model="goodsEdit.formData.delivery_money" clearable :placeholder="0.00" class="input-width" maxlength="8" :disabled="goodsEdit.isSupplyDisabled('delivery_money')">
+                <template #append>{{ t('yuan') }}</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item :label="t('deliveryTemplateId')" prop="delivery_template_id" v-show="goodsEdit.formData.is_free_shipping == 0 && goodsEdit.formData.fee_type == 'template'">
+              <div>
+                <div class="flex items-center" v-if="goodsEdit.isSupplyDisabled('delivery_template_id')">
+                  <el-input v-model.trim="goodsEdit.formData.delivery_template_name" clearable :placeholder="t('deliveryTemplateIdPlaceholder')" class="!w-[215px]" show-word-limit disabled="true" />
+                </div>
+                <div class="flex items-center" v-else>
+                  <el-select v-model="goodsEdit.formData.delivery_template_id" :placeholder="t('deliveryTemplateIdPlaceholder')" filterable autocomplete="off" clearable>
+                    <el-option v-for="item in deliveryTemplateOptions" :key="item.template_id" :label="item.template_name" :value="item.template_id" />
+                  </el-select>
+                  <div class="ml-[10px]">
+                    <span class="cursor-pointer text-primary mr-[10px]" @click="refreshDeliveryTemplate">{{ t('refresh') }}</span>
+                    <span class="cursor-pointer text-primary" @click="toDeliveryTemplateEvent">{{ t('addDeliveryTemplateId') }}</span>
+                  </div>
+                </div>
+              </div>
+            </el-form-item>
+          </el-form>
+
+        </el-tab-pane>
+        <el-tab-pane :label="t('goodsArguments')" name="goods_arguments">
+          <el-form :model="goodsEdit.formData" label-width="130px" ref="goodsArgumentsFormRef" :rules="goodsEdit.formRules" class="page-form">
+            <el-form-item :label="t('mallGoodsArgumentsTemp')">
+              <el-select class="mr-[10px]" v-model="goodsEdit.formData.attr_ids" :placeholder="t('goodsArgumentsTempPlaceholder')" clearable multiple @change="goodsEdit.mallAttrChange" @clear="goodsEdit.mallAttrChange()" :disabled="goodsEdit.isSupplyDisabled('attr_ids')">
+                <el-option v-for="item in goodsEdit.mallAttrOptions" :key="item.attr_id" :label="item.attr_name" :value="item.attr_id" />
+              </el-select>
+            </el-form-item>
+            <el-form-item :label="t('shopGoodsArgumentsTemp')">
+              <div>
+                <div class="flex items-center" v-if="goodsEdit.isSupplyDisabled('shop_attr_ids')">
+                  <el-input v-model.trim="goodsEdit.formData.shop_attr_name" clearable :placeholder="t('goodsArgumentsTempPlaceholder')" class="!w-[215px]" show-word-limit disabled="true" />
+                </div>
+                <div class="flex items-center" v-else>
+                  <el-select v-model="goodsEdit.formData.shop_attr_ids" :placeholder="t('goodsArgumentsTempPlaceholder')" clearable multiple @change="goodsEdit.shopAttrChange" @clear="goodsEdit.shopAttrChange()">
+                    <el-option v-for="item in goodsEdit.shopAttrOptions" :key="item.attr_id" :label="item.attr_name" :value="item.attr_id" />
+                  </el-select>
+                </div>
+                <div class="mt-[10px] text-[12px] text-[#999] leading-[20px]">{{t('goodsArgumentsTempHint')}}</div>
+                <div class="relative">
+                  <div class="absolute top-0 left-0 right-0 bottom-0 z-[100] bg-[rgba(221,221,221,0.3)] cursor-not-allowed" v-if="goodsEdit.isSupplyDisabled('shop_attr_ids')"></div>
+                  <table class="attr-table mt-[10px]">
+                    <colgroup>
+                      <col width="30%">
+                      <col width="40%">
+                      <col width="20%">
+                      <col width="10%">
+                    </colgroup>
+                    <thead class="bg-[#f7f7f7]">
+                    <tr>
+                      <th>{{t('argumentsName')}}</th>
+                      <th>{{t('argumentsValue')}}</th>
+                      <th class="prompt-block">
+                        <div class="flex items-center">
+                          <span>{{t('sort')}}</span>
+                          <el-tooltip class="box-item" effect="dark" :content="t('argumentsSortHint')" placement="right">
+                            <span class="iconfont iconwenhao cursor-pointer ml-[3px] mt-[3px] !text-[14px]"></span>
+                          </el-tooltip>
+                        </div>
+                      </th>
+                      <th>{{t('operation')}}</th>
+                    </tr>
+                    </thead>
+                    <tbody class="attr-new">
+                    <template v-if="goodsEdit.attrTableData.length">
+                      <tr class="goods-attr-tr goods-new-attr-tr" v-for="(item,index) in goodsEdit.attrTableData" :key="index">
+                        <td v-if="item.attr_value_id > 0">{{item.attr_value_name}}</td>
+                        <td v-else>
+                          <el-input v-model.trim="item.attr_value_name" maxlength="20" show-word-limit clearable/>
+                        </td>
+                        <td>
+                          <el-input v-if="item.type == 'text'" maxlength="20" show-word-limit v-model.trim="item.select_child_val" clearable/>
+                          <div v-else-if="item.type == 'radio'">
+                            <el-radio-group v-model="item.select_child_name" @change="goodsEdit.attrRadioChange(index,$event)">
+                              <el-radio v-for="(childItem,childIndex) in item.child" :key="childIndex" :label="childItem.id">{{ childItem.name }}</el-radio>
+                            </el-radio-group>
+                          </div>
+                          <div v-else-if="item.type == 'checkbox'">
+                            <el-checkbox-group v-model="item.select_child_name" @change="goodsEdit.attrCheckboxChange(index,$event)">
+                              <el-checkbox v-for="(childItem,childIndex) in item.child" :key="childIndex" :label="childItem.id">{{ childItem.name }}</el-checkbox>
+                            </el-checkbox-group>
+                          </div>
+                        </td>
+                        <td>
+                          <el-input v-model.trim="item.sort" maxlength="6" show-word-limit clearable @keyup="filterNumber($event)"/>
+                        </td>
+                        <td>
+                          <span class="cursor-pointer text-[var(--el-color-primary)]" @click="goodsEdit.delAttr(index)">{{t('delAttr')}}</span>
+                        </td>
+                      </tr>
+                    </template>
+                    <tr v-else>
+                      <td colspan="4" class="text-center">{{t('noData')}}</td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <el-button class="mt-[15px]" :disabled="goodsEdit.isSupplyDisabled('shop_attr_ids')" @click="goodsEdit.addAttr">{{t('addGoodsArguments')}}</el-button>
+              </div>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane :label="t('goodsDesc')" name="detail">
+          <el-form :model="goodsEdit.formData" label-width="120px" ref="detailFormRef" :rules="goodsEdit.formRules" class="page-form">
+            <el-form-item :label="t('goodsDesc')" prop="goods_desc">
+              <div class="absolute top-0 left-0 right-0 bottom-0 z-[100] bg-[rgba(221,221,221,0.3)] cursor-not-allowed" v-if="goodsEdit.isSupplyDisabled('goods_desc')"></div>
+              <div class="flex-1">
+                <editor v-model="goodsEdit.formData.goods_desc" :height="600" @handleBlur="goodsEdit.handleBlur" class="editor-width" />
+              </div>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane :label="t('advancedSetup')" name="diy">
+          <el-form :model="goodsEdit.formData" label-width="120px" class="page-form">
+            <el-form-item :label="t('diyDetailTemplate')">
+              <el-select v-model="goodsEdit.formData.diy_detail_id" :placeholder="t('diyDetailTemplatePlaceholder')" clearable>
+                <el-option v-for="item in goodsEdit.detailTemplateOptions" :key="item.id" :label="item.page_title" :value="item.id" />
+              </el-select>
+              <div class="ml-[10px]">
+                <span class="cursor-pointer text-primary mr-[10px]" @click="goodsEdit.refreshDetailTemplate(true)">{{ t('refresh') }}</span>
+              </div>
+            </el-form-item>
+            <div class="ml-[120px] mb-[10px] text-[12px] -mt-[10px] text-[#999] leading-[20px]">{{t('detailTempTip')}}</div>
+            <el-form-item :label="t('diyForm')">
+              <div>
+                <div class="flex items-center" v-if="goodsEdit.isSupplyDisabled('form_id')">
+                  <el-input v-model.trim="goodsEdit.formData.page_title" clearable :placeholder="t('diyFormPlaceholder')" class="!w-[215px]" show-word-limit disabled="true" />
+                </div>
+                <div class="flex items-center" v-else>
+                  <el-select v-model="goodsEdit.formData.form_id" :placeholder="t('diyFormPlaceholder')" clearable>
+                    <el-option v-for="item in goodsEdit.diyFormOptions" :key="item.form_id" :label="item.page_title" :value="item.form_id" />
+                  </el-select>
+                  <div class="ml-[10px]">
+                    <span class="cursor-pointer text-primary mr-[10px]" @click="goodsEdit.refreshDiyForm(true)">{{ t('refresh') }}</span>
+                    <span class="cursor-pointer text-primary" @click="goodsEdit.toDiyFormEvent">{{ t('addDiyForm') }}</span>
+                  </div>
+                </div>
+              </div>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+      </el-tabs>
+    </el-card>
+    <div class="fixed-footer-wrap">
+      <div class="fixed-footer">
+        <el-button type="primary" @click="save()">{{ t('save') }}</el-button>
+        <el-button @click="goodsEdit.back()">{{ t('back') }}</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { reactive, ref, computed, onMounted } from 'vue'
+import { t } from '@/lang'
+import { FormInstance } from 'element-plus'
+import { Rank, ArrowLeft, CircleCloseFilled } from '@element-plus/icons-vue'
+import { useRoute, useRouter } from 'vue-router'
+import { deepClone, filterNumber, filterDigit } from '@/utils/common'
+import { addGoods, editGoods, getGoodsInit } from '@/app/lang/zh-cn/api/site/goods'
+import { getShopDeliveryList, getShippingTemplateList } from '@/app/api/delivery_site'
+import { useGoodsEdit } from './public/js/useGoodsEdit'
+import { getShopPointConfig } from '@/app/api/basic_site'
+import goodsSelectPopup from '@/addon/mall/views/site/goods/components/goods-select-popup.vue'
+
+const route = useRoute()
+const router = useRouter()
+
+const basicFormRef = ref<FormInstance>()
+const priceStockFormRef = ref<FormInstance>()
+const deliveryFormRef = ref<FormInstance>()
+const goodsArgumentsFormRef = ref<FormInstance>()
+const detailFormRef = ref<FormInstance>()
+const skuFormRef = ref<FormInstance>()
+const priceStockCommonFormRef = ref<FormInstance>()
+
+// 拖拽规格值
+const specValueRef = ref()
+
+// 新增：过滤数字（允许小数点，用于积分抵扣比例）
+// 1. 优化过滤数字+强制范围限制的方法
+const filterNumberWithPercent = (e: KeyboardEvent) => {
+    const input = e.target as HTMLInputElement
+    // 保存原始输入值（关键：不先过滤，先判断输入行为）
+    const originalValue = input.value
+    // 获取按下的键（判断是否按了小数点）
+    const key = e.key
+
+    // 1. 仅允许数字和小数点输入（其他键直接过滤）
+    if (!/^\d$/.test(key) && key !== '.' && key !== 'Backspace' && key !== 'Delete') {
+        e.preventDefault()
+        return
+    }
+
+    // 2. 处理小数点输入逻辑（核心修复）
+    let value = originalValue.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
+    // 如果按的是小数点，且当前值不含小数点 → 强制添加
+    if (key === '.' && !value.includes('.')) {
+        value += '.'
+    }
+    // 如果按的是小数点，且当前值已有小数点 → 不处理（避免重复）
+    else if (key === '.' && value.includes('.')) {
+        e.preventDefault()
+        return
+    }
+
+    // 3. 处理小数精度（最多两位）
+    if (value.includes('.') && !value.endsWith('.')) {
+        const [intPart, decPart] = value.split('.')
+        value = `${intPart}.${decPart.substring(0, 2)}`
+    }
+
+    // 4. 范围限制（0-100，保留小数点）
+    const numVal = Number(value.replace(/\.$/, ''))
+    if (!isNaN(numVal)) {
+        if (numVal < 0) value = '0' + (value.endsWith('.') ? '.' : '')
+        if (numVal > 100) value = '100' + (value.endsWith('.') ? '.' : '')
+    }
+
+    // 5. 强制同步（解决v-model和输入框值不一致）
+    input.value = value
+    goodsEdit.formData.point_deduct_rate = value
+}
+
+// 修复：改为响应式变量，初始值为空
+const pointRatioCache = ref('')
+
+// 修复：在 onMounted 中异步获取数据（符合 Vue 规范）
+onMounted(async () => {
+    try {
+        const SitePointDeductConfig = await getShopPointConfig()
+        // 将获取到的 reduce_rate 赋值到响应式变量中
+        pointRatioCache.value = SitePointDeductConfig.data.deduct_rate || ''
+    } catch (error) {
+        console.error('获取积分抵扣配置失败：', error)
+        pointRatioCache.value = '' // 异常时赋空值，避免页面报错
+    }
+})
+
+const goodsEdit = useGoodsEdit({
+    getFormRef () {
+        return {
+            basicFormRef: basicFormRef.value,
+            priceStockFormRef: priceStockFormRef.value,
+            deliveryFormRef: deliveryFormRef.value,
+            goodsArgumentsFormRef: goodsArgumentsFormRef.value,
+            detailFormRef: detailFormRef.value,
+            skuFormRef: skuFormRef.value,
+            specValueRef: specValueRef.value,
+            priceStockCommonFormRef: priceStockCommonFormRef.value
+        }
+    },
+    addApi: addGoods,
+    editApi: editGoods,
+    formData: {
+        goods_type: 'real',
+        // 新增：积分抵扣比例初始值
+        point_deduct_rate: ''
+    },
+    // 追加表单数据
+    appendFormData: {
+    // 配送设置
+        delivery_type: [],
+        is_free_shipping: 1,
+        fee_type: 'template',
+        delivery_money: '',
+        delivery_template_id: '',
+        // 新增：积分抵扣比例
+        point_deduct_rate: '',
+        point_deduct_type: 'site'
+    },
+    // 追加刷新商品sku数据
+    appendRefreshGoodsSkuData: {
+    // 重量
+        weight: {
+            value: '',
+            regExp: 'special',
+            message: t('weightTips')
+        },
+        // 体积
+        volume: {
+            value: '',
+            regExp: 'special',
+            message: t('volumeTips')
+        }
+    },
+    // 追加单规格数据
+    appendSingleGoodsData (data: any) {
+        return {
+            weight: data.weight,
+            volume: data.volume
+        }
+    },
+    // 表单验证规则
+    getFormRules (formData: any, regExp: any) {
+        return {
+            weight: [
+                {
+                    trigger: 'blur',
+                    validator: (rule: any, value: any, callback: any) => {
+                        if (formData.spec_type == 'single' && value) {
+                            if (isNaN(value) || !regExp.special.test(value)) {
+                                callback(new Error(t('weightTips')))
+                            } else if (value < 0) {
+                                callback(new Error(t('weightNotZeroTips')))
+                            } else {
+                                callback()
+                            }
+                        } else {
+                            callback()
+                        }
+                    }
+                }
+            ],
+            volume: [
+                {
+                    trigger: 'blur',
+                    validator: (rule: any, value: any, callback: any) => {
+                        if (formData.spec_type == 'single' && value) {
+                            if (isNaN(value) || !regExp.special.test(value)) {
+                                callback(new Error(t('volumeTips')))
+                            } else if (value < 0) {
+                                callback(new Error(t('volumeNotZeroTips')))
+                            } else {
+                                callback()
+                            }
+                        } else {
+                            callback()
+                        }
+                    }
+                }
+            ],
+            delivery_type: [
+                { required: true, message: t('deliveryTypePlaceholder'), trigger: 'blur' }
+            ],
+            delivery_money: [
+                {
+                    trigger: 'blur',
+                    validator: (rule: any, value: any, callback: any) => {
+                        if (formData.delivery_type.indexOf('express') != -1 && formData.is_free_shipping == 0 && formData.fee_type == 'fixed') {
+                            if (formData.delivery_template_id.length == 0 && value === '') {
+                                callback(new Error(t('deliveryMoneyPlaceholder')))
+                            } else if (isNaN(value) || !regExp.digit.test(value)) {
+                                callback(new Error(t('deliveryMoneyTips')))
+                            } else if (value < 0) {
+                                callback(new Error(t('deliveryMoneyNotZeroTips')))
+                            } else {
+                                callback()
+                            }
+                        } else {
+                            callback()
+                        }
+                    }
+                }
+            ],
+            delivery_template_id: [
+                {
+                    trigger: 'blur',
+                    validator: (rule: any, value: any, callback: any) => {
+                        if (formData.delivery_type.indexOf('express') != -1 && formData.is_free_shipping == 0 && formData.fee_type == 'template') {
+                            if (formData.delivery_money.length == 0 && value === '') {
+                                callback(new Error(t('deliveryTemplateIdPlaceholder')))
+                            } else {
+                                callback()
+                            }
+                        } else {
+                            callback()
+                        }
+                    }
+                }
+            ],
+            // 新增：积分抵扣比例验证规则
+            point_deduct_rate: [
+                {
+                    trigger: 'blur',
+                    validator: (rule: any, value: any, callback: any) => {
+                        if (formData.point_deduct_type === 'custom') {
+                            if (!value) {
+                                callback(new Error(t('pointDeductRatioRequired') || '请输入积分抵扣比例'))
+                            } else if (isNaN(Number(value))) {
+                                callback(new Error(t('pointDeductRatioNumber') || '积分抵扣比例必须为数字'))
+                            } else if (Number(value) < 0 || Number(value) > 100) {
+                                callback(new Error(t('pointDeductRatioRange') || '积分抵扣比例必须在0-100之间'))
+                            } else {
+                                callback()
+                            }
+                        } else {
+                            callback()
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    // 表单验证
+    getVerify () {
+        return [
+            {
+                key: 'delivery',
+                verify: false,
+                ref: deliveryFormRef.value
+            }
+        ]
+    }
+})
+
+// 时间选择器配置：禁用过去时间、设置时间步长
+const timerPickerOptions = computed(() => ({
+    disabledDate: (time: { getTime: () => number; }) => {
+        return time.getTime() < Date.now() - 8.64e7
+    },
+    selectableRange: '00:00:00 - 23:59:59',
+    timeStep: {
+        hour: 1,
+        minute: 5,
+        second: 10
+    }
+}))
+
+// 配送方式复选框
+const deliveryTypeCheckBox = reactive([])
+
+// 运费模板下拉框
+const deliveryTemplateOptions = reactive([])
+
+// 配送方式
+const deliveryTypeFlag = ref(false)
+getShopDeliveryList().then((res) => {
+    const data = res.data
+    if (data) {
+        deliveryTypeCheckBox.splice(0, deliveryTypeCheckBox.length, ...data)
+    // deliveryTypeFlag.value = deliveryTypeCheckBox.every(el => {
+    // return el.status == '2'
+    // })
+    }
+})
+
+// 跳转到运费模板
+const toDeliveryTemplateEvent = () => {
+    if (goodsEdit.isSupplyDisabled('delivery_template_id')) {
+        return false
+    }
+    const url = router.resolve({
+        path: '/delivery/shipping/template'
+    })
+    window.open(url.href)
+}
+
+// 运费模板
+const refreshDeliveryTemplate = () => {
+    if (goodsEdit.isSupplyDisabled('delivery_template_id')) {
+        return false
+    }
+    const params = ref({
+        support_trade: 'mall',
+        template_id: 0
+    })
+    if (goodsEdit.formData.delivery_template_id) {
+        params.value.template_id = goodsEdit.formData.delivery_template_id
+    }
+    getShippingTemplateList(params.value).then((res) => {
+        const data = res.data
+        if (data) {
+            deliveryTemplateOptions.splice(0, deliveryTemplateOptions.length, ...data)
+        }
+    })
+}
+
+refreshDeliveryTemplate()
+
+const curDisabledArea = ref<any>([]) // 禁用区域
+
+// 加载初始化数据
+getGoodsInit({
+    goods_id: goodsEdit.formData.goods_id
+}).then((res) => {
+    const data = res.data
+    if (data) {
+        curDisabledArea.value = deepClone(data.disable_edit_area)
+
+        goodsEdit.handleGoodsInit(data)
+
+        if (goodsEdit.formData.goods_id && data.goods_info) {
+            // 配送设置
+            goodsEdit.formData.delivery_type = data.goods_info.delivery_type
+            goodsEdit.formData.is_free_shipping = data.goods_info.is_free_shipping
+            goodsEdit.formData.fee_type = data.goods_info.fee_type
+            goodsEdit.formData.delivery_money = data.goods_info.delivery_money
+            goodsEdit.formData.delivery_template_id = data.goods_info.delivery_template_id
+            // 初始化积分抵扣比例
+            goodsEdit.formData.point_deduct_rate = data.goods_info.point_deduct_rate || ''
+            goodsEdit.formData.point_deduct_type = data.goods_info.point_deduct_type || 'site'
+        }
+    }
+})
+
+// 多规格，重量 验证规则
+const skuWeightRules = () => {
+    return [{
+        trigger: 'blur',
+        validator: (rule: any, value: any, callback: any) => {
+            if (goodsEdit.formData.spec_type == 'multi') {
+                if (value.length > 0 && (isNaN(value) || !goodsEdit.regExp.special.test(value))) {
+                    callback(t('weightTips'))
+                } else if (value < 0) {
+                    callback(t('weightNotZeroTips'))
+                } else {
+                    callback()
+                }
+            } else {
+                callback()
+            }
+        }
+    }]
+}
+
+// 多规格，体积 验证规则
+const skuVolumeRules = () => {
+    return [{
+        trigger: 'blur',
+        validator: (rule: any, value: any, callback: any) => {
+            if (goodsEdit.formData.spec_type == 'multi') {
+                if (value.length > 0 && (isNaN(value) || !goodsEdit.regExp.special.test(value))) {
+                    callback(t('volumeTips'))
+                } else if (value < 0) {
+                    callback(t('volumeNotZeroTips'))
+                } else {
+                    callback()
+                }
+            } else {
+                callback()
+            }
+        }
+    }]
+}
+
+const save = () => {
+    goodsEdit.save()
+}
+</script>
+
+<style lang="scss" scoped>
+@import 'public/css/goods_edit.scss';
+</style>
+<style lang="scss">
+.edui-default .edui-editor{
+  z-index: 9 !important;
+}
+.el-cascader__tags.is-validate{
+  right: 30px !important;
+}
+</style>

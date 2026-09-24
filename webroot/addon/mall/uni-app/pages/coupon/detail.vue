@@ -48,7 +48,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { img, redirect, handleOnloadParams, goback } from '@/utils/common'
 import QRCode from "qrcode";
 import { topTabar } from '@/utils/topTabbar'
-import { getMallCouponInfo, getCoupon, getMallCouponQrocde } from '@/addon/mall/api/coupon'
+import { getMallCouponInfo, getCoupon, getMallCouponQrocde } from '@/app/api/marketing'
 import useMemberStore from '@/stores/member'
 import { useLogin } from '@/hooks/useLogin'
 

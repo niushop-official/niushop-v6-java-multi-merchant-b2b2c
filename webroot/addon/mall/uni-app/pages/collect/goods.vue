@@ -18,7 +18,7 @@
                                     <u-swipe-action-item :options="cartOptions" @click="swipeClick(item)">
                                         <view class="flex px-[var(--pad-sidebar-m)]">
                                             <view class="self-center w-[58rpx] h-[60rpx] flex items-center" v-if="isEdit" @click.stop="item.checked = !item.checked">
-                                                <text class=" iconfont text-primary text-[34rpx] w-[34rpx] h-[34rpx] rounded-[17rpx] overflow-hidden shrink-0" :class="{ 'iconxuanze1':item.checked,'bg-[#F5F5F5]':!item.checked}"></text>
+                                                <text class="checked-box iconfont text-primary overflow-hidden flex-shrink-0" :class="{ 'iconxuanze1':item.checked,'bg-color':!item.checked}"></text>
                                             </view>
                                             <view  class="flex flex-1" @click="toLink(item.goods.goods_id)">
                                                 <view class="relative w-[200rpx] h-[200rpx] flex items-center justify-center rounded-[var(--goods-rounded-big)] overflow-hidden">
@@ -72,7 +72,7 @@
             </mescroll-body>
             <view v-if="goodsList.length && isEdit" class="flex h-[96rpx] items-center bg-[#fff] fixed left-0 right-0 bottom-0 pl-[30rpx] pr-[20rpx] box-solid mb-ios justify-between z-100">
                 <view class="flex items-center" @click="selectAll">
-                    <text class="self-center iconfont text-primary text-[34rpx] mr-[10rpx] w-[34rpx] h-[34rpx] rounded-[17rpx] overflow-hidden flex-shrink-0" :class="{'iconxuanze1': goodsList.length == checkedNum, 'bg-color': goodsList.length != checkedNum }"></text>
+                    <text class="self-center iconfont text-primary checked-box mr10 overflow-hidden flex-shrink-0" :class="{'iconxuanze1': goodsList.length == checkedNum, 'bg-color': goodsList.length != checkedNum }"></text>
                     <text class="font-400 text-[#303133] text-[26rpx]">全选</text>
                 </view>
                 <button class="w-[180rpx] h-[70rpx] font-500 text-[26rpx] leading-[70rpx] !text-[#fff] m-0 rounded-full primary-btn-bg remove-border" @click="deleteCollectFn">取消收藏</button>
@@ -203,5 +203,17 @@ const toLink = (id: any) => {
 }
 :deep(.u-swipe-action-item__right__button__wrapper__text){
     font-size:24rpx !important;
+}
+.checked-box{
+    font-size:34rpx;
+    width:34rpx;
+    height:34rpx;
+    border-radius:17rpx;
+    &.bg-color{
+        background-color: #f5f5f5;
+    }
+}
+.mr10 {
+    margin-right: 10rpx;
 }
 </style>

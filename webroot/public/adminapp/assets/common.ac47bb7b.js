@@ -1,0 +1,1 @@
+import{f as t,h as e}from"./index.3a41df98.js";function r(){return{getStatItemList:()=>t().then((t=>{let e={};return t.data.forEach(((t,r)=>{e[t.key]=t})),e})),getTodoItemList:()=>e().then((t=>{let e={};return t.data.forEach(((t,r)=>{e[t.key]=t})),e}))}}export{r as u};

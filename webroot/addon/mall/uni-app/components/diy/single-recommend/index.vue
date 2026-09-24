@@ -58,7 +58,8 @@
                                 <text class="text-[40rpx] font-500">{{ parseFloat(diyGoods.goodsPrice(goodsList[0])).toFixed(2).split('.')[0] }}</text>
                                 <text class="text-[24rpx] font-500">.{{ parseFloat(diyGoods.goodsPrice(goodsList[0])).toFixed(2).split('.')[1] }}</text>
                             </view>
-                            <image v-if="diyGoods.priceType(goodsList[0]) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
+                            <image v-if="diyGoods.priceType(goodsList[0]) == 'svip_price'" class="max-w-[64rpx] h-[22rpx] ml-[6rpx]" :src="img('addon/mall/SVIP.png')" mode="heightFix" />
+                            <image v-else-if="diyGoods.priceType(goodsList[0]) == 'member_price'" class="max-w-[50rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/VIP.png')" mode="heightFix" />
 							<image v-else-if="diyGoods.priceType(goodsList[0]) == 'discount_price'" class="max-w-[80rpx] h-[28rpx] ml-[6rpx]" :src="img('addon/mall/discount.png')" mode="heightFix" />	
                         </view>
                         <view class="w-[44rpx] h-[44rpx] bg-[red] flex items-center justify-center rounded-[50%]" :style="{ backgroundColor : diyComponent.saleStyle.color }">

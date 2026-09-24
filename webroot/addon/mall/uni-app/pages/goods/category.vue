@@ -9,6 +9,7 @@
 			<category-template-two-two class="category" v-if="config.level===2&&config.template === 'style-2'" :categoryId="categoryId" :config="config" />
 			<category-template-three-one v-if="config.level===3&&config.template === 'style-1'" :categoryId="categoryId" :config="config" />
 		</view>
+		<tabbar addon="mall"/>
 	</view>
 </template>
 <script setup lang="ts">

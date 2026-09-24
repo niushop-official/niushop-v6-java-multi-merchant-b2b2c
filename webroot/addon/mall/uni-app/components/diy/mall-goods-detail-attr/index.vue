@@ -11,7 +11,7 @@
                 </template>
                 <view v-if="diyComponent.goods.attr_format.length > 4" class="flex-center" @click="isAttrFormatShow = !isAttrFormatShow">
                     <text class="text-[24rpx] mr-[10rpx]">{{ !isAttrFormatShow ? '展开' : '收起' }}</text>
-                    <text class="nc-iconfont !text-[22rpx]" :class="{'nc-icon-xiaV6xx': !isAttrFormatShow, 'nc-icon-shangV6xx-1': isAttrFormatShow}"></text>
+                    <text class="nc-iconfont icon-wrap" :class="{'nc-icon-xiaV6xx': !isAttrFormatShow, 'nc-icon-shangV6xx-1': isAttrFormatShow}"></text>
                 </view>
             </view>
         </view>
@@ -106,5 +106,8 @@ onMounted(() => {
 }
 .goods-sku .value-wid {
     width: calc(100% - 160rpx);
+}
+.icon-wrap{
+    font-size: 22rpx !important;
 }
 </style>
