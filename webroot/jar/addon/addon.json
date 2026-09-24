@@ -1,7 +1,2 @@
 [
-    {
-        "name": "mall",
-        "jar": "mall.jar",
-        "mainClass": "com.niu.mall.WebApplication"
-    }
 ]
