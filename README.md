@@ -1,4 +1,4 @@
-# NIUSHOP V6 JAVA多商户B2B2C开源版
+# NIUSHOP V6 JAVA多商户B2B2C开源版 
 
 ###  ![输入图片说明](https://media.niucloud.com/17640347203cb0271ff44c70f0f1bb11513fd16aa9_aliyun.jpg)   
 <br>
