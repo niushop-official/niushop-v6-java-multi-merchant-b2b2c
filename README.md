@@ -193,7 +193,7 @@ niucloud-admin-java
 https://www.niucloud.com
 
 ### 技术交流群(加客服拉您入群)
-![输入图片说明](https://media.niucloud.com/170312377249fc5bc70c5f914fda3d7c5cf3413ddc_aliyun.jpg)
+![输入图片说明](https://doc.press.niucloud.com/assets/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E4%BA%8C%E7%BB%B4%E7%A0%81.2X1GoZf1.jpg)
 
 ### 开源使用须知
 
