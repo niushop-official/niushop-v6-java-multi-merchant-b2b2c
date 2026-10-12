@@ -1,9 +1,9 @@
 # NIUSHOP V6 JAVA多商户B2B2C开源版 
 
-###  ![输入图片说明](https://media.niucloud.com/17640347203cb0271ff44c70f0f1bb11513fd16aa9_aliyun.jpg)   
+###  ![输入图片说明](https://doc.press.niucloud.com/assets/%E4%BB%8B%E7%BB%8D.DPNGEkNP.png)   
 <br>
 
-:fa-quote-left:  如果对您有帮助，您可以点右上角 ⭐“Star” 收藏一下 ，获取第一时间更新，谢谢！ :fa-quote-right: 
+如果对您有帮助，您可以点右上角 ⭐“Star” 收藏一下 ，获取第一时间更新，谢谢！
 ### 技术架构
 
   **SpringBoot3.0+MyBatisPlus+Sa-Token**   
@@ -22,25 +22,25 @@
 ### NIUSHOP V6 JAVA多商户商城界面截图  :point_right:   SHOP
 
  **平台管理端** 
-![](https://media.niucloud.com/1764036666ad60b177e99cf33336efc730e2d32772_aliyun.jpg)
+![](https://doc.press.niucloud.com/assets/%E5%A4%9A%E5%95%86%E6%88%B7%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A2%E6%88%AA%E5%9B%BE.86JY_5a5.png)
  **店铺管理端** 
-![](https://media.niucloud.com/1764037136f71cd212717f2d856c40c106bc8a512a_aliyun.png)
+![](https://doc.press.niucloud.com/assets/%E5%A4%9A%E5%95%86%E6%88%B7%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A2%E6%88%AA%E5%9B%BE1.SPinFA5U.png)
 
  **前端H5** 
 <table>
     <tbody>
     <tr>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop3.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop7.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop9.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop11.jpg"></td>
+        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A27.Bll5k5Oi.jpg"></td>
+        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A28.CWYJfJc4.jpg"></td>
+        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A24.BL9nyNIW.jpg"></td>
+        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A26.D_LsTXAd.jpg"></td>
     </tr>
     <tr>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop6.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop10.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop12.jpg"></td>
-        <td><img src="https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas_shop13.jpg"></td>
-    </tr>	 
+        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A21.DG4KeG7m.jpg"></td>
+        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A22.DUOosIBy.jpg"></td>
+        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A23.DqUGqBi6.jpg"></td>
+        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A25.kD9xOpcL.jpg"></td>
+    </tr>
 </tbody></table>
 
 
@@ -78,8 +78,7 @@ niucloud-admin框架，目前已经实现有JAVA, PHP两大版本功能实现。
 ### 插件化，完全为开发者二次开发而生
 niucloud-admin-java框架采用插件化模式设计，可以做到多种插件共存，组合使用。一切皆为插件（应用）！比如您有一个项目是旅游的项目，这个项目的要求是，既有商城的功能，又有旅游项目的销售，还需要进行会员的管理，甚至于还要客服系统。传统的实现方式是，找多个源码，东拼西凑，二次开发，或者部署多套独立的系统，配合起来。而今天，使用niucloud-admin-java，可以通过组装的方式，在一套体系中实现，随着发展，会有越来越多的各行各业的插件和应用上架。您对于项目的定制，可能只需要简单组装，装修页面，就可以最终实现功能交付。
 <br>
-![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj1.png)
-![输入图片说明](https://media.niucloud.com/1724314998d5372ae6ddd97e604ec8ba1bef7acce8_aliyun.png)
+
 
 ### 首创强大的一键云安装，云编译，云发布,升级引擎
 
@@ -189,14 +188,6 @@ niucloud-admin-java
 | MySQL | 8.0 / 5.7 | 数据库    |
 
 
-
-### NIUCLOUD JAVA SAAS多租户框架界面截图
-![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj2.png)
-![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj3.png)
-![](https://niucloud-bucket.oss-cn-beijing.aliyuncs.com/gitee_saas/saas/saas_kj4.png)
-
-
-niucloud-Admin-Java 程序员二开神器！
 
 ### 官网地址
 https://www.niucloud.com
