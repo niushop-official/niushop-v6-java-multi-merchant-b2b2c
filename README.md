@@ -1,6 +1,6 @@
 # NIUSHOP V6 JAVA多商户B2B2C开源版 
 
-###  ![输入图片说明](https://doc.press.niucloud.com/assets/%E4%BB%8B%E7%BB%8D.DPNGEkNP.png)   
+###  ![输入图片说明](webroot/resource/static/resource/images/logo3.png)   
 <br>
 
 如果对您有帮助，您可以点右上角 ⭐“Star” 收藏一下 ，获取第一时间更新，谢谢！
@@ -22,27 +22,13 @@
 ### NIUSHOP V6 JAVA多商户商城界面截图  :point_right:   SHOP
 
  **平台管理端** 
-![](https://doc.press.niucloud.com/assets/%E5%A4%9A%E5%95%86%E6%88%B7%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A2%E6%88%AA%E5%9B%BE.86JY_5a5.png)
+![](webroot/resource/static/resource/images/admin1.png)
  **店铺管理端** 
-![](https://doc.press.niucloud.com/assets/%E5%A4%9A%E5%95%86%E6%88%B7%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A2%E6%88%AA%E5%9B%BE1.SPinFA5U.png)
+![](webroot/resource/static/resource/images/site1.png)
 
  **前端H5** 
-<table>
-    <tbody>
-    <tr>
-        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A27.Bll5k5Oi.jpg"></td>
-        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A28.CWYJfJc4.jpg"></td>
-        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A24.BL9nyNIW.jpg"></td>
-        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A26.D_LsTXAd.jpg"></td>
-    </tr>
-    <tr>
-        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A21.DG4KeG7m.jpg"></td>
-        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A22.DUOosIBy.jpg"></td>
-        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A23.DqUGqBi6.jpg"></td>
-        <td><img src="https://doc.press.niucloud.com/assets/%E5%95%86%E5%9F%8E%E7%95%8C%E9%9D%A25.kD9xOpcL.jpg"></td>
-    </tr>
-</tbody></table>
-
+![](webroot/resource/static/resource/images/java-shop1.jpg).
+![](webroot/resource/static/resource/images/java-shop2.jpg)
 
 ### 技术框架介绍
 
@@ -62,7 +48,7 @@ niucloud-Admin-Java（niucloud框架）是一款快速开发SaaS通用管理系�
  店铺端: https://b2b2c.java.niucloud.com/site/login      账号：shop   密码：123456   <br>
  PC端：https://b2b2c.java.niucloud.com  <br>
  手机网页：https://b2b2c.java.niucloud.com/wap  <br>
- 文档地址：https://doc.niucloud.com/b2b2cJava  <br>
+ 文档地址：https://doc.press.niucloud.com  <br>
  云应用市场：https://www.niucloud.com/app   <br>
 
 
@@ -193,7 +179,7 @@ niucloud-admin-java
 https://www.niucloud.com
 
 ### 技术交流群(加客服拉您入群)
-![输入图片说明](https://doc.press.niucloud.com/assets/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E4%BA%8C%E7%BB%B4%E7%A0%81.2X1GoZf1.jpg)
+![输入图片说明](webroot/resource/static/resource/images/weixin1.png)
 
 ### 开源使用须知
 
