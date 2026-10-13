@@ -22,7 +22,7 @@
 ### NIUSHOP V6 JAVA多商户商城界面截图  :point_right:   SHOP
 
 
- **前端H5** 
+ 
  <br>
 ![](webroot/resource/static/resource/images/java-shop1.jpg).
 ![](webroot/resource/static/resource/images/java-shop2.jpg)
