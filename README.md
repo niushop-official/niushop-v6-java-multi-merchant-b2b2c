@@ -21,12 +21,9 @@
 
 ### NIUSHOP V6 JAVA多商户商城界面截图  :point_right:   SHOP
 
- **平台管理端** 
-![](webroot/resource/static/resource/images/admin1.png)
- **店铺管理端** 
-![](webroot/resource/static/resource/images/site1.png)
 
  **前端H5** 
+ <br>
 ![](webroot/resource/static/resource/images/java-shop1.jpg).
 ![](webroot/resource/static/resource/images/java-shop2.jpg)
 
