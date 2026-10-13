@@ -22,10 +22,9 @@
 ### NIUSHOP V6 JAVA多商户商城界面截图  :point_right:   SHOP
 
 
- 
- <br>
-![](webroot/resource/static/resource/images/java-shop1.jpg).
-![](webroot/resource/static/resource/images/java-shop2.jpg)
+ ###  ![输入图片说明](webroot/resource/static/resource/images/java-shop1.jpg)  
+ ###  ![输入图片说明](webroot/resource/static/resource/images/java-shop2.jpg)  
+
 
 ### 技术框架介绍
 
